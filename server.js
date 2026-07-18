@@ -15,11 +15,15 @@ loadEnvFile(path.join(__dirname, "..", ".env"));
 
 const PORT = Number(process.env.PORT || 4321);
 const PUBLIC_DIR = path.join(__dirname, "public");
-const CAMBRIDGE15_DIR = process.env.CAMBRIDGE15_DIR || "C:\\Users\\10604\\Desktop\\ap物理真题训练\\剑15";
+const DEFAULT_CAMBRIDGE15_DIR = process.platform === "win32"
+  ? "C:\\Users\\10604\\Desktop\\ap物理真题训练\\剑15"
+  : path.join(__dirname, "data", "cambridge15");
+const CAMBRIDGE15_DIR = process.env.CAMBRIDGE15_DIR || DEFAULT_CAMBRIDGE15_DIR;
 const CAMBRIDGE15_AUDIO_DIR = path.join(CAMBRIDGE15_DIR, "音频");
 const CAMBRIDGE15_PDF = path.join(CAMBRIDGE15_DIR, "剑15.pdf");
 const QUESTION_BANK_PATH = path.join(__dirname, "data", "cambridge15-bank.json");
 const CAMBRIDGE_LOCAL_BANK_PATH = path.join(__dirname, "data", "cambridge-local-bank.json");
+const SPEAKING_BANK_PATH = path.join(__dirname, "data", "speaking-bank.json");
 const MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
 const OPENAI_BASE_URL = (process.env.OPENAI_BASE_URL || process.env.UUAPI_BASE_URL || "https://api.openai.com/v1").replace(/\/+$/, "");
@@ -259,7 +263,7 @@ const readingTests = [
 ];
 readingTests.push(...IMPORTED_BANKS.flatMap((bank) => bank.readingTests || []));
 
-const speakingSets = [
+const fallbackSpeakingSets = [
   {
     id: "s-2026-architecture",
     module: "speaking",
@@ -510,7 +514,7 @@ function tasksPayload() {
     writingTasks: realWritingTasks().map(slimWritingTask),
     listeningTests: realListeningTests().map(slimListeningTest),
     readingTests: realReadingTests().map(slimReadingTest),
-    speakingSets,
+    speakingSets: getSpeakingSets(),
     officialSources,
   };
 }
@@ -541,6 +545,13 @@ function loadQuestionBank(filePath) {
     console.warn(`Failed to load question bank ${filePath}: ${error.message}`);
     return {};
   }
+}
+
+function getSpeakingSets() {
+  const bank = loadQuestionBank(SPEAKING_BANK_PATH);
+  return Array.isArray(bank.speakingSets) && bank.speakingSets.length
+    ? bank.speakingSets
+    : fallbackSpeakingSets;
 }
 
 function sendJson(res, status, value) {
@@ -1199,6 +1210,7 @@ function fullExamSystemPrompt() {
 }
 
 function localNextSpeakingQuestion(set, history = [], part = "part1") {
+  const speakingSets = getSpeakingSets();
   const selected = speakingSets.find((item) => item.title === set || item.id === set) || speakingSets[0];
   const askedCount = history.filter((item) => item.role === "examiner").length;
   if (part === "part2") {

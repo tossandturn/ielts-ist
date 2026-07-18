@@ -1,3 +1,8 @@
+# Deployment overview
+
+- For the Ubuntu public MVP, use [deploy/ubuntu/README.md](ubuntu/README.md).
+- For the current Windows local/public bridge, use the LuYouXia notes below.
+
 # IELTS-ist public access with LuYouXia
 
 This machine runs the Node app on `127.0.0.1:4321`. Because the machine has no public IP, LuYouXia must stay online and forward the custom domain to that local port.

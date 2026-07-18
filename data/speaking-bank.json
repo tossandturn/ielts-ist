@@ -1,0 +1,474 @@
+{
+  "generatedAt": "2026-07-18T15:58:53.318Z",
+  "sourcePolicy": "Only OCR speaking tests that passed the strict stability gate are included. Missing, incomplete, or noisy pages are skipped.",
+  "speakingSets": [
+    {
+      "id": "cam17-s-test1",
+      "module": "speaking",
+      "title": "Neighbourhood you lived in",
+      "source": "Cambridge IELTS 17 OCR",
+      "period": "Cambridge 17",
+      "book": 17,
+      "test": 1,
+      "page": 30,
+      "part1Topic": "History",
+      "part1": [
+        "What did you study in history lessons when you were at school?",
+        "Did you enjoy studying history at school? [Why/Why not?]",
+        "How often do you watch TV programmes about history now? [Why/Why not?]",
+        "What period in history would you like to learn more about? [Why?]"
+      ],
+      "part2": "Describe the neighbourhood you lived in\nwhen you were a child.\nYou should say:\nwhere in your town/city the neighbourhood was\nwhat kind of people lived there\nwhat it was like to live in this neighbourhood\nand explain whether you would like to live in this neighbourhood in the future.",
+      "part3Topics": [],
+      "part3": [
+        "What sort of things can neighbours do to help each other?",
+        "How well do people generally know their neighbours in your country?",
+        "How important do you think it is to have good neighbours?",
+        "Which facilities are most important to people living in cities?",
+        "How does shopping in small local shops differ from shopping in large city centre shops?",
+        "Do you think that children should always go to the school nearest to where they live?"
+      ]
+    },
+    {
+      "id": "cam17-s-test2",
+      "module": "speaking",
+      "title": "Big city you would like to visit",
+      "source": "Cambridge IELTS 17 OCR",
+      "period": "Cambridge 17",
+      "book": 17,
+      "test": 2,
+      "page": 52,
+      "part1Topic": "Reading",
+      "part1": [
+        "Did you have a favourite book when you were a child? [Why/Why not?]",
+        "How much reading do you do for your work/studies? [Why/Why not?]",
+        "What kinds of books do you read for pleasure? [Why/Why not?]",
+        "Do you prefer to read a newspaper or a magazine online, or to buy a copy? [Why?]"
+      ],
+      "part2": "Describe a big city you would like to visit.\nYou should say:\nwhich big city you would like to visit\nhow you would travel there\nwhat you would do there\nand explain\nwhy you would like to visit this big city.",
+      "part3Topics": [],
+      "part3": [
+        "What are the most interesting things to do while visiting cities on holiday?",
+        "Why can it be expensive to visit cities on holiday?",
+        "Do you think it is better to visit cities alone or in a group with friends?",
+        "Why have cities increased in size in recent years?",
+        "What are the challenges created by ever-growing cities?",
+        "In what ways do you think cities of the future will be different to cities today?"
+      ]
+    },
+    {
+      "id": "cam17-s-test3",
+      "module": "speaking",
+      "title": "Monument",
+      "source": "Cambridge IELTS 17 OCR",
+      "period": "Cambridge 17",
+      "book": 17,
+      "test": 3,
+      "page": 74,
+      "part1Topic": "Drinks",
+      "part1": [
+        "What do you like to drink with your dinner? [Why?]",
+        "Do you drink a lot of water every day? [Why/Why not?]",
+        "Do you prefer drinking tea or coffee? [Why?]",
+        "If people visit you in your home, what do you usually offer them to drink? [Why/Why not?]"
+      ],
+      "part2": "Describe a monument (e.g., a statue or sculpture) that you like.\nYou should say:\nwhat this monument is\nwhere this monument is\nwhat it looks like\nand explain\nwhy you like this monument.",
+      "part3Topics": [],
+      "part3": [
+        "What kinds of monuments do tourists in your country enjoy visiting?",
+        "Why do you think there are often statues of famous people in public places?",
+        "Do you agree that old monuments and buildings should always be preserved?",
+        "Why is architecture such a popular university subject?",
+        "In what ways has the design of homes changed in recent years?",
+        "To what extent does the design of buildings affect people's moods?"
+      ]
+    }
+  ],
+  "skipped": [
+    {
+      "book": 4,
+      "test": 1,
+      "page": null,
+      "file": "data\\extracted-text\\cam4.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 5,
+      "test": 1,
+      "page": null,
+      "file": "data\\extracted-text\\cam5.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 5,
+      "test": 2,
+      "page": null,
+      "file": "data\\extracted-text\\cam5.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 5,
+      "test": 4,
+      "page": null,
+      "file": "data\\extracted-text\\cam5.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 6,
+      "test": 1,
+      "page": null,
+      "file": "data\\extracted-text\\cam6.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 6,
+      "test": 2,
+      "page": null,
+      "file": "data\\extracted-text\\cam6.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 6,
+      "test": 4,
+      "page": null,
+      "file": "data\\extracted-text\\cam6.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 7,
+      "test": 1,
+      "page": null,
+      "file": "data\\extracted-text\\cam7.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 7,
+      "test": 1,
+      "page": null,
+      "file": "data\\extracted-text\\cam7.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 7,
+      "test": 3,
+      "page": null,
+      "file": "data\\extracted-text\\cam7.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 10,
+      "test": 1,
+      "page": null,
+      "file": "data\\extracted-text\\cam10.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 8,
+      "test": 1,
+      "page": 31,
+      "file": "data\\ocr-reading-writing\\cam8-test1-reading-writing.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 8,
+      "test": 2,
+      "page": 54,
+      "file": "data\\ocr-reading-writing\\cam8-test2-reading-writing.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 8,
+      "test": 3,
+      "page": 79,
+      "file": "data\\ocr-reading-writing\\cam8-test3-reading-writing.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 9,
+      "test": 1,
+      "page": 24,
+      "file": "data\\ocr-reading-writing\\cam9-test1-reading-writing.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 9,
+      "test": 2,
+      "page": 47,
+      "file": "data\\ocr-reading-writing\\cam9-test2-reading-writing.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 9,
+      "test": 3,
+      "page": 70,
+      "file": "data\\ocr-reading-writing\\cam9-test3-reading-writing.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 11,
+      "test": 4,
+      "page": 101,
+      "file": "data\\ocr-reading-writing\\cam11-test4-reading-writing.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 13,
+      "test": 1,
+      "page": 32,
+      "file": "data\\ocr-reading-writing\\cam13-test1-reading-writing.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 13,
+      "test": 2,
+      "page": 54,
+      "file": "data\\ocr-reading-writing\\cam13-test2-reading-writing.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 13,
+      "test": 3,
+      "page": 76,
+      "file": "data\\ocr-reading-writing\\cam13-test3-reading-writing.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 14,
+      "test": 1,
+      "page": 31,
+      "file": "data\\ocr-reading-writing\\cam14-test1-reading-writing.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 14,
+      "test": 2,
+      "page": 52,
+      "file": "data\\ocr-reading-writing\\cam14-test2-reading-writing.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 14,
+      "test": 3,
+      "page": 74,
+      "file": "data\\ocr-reading-writing\\cam14-test3-reading-writing.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 14,
+      "test": 4,
+      "page": 96,
+      "file": "data\\ocr-reading-writing\\cam14-test4-reading-writing.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 15,
+      "test": 1,
+      "page": 32,
+      "file": "data\\ocr-reading-writing\\cam15-test1-reading-writing.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 15,
+      "test": 2,
+      "page": 53,
+      "file": "data\\ocr-reading-writing\\cam15-test2-reading-writing.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 15,
+      "test": 4,
+      "page": 97,
+      "file": "data\\ocr-reading-writing\\cam15-test4-reading-writing.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 12,
+      "test": 5,
+      "page": 29,
+      "file": "data\\ocr-reading-writing\\cam12-test5-reading-writing.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 12,
+      "test": 8,
+      "page": 94,
+      "file": "data\\ocr-reading-writing\\cam12-test8-reading-writing.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 16,
+      "test": 1,
+      "page": 31,
+      "file": "data\\ocr-cambridge-16-21\\cam16-pages.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 16,
+      "test": 2,
+      "page": 54,
+      "file": "data\\ocr-cambridge-16-21\\cam16-pages.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 16,
+      "test": 3,
+      "page": 97,
+      "file": "data\\ocr-cambridge-16-21\\cam16-pages.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 17,
+      "test": 1,
+      "page": 6,
+      "file": "data\\extracted-text\\cam17-pages.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 17,
+      "test": 5,
+      "page": 95,
+      "file": "data\\extracted-text\\cam17-pages.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 18,
+      "test": 1,
+      "page": 33,
+      "file": "data\\ocr-cambridge-16-21\\cam18-pages.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 18,
+      "test": 3,
+      "page": 100,
+      "file": "data\\ocr-cambridge-16-21\\cam18-pages.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 19,
+      "test": 1,
+      "page": 34,
+      "file": "data\\ocr-cambridge-16-21\\cam19-pages.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 19,
+      "test": 2,
+      "page": 56,
+      "file": "data\\ocr-cambridge-16-21\\cam19-pages.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 19,
+      "test": 3,
+      "page": 79,
+      "file": "data\\ocr-cambridge-16-21\\cam19-pages.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 19,
+      "test": 4,
+      "page": 100,
+      "file": "data\\ocr-cambridge-16-21\\cam19-pages.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 20,
+      "test": 1,
+      "page": 33,
+      "file": "data\\ocr-cambridge-16-21\\cam20-pages.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 20,
+      "test": 2,
+      "page": 54,
+      "file": "data\\ocr-cambridge-16-21\\cam20-pages.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 20,
+      "test": 3,
+      "page": 76,
+      "file": "data\\ocr-cambridge-16-21\\cam20-pages.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 20,
+      "test": 4,
+      "page": 98,
+      "file": "data\\ocr-cambridge-16-21\\cam20-pages.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 21,
+      "test": 2,
+      "page": 54,
+      "file": "data\\ocr-cambridge-16-21\\cam21-pages.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 21,
+      "test": 3,
+      "page": 75,
+      "file": "data\\ocr-cambridge-16-21\\cam21-pages.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 21,
+      "test": 4,
+      "page": 97,
+      "file": "data\\ocr-cambridge-16-21\\cam21-pages.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 8,
+      "test": 4,
+      "page": 102,
+      "file": "Cambridge IELTS 8 OCR",
+      "reason": "filtered out by strict OCR stability gate"
+    },
+    {
+      "book": 11,
+      "test": 3,
+      "page": 78,
+      "file": "Cambridge IELTS 11 OCR",
+      "reason": "filtered out by strict OCR stability gate"
+    },
+    {
+      "book": 12,
+      "test": 6,
+      "page": 52,
+      "file": "Cambridge IELTS 12 OCR",
+      "reason": "filtered out by strict OCR stability gate"
+    },
+    {
+      "book": 12,
+      "test": 7,
+      "page": 73,
+      "file": "Cambridge IELTS 12 OCR",
+      "reason": "filtered out by strict OCR stability gate"
+    },
+    {
+      "book": 15,
+      "test": 3,
+      "page": 75,
+      "file": "Cambridge IELTS 15 OCR",
+      "reason": "filtered out by strict OCR stability gate"
+    },
+    {
+      "book": 18,
+      "test": 2,
+      "page": 56,
+      "file": "Cambridge IELTS 18 OCR",
+      "reason": "filtered out by strict OCR stability gate"
+    },
+    {
+      "book": 21,
+      "test": 1,
+      "page": 32,
+      "file": "Cambridge IELTS 21 OCR",
+      "reason": "filtered out by strict OCR stability gate"
+    }
+  ]
+}
