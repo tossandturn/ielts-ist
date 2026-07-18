@@ -599,7 +599,7 @@ function readBody(req) {
         reject(new Error("Request body is too large."));
       }
     });
-    req.on("end", () => resolve(body));
+    req.on("end", () => resolve(body.replace(/^\uFEFF/, "")));
     req.on("error", reject);
   });
 }
