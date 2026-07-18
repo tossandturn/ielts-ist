@@ -1,0 +1,2212 @@
+{
+  "listeningTests": [
+    {
+      "id": "cam15-l-test1",
+      "module": "listening",
+      "title": "Cambridge IELTS 15 Academic - Test 1 Listening",
+      "source": "Cambridge IELTS 15 local import",
+      "period": "Cambridge 15",
+      "minutes": 30,
+      "audioUrls": [
+        "/cambridge15/audio/IELTS15_test1_audio1.mp3",
+        "/cambridge15/audio/IELTS15_test1_audio2.mp3",
+        "/cambridge15/audio/IELTS15_test1_audio3.mp3",
+        "/cambridge15/audio/IELTS15_test1_audio4.mp3"
+      ],
+      "sourceUrl": "/cambridge15/pdf",
+      "transcript": "Full listening question paper was OCR'd from the local PDF. Use the audio sections above and answer Questions 1-40.",
+      "questions": [
+        {
+          "id": "q1",
+          "text": "Question 1",
+          "answer": "Jamieson"
+        },
+        {
+          "id": "q2",
+          "text": "Question 2",
+          "answer": "afternoon"
+        },
+        {
+          "id": "q3",
+          "text": "Question 3",
+          "answer": "communication"
+        },
+        {
+          "id": "q4",
+          "text": "Question 4",
+          "answer": "week"
+        },
+        {
+          "id": "q5",
+          "text": "Question 5",
+          "answer": "10 pounds"
+        },
+        {
+          "id": "q6",
+          "text": "Question 6",
+          "answer": "suit"
+        },
+        {
+          "id": "q7",
+          "text": "Question 7",
+          "answer": "passport"
+        },
+        {
+          "id": "q8",
+          "text": "Question 8",
+          "answer": "personality"
+        },
+        {
+          "id": "q9",
+          "text": "Question 9",
+          "answer": "feedback"
+        },
+        {
+          "id": "q10",
+          "text": "Question 10",
+          "answer": "time"
+        },
+        {
+          "id": "q11",
+          "text": "Question 11",
+          "answer": "A"
+        },
+        {
+          "id": "q12",
+          "text": "Question 12",
+          "answer": "B"
+        },
+        {
+          "id": "q13",
+          "text": "Question 13",
+          "answer": "A"
+        },
+        {
+          "id": "q14",
+          "text": "Question 14",
+          "answer": "C"
+        },
+        {
+          "id": "q15",
+          "text": "Question 15",
+          "answer": "river"
+        },
+        {
+          "id": "q16",
+          "text": "Question 16",
+          "answer": "1422"
+        },
+        {
+          "id": "q17",
+          "text": "Question 17",
+          "answer": "top"
+        },
+        {
+          "id": "q18",
+          "text": "Question 18",
+          "answer": "pass"
+        },
+        {
+          "id": "q19",
+          "text": "Question 19",
+          "answer": "steam"
+        },
+        {
+          "id": "q20",
+          "text": "Question 20",
+          "answer": "castle"
+        },
+        {
+          "id": "q21",
+          "text": "Question 21",
+          "answer": "G"
+        },
+        {
+          "id": "q22",
+          "text": "Question 22",
+          "answer": "F"
+        },
+        {
+          "id": "q23",
+          "text": "Question 23",
+          "answer": "A"
+        },
+        {
+          "id": "q24",
+          "text": "Question 24",
+          "answer": "E"
+        },
+        {
+          "id": "q25",
+          "text": "Question 25",
+          "answer": "B"
+        },
+        {
+          "id": "q26",
+          "text": "Question 26",
+          "answer": "C"
+        },
+        {
+          "id": "q27",
+          "text": "Question 27",
+          "answer": "C"
+        },
+        {
+          "id": "q28",
+          "text": "Question 28",
+          "answer": "A"
+        },
+        {
+          "id": "q29",
+          "text": "Question 29",
+          "answer": "B"
+        },
+        {
+          "id": "q30",
+          "text": "Question 30",
+          "answer": "D"
+        },
+        {
+          "id": "q31",
+          "text": "Question 31",
+          "answer": "shelter"
+        },
+        {
+          "id": "q32",
+          "text": "Question 32",
+          "answer": "oil"
+        },
+        {
+          "id": "q33",
+          "text": "Question 33",
+          "answer": "roads"
+        },
+        {
+          "id": "q34",
+          "text": "Question 34",
+          "answer": "insects"
+        },
+        {
+          "id": "q35",
+          "text": "Question 35",
+          "answer": "grass"
+        },
+        {
+          "id": "q36",
+          "text": "Question 36",
+          "answer": "water"
+        },
+        {
+          "id": "q37",
+          "text": "Question 37",
+          "answer": "soil"
+        },
+        {
+          "id": "q38",
+          "text": "Question 38",
+          "answer": "dry"
+        },
+        {
+          "id": "q39",
+          "text": "Question 39",
+          "answer": "simple"
+        },
+        {
+          "id": "q40",
+          "text": "Question 40",
+          "answer": "nests"
+        }
+      ],
+      "questionPaper": "--- Page 12 ---\nTest 1\nLISTENING\nPART 1 Questions 1-10\nComplete the notes below.\nWrite ONE WORD ANDIOR A NUMBER for each answer.\nBankside Recruitment Agency\ne Address of agency: 497 Eastside, Docklands\no Name of agent: Becky 1...\ne Phone number: 07866 510333\neo Besttocallherinthe 2...\nTypical jobs\ne Clerical and admin roles, mainly in the finance industry\no Must have good 3... SKillS\no Jobs are usually for atleast one 4...\neo Payisusually 5%... PEF HOUT\nRegistration process\neo  Wearah tothe interview\no Must bring your 7... 10 the interview\no They will ask questions about each applicant's 8...\nAdvantages of using an agency\n© The 9... YOU receive at interview will benefit you\no Will get access to vacancies which are not advertised\no Less 10. 1S iNVOIVed in applying for jobs\n10 0p. 119|[E p.%\n\n\n--- Page 13 ---\n|\nListening\nPART 2 Questions 11-20\nQuestions 11-14\nChoose the correct letter, A, B or C.\nMatthews Island Holidays\n11 According to the speaker, the company\nA has been in business for longer than most of its competitors. |\nB arranges holidays to more destinations than its competitors. i\nC has more customers than its competitors.\n12 Where can customers meet the tour manager before travelling to the Isle of Man?\nA Liverpool\nB Heysham\nC Luton\n13 How many lunches are included in the price of the holiday?\nA three\nB four i\nCc five ]\ni\n14 Customers have to pay extra for |\nA guaranteeing themselves a larger room. |\nB booking at short notice. |\nC transferring to another date.\n|\n|\ni\n|\n|\n1\"\n\n\n--- Page 14 ---\nTest 1\nQuestions 15-20\nComplete the table below.\nWrite ONE WORD ANDIOR A NUMBER for each answer.\nTimetable for Isle of Man holiday\nI\nIntroduction by manager\nDayd [Amive Hotel dining room has view of the\nLo Tynwald may have been founded in\nDay2 |Tynwald Exhibition and Peel L [P————— oo 4 8\nTravel along promenade in a tram;\nDay 3 | Trip to Snaefell train to Laxey; train to the\n17 nnn. OF SAE\nCompany provides a\nDay 4 |Free day § [————— |\ntransport and heritage sites.\n” Free time, then coach to Castletown\nDay5 Take lhe 19 rio, railway | former 20....................... has old\n9! castle.\n12 0p. 119][8p.97\n\n\n--- Page 15 ---\nListening I\nPART 3 Questions 21-30\nQuestions 21-26 |\nWhat did findings of previous research claim about the personality traits a |\nchild is likely to have because of their position in the family? !\nChoose SIX answers from the box and write the correct letter, A-H, next to 1\nQuestions 21-26.\n|\nPersonality Traits |\nA outgoing |\nB selfish\n€ independent\nD attention-seeking\nE introverted |\nF co-operative |\nG caring |\nH competitive |\nPosition in family\n21 the eldest child EE\n22 a middle child ——— |\n23 the youngest child , . |\n24 atwin I |\n25 an only child i\n26 a child with much older siblings ’ »\n|\n|\n13 I\n\n\n--- Page 16 ---\nTest 1\nQuestions 27 and 28\nChoose the correct letter, A, B or C.\n27 What do the speakers say about the evidence relating to birth order and academic\nsuccess?\nA There is conflicting evidence about whether oldest children perform best in\nintelligence tests.\nB There is little doubt that birth order has less influence on academic\nachievement than socio-economic status.\nC Some studies have neglected to include important factors such as family size.\n28 What does Ruth think is surprising about the difference in oldest children’s\nacademic performance?\nA Itis mainly thanks to their roles as teachers for their younger siblings.\nB The advantages they have only lead to a slightly higher level of achievement.\nC The extra parental attention they receive at a young age makes little\ndifference.\nQuestions 29 and 30\nChoose TWO letters, A-E.\nWhich TWO experiences of sibling rivalry do the speakers agree has been valuable\nfor them?\nA learning to share\nB learning to stand up for oneself\nC learning to be a good loser\nD learning to be tolerant\nE learning to say sorry\n14 SQ p.119]|E p.98\n\n\n--- Page 17 ---\nListening\nPART 4 Questions 31-40 |\nComplete the notes below.\nWrite ONE WORD ONLY for each answer.\nThe Eucalyptus Tree in Australia\nImportance |\ne itprovides 31 ........c.ccccn... and food for a wide range of species\ne its leaves provide 32..........co.ucon. Which is used to make a disinfectant\nReasons for present decline in number\nA) Diseases\n(i)  ‘Mundulla Yellows’\ne Cause - lime used for making 33 ...........ccm.. WAS absorbed I\n— trees were unable to take in necessary iron through their roots\n(ii) ‘Bell-miner Associated Die-back’ i\ne Cause —34........... feed on eucalyptus leaves t\n— they secrete a substance containing sugar i\n— bell-miner birds are attracted by this and keep away other species\nB) Bushfires\nWilliam Jackson's theory:\ne high-frequency bushfires have impact on vegetation, resulting in the growth\n*  mid-frequency bushfires result in the growth of eucalyptus forests, because |\nthey:\n— make more 36... -... available to the trees |\n|\n— maintain the quality of the 37 .... SE 1]\n* low-frequency bushfires result in the growth of 38 “...........cc.unnn. FAINFOrESt’, |\nwhich is:\n|\n— 239... €COSYStEM |\n— an ideal environment for the 40 .............................. Of the bell-miner |\n|\n|\n|\n=2|0p. 119 |[B p. 99 15\n\n\n--- Page 18 ---\nTest 1\nREADING\nREADING PASSAGE 1\nYou should spend about 20 minutes on Questions 1-13, which are based on Reading\nPassage 1 below.\nNutmeg — a valuable spice\n\nThe nutmeg tree, Myristica fragrans, is a large evergreen tree native to Southeast Asia. Until the late\n18th century, it only grew in one place in the world: a small group of islands in the Banda Sea, part\nof the Moluccas — or Spice Islands — in northeastern Indonesia. The tree is thickly branched with\ndense foliage of tough, dark green oval leaves, and produces small, yellow, bell-shaped flowers and\npale yellow pear-shaped fruits. The fruit is encased in a fleshy husk. When the fruit is ripe, this husk\nsplits into two halves along a ridge running the length of the fruit. Inside is a purple-brown shiny seed,\n2-3 cm long by about 2 cm across, surrounded by a lacy red or crimson covering called an ‘aril’. These\nare the sources of the two spices nutmeg and mace, the former being produced from the dried seed\nand the latter from the aril.\nNutmeg was a highly prized and costly ingredient in European cuisine in the Middle Ages, and was\nused as a flavouring, medicinal, and preservative agent. Throughout this period, the Arabs were the\nexclusive importers of the spice to Europe. They sold nutmeg for high prices to merchants based in\nVenice, but they never revealed the exact location of the source of this extremely valuable commodity.\nThe Arab-Venetian dominance of the trade finally ended in 1512, when the Portuguese reached the\nBanda Islands and began exploiting its precious resources.\n\nAlways in danger of competition from neighbouring Spain, the Portuguese began subcontracting\ntheir spice distribution to Dutch traders. Profits began to flow into the Netherlands, and the Dutch\ncommercial fleet swiftly grew into one of the largest in the world. The Dutch quietly gained control\nof most of the shipping and trading of spices in Northern Europe. Then, in 1580, Portugal fell under\nSpanish rule, and by the end of the 16th century the Dutch found themselves locked out of the market.\nAs prices for pepper, nutmeg, and other spices soared across Europe, they decided to fight back.\n\nTn 1602, Dutch merchants founded the VOC, a trading corporation better known as the Dutch East\nIndia Company. By 1617, the VOC was the richest commercial operation in the world. The company\nhad 50,000 employees worldwide, with a private army of 30,000 men and a fleet of 200 ships. At\n\nthe same time, thousands of people across Europe were dying of the plague, a highly contagious and\ndeadly disease. Doctors were desperate for a way to stop the spread of this disease, and they decided\nnutmeg held the cure. Everybody wanted nutmeg, and many were willing to spare no expense to\nhave it. Nutmeg bought for a few pennies in Indonesia could be sold for 68,000 times its original cost\non the streets of London. The only problem was the short supply. And that’s where the Dutch found\ntheir opportunity.\n\n16",
+      "questionPaperSource": "data/ocr-listening/cam15-test1.txt",
+      "questionPageImages": [
+        {
+          "page": 12,
+          "url": "/generated/listening-pages/cam15/test1/page-12.webp"
+        },
+        {
+          "page": 13,
+          "url": "/generated/listening-pages/cam15/test1/page-13.webp"
+        },
+        {
+          "page": 14,
+          "url": "/generated/listening-pages/cam15/test1/page-14.webp"
+        },
+        {
+          "page": 15,
+          "url": "/generated/listening-pages/cam15/test1/page-15.webp"
+        },
+        {
+          "page": 16,
+          "url": "/generated/listening-pages/cam15/test1/page-16.webp"
+        },
+        {
+          "page": 17,
+          "url": "/generated/listening-pages/cam15/test1/page-17.webp"
+        },
+        {
+          "page": 18,
+          "url": "/generated/listening-pages/cam15/test1/page-18.webp"
+        }
+      ]
+    },
+    {
+      "id": "cam15-l-test2",
+      "module": "listening",
+      "title": "Cambridge IELTS 15 Academic - Test 2 Listening",
+      "source": "Cambridge IELTS 15 local import",
+      "period": "Cambridge 15",
+      "minutes": 30,
+      "audioUrls": [
+        "/cambridge15/audio/IELTS15_test2_audio1.mp3",
+        "/cambridge15/audio/IELTS15_test2_audio2.mp3",
+        "/cambridge15/audio/IELTS15_test2_audio3.mp3",
+        "/cambridge15/audio/IELTS15_test2_audio4.mp3"
+      ],
+      "sourceUrl": "/cambridge15/pdf",
+      "transcript": "Full listening question paper was OCR'd from the local PDF. Use the audio sections above and answer Questions 1-40.",
+      "questions": [
+        {
+          "id": "q1",
+          "text": "Question 1",
+          "answer": "Eustatis"
+        },
+        {
+          "id": "q2",
+          "text": "Question 2",
+          "answer": "review"
+        },
+        {
+          "id": "q3",
+          "text": "Question 3",
+          "answer": "dance"
+        },
+        {
+          "id": "q4",
+          "text": "Question 4",
+          "answer": "chat"
+        },
+        {
+          "id": "q5",
+          "text": "Question 5",
+          "answer": "healthy"
+        },
+        {
+          "id": "q6",
+          "text": "Question 6",
+          "answer": "posters"
+        },
+        {
+          "id": "q7",
+          "text": "Question 7",
+          "answer": "wood"
+        },
+        {
+          "id": "q8",
+          "text": "Question 8",
+          "answer": "lake"
+        },
+        {
+          "id": "q9",
+          "text": "Question 9",
+          "answer": "insects"
+        },
+        {
+          "id": "q10",
+          "text": "Question 10",
+          "answer": "blog"
+        },
+        {
+          "id": "q11",
+          "text": "Question 11",
+          "answer": "C"
+        },
+        {
+          "id": "q12",
+          "text": "Question 12",
+          "answer": "A"
+        },
+        {
+          "id": "q13",
+          "text": "Question 13",
+          "answer": "B"
+        },
+        {
+          "id": "q14",
+          "text": "Question 14",
+          "answer": "C"
+        },
+        {
+          "id": "q15",
+          "text": "Question 15",
+          "answer": "E"
+        },
+        {
+          "id": "q16",
+          "text": "Question 16",
+          "answer": "C"
+        },
+        {
+          "id": "q17",
+          "text": "Question 17",
+          "answer": "B"
+        },
+        {
+          "id": "q18",
+          "text": "Question 18",
+          "answer": "A"
+        },
+        {
+          "id": "q19",
+          "text": "Question 19",
+          "answer": "G"
+        },
+        {
+          "id": "q20",
+          "text": "Question 20",
+          "answer": "D"
+        },
+        {
+          "id": "q21",
+          "text": "Question 21",
+          "answer": "B"
+        },
+        {
+          "id": "q22",
+          "text": "Question 22",
+          "answer": "D"
+        },
+        {
+          "id": "q23",
+          "text": "Question 23",
+          "answer": "B"
+        },
+        {
+          "id": "q24",
+          "text": "Question 24",
+          "answer": "C"
+        },
+        {
+          "id": "q25",
+          "text": "Question 25",
+          "answer": "G"
+        },
+        {
+          "id": "q26",
+          "text": "Question 26",
+          "answer": "B"
+        },
+        {
+          "id": "q27",
+          "text": "Question 27",
+          "answer": "D"
+        },
+        {
+          "id": "q28",
+          "text": "Question 28",
+          "answer": "C"
+        },
+        {
+          "id": "q29",
+          "text": "Question 29",
+          "answer": "H"
+        },
+        {
+          "id": "q30",
+          "text": "Question 30",
+          "answer": "F"
+        },
+        {
+          "id": "q31",
+          "text": "Question 31",
+          "answer": "irrigation"
+        },
+        {
+          "id": "q32",
+          "text": "Question 32",
+          "answer": "women"
+        },
+        {
+          "id": "q33",
+          "text": "Question 33",
+          "answer": "wires"
+        },
+        {
+          "id": "q34",
+          "text": "Question 34",
+          "answer": "seeds"
+        },
+        {
+          "id": "q35",
+          "text": "Question 35",
+          "answer": "posts"
+        },
+        {
+          "id": "q36",
+          "text": "Question 36",
+          "answer": "transport"
+        },
+        {
+          "id": "q37",
+          "text": "Question 37",
+          "answer": "preservation"
+        },
+        {
+          "id": "q38",
+          "text": "Question 38",
+          "answer": "fish"
+        },
+        {
+          "id": "q39",
+          "text": "Question 39",
+          "answer": "bees"
+        },
+        {
+          "id": "q40",
+          "text": "Question 40",
+          "answer": "design"
+        }
+      ],
+      "questionPaper": "--- Page 33 ---\nTest 2\nLISTENING\nPART 1 Questions 1-10 |\nQuestions 1-4\nComplete the table below. |\n|\nWrite ONE WORD ONLY for each answer. |\nFestival information |\n17th a concert performers from Canada i\ncompany called 1... |\n19th—20th type of play: a comedy called Jemima |\na play |\n(afternoon) has had a good 2... |\n20th (evening)  |@3....ocn: SNOW | SHOW i Called 4 rie |\nQuestions 5-10 |\n|\nComplete the notes below. |\nWrite ONE WORD ONLY for each answer. |\n|\nWorkshops\no Making 5... FOO\ne (children only) Making 6 ....................\n© (adults only) Making toys from 7 nnn. USING Various tools\nOutdoor activities\n|\n° SWIMMING inthe 8 vor |\ne Walking in the woods, led by an expert on 9...\nSee the festival organiser’s 10 ............................. for more information\n>0p.121[Bp.101 | 31\n\n\n--- Page 34 ---\n| Test 2\n{\n| PART 2 Questions 11-20\n|\n| Questions 11-14\n1 Choose the correct letter, A, B or C.\n| Minster Park\n| 11 The park was originally established\nA as an amenity provided by the city council.\n| B as land belonging to a private house.\n| C as a shared area set up by the local community.\ni 12 Why is there a statue of Diane Gosforth in the park?\nI A She was a resident who helped to lead a campaign.\n| B She was a council member responsible for giving the public access.\n| C She was a senior worker at the park for many years.\n13 During the First World War, the park was mainly used for\n| A exercises by troops.\n[ B growing vegetables.\n{ C public meetings.\n14 When did the physical transformation of the park begin?\nI A 2013\n| B 2015\n| Cc 2016\ni\n|\n32\n\n\n--- Page 35 ---\n| Listening\n| Questions 15-20\nLabel the map below.\n|\nWrite the correct letter, A-I, next to Questions 15-20.\nMinster Park\nN\nEs\nRiver\n|\n|\n|\nf\n| [E East\nWest gate\ngate\n| 2) ©)\n|\ni\n| South\n| gate\n15 statue of Diane Gosforth J —\n| 16 wooden sculptures [—\n17 playground [EE\nI 18 maze [R—\n| 19 tennis courts [EE\n20 fitness area IE —\n| (0 p. 121 p. 102 33\n|\n\n\n--- Page 36 ---\nTest 2\nPART 3 Questions 21-30\nQuestions 21 and 22\nChoose TWO letters, A-E.\nWhich TWO groups of people is the display primarily intended for?\nA students from the English department\nB residents of the local area\nC the university's teaching staff\nD potential new students\nE students from other departments\nQuestions 23 and 24\nChoose TWO letters, A-E.\nWhat are Cathy and Graham's TWO reasons for choosing the novelist Charles Dickens?\nA His speeches inspired others to try to improve society.\nB He used his publications to draw attention to social problems.\nC€ His novels are well-known now.\nD He was consulted on a number of social issues.\nE His reputation has changed in recent times.\n34\n\n\n--- Page 37 ---\nListening\nQuestions 25-30 |\nWhat topic do Cathy and Graham choose to illustrate with each novel? |\n|\nChoose SIX answers from the box and write the correct letter, A=H, next to |\nQuestions 25-30.\nTopics\n\nA poverty\n\nB education\n\nC Dickens's travels\n\nD entertainment\n\nE crime and the law\n\nF wealth\n\nG medicine\n\nH awoman’s life\n\nNovels by Dickens\n25 The Pickwick Papers [RE—\n26 Oliver Twist [EE —\n27 Nicholas Nickleby [E——\n28 Martin Chuzzlewit S—\n29 Bleak House S—\n30 Little Dorrit S—\n20p.121|@p.103| 35\n\n\n--- Page 38 ---\nTest 2\nPART 4 Questions 31-40\nComplete the notes below.\nWrite ONE WORD ONLY for each answer.\nAgricultural programme in Mozambique\nHow the programme was organised\ne ltfocused on a dry and arid region in Chicualacuala district, near the\nLimpopo River.\ne People depended on the forest to provide charcoal as a source of income.\n«31. een. WBS SEEN a8 the main priority to ensure the supply of water.\ns Most of the work organised by farmers’ associations was done by\n» Fenced areas were created to keep animals away from crops.\ne The programme provided\n— 33. TOT the fences\n= 34 rss TOT SUItAblE Crops\n— water pumps.\no The farmers provided\n— labour\n= 35... TOF the fences on their land.\nFurther developments\ne The marketing of produce was sometimes difficult due to lack of\ne Training was therefore provided in methods of food 37... +\ne Farmers made special places where 38 ............u...... cOUId be kept.\ne Local people later suggested keeping 39... -\nEvaluation and lessons learned\ne Agricultural production increased, improving incomes and food security.\ne Enough time must be allowed, particularly for the 40 .......................... phase of\nthe programme.\n36 0p. 121 p. 105\n\n\n--- Page 39 ---\n| |\n|\n\nREADING PASSAGE 1 |\n\nYou should spend about 20 minutes on Questions 1-13, which are based on Reading i\n\nPassage 1 below.\n\nCould urban engineers learn from dance?\n\nA The way we travel around cities has a major impact on whether they are sustainable.\nTransportation is estimated to account for 30% of energy consumption in most of the\nworld’s most developed nations, so lowering the need for energy-using vehicles is essential\nfor decreasing the environmental impact of mobility. But as more and more people move to\ncities, it is important to think about other kinds of sustainable travel too. The ways we travel\naffect our physical and mental health, our social lives, our access to work and culture, and\nthe air we breathe. Engineers are tasked with changing how we travel round cities through\nurban design, but the engineering industry still works on the assumptions that led to the\ncreation of the energy-consuming transport systems we have now: the emphasis placed\nsolely on efficiency, speed, and quantitative data. We need radical changes, to make it\nhealthier, more enjoyable, and less environmentally damaging to travel around cities. |\n\nB Dance might hold some of the answers. That is not to suggest everyone should dance their |\nway to work, however healthy and happy it might make us, but rather that the techniques |\nused by choreographers to experiment with and design movement in dance could provide |\nengineers with tools to stimulate new ideas in city-making. Richard Sennett, an influential |\nurbanist and sociologist who has transformed ideas about the way cities are made, |\nargues that urban design has suffered from a separation between mind and body since the\nintroduction of the architectural blueprint.\n\nC Whereas medieval builders improvised and adapted construction through their intimate\nknowledge of materials and personal experience of the conditions on a site, building designs |\narc now conceived and stored in media technologies that detach the designer from the |\nphysical and social realities they are creating. While the design practices created by these\nnew technologies are essential for managing the technical complexity of the modern city,\nthey have the drawback of simplifying reality in the process.\n\nD To illustrate, Sennett discusses the Peachtree Center in Atlanta, USA, a development typical |\nof the modernist approach to urban planning prevalent in the 1970s. Peachtree created a grid |\nof streets and towers intended as a new pedestrian-friendly downtown for Atlanta. According |\nto Sennett, this failed because its designers had invested too much faith in computer-aided |\ndesign to tell them how it would operate. They failed to take into account that purpose-built |\nstreet cafés could not operate in the hot sun without the protective awnings common in older\nbuildings, and would need energy-consuming air conditioning instead, or that its giant car |\npark would feel so unwelcoming that it would put people off getting out of their cars. What ]\nseems entirely predictable and controllable on screen has unexpected results when translated ]\ninto reality. |\n\n37 {",
+      "questionPaperSource": "data/ocr-listening/cam15-test2.txt",
+      "questionPageImages": [
+        {
+          "page": 33,
+          "url": "/generated/listening-pages/cam15/test2/page-33.webp"
+        },
+        {
+          "page": 34,
+          "url": "/generated/listening-pages/cam15/test2/page-34.webp"
+        },
+        {
+          "page": 35,
+          "url": "/generated/listening-pages/cam15/test2/page-35.webp"
+        },
+        {
+          "page": 36,
+          "url": "/generated/listening-pages/cam15/test2/page-36.webp"
+        },
+        {
+          "page": 37,
+          "url": "/generated/listening-pages/cam15/test2/page-37.webp"
+        },
+        {
+          "page": 38,
+          "url": "/generated/listening-pages/cam15/test2/page-38.webp"
+        },
+        {
+          "page": 39,
+          "url": "/generated/listening-pages/cam15/test2/page-39.webp"
+        }
+      ]
+    },
+    {
+      "id": "cam15-l-test3",
+      "module": "listening",
+      "title": "Cambridge IELTS 15 Academic - Test 3 Listening",
+      "source": "Cambridge IELTS 15 local import",
+      "period": "Cambridge 15",
+      "minutes": 30,
+      "audioUrls": [
+        "/cambridge15/audio/IELTS15_test3_audio1.mp3",
+        "/cambridge15/audio/IELTS15_test3_audio2.mp3",
+        "/cambridge15/audio/IELTS15_test3_audio3.mp3",
+        "/cambridge15/audio/IELTS15_test3_audio4.mp3"
+      ],
+      "sourceUrl": "/cambridge15/pdf",
+      "transcript": "Full listening question paper was OCR'd from the local PDF. Use the audio sections above and answer Questions 1-40.",
+      "questions": [
+        {
+          "id": "q1",
+          "text": "Question 1",
+          "answer": "furniture"
+        },
+        {
+          "id": "q2",
+          "text": "Question 2",
+          "answer": "meetings"
+        },
+        {
+          "id": "q3",
+          "text": "Question 3",
+          "answer": "diary"
+        },
+        {
+          "id": "q4",
+          "text": "Question 4",
+          "answer": "details"
+        },
+        {
+          "id": "q5",
+          "text": "Question 5",
+          "answer": "1 year"
+        },
+        {
+          "id": "q6",
+          "text": "Question 6",
+          "answer": "deliveries"
+        },
+        {
+          "id": "q7",
+          "text": "Question 7",
+          "answer": "tidy"
+        },
+        {
+          "id": "q8",
+          "text": "Question 8",
+          "answer": "team"
+        },
+        {
+          "id": "q9",
+          "text": "Question 9",
+          "answer": "heavy"
+        },
+        {
+          "id": "q10",
+          "text": "Question 10",
+          "answer": "customer"
+        },
+        {
+          "id": "q11",
+          "text": "Question 11",
+          "answer": "B"
+        },
+        {
+          "id": "q12",
+          "text": "Question 12",
+          "answer": "A"
+        },
+        {
+          "id": "q13",
+          "text": "Question 13",
+          "answer": "C"
+        },
+        {
+          "id": "q14",
+          "text": "Question 14",
+          "answer": "B"
+        },
+        {
+          "id": "q15",
+          "text": "Question 15",
+          "answer": "C"
+        },
+        {
+          "id": "q16",
+          "text": "Question 16",
+          "answer": "B"
+        },
+        {
+          "id": "q17",
+          "text": "Question 17",
+          "answer": "B"
+        },
+        {
+          "id": "q18",
+          "text": "Question 18",
+          "answer": "D"
+        },
+        {
+          "id": "q19",
+          "text": "Question 19",
+          "answer": "A"
+        },
+        {
+          "id": "q20",
+          "text": "Question 20",
+          "answer": "E"
+        },
+        {
+          "id": "q21",
+          "text": "Question 21",
+          "answer": "page"
+        },
+        {
+          "id": "q22",
+          "text": "Question 22",
+          "answer": "size"
+        },
+        {
+          "id": "q23",
+          "text": "Question 23",
+          "answer": "graphics"
+        },
+        {
+          "id": "q24",
+          "text": "Question 24",
+          "answer": "structure"
+        },
+        {
+          "id": "q25",
+          "text": "Question 25",
+          "answer": "purpose"
+        },
+        {
+          "id": "q26",
+          "text": "Question 26",
+          "answer": "assumptions"
+        },
+        {
+          "id": "q27",
+          "text": "Question 27",
+          "answer": "A"
+        },
+        {
+          "id": "q28",
+          "text": "Question 28",
+          "answer": "C"
+        },
+        {
+          "id": "q29",
+          "text": "Question 29",
+          "answer": "C"
+        },
+        {
+          "id": "q30",
+          "text": "Question 30",
+          "answer": "B"
+        },
+        {
+          "id": "q31",
+          "text": "Question 31",
+          "answer": "mud"
+        },
+        {
+          "id": "q32",
+          "text": "Question 32",
+          "answer": "clay"
+        },
+        {
+          "id": "q33",
+          "text": "Question 33",
+          "answer": "metal"
+        },
+        {
+          "id": "q34",
+          "text": "Question 34",
+          "answer": "hair"
+        },
+        {
+          "id": "q35",
+          "text": "Question 35",
+          "answer": "baths"
+        },
+        {
+          "id": "q36",
+          "text": "Question 36",
+          "answer": "diseases"
+        },
+        {
+          "id": "q37",
+          "text": "Question 37",
+          "answer": "perfume"
+        },
+        {
+          "id": "q38",
+          "text": "Question 38",
+          "answer": "salt"
+        },
+        {
+          "id": "q39",
+          "text": "Question 39",
+          "answer": "science"
+        },
+        {
+          "id": "q40",
+          "text": "Question 40",
+          "answer": "tax"
+        }
+      ],
+      "questionPaper": "--- Page 54 ---\nTest 3\nLISTENING\nPART 1 Questions 1-10\nComplete the notes below.\nWrite ONE WORD ANDIOR A NUMBER for each answer.\nEmployment Agency: Possible Jobs\nFirst Job\nAdministrative assistant in a company that produces 1... (NOIth\nLondon)\nResponsibilities\ne data entry\no  g0t02 nnn @NC take NOtES\ne general admin\neo management of 3 ins\nRequirements\ne good computer skills including spreadsheets\ne good interpersonal skills\no attention t0 4...\nExperience\no need a MINIMUM Of 5... OF €XPeETiENCE Of teleconferencing\n52\n\n\n--- Page 55 ---\n|\nListening\n\nSecond Job |\n\nWarehouse assistant in South London\n\nResponsibilities |\n\ne stock management |\n\n* managing 6 pr .\n\nRequirements\n\ne ability to work with numbers |\n\ne good computer skills i\n\no very organised and 7...\n\n* good communication skills\n\ne used to Working in @ 8... |\n\ne able to cope with items that are 9... |\n\nNeed experience of\n\ne driving in London\n\n«warehouse work |\n\nCI [| [eomneRme—— |\n|\n|\n|\n|\ni\n|\n|\n|\n1\n|\n\n(0p. 123][B p. 107] 53\n\n\n--- Page 56 ---\nTest 3\nPART 2 Questions 11-20\nQuestions 11-16\nChoose the correct letter, A, B or C.\nStreet Play Scheme\n11 When did the Street Play Scheme first take place?\nA two years ago\nB three years ago\nC six years ago\n12 How often is Beechwood Road closed to traffic now?\nA once a week\nB on Saturdays and Sundays\nC once a month\n13 Who is responsible for closing the road?\nA a council official\nB the police\nC local wardens\n14 Residents who want to use their cars\nA have to park in another street.\nB must drive very slowly.\nC need permission from a warden.\n15 Alice says that Street Play Schemes are most needed in\nA wealthy areas.\nB quiet suburban areas.\nC areas with heavy traffic.\n16 What has been the reaction of residents who are not parents?\nA Many of them were unhappy at first.\nB They like seeing children play in the street.\nC They are surprised by the lack of noise.\n54\n\n\n--- Page 57 ---\nI\nListening\nQuestions 17 and 18\nChoose TWO letters, A-E.\nWhich TWO benefits for children does Alice think are the most important?\nA increased physical activity\nB increased sense of independence\nC opportunity to learn new games\nD opportunity to be part of a community\nE opportunity to make new friends\nQuestions 19 and 20\nChoose TWO letters, A-E.\nWhich TWO results of the King Street experiment surprised Alice?\nA more shoppers\nB improved safety\nC less air pollution i\nD more relaxed atmosphere\nE less noise pollution i\n|\n|\n|\n|\n|\n>[Qp. 123][Ep. 108] 55\n\n\n--- Page 58 ---\nTest 3\nPART 3 Questions 21-30\nQuestions 21-26\nComplete the notes below.\nWrite ONE WORD ONLY for each answer.\nWhat Hazel should analyse about items in newspapers:\n® what 21 sma the item is on\neo the 22... OF the item, including the headline\n© ANY 23... ACCOMPANying the item\n© the 24... OF the item, e.g. what's made prominent\nothe Writer's Main 25...\neo the 26... the Writer may make about the reader\nQuestions 27-30\nWhat does Hazel decide to do about each of the following types of articles?\nWrite the correct lefter, A, B or C, next to Questions 27-30.\nA She will definitely look for a suitable article.\nB She may look for a suitable article.\nC She definitely won't look for an article.\nTypes of articles\n27 national news item ———\n28 editorial —\n29 human interest S——\n30 arts REP\n56 >|@p.123 p. 109\n\n\n--- Page 59 ---\nListening\nPART 4 Questions 31-40\nComplete the notes below.\nWrite ONE WORD ONLY for each answer. {\nEarly history of keeping clean\nPrehistoric times:\ne water was used to wash Off 31...\nAncient Babylon: |\ne  soap-like material found in 32... Cylinders\nAncient Greece:\n* people cleaned themselves with sand and other substances |\ne used a strigil — scraper made of 33 .........mmmnrnies |\n* washed clothes in streams |\nAncient Germany and Gaul: d\n* used soap to Colour their 34 ..........ceen !\nAncient Rome: |\n* animal fat, ashes and clay mixed through action of rain, used for |\nwashing clothes |\n« from about 312 BC, water carried to Roman 35. ........................ by aqueducts\nEurope in Middle Ages: I\ne decline in bathing contributed to occurrence of 36...\n]\n© 37. BEGAN to be added to soap |\nEurope from 17th century:\n. 1600s: cleanliness and bathing started becoming usual\ne 1791: Leblanc invented a way of making soda ash from 38...\ne early 1800s: Chevreul turned soapmaking into a 39... |\ne from 1800s, there was no longer a 40... ON SOBP\n3[@p. 123]|[Bp. 111] 57\n\n\n--- Page 60 ---\nTest 3\nREADING PASSAGE 1\nYou should spend about 20 minutes on Questions 1-13, which are based on Reading\nPassage 1 below.\nHenry Moore (1898-1986)\nThe British sculptor Henry Moore was a leading figure\nin the 20th-century art world\nHenry Moore was born in Castleford, a small town near Leeds in the north of England. He\nwas the seventh child of Raymond Moore and his wife Mary Baker. He studied at Castleford\nGrammar School from 1909 to 1915, where his early interest in art was encouraged by his teacher\nAlice Gostick. After leaving school, Moore hoped to become a sculptor, but instead he complied\nwith his father’s wish that he train as a schoolteacher. He had to abandon his training in 1917\nwhen he was sent to France to fight in the First World War.\nAfter the war, Moore enrolled at the Leeds School of Art, where he studied for two years. In his\nfirst year, he spent most of his time drawing. Although he wanted to study sculpture, no teacher\nwas appointed until his second year. At the end of that year, he passed the sculpture examination\nand was awarded a scholarship to the Royal College of Art in London. In September 1921, he\nmoved to London and began three years of advanced study in sculpture.\nAlongside the instruction he received at the Royal College, Moore visited many of the London\nmuseums, particularly the British Museum, which had a wide-ranging collection of ancient\nsculpture. During these visits, he discovered the power and beauty of ancient Egyptian and\nAfrican sculpture. As he became increasingly interested in these ‘primitive’ forms of art, he\nturned away from European sculptural traditions.\nAfter graduating, Moore spent the first six months of 1925 travelling in France. When he visited\nthe Trocadero Museum in Paris, he was impressed by a cast of a Mayan” sculpture of the rain\nspirit. It was a male reclining figure with its knees drawn up together, and its head at a right angle\nto its body. Moore became fascinated with this stone sculpture, which he thought had a power\nand originality that no other stone sculpture possessed. He himself started carving a variety of\nsubjects in stone, including depictions of reclining women, mother-and-child groups, and masks.\nMoore’s exceptional talent soon gained recognition, and in 1926 he started work as a sculpture\ninstructor at the Royal College. In 1933, he became a member of a group of young artists called\nUnit One. The aim of the group was to convince the English public of the merits of the emerging\ninternational movement in modern art and architecture.\n“Mayan: belonging to an ancient civilisation that inhabited parts of current-day Mexico, Guatemala, Beiize, El Salvador and Honduras\n58",
+      "questionPaperSource": "data/ocr-listening/cam15-test3.txt",
+      "questionPageImages": [
+        {
+          "page": 54,
+          "url": "/generated/listening-pages/cam15/test3/page-54.webp"
+        },
+        {
+          "page": 55,
+          "url": "/generated/listening-pages/cam15/test3/page-55.webp"
+        },
+        {
+          "page": 56,
+          "url": "/generated/listening-pages/cam15/test3/page-56.webp"
+        },
+        {
+          "page": 57,
+          "url": "/generated/listening-pages/cam15/test3/page-57.webp"
+        },
+        {
+          "page": 58,
+          "url": "/generated/listening-pages/cam15/test3/page-58.webp"
+        },
+        {
+          "page": 59,
+          "url": "/generated/listening-pages/cam15/test3/page-59.webp"
+        },
+        {
+          "page": 60,
+          "url": "/generated/listening-pages/cam15/test3/page-60.webp"
+        }
+      ]
+    },
+    {
+      "id": "cam15-l-test4",
+      "module": "listening",
+      "title": "Cambridge IELTS 15 Academic - Test 4 Listening",
+      "source": "Cambridge IELTS 15 local import",
+      "period": "Cambridge 15",
+      "minutes": 30,
+      "audioUrls": [
+        "/cambridge15/audio/IELTS15_test4_audio1.mp3",
+        "/cambridge15/audio/IELTS15_test4_audio2.mp3",
+        "/cambridge15/audio/IELTS15_test4_audio3.mp3",
+        "/cambridge15/audio/IELTS15_test4_audio4.mp3"
+      ],
+      "sourceUrl": "/cambridge15/pdf",
+      "transcript": "Full listening question paper was OCR'd from the local PDF. Use the audio sections above and answer Questions 1-40.",
+      "questions": [
+        {
+          "id": "q1",
+          "text": "Question 1",
+          "answer": "journalist"
+        },
+        {
+          "id": "q2",
+          "text": "Question 2",
+          "answer": "shopping"
+        },
+        {
+          "id": "q3",
+          "text": "Question 3",
+          "answer": "Staunfirth"
+        },
+        {
+          "id": "q4",
+          "text": "Question 4",
+          "answer": "return"
+        },
+        {
+          "id": "q5",
+          "text": "Question 5",
+          "answer": "23.70"
+        },
+        {
+          "id": "q6",
+          "text": "Question 6",
+          "answer": "online"
+        },
+        {
+          "id": "q7",
+          "text": "Question 7",
+          "answer": "delay"
+        },
+        {
+          "id": "q8",
+          "text": "Question 8",
+          "answer": "information"
+        },
+        {
+          "id": "q9",
+          "text": "Question 9",
+          "answer": "platforms"
+        },
+        {
+          "id": "q10",
+          "text": "Question 10",
+          "answer": "parking"
+        },
+        {
+          "id": "q11",
+          "text": "Question 11",
+          "answer": "D"
+        },
+        {
+          "id": "q12",
+          "text": "Question 12",
+          "answer": "C"
+        },
+        {
+          "id": "q13",
+          "text": "Question 13",
+          "answer": "G"
+        },
+        {
+          "id": "q14",
+          "text": "Question 14",
+          "answer": "H"
+        },
+        {
+          "id": "q15",
+          "text": "Question 15",
+          "answer": "A"
+        },
+        {
+          "id": "q16",
+          "text": "Question 16",
+          "answer": "E"
+        },
+        {
+          "id": "q17",
+          "text": "Question 17",
+          "answer": "A"
+        },
+        {
+          "id": "q18",
+          "text": "Question 18",
+          "answer": "D"
+        },
+        {
+          "id": "q19",
+          "text": "Question 19",
+          "answer": "A"
+        },
+        {
+          "id": "q20",
+          "text": "Question 20",
+          "answer": "C"
+        },
+        {
+          "id": "q21",
+          "text": "Question 21",
+          "answer": "B"
+        },
+        {
+          "id": "q22",
+          "text": "Question 22",
+          "answer": "A"
+        },
+        {
+          "id": "q23",
+          "text": "Question 23",
+          "answer": "B"
+        },
+        {
+          "id": "q24",
+          "text": "Question 24",
+          "answer": "A"
+        },
+        {
+          "id": "q25",
+          "text": "Question 25",
+          "answer": "A"
+        },
+        {
+          "id": "q26",
+          "text": "Question 26",
+          "answer": "A"
+        },
+        {
+          "id": "q27",
+          "text": "Question 27",
+          "answer": "B"
+        },
+        {
+          "id": "q28",
+          "text": "Question 28",
+          "answer": "B"
+        },
+        {
+          "id": "q29",
+          "text": "Question 29",
+          "answer": "A"
+        },
+        {
+          "id": "q30",
+          "text": "Question 30",
+          "answer": "C"
+        },
+        {
+          "id": "q31",
+          "text": "Question 31",
+          "answer": "wealth"
+        },
+        {
+          "id": "q32",
+          "text": "Question 32",
+          "answer": "technology"
+        },
+        {
+          "id": "q33",
+          "text": "Question 33",
+          "answer": "power"
+        },
+        {
+          "id": "q34",
+          "text": "Question 34",
+          "answer": "textiles"
+        },
+        {
+          "id": "q35",
+          "text": "Question 35",
+          "answer": "machines"
+        },
+        {
+          "id": "q36",
+          "text": "Question 36",
+          "answer": "newspapers"
+        },
+        {
+          "id": "q37",
+          "text": "Question 37",
+          "answer": "local"
+        },
+        {
+          "id": "q38",
+          "text": "Question 38",
+          "answer": "lighting"
+        },
+        {
+          "id": "q39",
+          "text": "Question 39",
+          "answer": "windows"
+        },
+        {
+          "id": "q40",
+          "text": "Question 40",
+          "answer": "advertising"
+        }
+      ],
+      "questionPaper": "--- Page 76 ---\nTest 4\nLISTENING\nPART 1 Questions 1-10\nComplete the form below.\nWrite ONE WORD ANDIOR A NUMBER for each answer.\nCustomer Satisfaction Survey\nCustomer details\nName: Sophie Bird\nOccupation: OT\nReason for travel today: Zones an\nJourney information\nName of station returning to: EP ————\nType of ticket purchased: standard 4 .....sciessimsnn. UCKEL\nCost of ticket: L xP———— RP—\nWhen ticket was purchased: yesterday\nWhere ticket was bought: TP ———\nSatisfaction with journey\nMost satisfied with: the wifi\nLeast satisfied with: [CT A— cerrrnnnnn THIS MIOMING\nSatisfaction with station facilities\nMost satisfied with: howmueh 8 wuss: Was\nprovided\nLeast satisfied with: lack of seats, particularly on the\nNeither satisfied nor dissatisfied with: ~~ the 10 cc... AVAILADIE\n74 |Qp.125||E p. 113\n\n\n--- Page 77 ---\n|\nListening |\nPART 2 Questions 11-20 |\nQuestions 11-16\nLabel the map below.\nWrite the correct letter, A-H, next to Questions 11-16.\nCroft Valley Park\n1\nAdventure playground HN\nwef E |\nEl\nBE //RP 5\n|\nPem® |\nPm ® |\n|\n|\n1M café FE |\n12 toilets ST—\n13 formal gardens NP\n14 outdoor gym ss\n15 skateboard ramp ST\n16 wild flowers SU\n|\n|\n|\n75\n\n\n--- Page 78 ---\nTest 4\nQuestions 17 and 18\nChoose TWO letters, A-E.\nWhat does the speaker say about the adventure playground?\nA Children must be supervised.\nB It costs more in winter.\nC Some activities are only for younger children.\nD No payment is required.\nE It was recently expanded.\nQuestions 19 and 20\nChoose TWO letters, A-E.\nWhat does the speaker say about the glass houses?\nA They are closed at weekends.\nB Volunteers are needed to work there.\nC They were badly damaged by fire.\nD More money is needed to repair some of the glass.\nE Visitors can see palm trees from tropical regions.\n76 >|Qp.125| 8 p. 114\n\n\n--- Page 79 ---\n| |\nListening\nPART 3 Questions 21-30\nQuestions 21-24 i\nChoose the correct letter, A, B or C.\nPresentation about refrigeration\n21 What did Annie discover from reading about icehouses? |\n\nA why they were first created i\n\nB how the ice was kept frozen |\n\nC where they were located |\n\n22 What point does Annie make about refrigeration in ancient Rome? |\n\nA It became a commercial business.\n\nB It used snow from nearby. |\n\nC  lttook a long time to become popular. |\n\n23 In connection with modern refrigerators, both Annie and Jack are worried about\n\nA the complexity of the technology. i\n\nB the fact that some are disposed of irresponsibly. |\n\nC the large number that quickly break down.\n|\n\n24 What do Jack and Annie agree regarding domestic fridges?\n\nA They are generally good value for money.\n\nB There are plenty of useful variations.\n\nC They are more useful than other domestic appliances. |\n|\n|\n{\ni\n\n77\n\n\n--- Page 80 ---\nTest 4\nQuestions 25-30\nWho is going to do research into each topic?\nWrite the correct letter, A, B or C, next to Questions 25-30.\nPeople\nA Annie\nB Jack\nC both Annie and Jack\nTopics\n25 the goods that are refrigerated RE\n26 the effects on health [rn\n27 the impact on food producers [Er ——\n28 the impact on cities [—\n29 refrigerated transport =\n30 domestic fridges i\n78 3[@p.125||8 p. 115\n\n\n--- Page 81 ---\n|\n|\nListening\nPART 4 Questions 31-40\nComplete the notes below.\nWrite ONE WORD ONLY for each answer.\nHow the Industrial Revolution affected life in Britain\n19th century\ne For the first time, people’s possessions were used to measure Britain's\n¢ Developments in production of goods and in 32...\ngreatly changed lives.\nMAIN AREAS OF CHANGE\nManufacturing\ne The Industrial Revolution would not have happened without the new types of\n= SS that were used then. i\n© The leading industry was 34... (its products became !\nwidely available). !\n© New35. ow... Made factories necessary and so more |\npeople moved into towns. |\nTransport |\ne The railways took the place of canals.\n* Because of the new transport:\n— greater access to 36... MAE people more aware\nof what they could buy in shops.\n— when shopping, people were not limited to buying\n7 (PRPES—————, >.\nRetailing\n* The first department stores were opened.\ne The displays of goods were more visible:\n— inside stores because of better 38... +\n— outside stores, because 39... WETE bigger. |\n© 40. thE WAS peTSUASIVE became much more common. |\n|\n(0 p. 125 p. 117] 79\n\n\n--- Page 82 ---\nTest4\nREADING\nREADING PASSAGE 1\nYou should spend about 20 minutes on Questions 1-13, which are based on Reading\nPassage 1 below.\nThe return of the huarango\nThe arid valleys of southern Peru are welcoming\nthe return of a native plant\n\nThe south coast of Peru is a narrow, 2,000-kilometre-long strip of desert squeezed between the\nAndes and the Pacific Ocean. It is also one of the most fragile ecosystems on Earth. It hardly ever\nrains there, and the only year-round source of water is located tens of metres below the surface.\nThis is why the huarango tree is so suited to life there: it has the longest roots of any tree in the\nworld. They stretch down 50-80 metres and, as well as sucking up water for the tree, they bring it\ninto the higher subsoil, creating a water source for other plant life.\n\nDr David Beresford-Jones, archaeobotanist at Cambridge University, has been studying the role\nof the huarango tree in landscape change in the Lower Ica Valley in southern Peru. He believes\nthe huarango was key to the ancient people's diet and, because it could reach deep water sources,\nit allowed local people to withstand years of drought when their other crops failed. But over the\ncenturies huarango trees were gradually replaced with crops. Cutting down native woodland leads\nto erosion, as there is nothing to keep the soil in place. So when the huarangos go, the land turns\ninto a desert. Nothing grows at all in the Lower Ica Valley now.\n\nFor centuries the huarango tree was vital to the people of the neighbouring Middle Ica Valley\n\ntoo. They grew vegetables under it and ate products made from its seed pods. Its leaves and bark\nwere used for herbal remedies, while its branches were used for charcoal for cooking and heating,\nand its trunk was used to build houses. But now it is disappearing rapidly. The majority of the\nhuarango forests in the valley have already been cleared for fuel and agriculture — initially, these\nwere smallholdings, but now they’re huge farms producing crops for the international market.\n“Of the forests that were here 1,000 years ago, 99 per cent have already gone,’ says botanist Oliver\nWhaley from Kew Gardens in London, who, together with ethnobotanist Dr William Milliken,\n\nis running a pioneering project to protect and restore the rapidly disappearing habitat. In order\n\nto succeed, Whaley needs to get the local people on board, and that has meant overcoming local\nprejudices. ‘Increasingly aspirational communities think that if you plant food trees in your home\nor street, it shows you are poor, and still need to grow your own food,” he says. In order to stop\nthe Middle Ica Valley going the same way as the Lower Ica Valley, Whaley is encouraging locals\nto love the huarangos again. ‘It’s a process of cultural resuscitation,” he says. He has already set\nup a huarango festival to reinstate a sense of pride in their eco-heritage, and has helped local\nschoolchildren plant thousands of trees.\n\n80",
+      "questionPaperSource": "data/ocr-listening/cam15-test4.txt",
+      "questionPageImages": [
+        {
+          "page": 76,
+          "url": "/generated/listening-pages/cam15/test4/page-76.webp"
+        },
+        {
+          "page": 77,
+          "url": "/generated/listening-pages/cam15/test4/page-77.webp"
+        },
+        {
+          "page": 78,
+          "url": "/generated/listening-pages/cam15/test4/page-78.webp"
+        },
+        {
+          "page": 79,
+          "url": "/generated/listening-pages/cam15/test4/page-79.webp"
+        },
+        {
+          "page": 80,
+          "url": "/generated/listening-pages/cam15/test4/page-80.webp"
+        },
+        {
+          "page": 81,
+          "url": "/generated/listening-pages/cam15/test4/page-81.webp"
+        },
+        {
+          "page": 82,
+          "url": "/generated/listening-pages/cam15/test4/page-82.webp"
+        }
+      ]
+    }
+  ],
+  "readingTests": [
+    {
+      "id": "cam15-r-test1",
+      "module": "reading",
+      "title": "Cambridge IELTS 15 Academic - Test 1 Reading",
+      "source": "Cambridge IELTS 15 local import",
+      "period": "Cambridge 15",
+      "minutes": 60,
+      "sourceUrl": "/cambridge15/pdf",
+      "passage": "Full Reading Test 1 question paper is imported below. Answers may still need manual checking unless an answer key is available.",
+      "questions": [
+        {
+          "id": "q1",
+          "text": "Question 1",
+          "answer": "oval"
+        },
+        {
+          "id": "q2",
+          "text": "Question 2",
+          "answer": "husk"
+        },
+        {
+          "id": "q3",
+          "text": "Question 3",
+          "answer": "seed"
+        },
+        {
+          "id": "q4",
+          "text": "Question 4",
+          "answer": "mace"
+        },
+        {
+          "id": "q5",
+          "text": "Question 5",
+          "answer": "FALSE"
+        },
+        {
+          "id": "q6",
+          "text": "Question 6",
+          "answer": "NOT GIVEN"
+        },
+        {
+          "id": "q7",
+          "text": "Question 7",
+          "answer": "TRUE"
+        },
+        {
+          "id": "q8",
+          "text": "Question 8",
+          "answer": "Arabs"
+        },
+        {
+          "id": "q9",
+          "text": "Question 9",
+          "answer": "plague"
+        },
+        {
+          "id": "q10",
+          "text": "Question 10",
+          "answer": "lime"
+        },
+        {
+          "id": "q11",
+          "text": "Question 11",
+          "answer": "Run"
+        },
+        {
+          "id": "q12",
+          "text": "Question 12",
+          "answer": "Mauritius"
+        },
+        {
+          "id": "q13",
+          "text": "Question 13",
+          "answer": "tsunami"
+        },
+        {
+          "id": "q14",
+          "text": "Question 14",
+          "answer": "C"
+        },
+        {
+          "id": "q15",
+          "text": "Question 15",
+          "answer": "B"
+        },
+        {
+          "id": "q16",
+          "text": "Question 16",
+          "answer": "E"
+        },
+        {
+          "id": "q17",
+          "text": "Question 17",
+          "answer": "G"
+        },
+        {
+          "id": "q18",
+          "text": "Question 18",
+          "answer": "D"
+        },
+        {
+          "id": "q19",
+          "text": "Question 19",
+          "answer": "human error"
+        },
+        {
+          "id": "q20",
+          "text": "Question 20",
+          "answer": "car sharing"
+        },
+        {
+          "id": "q21",
+          "text": "Question 21",
+          "answer": "ownership"
+        },
+        {
+          "id": "q22",
+          "text": "Question 22",
+          "answer": "mileage"
+        },
+        {
+          "id": "q23",
+          "text": "Question 23",
+          "answer": "C"
+        },
+        {
+          "id": "q24",
+          "text": "Question 24",
+          "answer": "D"
+        },
+        {
+          "id": "q25",
+          "text": "Question 25",
+          "answer": "A"
+        },
+        {
+          "id": "q26",
+          "text": "Question 26",
+          "answer": "E"
+        },
+        {
+          "id": "q27",
+          "text": "Question 27",
+          "answer": "A"
+        },
+        {
+          "id": "q28",
+          "text": "Question 28",
+          "answer": "C"
+        },
+        {
+          "id": "q29",
+          "text": "Question 29",
+          "answer": "C"
+        },
+        {
+          "id": "q30",
+          "text": "Question 30",
+          "answer": "D"
+        },
+        {
+          "id": "q31",
+          "text": "Question 31",
+          "answer": "A"
+        },
+        {
+          "id": "q32",
+          "text": "Question 32",
+          "answer": "B"
+        },
+        {
+          "id": "q33",
+          "text": "Question 33",
+          "answer": "E"
+        },
+        {
+          "id": "q34",
+          "text": "Question 34",
+          "answer": "A"
+        },
+        {
+          "id": "q35",
+          "text": "Question 35",
+          "answer": "D"
+        },
+        {
+          "id": "q36",
+          "text": "Question 36",
+          "answer": "E"
+        },
+        {
+          "id": "q37",
+          "text": "Question 37",
+          "answer": "B"
+        },
+        {
+          "id": "q38",
+          "text": "Question 38",
+          "answer": "unique expeditions"
+        },
+        {
+          "id": "q39",
+          "text": "Question 39",
+          "answer": "uncontacted"
+        },
+        {
+          "id": "q40",
+          "text": "Question 40",
+          "answer": "land surface"
+        }
+      ],
+      "readingPaper": "Reading\nThe Banda Islands were ruled by local sultans who insisted on maintaining a neutral trading\npolicy towards foreign powers. This allowed them to avoid the presence of Portuguese or Spanish\ntroops on their soil, but it also left them unprotected from other invaders. In 1621, the Dutch\narrived and took over. Once securely in control of the Bandas, the Dutch went to work protecting\ntheir new investment. They concentrated all nutmeg production into a few easily guarded areas,\nuprooting and destroying any trees outside the plantation zones. Anyone caught growing a nutmeg |\nseedling or carrying seeds without the proper authority was severely punished. In addition,\nall exported nutmeg was covered with lime to make sure there was no chance a fertile seed |\nwhich could be grown elsewhere would leave the islands. There was only one obstacle to Dutch |\ndomination. One of the Banda Islands, a sliver of land called Run, only 3km long by less than |\n1km wide, was under the control of the British. After decades of fighting for control of this tiny |\nisland, the Dutch and British arrived at a compromise settlement, the Treaty of Breda, in 1667. |\nIntent on securing their hold over every nutmeg-producing island, the Dutch offered a trade: if the |\nBritish would give them the island of Run, they would in turn give Britain a distant and much less\nvaluable island in North America. The British agreed. That other island was Manhattan, which is\nhow New Amsterdam became New York. The Dutch now had a monopoly over the nutmeg trade |\nwhich would last for another century. {\nThen, in 1770, a Frenchman named Pierre Poivre successfully smuggled nutmeg plants to safety\nin Mauritius, an island off the coast of Africa. Some of these were later exported to the Caribbean\nwhere they thrived, especially on the island of Grenada. Next, in 1778, a volcanic eruption in the\nBanda region caused a tsunami that wiped out half the nutmeg groves. Finally, in 1809, the British |\nreturned to Indonesia and seized the Banda Islands by force. They returned the islands to the |\nDutch in 1817, but not before transplanting hundreds of nutmeg seedlings to plantations in several ]\nlocations across southern Asia. The Dutch nutmeg monopoly was over. ]\nToday, nutmeg is grown in Indonesia, the Caribbean, India, Malaysia, Papua New Guinea and\nSti Lanka, and world nutmeg production is estimated to average between 10,000 and 12,000 tonnes |\nper year. ]\nll\n|\n|\n|\n|\nHl\n|\n|\n|\n|\n17\n\n\n--- Page 20 ---\nTest 1\nQuestions 1-4\nComplete the notes below.\nChoose ONE WORD ONLY from the passage for each answer.\nWrite your answers in boxes 1-4 on your answer sheet.\nThe nutmeg tree and fruit\ne the leaves of thetree are 1... .....in shape\nothe 2... SUrrOUnds the fruit and breaks open when the fruit\nis ripe\n© the 3... IS USE to produce the spice nutmeg\no the covering known as the aril is used to Produce 4...\no the tree has yellow flowers and fruit\nQuestions 5-7\nDo the following statements agree with the information given in Reading Passage 1?\nIn boxes 5-7 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN if there is no information on this\n5 In the Middle Ages, most Europeans knew where nutmeg was grown.\n6 The VOC was the world’s first major trading company.\n7 Following the Treaty of Breda, the Dutch had control of all the islands where\nnutmeg grew.\n18\n\n\n--- Page 21 ---\nReading\nQuestions 8-13\nComplete the table below.\nChoose ONE WORD ONLY from the passage for each answer.\nWrite your answers in boxes 8-13 on your answer sheet.\nMiddle Ages Nutmeg was brought to Europe by the 8...\n16th century European nations took control of the nutmeg trade\n17th century Demand for nutmeg grew, as it was believed to be effective\nagainst the disease known as the 9...\nThe Dutch\n— took control of the Banda Islands\n— restricted nutmeg production to a few areas\n— put 10 SEN. on nutmeg to avoid it being cultivated\noutside the islands\n— finally obtained the island of 11 ............ rrr, frOM\nthe British\nLate 18th century 1770 — nutmeg plants were secretly taken to 12 SE —\n1778 — half the Banda Islands’ nutmeg plantations were destroyed\nby a13\n2(@p. 120 ] 19\n\n\n--- Page 22 ---\nTest 1\n\nREADING PASSAGE 2\n\nYou should spend about 20 minutes on Questions 14-26, which are based on Reading\n\nPassage 2 below.\n\nDriverless cars\n\nA The automotive sector is well used to adapting to automation in manufacturing.\nThe implementation of robotic car manufacture from the 1970s onwards led to\nsignificant cost savings and improvements in the reliability and flexibility of vehicle\nmass production. A new challenge to vehicle production is now on the horizon\nand, again, it comes from automation. However, this time it is not to do with the\nmanufacturing process, but with the vehicles themselves.\n\nResearch projects on vehicle automation are not new. Vehicles with limited self-\ndriving capabilities have been around for more than 50 years, resulting in significant\ncontributions towards driver assistance systems. But since Google announced in\n2010 that it had been trialling self-driving cars on the streets of California, progress\nin this field has quickly gathered pace.\n\nB There are many reasons why technology is advancing so fast. One frequently cited\nmotive is safety; indeed, research at the UK's Transport Research Laboratory has\ndemonstrated that more than 90 percent of road collisions involve human error as a\ncontributory factor, and it is the primary cause in the vast majority. Automation may\nhelp to reduce the incidence of this.\n\nAnother aim is to free the time people spend driving for other purposes. If the\nvehicle can do some or all of the driving, it may be possible to be productive, to\nsocialise or simply to relax while automation systems have responsibility for safe\ncontrol of the vehicle. If the vehicle can do the driving, those who are challenged\nby existing mobility models — such as older or disabled travellers — may be able to\nenjoy significantly greater travel autonomy.\n\nC Beyond these direct benefits, we can consider the wider implications for transport\nand society, and how manufacturing processes might need to respond as a\nresult. At present, the average car spends more than 90 percent of its life parked.\nAutomation means that initiatives for car-sharing become much more viable,\nparticularly in urban areas with significant travel demand. If a significant proportion\nof the population choose to use shared automated vehicles, mobility demand can\nbe met by far fewer vehicles.\n\nD The Massachusetts Institute of Technology investigated automated mobility in\nSingapore, finding that fewer than 30 percent of the vehicles currently used would\nbe required if fully automated car sharing could be implemented. If this is the case,\nit might mean that we need to manufacture far fewer vehicles to meet demand.\n\n20\n\n\n--- Page 23 ---\nReading\nHowever, the number of trips being taken would probably increase, partly because\nempty vehicles would have to be moved from one customer to the next.\nModelling work by the University of Michigan Transportation Research Institute 1]\nsuggests automated vehicles might reduce vehicle ownership by 43 percent, but\nthat vehicles’ average annual mileage would double as a result. As a consequence,\neach vehicle would be used more intensively, and might need replacing\nsooner. This faster rate of turnover may mean that vehicle production will not\nnecessarily decrease. |\nE Automation may prompt other changes in vehicle manufacture. If we move to a |\nmodel where consumers are tending not to own a single vehicle but to purchase I\naccess to a range of vehicles through a mobility provider, drivers will have the li}\nfreedom to select one that best suits their needs for a particular journey, rather than\nmaking a compromise across all their requirements.\nSince, for most of the time, most of the seats in most cars are unoccupied, this may |\nboost production of a smaller, more efficient range of vehicles that suit the needs\nof individuals. Specialised vehicles may then be available for exceptional journeys,\nsuch as going on a family camping trip or helping a son or daughter move to\nuniversity. |\nF There are a number of hurdles to overcome in delivering automated vehicles\nto our roads. These include the technical difficulties in ensuring that the vehicle |\nworks reliably in the infinite range of traffic, weather and road situations it might |\nencounter; the regulatory challenges in understanding how liability and enforcement |\nmight change when drivers are no longer essential for vehicle operation; and |\nthe societal changes that may be required for communities to trust and accept\nautomated vehicles as being a valuable part of the mobility landscape.\nG It's clear that there are many challenges that need to be addressed but, through\nrobust and targeted research, these can most probably be conquered within the\nnext 10 years. Mobility will change in such potentially significant ways and in |\nassociation with so many other technological developments, such as telepresence |\nand virtual reality, that it is hard to make concrete predictions about the future. |\nHowever, one thing is certain: change is coming, and the need to be flexible in |\nresponse to this will be vital for those involved in manufacturing the vehicles that i\nwill deliver future mobility. |\ni\n|\n|\n21\ni\n\n\n--- Page 24 ---\nTest 1\nQuestions 14-18\nReading Passage 2 has seven sections, A-G.\nWhich section contains the following information?\nWrite the correct letter, A-G, in boxes 14—18 on your answer sheet.\n14 reference to the amount of time when a car is not in use\n15 mention of several advantages of driverless vehicles for individual road-users\n16 reference to the opportunity of choosing the most appropriate vehicle for each trip\n17 an estimate of how long it will take to overcome a number of problems\n18 a suggestion that the use of driverless cars may have no effect on the number of\n\nvehicles manufactured\nQuestions 19-22\nComplete the summary below.\nChoose NO MORE THAN TWO WORDS from the passage for each answer.\nWrite your answers in boxes 19-22 on your answer sheet.\n\nThe impact of driverless cars\n\nFigures from the Transport Research Laboratory indicate that most motor accidents\nare partly due to 19 ce , so the introduction of driverless vehicles\nwill result in greater safety. In addition to the direct benefits of automation, it may bring\nother advantages. For example, schemes for 20... will be more\nworkable, especially in towns and cities, resulting in fewer cars on the road.\nAccording to the University of Michigan Transportation Research Institute, there could\nbe a 43 percent drop in 21 ......cmmn.. Of Cars. However, this would mean\nthat the yearly 22... Of €2Ch car would, on average, be twice as\nhigh as it currently is. This would lead to a higher turnover of vehicles, and therefore no\nreduction in automotive manufacturing.\n22\n\n\n--- Page 25 ---\ni\n|\nReading\nQuestions 23 and 24\nChoose TWO letters, A-E.\nWrite the correct letters in boxes 23 and 24 on your answer sheet.\nWhich TWO benefits of automated vehicles does the writer mention?\nA Car travellers could enjoy considerable cost savings.\nB  Itwould be easier to find parking spaces in urban areas.\nC Travellers could spend journeys doing something other than driving.\nD People who find driving physically difficult could travel independently.\nE  Areduction in the number of cars would mean a reduction in pollution.\n|\nQuestions 25 and 26 |\nChoose TWO letters, A-E.\nWrite the correct letters in boxes 25 and 26 on your answer sheet.\nWhich TWO challenges to automated vehicle development does the writer mention?\nA making sure the general public has confidence in automated vehicles\nB managing the pace of transition from conventional to automated vehicles\nC deciding how to compensate professional drivers who become redundant\nD setting up the infrastructure to make roads suitable for automated vehicles\nE getting automated vehicles to adapt to various different driving conditions\n|\n|\n|\n|\n1\n|\n>[@p. 120] 23\n; |\n\n\n--- Page 26 ---\nTest 1\nREADING PASSAGE 3\nYou should spend about 20 minutes on Questions 27-40, which are based on Reading\nPassage 3 below.\n\nWhat is exploration?\nWe are all explorers. Our desire to discover, and then share that new-found knowledge, is part\nof what makes us human — indeed, this has played an important part in our success as a species.\nLong before the first caveman slumped down beside the fire and grunted news that there were\nplenty of wildebeest over yonder, our ancestors had learnt the value of sending out scouts to\ninvestigate the unknown. This questing nature of ours undoubtedly helped our species spread\naround the globe, just as it nowadays no doubt helps the last nomadic Penan maintain their\nexistence in the depleted forests of Borneo, and a visitor negotiate the subways of New York.\nOver the years, we've come to think of explorers as a peculiar breed — different from the rest of\nus, different from those of us who are merely ‘well travelled’, even; and perhaps there is a type of\nperson more suited to seeking out the new, a type of caveman more inclined to risk venturing out.\nThat, however, doesn’t take away from the fact that we all have this enquiring instinct, even today;\nand that in all sorts of professions — whether artist, marine biologist or astronomer — borders of\nthe unknown are being tested each day.\nThomas Hardy set some of his novels in Egdon Heath, a fictional area of uncultivated land, and\nused the landscape to suggest the desires and fears of his characters. He is delving into matters\nwe all recognise because they are common to humanity. This is surely an act of exploration, and\ninto a world as remote as the author chooses. Explorer and travel writer Peter Fleming talks of\nthe moment when the explorer returns to the existence he has left behind with his loved ones. The\ntraveller ‘who has for weeks or months seen himself only as a puny and irrelevant alien crawling\nlaboriously over a country in which he has no roots and no background, suddenly encounters his\nother self, a relatively solid figure, with a place in the minds of certain people’.\nIn this book about the exploration of the earth's surface, I have confined myself to those whose\ntravels were real and who also aimed at more than personal discovery. But that still left me with\nanother problem: the word ‘explorer’ has become associated with a past era. We think back to a\ngolden age, as if exploration peaked somehow in the 19th century — as if the process of discovery\nis now on the decline, though the truth is that we have named only one and a half million of this\nplanet's species, and there may be more than 10 million — and that’s not including bacteria. We\nhave studied only 5 per cent of the species we know. We have scarcely mapped the ocean floors,\nand know even less about ourselves: we fully understand the workings of only 10 per cent of our\nbrains.\n24\n\n\n--- Page 27 ---\n|\nReading\nHere is how some of today’s ‘explorers’ define the word. Ran Fiennes, dubbed the ‘greatest\nliving explorer’, said, ‘An explorer is someone who has done something that no human has done\nbefore — and also done something scientifically useful.” Chris Bonington, a leading mountaineer,\nfelt exploration was to be found in the act of physically touching the unknown: “You have to\nhave gone somewhere new.” Then Robin Hanbury-Tenison, a campaigner on behalf of remote\nso-called ‘tribal’ peoples, said, ‘A traveller simply records information about some far-off world,\nand reports back; but an explorer changes the world.” Wilfred Thesiger, who crossed Arabia’s\nEmpty Quarter in 1946, and belongs to an era of unmechanised travel now lost to the rest of us,\ntold me, “If I'd gone across by camel when I could have gone by car, it would have been a stunt.’\nTo him, exploration meant bringing back information from a remote place regardless of any great\nself-discovery. i\nEach definition is slightly different — and tends to reflect the field of endeavour of each pioneer. Tt\nwas the same whoever 1 asked: the prominent historian would say exploration was a thing of the\npast, the cutting-edge scientist would say it was of the present. And so on. They each set their own\nparticular criteria; the common factor in their approach being that they all had, unlike many of us\nwho simply enjoy travel or discovering new things, both a very definite objective from the outset |\nand also a desire to record their findings. |\nId best declare my own bias. As a writer, ’m interested in the exploration of ideas. I've done\na great many expeditions and each one was unique. I've lived for months alone with isolated i\ngroups of people all around the world, even two ‘uncontacted tribes’. But none of these things ll\nis of the slightest interest to anyone unless, through my books, I've found a new slant, explored\nanew idea. Why? Because the world has moved on. The time has long passed for the great |\ncontinental voyages — another walk to the poles, another crossing of the Empty Quarter. We\nknow how the land surface of our planet lies; exploration of it is now down to the details — the\nhabits of microbes, say, or the grazing behaviour of buffalo. Aside from the deep sea and deep\nunderground, it’s the era of specialists. However, this is to disregard the role the human mind has\nin conveying remote places; and this is what interests me: how a fresh interpretation, even of a\nwell-travelled route, can give its readers new insights. |\n|\n|\n|\n|\n25\n\n\n--- Page 28 ---\nTest 1\nQuestions 27-32\nChoose the correct letter, A, B, C or D.\nWrite the correct letter in boxes 27-32 on your answer sheet.\n27 The writer refers to visitors to New York to illustrate the point that\nA exploration is an intrinsic element of being human.\nB most people are enthusiastic about exploring.\nC exploration can lead to surprising results.\nD most people find exploration daunting.\n28 According to the second paragraph, what is the writer's view of explorers?\nA Their discoveries have brought both benefits and disadvantages.\nB Their main value is in teaching others.\nC They act on an urge that is common to everyone.\nD They tend to be more attracted to certain professions than to others.\n29 The writer refers to a description of Egdon Heath to suggest that\nA Hardy was writing about his own experience of exploration.\nB Hardy was mistaken about the nature of exploration.\nC Hardy's aim was to investigate people’s emotional states.\nD Hardy's aim was to show the attraction of isolation.\n30 In the fourth paragraph, the writer refers to ‘a golden age’ to suggest that\nA the amount of useful information produced by exploration has decreased.\nB fewer people are interested in exploring than in the 19th century.\nC recent developments have made exploration less exciting.\nD we are wrong to think that exploration is no longer necessary.\n31 In the sixth paragraph, when discussing the definition of exploration, the writer\nargues that\nA people tend to relate exploration to their own professional interests.\nB certain people are likely to misunderstand the nature of exploration.\nC the generally accepted definition has changed over time.\nD historians and scientists have more valid definitions than the general public.\n32 In the last paragraph, the writer explains that he is interested in\nA how someone's personality is reflected in their choice of places to visit.\nB the human ability to cast new light on places that may be familiar.\nC how travel writing has evolved to meet changing demands.\nD the feelings that writers develop about the places that they explore.\n26\n\n\n--- Page 29 ---\nReading\nQuestions 33-37\nLook at the following statements (Questions 33-37) and the list of explorers below. |\nMatch each statement with the correct explorer, A-E.\nWrite the correct letter, AE, in boxes 33-37 on your answer sheet.\nNB You may use any letter more than once.\n33 He referred to the relevance of the form of transport used.\nli\n34 He described feelings on coming back home after a long journey. |\n35 He worked for the benefit of specific groups of people.\n36 He did not consider learning about oneself an essential part of exploration.\n37 He defined exploration as being both unique and of value to others.\nList of Explorers\nA Peter Fleming\nB Ran Fiennes\nC Chris Bonington\nD Robin Hanbury-Tenison\nE Wilfred Thesiger\nll\nQuestions 38-40 |\nI\nComplete the summary below.\nChoose NO MORE THAN TWO WORDS from the passage for each answer.\nWrite your answers in boxes 38-40 on your answer sheet.\nThe writer’s own bias\nThe writer has experience of a large NUMDEr Of 38... , @NA |\nwas the first stranger that certain previously 39... PEOple\nhad encountered. He believes there is no need for further exploration of Earth's\n| [H— cnn, €XCEPE tO @answer specific questions such as how buffalo eat. |\n> Qp. 120 27\n\n\n--- Page 30 ---\nTest 1",
+      "readingPaperSource": "data/ocr-reading-writing/cam15-test1-reading-writing.txt",
+      "readingPageImages": [
+        {
+          "page": 18,
+          "url": "/generated/reading-pages/cam15/test1/page-18.webp"
+        },
+        {
+          "page": 19,
+          "url": "/generated/reading-pages/cam15/test1/page-19.webp"
+        },
+        {
+          "page": 20,
+          "url": "/generated/reading-pages/cam15/test1/page-20.webp"
+        },
+        {
+          "page": 21,
+          "url": "/generated/reading-pages/cam15/test1/page-21.webp"
+        },
+        {
+          "page": 22,
+          "url": "/generated/reading-pages/cam15/test1/page-22.webp"
+        },
+        {
+          "page": 23,
+          "url": "/generated/reading-pages/cam15/test1/page-23.webp"
+        },
+        {
+          "page": 24,
+          "url": "/generated/reading-pages/cam15/test1/page-24.webp"
+        },
+        {
+          "page": 25,
+          "url": "/generated/reading-pages/cam15/test1/page-25.webp"
+        },
+        {
+          "page": 26,
+          "url": "/generated/reading-pages/cam15/test1/page-26.webp"
+        },
+        {
+          "page": 27,
+          "url": "/generated/reading-pages/cam15/test1/page-27.webp"
+        },
+        {
+          "page": 28,
+          "url": "/generated/reading-pages/cam15/test1/page-28.webp"
+        },
+        {
+          "page": 29,
+          "url": "/generated/reading-pages/cam15/test1/page-29.webp"
+        }
+      ]
+    },
+    {
+      "id": "cam15-r-test2",
+      "module": "reading",
+      "title": "Cambridge IELTS 15 Academic - Test 2 Reading",
+      "source": "Cambridge IELTS 15 local import",
+      "period": "Cambridge 15",
+      "minutes": 60,
+      "sourceUrl": "/cambridge15/pdf",
+      "passage": "Full Reading Test 2 question paper is imported below. Answers may still need manual checking unless an answer key is available.",
+      "questions": [
+        {
+          "id": "q1",
+          "text": "Question 1",
+          "answer": "B"
+        },
+        {
+          "id": "q2",
+          "text": "Question 2",
+          "answer": "C"
+        },
+        {
+          "id": "q3",
+          "text": "Question 3",
+          "answer": "F"
+        },
+        {
+          "id": "q4",
+          "text": "Question 4",
+          "answer": "D"
+        },
+        {
+          "id": "q5",
+          "text": "Question 5",
+          "answer": "E"
+        },
+        {
+          "id": "q6",
+          "text": "Question 6",
+          "answer": "A"
+        },
+        {
+          "id": "q7",
+          "text": "Question 7",
+          "answer": "safety"
+        },
+        {
+          "id": "q8",
+          "text": "Question 8",
+          "answer": "traffic"
+        },
+        {
+          "id": "q9",
+          "text": "Question 9",
+          "answer": "carriageway"
+        },
+        {
+          "id": "q10",
+          "text": "Question 10",
+          "answer": "mobile"
+        },
+        {
+          "id": "q11",
+          "text": "Question 11",
+          "answer": "dangerous"
+        },
+        {
+          "id": "q12",
+          "text": "Question 12",
+          "answer": "communities"
+        },
+        {
+          "id": "q13",
+          "text": "Question 13",
+          "answer": "healthy"
+        },
+        {
+          "id": "q14",
+          "text": "Question 14",
+          "answer": "F"
+        },
+        {
+          "id": "q15",
+          "text": "Question 15",
+          "answer": "A"
+        },
+        {
+          "id": "q16",
+          "text": "Question 16",
+          "answer": "D"
+        },
+        {
+          "id": "q17",
+          "text": "Question 17",
+          "answer": "A"
+        },
+        {
+          "id": "q18",
+          "text": "Question 18",
+          "answer": "genetic traits"
+        },
+        {
+          "id": "q19",
+          "text": "Question 19",
+          "answer": "heat loss"
+        },
+        {
+          "id": "q20",
+          "text": "Question 20",
+          "answer": "ears"
+        },
+        {
+          "id": "q21",
+          "text": "Question 21",
+          "answer": "insulating fat"
+        },
+        {
+          "id": "q22",
+          "text": "Question 22",
+          "answer": "carbon emissions"
+        },
+        {
+          "id": "q23",
+          "text": "Question 23",
+          "answer": "B"
+        },
+        {
+          "id": "q24",
+          "text": "Question 24",
+          "answer": "C"
+        },
+        {
+          "id": "q25",
+          "text": "Question 25",
+          "answer": "A"
+        },
+        {
+          "id": "q26",
+          "text": "Question 26",
+          "answer": "C"
+        },
+        {
+          "id": "q27",
+          "text": "Question 27",
+          "answer": "C"
+        },
+        {
+          "id": "q28",
+          "text": "Question 28",
+          "answer": "A"
+        },
+        {
+          "id": "q29",
+          "text": "Question 29",
+          "answer": "B"
+        },
+        {
+          "id": "q30",
+          "text": "Question 30",
+          "answer": "B"
+        },
+        {
+          "id": "q31",
+          "text": "Question 31",
+          "answer": "D"
+        },
+        {
+          "id": "q32",
+          "text": "Question 32",
+          "answer": "F"
+        },
+        {
+          "id": "q33",
+          "text": "Question 33",
+          "answer": "H"
+        },
+        {
+          "id": "q34",
+          "text": "Question 34",
+          "answer": "C"
+        },
+        {
+          "id": "q35",
+          "text": "Question 35",
+          "answer": "D"
+        },
+        {
+          "id": "q36",
+          "text": "Question 36",
+          "answer": "E"
+        },
+        {
+          "id": "q37",
+          "text": "Question 37",
+          "answer": "NOT GIVEN"
+        },
+        {
+          "id": "q38",
+          "text": "Question 38",
+          "answer": "YES"
+        },
+        {
+          "id": "q39",
+          "text": "Question 39",
+          "answer": "NO"
+        },
+        {
+          "id": "q40",
+          "text": "Question 40",
+          "answer": "NO"
+        }
+      ],
+      "readingPaper": "Reading\n\nQuestions 1-6\n\nReading Passage 1 has seven paragraphs, AG.\n\nWhich paragraph contains the following information?\n\nWrite the correct letter, A-G, in boxes 1-6 on your answer sheet.\n\n1 reference to an appealing way of using dance that the writer is not proposing\n\n2 an example of a contrast between past and present approaches to building\n\n3 mention of an objective of both dance and engineering |\n\n4 reference to an unforeseen problem arising from ignoring the climate\n\n5 why some measures intended to help people are being reversed\n\n6 reference to how transport has an impact on human lives\n\nQuestions 7-13 |\n\nComplete the summary below. |\n|\n\nChoose ONE WORD ONLY from the passage for each answer. |\n\nWrite your answers in boxes 7-13 on your answer sheet.\n\nGuard rails\n\nGuard rails were introduced on British roads to improve the 7 ............... R—- |\n\nof pedestrians, while ensuring that the movement of 8... IS |\n\nnot disrupted. Pedestrians are led to access points, and encouraged to cross one\n\n| J————————- 1 ¥- (1)\\-N |\n\nAn unintended effect is to create psychological difficulties in crossing the road, |\n\nparticularly for less 10 ....... » .. people. Another result is that some |\n\npeople cross the road in a 11... WAY. The guard rails separate |\n\n12 smn nen, @N0 Make it more difficult to introduce forms of transport |\n\nthatare 13... . !\n|\n\n=>|Qp. 122 39\n\n\n--- Page 42 ---\nTest 2\n\nREADING PASSAGE 2\n\nYou should spend about 20 minutes on Questions 14-26, which are based on Reading\n\nPassage 2 below.\n\nShould we try to bring extinct species back to life?\n\nA The passenger pigeon was a legendary species. Flying in vast numbers across\nNorth America, with potentially many millions within a single flock, their migration\nwas once one of nature's great spectacles. Sadly, the passenger pigeon’s existence\ncame to an end on 1 September 1914, when the last living specimen died at\nCincinnati Zoo. Geneticist Ben Novak is lead researcher on an ambitious project\nwhich now aims to bring the bird back to life through a process known as ‘de-\nextinction’. The basic premise involves using cloning technology to turn the DNA of\nextinct animals into a fertilised embryo, which is carried by the nearest relative still\nin existence — in this case, the abundant band-tailed pigeon — before being born as\na living, breathing animal. Passenger pigeons are one of the pioneering species in\nthis field, but they are far from the only ones on which this cutting-edge technology\nis being trialled.\n\nB In Australia, the thylacine, more commonly known as the Tasmanian tiger, is\nanother extinct creature which genetic scientists are striving to bring back to life.\n“There is no carnivore now in Tasmania that fills the niche which thylacines once\noccupied, explains Michael Archer of the University of New South Wales. He points\nout that in the decades since the thylacine went extinct, there has been a spread in\na ‘dangerously debilitating’ facial tumour syndrome which threatens the existence\nof the Tasmanian devils, the island's other notorious resident. Thylacines would\nhave prevented this spread because they would have killed significant numbers\nof Tasmanian devils. ‘If that contagious cancer had popped up previously, it would\nhave burned out in whatever region it started. The return of thylacines to Tasmania\ncould help to ensure that devils are never again subjected to risks of this kind.\"\n\nC If extinct species can be brought back to life, can humanity begin to correct the\ndamage it has caused to the natural world over the past few millennia? ‘The idea\nof de-extinction is that we can reverse this process, bringing species that no\nlonger exist back to life,’ says Beth Shapiro of University of California Santa Cruz's\nGenomics Institute. ‘I don't think that we can do this. There is no way to bring\nback something that is 100 per cent identical to a species that went extinct a long\ntime ago.’ A more practical approach for long-extinct species is to take the DNA of\nexisting species as a template, ready for the insertion of strands of extinct animal\nDNA to create something new; a hybrid, based on the living species, but which\nlooks and/or acts like the animal which died out.\n\n40\n\n\n--- Page 43 ---\n|\nReading\nD This complicated process and questionable outcome begs the question: what is\nthe actual point of this technology? ‘For us, the goal has always been replacing\nthe extinct species with a suitable replacement,” explains Novak. ‘When it comes\nto breeding, band-tailed pigeons scatter and make maybe one or two nests per\nhectare, whereas passenger pigeons were very social and would make 10,000\nor more nests in one hectare.” Since the disappearance of this key species,\necosystems in the eastern US have suffered, as the lack of disturbance caused\nby thousands of passenger pigeons wrecking trees and branches means there\nhas been minimal need for regrowth. This has left forests stagnant and therefore\nunwelcoming to the plants and animals which evolved to help regenerate the forest\nafter a disturbance. According to Novak, a hybridised band-tailed pigeon, with the\nadded nesting habits of a passenger pigeon, could, in theory, re-establish that\nforest disturbance, thereby creating a habitat necessary for a great many other |\nnative species to thrive.\nE Another popular candidate for this technology is the woolly mammoth. George\nChurch, professor at Harvard Medical School and leader of the Woolly Mammoth\nRevival Project, has been focusing on cold resistance, the main way in which the\nextinct woolly mammoth and its nearest living relative, the Asian elephant, differ.\nBy pinpointing which genetic traits made it possible for mammoths to survive the\nicy climate of the tundra, the project's goal is to return mammoths, or a mammoth- i\nlike species, to the area. ‘My highest priority would be preserving the endangered |\nAsian elephant,’ says Church, ‘expanding their range to the huge ecosystem of the |\ntundra. Necessary adaptations would include smaller ears, thicker hair, and extra |\ninsulating fat, all for the purpose of reducing heat loss in the tundra, and all traits |\nfound in the now extinct woolly mammoth.’ This repopulation of the tundra and |\nboreal forests of Eurasia and North America with large mammals could also be a i\nuseful factor in reducing carbon emissions — elephants punch holes through snow |\nand knock down trees, which encourages grass growth. This grass growth would |\nreduce temperatures, and mitigate emissions from melting permafrost.\nF While the prospect of bringing extinct animals back to life might capture\nimaginations, it is, of course, far easier to try to save an existing species which\nis merely threatened with extinction. ‘Many of the technologies that people have\nin mind when they think about de-extinction can be used as a form of “genetic\nrescue”, explains Shapiro. She prefers to focus the debate on how this emerging\ntechnology could be used to fully understand why various species went extinct in\nthe first place, and therefore how we could use it to make genetic modifications\nwhich could prevent mass extinctions in the future. ‘l would also say there's an |\nincredible moral hazard to not do anything at all,” she continues. ‘We know that |\nwhat we are doing today is not enough, and we have to be willing to take some |\ncalculated and measured risks.\"\n|\n41\n\n\n--- Page 44 ---\nTest 2\nQuestions 14-17\nReading Passage 2 has six paragraphs, A-F.\nWhich paragraph contains the following information?\nWrite the correct letter, AF, in boxes 14-17 on your answer sheet.\nNB You may use any letter more than once.\n14 a reference to how further disappearance of multiple species could be avoided\n15 explanation of a way of reproducing an extinct animal using the DNA of only that\n\nspecies\n16 reference to a habitat which has suffered following the extinction of a species\n17 mention of the exact point at which a particular species became extinct\nQuestions 18-22\nComplete the summary below.\nChoose NO MORE THAN TWO WORDS from the passage for each answer.\nWrite your answers in boxes 18-22 on your answer sheet.\n\nThe woolly mammoth revival project\n\nProfessor George Church and his team are trying to identify the\n48 nnn. WHICH €nabled mammoths to live in the tundra. The findings\ncould help preserve the mammoth’s close relative, the endangered Asian elephant.\nAccording to Church, introducing Asian elephants to the tundra would involve certain\nphysical adaptations to Minimise 19 ............wwcennnn. - 10 SUNVive in the tundra,\nthe species would need to have the mammoth-like features of thicker hair,\n20... OF @ TEAUCEA SIZ€ ANA MOTE 21 rns\nRepopulating the tundra with mammoths or Asian elephant/mammoth hybrids would\nalso have an impact on the environment, which could help to reduce temperatures and\nAECTEASE 22... +\n42\n\n\n--- Page 45 ---\n|\nReading\nQuestions 23-26\nLook at the following statements (Questions 23-26) and the list of people below.\nMatch each statement with the correct person, A, B or C.\nWrite the correct letter, A, B or C, in boxes 23-26 on your answer sheet.\nNB You may use any letter more than once.\n23 Reintroducing an extinct species to its original habitat could improve the health of a\nparticular species living there.\n24 ltis important to concentrate on the causes of an animal's extinction.\n25 Aspecies brought back from extinction could have an important beneficial impact\non the vegetation of its habitat.\n26 Our current efforts at preserving biodiversity are insufficient.\nList of People |\nA Ben Novak |\nB Michael Archer |\nC Beth Shapiro\n|\n|\n|\n|\n|\nS>@p 122] 43\n\n\n--- Page 46 ---\nTest 2\nREADING PASSAGE 3\nYou should spend about 20 minutes on Questions 27-40, which are based on Reading\nPassage 3 below.\nHaving a laugh\n\nThe findings of psychological scientists reveal the importance of humour\nHumans start developing a sense of humour as early as six weeks old, when babies begin to laugh\nand smile in response to stimuli. Laughter is universal across all human cultures and even exists\nin some form in rats, chimps, and bonobos. Like other human emotions and expressions, laughter\nand humour provide psychological scientists with rich resources for studying human psychology,\nranging from the development of language to the neuroscience of social perception.\nTheories focusing on the evolution of laughter point to it as an important adaptation for social\ncommunication. Take, for example, the recorded laughter in TV comedy shows. Back in 1950,\nUS sound engineer Charley Douglass hated dealing with the unpredictable laughter of live\naudiences, so started recording his own ‘laugh tracks’. These were intended to help people at\nhome feel like they were in a social situation, such as a crowded theatre. Douglass even recorded\nvarious types of laughter, as well as mixtures of laughter from men, women, and children. In\ndoing so, he picked up on a quality of laughter that is now interesting researchers: a simple ‘haha’\ncommunicates a remarkable amount of socially relevant information.\nIn one study conducted in 2016, samples of laughter from pairs of English-speaking students\nwere recorded at the University of California, Santa Cruz. A team made up of more than 30\npsychological scientists, anthropologists, and biologists then played these recordings to listeners\nfrom 24 diverse societies, from indigenous tribes in New Guinea to city-dwellers in India and\nEurope. Participants were asked whether they thought the people laughing were friends or\nstrangers. On average, the results were remarkably consistent: worldwide, people's guesses were\ncorrect approximately 60% of the time.\nResearchers have also found that different types of laughter serve as codes to complex human\nsocial hierarchies. A team led by Christopher Oveis from the University of California, San\nDiego, found that high-status individuals had different laughs from low-status individuals, and\nthat strangers” judgements of an individual's social status were influenced by the dominant or\nsubmissive quality of their laughter. In their study, 48 male college students were randomly\nassigned to groups of four, with each group composed of two low-status members, who had just\njoined their college fraternity group, and two high-status members, older students who had been\nactive in the fraternity for at least two years. Laughter was recorded as each student took a turn\nat being teased by the others, involving the use of mildly insulting nicknames. Analysis revealed\nthat, as expected, high-status individuals produced more dominant laughs and fewer submissive\nlaughs relative to the low-status individuals. Meanwhile, low-status individuals were more likely\nto change their laughter based on their position of power; that is, the newcomers produced more\n44\n\n\n--- Page 47 ---\nReading\ndominant laughs when they were in the ‘powerful’ role of teasers. Dominant laughter was higher\nin pitch, louder, and more variable in tone than submissive laughter.\nA random group of volunteers then listened to an equal number of dominant and submissive |\nlaughs from both the high- and low-status individuals, and were asked to estimate the social status |\nof the laugher. In line with predictions, laughers producing dominant laughs were perceived to be |\nsignificantly higher in status than laughers producing submissive laughs. ‘This was particularly |\ntrue for low-status individuals, who were rated as significantly higher in status when displaying a |\ndominant versus submissive laugh,” Oveis and colleagues note. “Thus, by strategically displaying\nmore dominant laughter when the context allows, low-status individuals may achieve higher\nstatus in the eyes of others.’ However, high-status individuals were rated as high-status whether\nthey produced their natural dominant laugh or tried to do a submissive one. |\nAnother study, conducted by David Cheng and Lu Wang of Australian National University,\nwas based on the hypothesis that humour might provide a respite from tedious situations in the\nworkplace. This ‘mental break’ might facilitate the replenishment of mental resources. To test this\ntheory, the researchers recruited 74 business students, ostensibly for an experiment on perception.\nFirst, the students performed a tedious task in which they had to cross out every instance of the\nletter ‘e” over two pages of text. The students then were randomly assigned to watch a video\nclip eliciting either humour, contentment, or neutral feelings. Some watched a clip of the BBC\ncomedy Mr. Bean, others a relaxing scene with dolphins swimming in the ocean, and others a\nfactual video about the management profession.\nThe students then completed a task requiring persistence in which they were asked to guess\nthe potential performance of employees based on provided profiles, and were told that making\n10 correct assessments in a row would lead to a win, However, the software was programmed\nsuch that it was nearly impossible to achieve 10 consecutive correct answers. Participants were\nallowed to quit the task at any point. Students who had watched the Mi: Bean video ended up\nspending significantly more time working on the task, making twice as many predictions as the |\nother two groups. |\nCheng and Wang then replicated these results in a second study, during which they had\nparticipants complete long multiplication questions by hand. Again, participants who watched the\nhumorous video spent significantly more time working on this tedious task and completed more\nquestions correctly than did the students in either of the other groups.\n“Although humour has been found to help relieve stress and facilitate social relationships, the\ntraditional view of task performance implies that individuals should avoid things such as humour |\nthat may distract them from the accomplishment of task goals,” Cheng and Wang conclude. ‘We |\nsuggest that humour is not only enjoyable but more importantly, energising.” |\n45 |\n\n\n--- Page 48 ---\nTest 2\nQuestions 27-31\nChoose the correct letter, A, B, C or D.\nWrite the correct letter in boxes 27-31 on your answer sheet.\n27 When referring to laughter in the first paragraph, the writer emphasises\nA its impact on language.\nB its function in human culture.\nC its value to scientific research.\nD its universality in animal societies.\n28 What does the writer suggest about Charley Douglass?\nA He understood the importance of enjoying humour in a group setting.\nB He believed that TV viewers at home needed to be told when to laugh.\nC He wanted his shows to appeal to audiences across the social spectrum.\nD He preferred shows where audiences were present in the recording studio.\n29 What makes the Santa Cruz study particularly significant?\nA the various different types of laughter that were studied\nB the similar results produced by a wide range of cultures\nC the number of different academic disciplines involved\nD the many kinds of people whose laughter was recorded\n30 Which of the following happened in the San Diego study?\nA Some participants became very upset.\nB Participants exchanged roles.\nC Participants who had not met before became friends.\nD Some participants were unable to laugh.\n31 In the fifth paragraph, what did the results of the San Diego study suggest?\nA Itis clear whether a dominant laugh is produced by a high- or low-status\nperson.\nB  Low-status individuals in a position of power will still produce submissive\nlaughs.\nC The submissive laughs of low- and high-status individuals are surprisingly\nsimilar.\nD  High-status individuals can always be identified by their way of laughing.\n46\n\n\n--- Page 49 ---\nReading\nQuestions 32-36\nComplete the summary using the list of words, A-H, below. |\nWrite the correct letter, A-H, in boxes 32-36 on your answer sheet.\nThe benefits of humour !\nIn one study at Australian National University, randomly chosen groups of participants |\nwere shown one of three videos, each designed to generate a different kind of |\n7 J— ... When all participants were then given a deliberately frustrating\ntask to do, it was found that those who had watched the 33 .............ccc. Vid€O {\npersisted with the task for longer and tried harder to accomplish the task than either of\nthe other two groups.\nA second study in which participants were asked to perform a particularly\n34 taSK produced similar results. According to researchers David\nCheng and Lu Wang, these findings suggest that humour not only reduces |\n1 J wenn. ANA helps build social connections but it may also have a |\n36 rn €FfECE ON the body and mind.\nA laughter B relaxing C boring\nD anxiety E stimulating F emotion |\nG enjoyment H amusing !\n|\n47\n\n\n--- Page 50 ---\nTest 2\nQuestions 37-40\nDo the following statements agree with the claims of the writer in Reading Passage 3?\nIn boxes 37-40 on your answer sheet, write\nYES if the statement agrees with the claims of the writer\nNO if the statement contradicts the claims of the writer\nNOT GIVEN if it is impossible to say what the writer thinks about this\n37 Participants in the Santa Cruz study were more accurate at identifying the laughs of\nfriends than those of strangers.\n38 The researchers in the San Diego study were correct in their predictions regarding\nthe behaviour of the high-status individuals.\n39 The participants in the Australian National University study were given a fixed\namount of time to complete the task focusing on employee profiles.\n40 Cheng and Wang's conclusions were in line with established notions regarding task\nperformance.\n8 0p. 122\n\n\n--- Page 51 ---\n| | |",
+      "readingPaperSource": "data/ocr-reading-writing/cam15-test2-reading-writing.txt",
+      "readingPageImages": [
+        {
+          "page": 39,
+          "url": "/generated/reading-pages/cam15/test2/page-39.webp"
+        },
+        {
+          "page": 40,
+          "url": "/generated/reading-pages/cam15/test2/page-40.webp"
+        },
+        {
+          "page": 41,
+          "url": "/generated/reading-pages/cam15/test2/page-41.webp"
+        },
+        {
+          "page": 42,
+          "url": "/generated/reading-pages/cam15/test2/page-42.webp"
+        },
+        {
+          "page": 43,
+          "url": "/generated/reading-pages/cam15/test2/page-43.webp"
+        },
+        {
+          "page": 44,
+          "url": "/generated/reading-pages/cam15/test2/page-44.webp"
+        },
+        {
+          "page": 45,
+          "url": "/generated/reading-pages/cam15/test2/page-45.webp"
+        },
+        {
+          "page": 46,
+          "url": "/generated/reading-pages/cam15/test2/page-46.webp"
+        },
+        {
+          "page": 47,
+          "url": "/generated/reading-pages/cam15/test2/page-47.webp"
+        },
+        {
+          "page": 48,
+          "url": "/generated/reading-pages/cam15/test2/page-48.webp"
+        },
+        {
+          "page": 49,
+          "url": "/generated/reading-pages/cam15/test2/page-49.webp"
+        },
+        {
+          "page": 50,
+          "url": "/generated/reading-pages/cam15/test2/page-50.webp"
+        }
+      ]
+    },
+    {
+      "id": "cam15-r-test3",
+      "module": "reading",
+      "title": "Cambridge IELTS 15 Academic - Test 3 Reading",
+      "source": "Cambridge IELTS 15 local import",
+      "period": "Cambridge 15",
+      "minutes": 60,
+      "sourceUrl": "/cambridge15/pdf",
+      "passage": "Full Reading Test 3 question paper is imported below. Answers may still need manual checking unless an answer key is available.",
+      "questions": [
+        {
+          "id": "q1",
+          "text": "Question 1",
+          "answer": "TRUE"
+        },
+        {
+          "id": "q2",
+          "text": "Question 2",
+          "answer": "FALSE"
+        },
+        {
+          "id": "q3",
+          "text": "Question 3",
+          "answer": "NOT GIVEN"
+        },
+        {
+          "id": "q4",
+          "text": "Question 4",
+          "answer": "TRUE"
+        },
+        {
+          "id": "q5",
+          "text": "Question 5",
+          "answer": "NOT GIVEN"
+        },
+        {
+          "id": "q6",
+          "text": "Question 6",
+          "answer": "FALSE"
+        },
+        {
+          "id": "q7",
+          "text": "Question 7",
+          "answer": "TRUE"
+        },
+        {
+          "id": "q8",
+          "text": "Question 8",
+          "answer": "resignation"
+        },
+        {
+          "id": "q9",
+          "text": "Question 9",
+          "answer": "materials"
+        },
+        {
+          "id": "q10",
+          "text": "Question 10",
+          "answer": "miners"
+        },
+        {
+          "id": "q11",
+          "text": "Question 11",
+          "answer": "family"
+        },
+        {
+          "id": "q12",
+          "text": "Question 12",
+          "answer": "collectors"
+        },
+        {
+          "id": "q13",
+          "text": "Question 13",
+          "answer": "income"
+        },
+        {
+          "id": "q14",
+          "text": "Question 14",
+          "answer": "iii"
+        },
+        {
+          "id": "q15",
+          "text": "Question 15",
+          "answer": "vi"
+        },
+        {
+          "id": "q16",
+          "text": "Question 16",
+          "answer": "v"
+        },
+        {
+          "id": "q17",
+          "text": "Question 17",
+          "answer": "x"
+        },
+        {
+          "id": "q18",
+          "text": "Question 18",
+          "answer": "iv"
+        },
+        {
+          "id": "q19",
+          "text": "Question 19",
+          "answer": "viii"
+        },
+        {
+          "id": "q20",
+          "text": "Question 20",
+          "answer": "i"
+        },
+        {
+          "id": "q21",
+          "text": "Question 21",
+          "answer": "wheels"
+        },
+        {
+          "id": "q22",
+          "text": "Question 22",
+          "answer": "film"
+        },
+        {
+          "id": "q23",
+          "text": "Question 23",
+          "answer": "filter"
+        },
+        {
+          "id": "q24",
+          "text": "Question 24",
+          "answer": "waste"
+        },
+        {
+          "id": "q25",
+          "text": "Question 25",
+          "answer": "performance"
+        },
+        {
+          "id": "q26",
+          "text": "Question 26",
+          "answer": "servicing"
+        },
+        {
+          "id": "q27",
+          "text": "Question 27",
+          "answer": "C"
+        },
+        {
+          "id": "q28",
+          "text": "Question 28",
+          "answer": "B"
+        },
+        {
+          "id": "q29",
+          "text": "Question 29",
+          "answer": "F"
+        },
+        {
+          "id": "q30",
+          "text": "Question 30",
+          "answer": "A"
+        },
+        {
+          "id": "q31",
+          "text": "Question 31",
+          "answer": "E"
+        },
+        {
+          "id": "q32",
+          "text": "Question 32",
+          "answer": "D"
+        },
+        {
+          "id": "q33",
+          "text": "Question 33",
+          "answer": "F"
+        },
+        {
+          "id": "q34",
+          "text": "Question 34",
+          "answer": "B"
+        },
+        {
+          "id": "q35",
+          "text": "Question 35",
+          "answer": "C"
+        },
+        {
+          "id": "q36",
+          "text": "Question 36",
+          "answer": "G"
+        },
+        {
+          "id": "q37",
+          "text": "Question 37",
+          "answer": "B"
+        },
+        {
+          "id": "q38",
+          "text": "Question 38",
+          "answer": "D"
+        },
+        {
+          "id": "q39",
+          "text": "Question 39",
+          "answer": "A"
+        },
+        {
+          "id": "q40",
+          "text": "Question 40",
+          "answer": "A"
+        }
+      ],
+      "readingPaper": "Reading\nAround this time, Moore moved away from the human figure to experiment with abstract shapes. |\nIn 1931, he held an exhibition at the Leicester Galleries in London. His work was enthusiastically\nwelcomed by fellow sculptors, but the reviews in the press were extremely negative and turned\nMoore into a notorious figure. There were calls for his resignation from the Royal College, |\nand the following year, when his contract expired, he left to start a sculpture department at the\nChelsea School of Art in London.\nThroughout the 1930s, Moore did not show any inclination to please the British public. He\nbecame interested in the paintings of the Spanish artist Pablo Picasso, whose work inspired him\nto distort the human body in a radical way. At times, he seemed to abandon the human figure\naltogether. The pages of his sketchbooks from this period show his ideas for abstract sculptures\nthat bore little resemblance to the human form.\nTn 1940, during the Second World War, Moore stopped teaching at the Chelsea School and moved |\nto a farmhouse about 20 miles north of London. A shortage of materials forced him to focus\non drawing. He did numerous small sketches of Londoners, later turning these ideas into large\ncoloured drawings in his studio. In 1942, he returned to Castleford to make a series of sketches of\nthe miners who worked there.\nIn 1944, Harlow, a town near London, offered Moore a commission for a sculpture depicting\na family. The resulting work signifies a dramatic change in Moore's style, away from the\nexperimentation of the 1930s towards a more natural and humanistic subject matter. He did\ndozens of studies in clay for the sculpture, and these were cast in bronze and issued in editions of\nseven to nine copies each. In this way, Moore's work became available to collectors all over the\nworld. The boost to his income enabled him to take on ambitious projects and start working on\nthe scale he felt his sculpture demanded.\nCritics who had begun to think that Moore had become less revolutionary were proven wrong\nby the appearance, in 1950, of the first of Moores series of standing figures in bronze, with their\nharsh and angular pierced forms and distinct impression of menace. Moore also varied his subject |\nmatter in the 1950s with such works as Warrior with Shield and Falling Warrior. These were rare I\nexamples of Moore's use of the male figure and owe something to his visit to Greece in 1951, |\nwhen he had the opportunity to study ancient works of art |\nIn his final years, Moore created the Henry Moore Foundation to promote art appreciation and |\nto display his work. Moore was the first modern English sculptor to achieve international critical |\nacclaim and he is still regarded as one of the most important sculptors of the 20th century. |\n|\n|\n59\n\n\n--- Page 62 ---\nTest 3\nQuestions 1-7\nDo the following statements agree with the information given in Reading Passage 1?\nIn boxes 1-7 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN if there is no information on this\n1 On leaving school, Moore did what his father wanted him to do.\n2 Moore began studying sculpture in his first term at the Leeds School of Art.\n3 When Moore started at the Royal College of Art, its reputation for teaching\nsculpture was excellent.\n4 Moore became aware of ancient sculpture as a result of visiting London museums.\n5 The Trocadero Museum's Mayan sculpture attracted a lot of public interest.\n6 Moore thought the Mayan sculpture was similar in certain respects to other stone\nsculptures.\n7 The artists who belonged to Unit One wanted to make modern art and architecture\nmore popular.\n60\n\n\n--- Page 63 ---\nReading\nQuestions 8-13\nComplete the notes below.\nChoose ONE WORD ONLY from the passage for each answer.\nWrite your answers in boxes 8-13 on your answer sheet. |\nMoore’s career as an artist\n1930s\n* Moore's exhibition at the Leicester Galleries is criticised by the press i\ne Moore is urged to offer his 8 ................rmnn. aNd leave the Royal College I\n1940s\n. Moore turns to drawing DECaUSE 9... TOF SCUIPtING are not\nreadily available\n* While visiting his hometown, Moore does some drawings of i\n|\n* Moore is employed to produce a sculpture of @ 11... |\nCJL FSO — ..... start to buy Moore’s work |\no Moore's increased 13... Makes it possible for him to do\nmore ambitious sculptures\n1950s |\nMoore's series of bronze figures marks a further change in his style i\n|\n|\ni\n|\n|\nI\n|\n-> Q p. 124 61\n\n\n--- Page 64 ---\nTest 3\nREADING PASSAGE 2\nYou should spend about 20 minutes on Questions 14-26, which are based on Reading\nPassage 2 on pages 63 and 64.\nQuestions 14-20\nReading Passage 2 has seven sections, A-G.\nChoose the correct heading for each section from the list of headings below.\nWrite the correct number, i-x, in boxes 14-20 on your answer sheet.\nList of Headings\ni Getting the finance for production\n\nii An unexpected benefit\n\niii From initial inspiration to new product\n\niv The range of potential customers for the device\n\nv What makes the device different from alternatives\n\nvi Cleaning water from a range of sources\n\nvii Overcoming production difficulties\nviii Profit not the primary goal\n\nix Awarm welcome for the device\n\nx The number of people affected by water shortages\n14 Section A\n15 Section B\n16 Section C\n17 Section D\n18 Section E\n19 Section F\n20 Section G\n62\n\n\n--- Page 65 ---\n| |\nReading\nThe Desolenator: producing clean water\nA Travelling around Thailand in the 1990s, William Janssen was impressed with the\nbasic rooftop solar heating systems that were on many homes, where energy from\nthe sun was absorbed by a plate and then used to heat water for domestic use. Two\ndecades later Janssen developed that basic idea he saw in Southeast Asia into a\nportable device that uses the power from the sun to purify water.\nB The Desolenator operates as a mobile desalination unit that can take water from\ndifferent places, such as the sea, rivers, boreholes and rain, and purify it for human\nconsumption. It is particularly valuable in regions where natural groundwater\nreserves have been polluted, or where seawater is the only water source available. |\nJanssen saw that there was a need for a sustainable way to clean water in both the\ndeveloping and the developed countries when he moved to the United Arab Emirates\nand saw large-scale water processing. ‘I was confronted with the enormous carbon\nfootprint that the Gulf nations have because of all of the desalination that they do,’\nhe says.\nC The Desolenator can produce 15 litres of drinking water per day, enough to sustain\na family for cooking and drinking. Its main selling point is that unlike standard\ndesalination techniques, it doesn’t require a generated power supply: just sunlight. Tt\nmeasures 120cm by 90cm, and is easy to transport, thanks to its two wheels. Water\nenters through a pipe, and flows as a thin film between a sheet of double glazing and\nthe surface of a solar panel, where it is heated by the sun. The warm water flows into\na small boiler (heated by a solar-powered battery) where it is converted to steam.\nWhen the steam cools, it becomes distilled water. The device has a very simple filter\nto trap particles, and this can easily be shaken to remove them. There are two tubes\nfor liquid coming out: one for the waste — salt from seawater, fluoride, etc. — and |\nanother for the distilled water. The performance of the unit is shown on an LCD |\nscreen and transmitted to the company which provides servicing when necessary. |\nD A recent analysis found that at least two-thirds of the world’s population lives\nwith severe water scarcity for at least a month every year. Janssen says that by\n2030 half of the world’s population will be living with water stress — where the\ndemand exceeds the supply over a certain period of time. ‘It is really important that\na sustainable solution is brought to the market that is able to help these people,’\nhe says. Many countries ‘don’t have the money for desalination plants, which are\nvery expensive to build. They don’t have the money to operate them, they are very\nmaintenance intensive, and they don’t have the money to buy the diesel to run the |\ndesalination plants, so it is a really bad situation.” |\n|\n63\n\n\n--- Page 66 ---\nTest 3\n\nE The device is aimed at a wide variety of users — from homeowners in the developing\nworld who do not have a constant supply of water to people living off the grid in\nrural parts of the US. The first commercial versions of the Desolenator are expected\nto be in operation in India early next year, after field tests are carried out. The market\nfor the self-sufficient devices in developing countries is twofold — those who cannot\nafford the money for the device outright and pay through microfinance, and middle-\nincome homes that can lease their own equipment. ‘People in India don’t pay for a\nfridge outright; they pay for it over six months. They would put the Desolenator on\ntheir roof and hook it up to their municipal supply and they would get very reliable\ndrinking water on a daily basis,” Janssen says. In the developed world, it is aimed\nat niche markets where tap water is unavailable — for camping, on boats, or for the\nmilitary, for instance.\n\nF Prices will vary according to where it is bought. In the developing world, the price\nwill depend on what deal aid organisations can negotiate. In developed countries, it\nis likely to come in at $1,000 (£685) a unit, said Janssen. ‘We are a venture with a\nsocial mission. We are aware that the product we have envisioned is mainly finding\napplication in the developing world and humanitarian sector and that this is the way\nwe will proceed. We do realise, though, that to be a viable company there is a bottom\nline to keep in mind,” he says.\n\nG The company itself is based at Imperial College London, although Janssen, its chief\nexecutive, still lives in the UAE. It has raised £340,000 in funding so far. Within two\nyears, he says, the company aims to be selling 1,000 units a month, mainly in the\nhumanitarian field. They are expected to be sold in areas such as Australia, northern\nChile, Peru, Texas and California.\n\n64\n\n\n--- Page 67 ---\nReading |\nQuestions 21-26 |\nComplete the summary below. [|\n|\nChoose ONE WORD ONLY from the passage for each answer. li\nWrite your answers in boxes 21-26 on your answer sheet.\nHow the Desolenator works\nThe energy required to operate the Desolenator comes from sunlight. The device can i\nbe used in different locations, @s it has 21 ........... . Water is fed into !\na pipe, and @ 22... OF Water flows over a solar panel. The water i\nthen enters a boiler, where it turns into steam. Any particles in the water are caught in\n1x J— wr. . The purified water comes out through one tube, and all\ntypes of 24... COME oUt through another. A screen displays the\n25 nnn: OF the device, and transmits the information to the company\nso that they know when the Desolenator requires 26 » .\nI\n|\n|\ni\ni\n|\n|\n|\n|\n|\n3(@ 0p. 124] 65 1\n\n\n--- Page 68 ---\nTest 3\nREADING PASSAGE 3\nYou should spend about 20 minutes on Questions 27-40, which are based on Reading\nPassage 3 below.\nWhy fairy tales are really scary tales\nSome people think that fairy tales are just stories to amuse children, but their\nuniversal and enduring appeal may be due to more serious reasons\n\nPeople of every culture tell each other fairy tales but the same story often takes a variety of forms\nin different parts of the world. In the story of Little Red Riding Hood that European children are\nfamiliar with, a young girl on the way to see her grandmother meets a wolf and tells him where\nshe is going. The wolf runs on ahead and disposes of the grandmother, then gets into bed dressed\nin the grandmothers clothes to wait for Little Red Riding Hood. You may think you know the\nstory — but which version? In some versions, the wolf swallows up the grandmother, while in\nothers it locks her in a cupboard. In some stories Red Riding Hood gets the better of the wolf on\nher own, while in others a hunter or a woodcutter hears her cries and comes to her rescue.\nThe universal appeal of these tales is frequently attributed to the idea that they contain cautionary\nmessages: in the case of Little Red Riding Hood, to listen to your mother, and avoid talking\nto strangers. ‘It might be what we find interesting about this story is that it’s got this survival-\nrelevant information in it,” says anthropologist Jamie Tehrani at Durham University in the UK.\nBut his research suggests otherwise. ‘We have this huge gap in our knowledge about the history\nand prehistory of storytelling, despite the fact that we know this genre is an incredibly ancient\none,” he says. That hasn’t stopped anthropologists, folklorists” and other academics devising\ntheories to explain the importance of fairy tales in human society. Now Tehrani has found a way\nto test these ideas, borrowing a technique from evolutionary biologists.\nTo work out the evolutionary history, development and relationships among groups of organisms,\nbiologists compare the characteristics of living species in a process called ‘phylogenetic analysis’.\nTehrani has used the same approach to compare related versions of fairy tales to discover how\nthey have evolved and which elements have survived longest.\nTehrani’s analysis focused on Little Red Riding Hood in its many forms, which include another\n‘Western fairy tale known as The Wolf and the Kids. Checking for variants of these two tales and\nsimilar stories from Africa, East Asia and other regions, he ended up with 58 stories recorded\nfrom oral traditions. Once his phylogenetic analysis had established that they were indeed related,\nhe used the same methods to explore how they have developed and altered over time.\nFirst he tested some assumptions about which aspects of the story alter least as it evolves, indicating\ntheir importance. Folklorists believe that what happens in a story is more central to the story\nthan the characters in it — that visiting a relative, only to be met by a scary animal in disguise, is\n*Folkdorists: those who study traditional stories\n66\n\n\n--- Page 69 ---\nReading\nmore fundamental than whether the visitor is a little girl or three siblings, or the animal is a tiger\ninstead of a wolf.\nHowever, Tehrani found no significant difference in the rate of evolution of incidents compared\nwith that of characters. ‘Certain episodes are very stable because they are crucial to the story, but\nthere are lots of other details that can evolve quite freely,” he says. Neither did his analysis support\nthe theory that the central section of a story is the most conserved part. He found no significant\ndifference in the flexibility of events there compared with the beginning or the end.\nBut the really big surprise came when he looked at the cautionary elements of the story. ‘Studies |\non hunter-gatherer folk tales suggest that these narratives include really important information\nabout the environment and the possible dangers that may be faced there — stuff that’s relevant\nto survival,” he says. Yet in his analysis such elements were just as flexible as seemingly trivial\ndetails. What, then, is important enough to be reproduced from generation to generation? |\nThe answer, it would appear, is fear — blood-thirsty and gruesome aspects of the story, such as the\neating of the grandmother by the wolf, turned out to be the best preserved of all. Why are these |\ndetails retained by generations of storytellers, when other features are not? Tehrani has an idea:\n“In an oral context, a story won't survive because of one great teller. It also needs to be interesting |\nwhen it’s told by someone who's not necessarily a great storyteller.” Maybe being swallowed |\n‘whole by a wolf, then cut out of its stomach alive is so gripping that it helps the story remain\npopular, no matter how badly it’s told.\nJack Zipes at the University of Minnesota, Minneapolis, is unconvinced by Tehrani’s views on\nfairy tales. ‘Even if they’re gruesome, they won't stick unless they matter,” he says. He believes\nthe perennial theme of women as victims in stories like Little Red Riding Hood explains why they\ncontinue to feel relevant. But Tehrani points out that although this is often the case in Western\nversions, it is not always true elsewhere. In Chinese and Japanese versions, often known as The\nTiger Grandmother, the villain is a woman, and in both Iran and Nigeria, the victim is a boy.\nMathias Clasen at Aarhus University in Denmark isn’t surprised by Tehrani’s findings. ‘Habits\nand morals change, but the things that scare us, and the fact that we seek out entertainment that’s\ndesigned to scare us — those are constant,” he says. Clasen believes that scary stories teach us what\nit feels like to be afraid without having to experience real danger, and so build up resistance to\nnegative emotions.\n\n67\n\n\n--- Page 70 ---\nTest 3\nQuestions 27-31\nComplete each sentence with the correct ending, A-F, below.\nWrite the correct letter, AF, in boxes 27-31 on your answer sheet.\n27 In fairy tales, details of the plot\n28 Tehrani rejects the idea that the useful lessons for life in fairy tales\n29 Various theories about the social significance of fairy tales\n30 Insights into the development of fairy tales\n31 All the fairy tales analysed by Tehrani\n—\n| A may be provided through methods used in biological research.\nB are the reason for their survival.\nC show considerable global variation.\nD contain animals which transform to become humans.\nE were originally spoken rather than written.\nF have been developed without factual basis.\n68\n\n\n--- Page 71 ---\nReading\nQuestions 32-36 |\nComplete the summary using the list of words, A-1, below. |\nWrite the correct letter, Af, in boxes 32-36 on your answer sheet. |\nPhylogenetic analysis of Little Red Riding Hood |\nTehrani used techniques from evolutionary biology to find out if 32 ................... I\nexisted among 58 stories from around the world. He also wanted to know which I\naspects of the stories had fewest 33... , @S he believed these aspects |\nwould be the most important ones. Contrary to other beliefs, he found that some I\n34... that were included in a story tended to change over time, i\nand that the middle of a story seemed no more important than the other parts. |\nHe was also surprised that parts of a story which seemed to provide some sort of\n\n35... WET unimportant. The aspect that he found most important in a\nstory's survival Was 36... + i\n|\n|\nA ending B events C warning |\nD links E records F variations |\nG horror H people I plot i\n|\n|\n|\n|\n|\n|\n|\n\n69\n\n| ]\n\n\n--- Page 72 ---\nTest 3\nQuestions 37-40\nChoose the correct letter, A, B, C or D.\nWrite the correct letter in boxes 37—40 on your answer sheet.\n37 What method did Jamie Tehrani use to test his ideas about fairy tales?\nA He compared oral and written forms of the same stories.\nB He looked at many different forms of the same basic story.\nC He looked at unrelated stories from many different countries.\nD He contrasted the development of fairy tales with that of living creatures.\n38 When discussing Tehrani’s views, Jack Zipes suggests that\nA Tehrani ignores key changes in the role of women.\nB stories which are too horrific are not always taken seriously.\nC Tehrani overemphasises the importance of violence in stories.\nD features of stories only survive if they have a deeper significance.\n39 Why does Tehrani refer to Chinese and Japanese fairy tales?\nA to indicate that Jack Zipes' theory is incorrect\nB to suggest that crime is a global problem\nC to imply that all fairy tales have a similar meaning\nD to add more evidence for Jack Zipes’ ideas\n40 What does Mathias Clasen believe about fairy tales?\nA They are a safe way of learning to deal with fear.\nB They are a type of entertainment that some people avoid.\nC They reflect the changing values of our society.\nD They reduce our ability to deal with real-world problems.\n70 SQ p. 124\n\n\n--- Page 73 ---\ny |",
+      "readingPaperSource": "data/ocr-reading-writing/cam15-test3-reading-writing.txt",
+      "readingPageImages": [
+        {
+          "page": 60,
+          "url": "/generated/reading-pages/cam15/test3/page-60.webp"
+        },
+        {
+          "page": 61,
+          "url": "/generated/reading-pages/cam15/test3/page-61.webp"
+        },
+        {
+          "page": 62,
+          "url": "/generated/reading-pages/cam15/test3/page-62.webp"
+        },
+        {
+          "page": 63,
+          "url": "/generated/reading-pages/cam15/test3/page-63.webp"
+        },
+        {
+          "page": 64,
+          "url": "/generated/reading-pages/cam15/test3/page-64.webp"
+        },
+        {
+          "page": 65,
+          "url": "/generated/reading-pages/cam15/test3/page-65.webp"
+        },
+        {
+          "page": 66,
+          "url": "/generated/reading-pages/cam15/test3/page-66.webp"
+        },
+        {
+          "page": 67,
+          "url": "/generated/reading-pages/cam15/test3/page-67.webp"
+        },
+        {
+          "page": 68,
+          "url": "/generated/reading-pages/cam15/test3/page-68.webp"
+        },
+        {
+          "page": 69,
+          "url": "/generated/reading-pages/cam15/test3/page-69.webp"
+        },
+        {
+          "page": 70,
+          "url": "/generated/reading-pages/cam15/test3/page-70.webp"
+        },
+        {
+          "page": 71,
+          "url": "/generated/reading-pages/cam15/test3/page-71.webp"
+        },
+        {
+          "page": 72,
+          "url": "/generated/reading-pages/cam15/test3/page-72.webp"
+        }
+      ]
+    },
+    {
+      "id": "cam15-r-test4",
+      "module": "reading",
+      "title": "Cambridge IELTS 15 Academic - Test 4 Reading",
+      "source": "Cambridge IELTS 15 local import",
+      "period": "Cambridge 15",
+      "minutes": 60,
+      "sourceUrl": "/cambridge15/pdf",
+      "passage": "Full Reading Test 4 question paper is imported below. Answers may still need manual checking unless an answer key is available.",
+      "questions": [
+        {
+          "id": "q1",
+          "text": "Question 1",
+          "answer": "water"
+        },
+        {
+          "id": "q2",
+          "text": "Question 2",
+          "answer": "diet"
+        },
+        {
+          "id": "q3",
+          "text": "Question 3",
+          "answer": "drought"
+        },
+        {
+          "id": "q4",
+          "text": "Question 4",
+          "answer": "erosion"
+        },
+        {
+          "id": "q5",
+          "text": "Question 5",
+          "answer": "desert"
+        },
+        {
+          "id": "q6",
+          "text": "Question 6",
+          "answer": "branches"
+        },
+        {
+          "id": "q7",
+          "text": "Question 7",
+          "answer": "leaves bark"
+        },
+        {
+          "id": "q8",
+          "text": "Question 8",
+          "answer": "trunk"
+        },
+        {
+          "id": "q9",
+          "text": "Question 9",
+          "answer": "NOT GIVEN"
+        },
+        {
+          "id": "q10",
+          "text": "Question 10",
+          "answer": "FALSE"
+        },
+        {
+          "id": "q11",
+          "text": "Question 11",
+          "answer": "TRUE"
+        },
+        {
+          "id": "q12",
+          "text": "Question 12",
+          "answer": "FALSE"
+        },
+        {
+          "id": "q13",
+          "text": "Question 13",
+          "answer": "NOT GIVEN"
+        },
+        {
+          "id": "q14",
+          "text": "Question 14",
+          "answer": "NOT GIVEN"
+        },
+        {
+          "id": "q15",
+          "text": "Question 15",
+          "answer": "FALSE"
+        },
+        {
+          "id": "q16",
+          "text": "Question 16",
+          "answer": "TRUE"
+        },
+        {
+          "id": "q17",
+          "text": "Question 17",
+          "answer": "FALSE"
+        },
+        {
+          "id": "q18",
+          "text": "Question 18",
+          "answer": "FALSE"
+        },
+        {
+          "id": "q19",
+          "text": "Question 19",
+          "answer": "TRUE"
+        },
+        {
+          "id": "q20",
+          "text": "Question 20",
+          "answer": "words"
+        },
+        {
+          "id": "q21",
+          "text": "Question 21",
+          "answer": "finger"
+        },
+        {
+          "id": "q22",
+          "text": "Question 22",
+          "answer": "direction"
+        },
+        {
+          "id": "q23",
+          "text": "Question 23",
+          "answer": "commands"
+        },
+        {
+          "id": "q24",
+          "text": "Question 24",
+          "answer": "fires"
+        },
+        {
+          "id": "q25",
+          "text": "Question 25",
+          "answer": "technology"
+        },
+        {
+          "id": "q26",
+          "text": "Question 26",
+          "answer": "award"
+        },
+        {
+          "id": "q27",
+          "text": "Question 27",
+          "answer": "D"
+        },
+        {
+          "id": "q28",
+          "text": "Question 28",
+          "answer": "E"
+        },
+        {
+          "id": "q29",
+          "text": "Question 29",
+          "answer": "F"
+        },
+        {
+          "id": "q30",
+          "text": "Question 30",
+          "answer": "H"
+        },
+        {
+          "id": "q31",
+          "text": "Question 31",
+          "answer": "B"
+        },
+        {
+          "id": "q32",
+          "text": "Question 32",
+          "answer": "C"
+        },
+        {
+          "id": "q33",
+          "text": "Question 33",
+          "answer": "D"
+        },
+        {
+          "id": "q34",
+          "text": "Question 34",
+          "answer": "B"
+        },
+        {
+          "id": "q35",
+          "text": "Question 35",
+          "answer": "YES"
+        },
+        {
+          "id": "q36",
+          "text": "Question 36",
+          "answer": "NOT GIVEN"
+        },
+        {
+          "id": "q37",
+          "text": "Question 37",
+          "answer": "NO"
+        },
+        {
+          "id": "q38",
+          "text": "Question 38",
+          "answer": "YES"
+        },
+        {
+          "id": "q39",
+          "text": "Question 39",
+          "answer": "NOT GIVEN"
+        },
+        {
+          "id": "q40",
+          "text": "Question 40",
+          "answer": "D"
+        }
+      ],
+      "readingPaper": "Reading\n“In order to get people interested in habitat restoration, you need to plant a tree that is useful to\nthem,’ says Whaley. So, he has been working with local families to attempt to create a sustainable\nincome from the huarangos by turning their products into foodstuffs. ‘Boil up the beans and you\nget this thick brown syrup like molasses. You can also use it in drinks, soups or stews.’ The pods\ncan be ground into flour to make cakes, and the seeds roasted into a sweet, chocolatey ‘coffee’.\n“It’s packed full of vitamins and minerals,” Whaley says. |\nAnd some farmers are already planting huarangos. Alberto Benevides, owner of Ica Valley's only |\ncertified organic farm, which Whaley helped set up, has been planting the tree for 13 years. He |\nproduces syrup and flour, and sells these products at an organic farmers” market in Lima. His |\nfarm is relatively small and doesn’t yet provide him with enough to live on, but he hopes this |\nwill change. “The organic market is growing rapidly in Peru,’ Benevides says. ‘T am investing in\nthe future.” |\nBut even if Whaley can convince the local people to fall in love with the huarango again, there is\nstill the threat of the larger farms. Some of these cut across the forests and break up the corridors\nthat allow the essential movement of mammals, birds and pollen up and down the narrow forest\nstrip. In the hope of counteracting this, he’s persuading farmers to let him plant forest corridors\non their land. He believes the extra woodland will also benefit the farms by reducing their water\nusage through a lowering of evaporation and providing a refuge for bio-control insects.\n“If we can record biodiversity and see how it all works, then we're in a good position to move |\non from there. Desert habitats can reduce down to very little, Whaley explains. ‘It’s not like a |\nrainforest that needs to have this huge expanse. Life has always been confined to corridors and\nislands here. If you just have a few trees left, the population can grow up quickly because it’s\nused to exploiting water when it arrives.” He sees his project as a model that has the potential to\nbe rolled out across other arid areas around the world. ‘If we can do it here, in the most fragile\nsystem on Earth, then that’s a real message of hope for lots of places, including Africa, where\nthere is drought and they just can’t afford to wait for rain.’\n|\n|\n|\n|\n|\n81 |\n\n\n--- Page 84 ---\nTest 4\nQuestions 1-5\nComplete the notes below.\nChoose ONE WORD ONLY from the passage for each answer.\nWrite your answers in boxes 1-5 on your answer sheet.\nThe importance of the huarango tree\n— its roots can extend as far as 80 metres into the soil\n— an access 1 mn. d€EP below the surface\n— was a crucial part of local inhabitants’ 2........................ @ long time ago\n— helped people to survive periods of 3...\n— prevents 4... Of the soil\n— prevents land from becoming as ...... os\nQuestions 6-8\nComplete the table below.\nChoose NO MORE THAN TWO WORDS from the passage for each answer.\nWrite your answers in boxes 6-8 on your answer sheet.\nTraditional uses of the huarango tree\nPart of tree Traditional use\nLE ——— fuel\nT comommmmormmenmmmsiomsen BNE socio medicine\n82\n\n\n--- Page 85 ---\nReading |\nQuestions 9-13 |\nDo the following statements agree with the information given in Reading Passage 1?\nIn boxes 9-13 on your answer sheet, write |\nTRUE if the statement agrees with the information |\nFALSE if the statement contradicts the information\nNOT GIVEN if there is no information on this\n|\n9 Local families have told Whaley about some traditional uses of huarango products.\n10 Farmer Alberto Benevides is now making a good profit from growing huarangos. |\n11 Whaley needs the co-operation of farmers to help preserve the area’s wildlife.\n12 For Whaley's project to succeed, it needs to be extended over a very large area. |\n13 Whaley has plans to go to Africa to set up a similar project. |\n|\n|\n|\n|\n|\n|\n|\n|\nOp 126] 83 |\n\n\n--- Page 86 ---\nTest 4\nREADING PASSAGE 2\nYou should spend about 20 minutes on Questions 14-26, which are based on Reading\nPassage 2 below.\n\nSilbo Gomero — the whistle ‘language’ of\n\nthe Canary Islands\n\nLa Gomera is one of the Canary Islands situated in the Atlantic Ocean off the northwest coast\nof Africa. This small volcanic island is mountainous, with steep rocky slopes and deep, wooded\nravines, rising to 1,487 metres at its highest peak. It is also home to the best known of the world’s\nwhistle ‘languages’, a means of transmitting information over long distances which is perfectly\nadapted to the extreme terrain of the island.\nThis ‘language’, known as ‘Silbo” or ‘Silbo Gomero’ — from the Spanish word for ‘whistle’ —\nis now shedding light on the language-processing abilities of the human brain, according to\nscientists. Researchers say that Silbo activates parts of the brain normally associated with spoken\nlanguage, suggesting that the brain is remarkably flexible in its ability to interpret sounds as\nlanguage.\n‘Science has developed the idea of brain arcas that are dedicated to language, and we are starting\nto understand the scope of signals that can be recognised as language,” says David Corina,\nco-author of a recent study and associate professor of psychology at the University of Washington\nin Seattle.\nSilbo is a substitute for Spanish, with individual words recoded into whistles which have high-\nand low-frequency tones. A whistler — or sifbador — puts a finger in his or her mouth to increase\nthe whistle’s pitch, while the other hand can be cupped to adjust the direction of the sound. “There\nis much more ambiguity in the whistled signal than in the spoken signal,” explains lead researcher\nManuel Carreiras, psychology professor at the University of La Laguna on the Canary island of\nTenerife. Because whistled ‘words’ can be hard to distinguish, silbadores rely on repetition, as\nwell as awareness of context, to make themselves understood.\nThe silbadores of Gomera are traditionally shepherds and other isolated mountain folk, and\ntheir novel means of staying in touch allows them to communicate over distances of up to\n10 kilometres. Carreiras explains that silbadores are able to pass a surprising amount of\ninformation via their whistles. ‘In daily life they use whistles to communicate short commands,\nbut any Spanish sentence could be whistled.” Silbo has proved particularly useful when fires have\noccurred on the island and rapid communication across large areas has been vital.\n84\n\n\n--- Page 87 ---\nReading\nThe study team used neuroimaging equipment to contrast the brain activity of silbadores while\nlistening to whistled and spoken Spanish. Results showed the left temporal lobe of the brain,\nwhich is usually associated with spoken language, was engaged during the processing of Silbo.\nThe researchers found that other key regions in the brain’s frontal lobe also responded to the\nwhistles, including those activated in response to sign language among deaf people. When the\nexperiments were repeated with non-whistlers, however, activation was observed in all areas of |\nthe brain. |\n“Our results provide more evidence about the flexibility of human capacity for language in a\nvariety of forms,” Corina says. ‘These data suggest that left-hemisphere language regions are\nuniquely adapted for communicative purposes, independent of the modality of signal. The non-\nSilbo speakers were not recognising Silbo as a language. They had nothing to grab onto, so\nmultiple areas of their brains were activated.”\nCarreras says the origins of Silbo Gomero remain obscure, but that indigenous Canary Islanders,\nwho were of North African origin, already had a whistled language when Spain conquered the\nvolcanic islands in the 15th century. Whistled languages survive today in Papua New Guinea, |\nMexico, Vietnam, Guyana, China, Nepal, Senegal, and a few mountainous pockets in southern\nEurope. There are thought to be as many as 70 whistled languages still in use, though only 12\nhave been described and studied scientifically. This form of communication is an adaptation |\nfound among cultures where people are often isolated from each other, according to Julien |\nMeyer, a researcher at the Institute of Human Sciences in Lyon, France. ‘They are mostly used in |\n‘mountains or dense forests,” he says. ‘Whistled languages are quite clearly defined and represent |\nan original adaptation of the spoken language for the needs of isolated human groups.’\nBut with modern communication technology now widely available, researchers say whistled |\nlanguages like Silbo are threatened with extinction. With dwindling numbers of Gomera islanders |\nstill fluent in the language, Canaries’ authorities are taking steps to try to ensure its survival. |\nSince 1999, Silbo Gomero has been taught in all of the island’s elementary schools. In addition, |\nlocals are seeking assistance from the United Nations Educational, Scientific and Cultural |\nOrganization (UNESCO). ‘The local authorities are trying to get an award from the organisation |\nto declare [Silbo Gomero] as something that should be preserved for humanity,” Carreiras adds. |\n|\n85\n\n\n--- Page 88 ---\nTest 4\nQuestions 14-19\nDo the following statements agree with the information given in Reading Passage 27?\nIn boxes 14-19 on your answer sheet, write\nTRUE if the statement agrees with the information\nFALSE if the statement contradicts the information\nNOT GIVEN  ifthere is no information on this\n14 La Gomera is the most mountainous of all the Canary Islands.\n15  Silbo is only appropriate for short and simple messages.\n16 In the brain—activity study, silbadores and non-whistlers produced different results.\n17 The Spanish introduced Silbo to the islands in the 15th century.\n18 There is precise data available regarding all of the whistle languages in\nexistence today.\n19 The children of Gomera now learn Silbo.\n86\n\n\n--- Page 89 ---\nReading\nQuestions 20-26\nComplete the notes below.\nChoose ONE WORD ONLY from the passage for each answer.\nWrite your answers in boxes 20-26 on your answer sheet.\nSilbo Gomero\nHow Silbo is produced\ne  high- and low-frequency tones represent different sounds in Spanish\ne pitch of whistle is controlled using silbador's 21 »\n© 22. nes 1S Changed with a cupped hand\nHow Silbo is used\ne has long been used by shepherds and people living in secluded locations |\n* in everyday use for the transmission of brief 23...\ne can relay essential information quickly, e.g. to inform people about {\nThe future of Silbo |\no future under threat because of NEW 25... |\ne Canaries’ authorities hoping to receive a UNESCO 26 ..........ccnicn 10 hEIP |\npreserve it |\n=| p. 126 87\n\n\n--- Page 90 ---\nTest4\nREADING PASSAGE 3\nYou should spend about 20 minutes on Questions 27-40, which are based on Reading\nPassage 3 below.\n\nEnvironmental practices of big businesses\nThe environmental practices of big businesses are shaped by a fundamental fact that for many of\nus offends our sense of justice. Depending on the circumstances, a business may maximize the\namount of money it makes, at least in the short term, by damaging the environment and hurting\npeople. That is still the case today for fishermen in an unmanaged fishery without quotas, and for\ninternational logging companies with short-term leases on tropical rainforest land in places with\ncorrupt officials and unsophisticated landowners. When government regulation is effective, and\nwhen the public is environmentally aware, environmentally clean big businesses may out-compete\ndirty ones, but the reverse is likely to be true if government regulation is ineffective and if the\npublic doesn’t care.\nIt is easy for the rest of us to blame a business for helping itself by hurting other people.\nBut blaming alone is unlikely to produce change. Tt ignores the fact that businesses are not\ncharities but profit-making companies, and that publicly owned companies with shareholders\nare under obligation to those shareholders to maximize profits, provided that they do so by\nlegal means. US laws make a company’s directors legally liable for something termed ‘breach\nof fiduciary responsibility” if they knowingly manage a company in a way that reduces profits.\nThe car manufacturer Henry Ford was in fact successfully sued by shareholders in 1919 for\nraising the minimum wage of his workers to $5 per day: the courts declared that, while Ford's\nhumanitarian sentiments about his employees were nice, his business existed to make profits for\nits stockholders.\nOur blaming of businesses also ignores the ultimate responsibility of the public for creating the\nconditions that let a business profit through destructive environmental policies. In the long run, it\nis the public, either directly or through its politicians, that has the power to make such destructive\npolicies unprofitable and illegal, and to make sustainable environmental policies profitable.\nThe public can do that by suing businesses for harming them, as happened after the Exxon Valdez\ndisaster, in which over 40,000m’ of oil were spilled off the coast of Alaska. The public may also\nmake their opinion felt by preferring to buy sustainably harvested products; by making employees\nof companies with poor track records feel ashamed of their company and complain to their own\nmanagement; by preferring their governments to award valuable contracts to businesses with a\ngood environmental track record; and by pressing their governments to pass and enforce laws and\nregulations requiring good environmental practices.\n88\n\n\n--- Page 91 ---\n| |\n| ]\nReading\nIn turn, big businesses can exert powerful pressure on any suppliers that might ignore public\nor government pressure. For instance, after the US public became concerned about the spread\nof a disease known as BSE, which was transmitted to humans through infected meat, the US\ngovernment's Food and Drug Administration introduced rules demanding that the meat industry\nabandon practices associated with the risk of the disease spreading. But for five years the meat\npackers refused to follow these, claiming that they would be too expensive to obey. However,\nwhen a major fast-food company then made the same demands after customer purchases of its\n‘hamburgers plummeted, the meat industry complied within weeks. The public's task is therefore\nto identify which links in the supply chain are sensitive to public pressure: for instance, fast-food\nchains or jewelry stores, but not meat packers or gold miners.\nSome readers may be disappointed or outraged that I place the ultimate responsibility for business\npractices harming the public on the public itself. T also believe that the public must accept the\nnecessity for higher prices for products to cover the added costs, if any, of sound environmental\npractices. My views may seem to ignore the belief that businesses should act in accordance with\nmoral principles even if this leads to a reduction in their profits. But I think we have to recognize i\nthat, throughout human history, in all politically complex human societies, government regulation\nhas arisen precisely because it was found that not only did moral principles need to be made\nexplicit, they also needed to be enforced.\nTo me, the conclusion that the public has the ultimate responsibility for the behavior of even the\nbiggest businesses is empowering and hopeful, rather than disappointing. My conclusion is not a |\n‘moralistic one about who is right or wrong, admirable or selfish, a good guy or a bad guy. In the |\npast, businesses have changed when the public came to expect and require different behavior, to\nreward businesses for behavior that the public wanted, and to make things difficult for businesses |\npracticing behaviors that the public didn’t want. I predict that in the future, just as in the past,\nchanges in public attitudes will be essential for changes in businesses’ environmental practices.\n|\n|\n|\n|\nI\n|\nI\n|\n|\nI\n|\n89 i\n\n\n--- Page 92 ---\nTest4\nQuestions 27-31\nComplete the summary using the list of words, A-J, below.\nWrite the correct letter, A-J, in boxes 27-31 on your answer sheet.\nBig businesses\n\nMany big businesses today are prepared to harm people and the environment in\norder to make money, and they appear to have no 27... . Lack of\n28... DY gOVEINMents and lack of public 29 PRPRNISURR |\nlead to environmental problems such as 30... OF the destruction of\n\nA funding B trees C rare species\n\nD moral standards E control F involvement\n\nG flooding H overfishing 1 worker support\n90\n\n\n--- Page 93 ---\nReading\nQuestions 32-34\nChoose the correct letter, A, B, C or D.\nWrite the correct letter in boxes 32-34 on your answer sheet.\n32 The main idea of the third paragraph is that environmental damage\nA requires political action if it is to be stopped.\nB is the result of ignorance on the part of the public. I\nC could be prevented by the action of ordinary people. |\nD can only be stopped by educating business leaders. |\n33 In the fourth paragraph, the writer describes ways in which the public can\nA reduce their own individual impact on the environment.\nB learn more about the impact of business on the environment.\nC raise awareness of the effects of specific environmental disasters. |\nD influence the environmental policies of businesses and governments.\n34 What pressure was exerted by big business in the case of the disease BSE?\nA Meat packers stopped supplying hamburgers to fast-food chains. |\nB  Afast-food company forced their meat suppliers to follow the law. |\nC Meat packers persuaded the government to reduce their expenses. |\nD  Afast-food company encouraged the government to introduce legislation.\n|\n|\n|\n|\n|\n|\ni\n|\n|\n91\n\n\n--- Page 94 ---\nTest 4\nQuestions 35-39\nDo the following statements agree with the claims of the writer in Reading Passage 3?\nIn boxes 35-39 on your answer sheet, write\nYES if the statement agrees with the claims of the wrifer\nNO if the statement contradicts the claims of the writer\nNOT GIVEN  ifitis impossible to say what the writer thinks about this\n35 The public should be prepared to fund good environmental practices.\n36 There is a contrast between the moral principles of different businesses.\n37 Itis important to make a clear distinction between acceptable and unacceptable\nbehaviour.\n38 The public have successfully influenced businesses in the past.\n39 In the future, businesses will show more concern for the environment.\nQuestion 40\nChoose the correct letter, A, B, Cor D.\nWrite the correct letter in box 40 on your answer sheet.\n40 What would be the best subheading for this passage?\nA Will the world survive the threat caused by big businesses?\nB How can big businesses be encouraged to be less driven by profit?\nC What environmental dangers are caused by the greed of businesses?\nD Are big businesses to blame for the damage they cause the environment?\n92 [@p.126\n\n\n--- Page 95 ---",
+      "readingPaperSource": "data/ocr-reading-writing/cam15-test4-reading-writing.txt",
+      "readingPageImages": [
+        {
+          "page": 82,
+          "url": "/generated/reading-pages/cam15/test4/page-82.webp"
+        },
+        {
+          "page": 83,
+          "url": "/generated/reading-pages/cam15/test4/page-83.webp"
+        },
+        {
+          "page": 84,
+          "url": "/generated/reading-pages/cam15/test4/page-84.webp"
+        },
+        {
+          "page": 85,
+          "url": "/generated/reading-pages/cam15/test4/page-85.webp"
+        },
+        {
+          "page": 86,
+          "url": "/generated/reading-pages/cam15/test4/page-86.webp"
+        },
+        {
+          "page": 87,
+          "url": "/generated/reading-pages/cam15/test4/page-87.webp"
+        },
+        {
+          "page": 88,
+          "url": "/generated/reading-pages/cam15/test4/page-88.webp"
+        },
+        {
+          "page": 89,
+          "url": "/generated/reading-pages/cam15/test4/page-89.webp"
+        },
+        {
+          "page": 90,
+          "url": "/generated/reading-pages/cam15/test4/page-90.webp"
+        },
+        {
+          "page": 91,
+          "url": "/generated/reading-pages/cam15/test4/page-91.webp"
+        },
+        {
+          "page": 92,
+          "url": "/generated/reading-pages/cam15/test4/page-92.webp"
+        },
+        {
+          "page": 93,
+          "url": "/generated/reading-pages/cam15/test4/page-93.webp"
+        },
+        {
+          "page": 94,
+          "url": "/generated/reading-pages/cam15/test4/page-94.webp"
+        }
+      ]
+    }
+  ],
+  "writingTasks": [
+    {
+      "id": "cam15-w-test1-task1",
+      "module": "writing",
+      "type": "Task 1",
+      "minutes": 20,
+      "source": "Cambridge IELTS 15 local import",
+      "period": "Cambridge 15",
+      "title": "Test 1 Task 1 - Coffee and tea habits",
+      "prompt": "WRITING TASK 1\nYou should spend about 20 minutes on this task.\nThe chart below shows the results of a survey about people’s coffee and tea\nbuying and drinking habits in five Australian cities.\nSummarise the information by selecting and reporting the main features, and\nmake comparisons where relevant.\nWrite at least 150 words.\nCoffee and tea buying and drinking habits in five cities in Australia\n70%\n65% - - —\nP 60%\n5\n\" SS - . —\no [rats Stats\n£509 fee BX\n50% gy B53 [55558\ng EE] i 5 BE\nS459 el BE LB ET 355558\n5 4% 558 BX ks) ks Es\npd £2 [155558 [ss Bs\n3 Ed 22 [32555 [55% $5552\n2 40% fo food seated —f pd\n£ fod BR (5353s kd 55%\nt BR fd 153535 ks) Rt\nH B fd isssss ks) pssst\n$ 5] ke] ko] i =\n= son JES EE Bs BE gs\nBe fd = Ks pod\nRd pe 1 5d gd\no pd I. . J.\n25% Fd Bcd fl kd 25\nb eed Ed 95 (9 ood\nsd Fe Be) kod 25%\n3 55 3 Re fos\ned food fool bd\n20% ped faiele felled iotolel jeosisd\nSydney Melbourne Brisbane Adelaide Hobart\nll Bought fresh coffee in last 4 weeks\nEZ] Bought instant coffee in last 4 weeks\n[Bl Went to a café for coffee or tea in last 4 weeks\n28 S>%p.127\n\n\n--- Page 31 ---\nWriting",
+      "data": "Cities: Sydney, Melbourne, Brisbane, Adelaide, Hobart. Categories: bought fresh coffee, bought instant coffee, went to a cafe for coffee or tea in the last 4 weeks.",
+      "promptSource": "data/ocr-reading-writing/cam15-test1-reading-writing.txt",
+      "writingPageImages": [
+        {
+          "page": 30,
+          "url": "/generated/writing-pages/cam15/test1/task1/page-30.webp"
+        }
+      ]
+    },
+    {
+      "id": "cam15-w-test1-task2",
+      "module": "writing",
+      "type": "Task 2",
+      "minutes": 40,
+      "source": "Cambridge IELTS 15 local import",
+      "period": "Cambridge 15",
+      "title": "Test 1 Task 2 - Owning a home",
+      "prompt": "WRITING TASK 2\nYou should spend about 40 minutes on this task.\nWrite about the following topic:\n|\n|\nIn some countries, owning a home rather than renting one is very important I\nfor people. i\nWhy might this be the case? |\n|\nDo you think this is a positive or negative situation? I\n|\n|\nGive reasons for your answer and include any relevant examples from your own |\nknowledge or experience. I\nWrite at least 250 words.\n|\n|\n|\n|\n|\n=> p.128 29\n\n\n--- Page 32 ---\nTest 1\nSPEAKING\nPART 1\nThe examiner asks the candidate about him/herself, his/her home, work or studies and\nother familiar topics.\nEXAMPLE\nEmail\n» What kinds of emails do you receive about your work or studies?\no Do you prefer to email, phone or text your friends? [Why?]\n« Do you reply to emails and messages as soon as you receive them? [Why/Why not?]\no Are you happy to receive emails that are advertising things? [Why/Why not?]\nPART 2\nDescribe a hotel that you know. You will have to talk\nbout the topic for one\nYou should say: a y\nwhere this hotel is wo minutes. You\nwhat this hotel looks like oe what vor\nwhat facilities this hotel has pirat\nare going to say. You\nand explain whether you think this is a nice hotel can make some notes\nto stay in. to help you if you wish.\nPART 3\nDiscussion topics:\nStaying in hotels\nExample questions:\nWhat things are important when people are choosing a hotel?\nWhy do some people not like staying in hotels?\nDo you think staying in a luxury hotel is a waste of money?\nWorking in a hotel\nExample questions:\nDo you think hotel work is a good career for life?\nHow does working in a big hotel compare with working in a small hotel?\nWhat skills are needed to be a successful hotel manager?\n30",
+      "promptSource": "data/ocr-reading-writing/cam15-test1-reading-writing.txt",
+      "writingPageImages": [
+        {
+          "page": 31,
+          "url": "/generated/writing-pages/cam15/test1/task2/page-31.webp"
+        }
+      ]
+    },
+    {
+      "id": "cam15-w-test2-task1",
+      "module": "writing",
+      "type": "Task 1",
+      "minutes": 20,
+      "source": "Cambridge IELTS 15 local import",
+      "period": "Cambridge 15",
+      "title": "Test 2 Task 1 - Visitors to a Caribbean island",
+      "prompt": "WRITING TASK 1\n‘You should spend about 20 minutes on this task.\nThe graph below shows the number of tourists visiting a particular Caribbean\nisland between 2010 and 2017.\nSummarise the information by selecting and reporting the main features, and |\nmake comparisons where relevant. |\nWrite at least 150 words.\nNumber of tourists visiting a Caribbean island (2010-2017)\n4\n35 |\n]\n|\n3 |\nA ]\nSs 25 |\n5 ]\ns\n5 2 py = | |\n4 |\nH |\nE 15 Ea TTL A\n= - ~- -\nrae Ea\nLd oso |\n1 ” - |\n«” ps |\n05 So —- |\nsu\" emett |\n0 |\n2010 201 2012 2013 2014 2015 2016 2017 i\n|\nSo |\n(Sp. 129] 49\n\n\n--- Page 52 ---\nTest 2",
+      "data": "Series: total visitors, visitors staying on the island, visitors staying on cruise ships. Unit: millions of visitors.",
+      "promptSource": "data/ocr-reading-writing/cam15-test2-reading-writing.txt",
+      "writingPageImages": [
+        {
+          "page": 51,
+          "url": "/generated/writing-pages/cam15/test2/task1/page-51.webp"
+        }
+      ]
+    },
+    {
+      "id": "cam15-w-test2-task2",
+      "module": "writing",
+      "type": "Task 2",
+      "minutes": 40,
+      "source": "Cambridge IELTS 15 local import",
+      "period": "Cambridge 15",
+      "title": "Test 2 Task 2 - Online newspapers and books",
+      "prompt": "WRITING TASK 2\nYou should spend about 40 minutes on this task.\nWrite about the following topic:\nIn the future, nobody will buy printed newspapers or books because they will be\nable to read everything they want online without paying.\nTo what extent do you agree or disagree with this statement?\nGive reasons for your answer and include any relevant examples from your own\nknowledge or experience.\nWrite at least 250 words.\n50 [Sp 131\n\n\n--- Page 53 ---\nSPEAKING\nPART 1\nThe examiner asks the candidate about him/herself, his/her home, work or studies and\nother familiar topics.\nEXAMPLE i\nLanguages\n¢ How many languages can you speak? [Why/Why not?]\no How useful will English be to you in your future? [Why/Why not?]\ne What do you remember about learning languages at school? [Why/Why not?]\n* What do you think would be the hardest language for you to learn? [Why?]\nPART 2\nDescribe a website that you bought something from. You will have to talk\n. about the topic for one\nYou should say: FA- to two minutes. You\nwhat the website is n\nn ¥ have one minute to |\nwhat you bought from this website hifik ab hat\nhow satisfied you were with what you bought tin al out what you ]\nare going to say. You i\nand explain what you liked or disliked about using can make some notes\nthis website. to help you if you wish. |\nPART 3 |\nDiscussion topics: 1\nShopping online\nExample questions:\nWhat kinds of things do people in your country often buy from online shops? |\nWhy do you think online shopping has become so popular nowadays? |\nWhat are some possible disadvantages of buying things from online shops? |\n]\nThe culture of consumerism |\nExample questions: |\nWhy do many people today keep buying things which they do not need? |\nDo you believe the benefits of a consumer society outweigh the disadvantages? I\nHow possible is it to avoid the culture of consumerism? |\n|\n51",
+      "promptSource": "data/ocr-reading-writing/cam15-test2-reading-writing.txt",
+      "writingPageImages": [
+        {
+          "page": 52,
+          "url": "/generated/writing-pages/cam15/test2/task2/page-52.webp"
+        }
+      ]
+    },
+    {
+      "id": "cam15-w-test3-task1",
+      "module": "writing",
+      "type": "Task 1",
+      "minutes": 20,
+      "source": "Cambridge IELTS 15 local import",
+      "period": "Cambridge 15",
+      "title": "Test 3 Task 1 - Instant noodles process",
+      "prompt": "WRITING TASK 1\nYou should spend about 20 minutes on this task.\nThe diagram below shows how instant noodles are manufactured.\nSummarise the information by selecting and reporting the main features, and\nmake comparisons where relevant.\nWrite at least 150 words. |\n|\nManufacturing instant nocdtes {fF |\nStorage\n@lsier |\n(Four) |\na ooao)\nJ] |\ni |\nL]\n@ ® Dough @ [Dough (B® | Noodles Cooking (oil)\n| 4 sheets strips discs + drying 1\n7 i\nWater (== L 7D\nEEL == pp he Ee +\nol oes os (ofa Toa 22k SRp ee B =)\nRollers’ El [ol\n= (i |\n@ [Vegetables = [HE “HP® |\n+ spices |\n== |\n® [ Labelling l=] {\n+ sealing =| =| |\nEE |\noe oo | ie Labels\nJo be fd i ff |\nTET uEY\n|\n|\n28p 133] 7\n\n\n--- Page 74 ---\nTest 3",
+      "data": "Process diagram: flour storage, mixing, rolling, cutting, cooking, drying, cup filling, adding vegetables/spices, labelling and sealing.",
+      "promptSource": "data/ocr-reading-writing/cam15-test3-reading-writing.txt",
+      "writingPageImages": [
+        {
+          "page": 73,
+          "url": "/generated/writing-pages/cam15/test3/task1/page-73.webp"
+        }
+      ]
+    },
+    {
+      "id": "cam15-w-test3-task2",
+      "module": "writing",
+      "type": "Task 2",
+      "minutes": 40,
+      "source": "Cambridge IELTS 15 local import",
+      "period": "Cambridge 15",
+      "title": "Test 3 Task 2 - Advertising",
+      "prompt": "WRITING TASK 2\n\nYou should spend about 40 minutes on this task.\n\nWrite about the following topic:\nSome people say that advertising is extremely successful at persuading us\nto buy things. Other people think that advertising is so common that we no\nlonger pay attention to it.\nDiscuss both these views and give your own opinion.\n\nGive reasons for your answer and include any relevant examples from your own\n\nknowledge or experience.\n\nWrite at least 250 words.\n\n72 Hep. 134\n\n\n--- Page 75 ---\nSPEAKING\nPART 1\nThe examiner asks the candidate about him/herself, his/her home, work or studies and\nother familiar topics.\nEXAMPLE\nSwimming\n+ Did you learn to swim when you were a child? [Why/Why not?]\n+ How often do you go swimming now? [Why/Why not?]\n+ What places are there for swimming where you live? [Why?] |\n+ Do you think it would be more enjoyable to go swimming outdoors or at an indoor |\npool? [Why?] |\nPART 2 |\n|\nDescribe a famous business person that you know You will have to talk |\nabout. about the topic for one |\nYou should say: to two minutes. You\nI have one minute to |\nwho this person Is think about what you |\nwhat kind of business this person is involved in y |\nwhat you know about this business person are going to say. You |\ncan make some notes |\nand explain what you think of this business person. to help you if you wish.\nPART 3\nDiscussion topics: |\nFamous people today i\n|\nExample questions: |\nWhat kinds of people are most famous in your country today? |\nWhy are there so many stories about famous people in the news? |\nDo you agree or disagree that many young people today want to be famous? |\n|\nAdvantages of being famous |\nExample questions: i\nDo you think it is easy for famous people to earn a lot of money? !\nWhy might famous people enjoy having fans? |\nIn what ways could famous people use their influence to do good things in the world?\n73 |",
+      "promptSource": "data/ocr-reading-writing/cam15-test3-reading-writing.txt",
+      "writingPageImages": [
+        {
+          "page": 74,
+          "url": "/generated/writing-pages/cam15/test3/task2/page-74.webp"
+        }
+      ]
+    },
+    {
+      "id": "cam15-w-test4-task1",
+      "module": "writing",
+      "type": "Task 1",
+      "minutes": 20,
+      "source": "Cambridge IELTS 15 local import",
+      "period": "Cambridge 15",
+      "title": "Test 4 Task 1 - Anthropology graduates",
+      "prompt": "WRITING TASK 1\nYou should spend about 20 minutes on this task.\nThe chart below shows what Anthropology graduates from one university\ndid after finishing their undergraduate degree course. The table shows the\nsalaries of the anthropologists in work after five years.\nSummarise the information by selecting and reporting the main features, and\nmake comparisons where relevant.\nWrite at least 150 words.\nDestination of Anthropology graduates (from one university)\n8%\n7\n12% _\na\n, pi\n8% =) 52%\n” RR\nNE\nMW Full-time work EA Part-time work  [[]Part-time work + postgrad study |\n[JFulktime postgrad study EJUnemployed ~~ EZINot known |\nSalaries of Antrhropology graduates (after 5 years’ work)\n$25,000-| $50,000- | $75,000\nType of employment 49,999 | 74,999 | 99,999 |$100,000+\n>[¥p. 136] 93\n\n\n--- Page 96 ---\nTest 4",
+      "data": "Chart: destinations of anthropology graduates. Table: salaries after five years in freelance consulting, government sector and private companies.",
+      "promptSource": "data/ocr-reading-writing/cam15-test4-reading-writing.txt",
+      "writingPageImages": [
+        {
+          "page": 95,
+          "url": "/generated/writing-pages/cam15/test4/task1/page-95.webp"
+        }
+      ]
+    },
+    {
+      "id": "cam15-w-test4-task2",
+      "module": "writing",
+      "type": "Task 2",
+      "minutes": 40,
+      "source": "Cambridge IELTS 15 local import",
+      "period": "Cambridge 15",
+      "title": "Test 4 Task 2 - Trying hard",
+      "prompt": "WRITING TASK 2\n\nYou should spend about 40 minutes on this task.\nWrite about the following topic:\n\nIn some cultures, children are often told that they can achieve anything if they\n\ntry hard enough.\n\nWhat are the advantages and disadvantages of giving children this message?\nGive reasons for your answer and include any relevant examples from your own\nknowledge or experience.\n\nWrite at least 250 words.\n94 [8 p.137\n\n\n--- Page 97 ---\nSPEAKING\nPART 1\nThe examiner asks the candidate about him/herself, his/her home, work or studies and\nother familiar topics.\nEXAMPLE\nJewellery\n» How often do you wear jewellery? [Why/Why not?]\n* What type of jewellery do you like best? [Why/Why not?]\n© When do people like to give jewellery in your country [Why?]\n© Have you ever given jewellery to someone as a gift? [Why/Why not?]\nPART 2\nDescribe an interesting TV programme you watched\nabout a science topic. You will have to talk\nYou should say: about the topic for one\nwhat science topic this TV programme was to two minutes. You |\nabout have one minute to |\nwhen you saw this TV programme think about what you |\nwhat you learnt from this TV programme are going to say. You |\nabout a science topic can make some notes |\nand explain why you found this TV programme to helpyou you wish;\ninteresting.\nPART 3 |\n|\nDiscussion topics:\nScience and the public\nExample questions: |\nHow interested are most people in your country in science?\nWhy do you think children today might be better at science than their parents?\nHow do you suggest the public can learn more about scientific developments?\nScientific discoveries\nExample questions:\nWhat do you think are the most important scientific discoveries in the last 100 years? {\nDo you agree or disagree that there are no more major scientific discoveries left to make?\nWho should pay for scientific research — governments or private companies? 05\n\n\n--- Page 98 ---\nAudioscripts\nTEST 1\nPART 1\nAMBER: Hello William. This is Amber — you said to phone if | wanted to get more\ninformation about the job agency you mentioned. Is now a good time?\nWILLIAM: Oh, hi Amber. Yes. Fine. So the agency | was talking about is called Bankside —\nthey're based in Docklands — | can tell you the address now — 497 Eastside.\nAMBER: OK, thanks. So is there anyone in particular | should speak to there?\nWILLIAM: The agent | always deal with is called Becky Jamieson.\nAMBER: Let me write that down — Becky ...\nWILLIAM: Jamieson J-A-M-I-E-S-O-N. Qt\nAMBER: Do you have her direct line?\nWILLIAM: Yes, it's in my contacts somewhere — right, here we are: 078 double 6, 510 triple\n3. 1 wouldn't call her until the afternoon if | were you — she’s always really busy in Q2\nthe moming trying to fill last-minute vacancies. She's really helpful and friendly so\nI'm sure it would be worth getting in touch with her for an informal chat.\nAMBER: It's mainly clerical and admin jobs they deal with, isn't it?\nWILLIAM: That's right. | know you're hoping to find a full-time job in the media eventually —\nbut Becky mostly recruits temporary staff for the finance sector — which will look\ngood on your CV — and generally pays better too.\nAMBER! Yeah — I'm just a bit worried because | don't have much office experience.\nwav: | wouldn't worry. They'll probably start you as a receptionist, or something like\nthat. So what's important for that kind of job isn't so much having business skills\nor knowing lots of different computer systems — it's communication that really Q3\nmatters — so you'd be fine there. And you'll pick up office skills really quickly on\nthe job. It's not that complicated.\nAMBER: OK good. So how long do people generally need temporary staff for? It would be\ngreat if | could get something lasting at least a month.\nWILLIAM: That shouldn't be too difficult. But you're more likely to be offered something for\na week at first, which might get extended. It's unusual to be sent somewhere for Q4\njust a day or two.\nAMBER! Right. I've heard the pay isn't too bad — better than working in a shop or a\nrestaurant.\nWILLIAM: Oh yes — definitely. The hourly rate is about £10, 11 if you're lucky. Qs5\nAMBER: That's pretty good. | was only expecting to get eight or nine pounds an hour.\nwien: Do you want me to tell you anything about the registration process?\nAMBER: Yes, please. | know you have to have an interview.\nWILLIAM: The interview usually takes about an hour and you should arrange that about a\nweek in advance.\nAMBER! I suppose | should dress smartly if it's for office work — | can probably borrow a\nsuit from Mum. Q6\nWILLIAM: Good idea. It's better to look too smart than too casual.\nAMBER: Will I need to bring copies of my exam certificates or anything like that?\nWILLIAM: No — they don’t need to see those, | don't think.\n96",
+      "promptSource": "data/ocr-reading-writing/cam15-test4-reading-writing.txt",
+      "writingPageImages": [
+        {
+          "page": 96,
+          "url": "/generated/writing-pages/cam15/test4/task2/page-96.webp"
+        }
+      ]
+    }
+  ]
+}

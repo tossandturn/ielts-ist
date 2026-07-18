@@ -1,0 +1,17 @@
+{
+  "name": "ielts-ist",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check server.js"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "^1.0.2",
+    "pdfjs-dist": "^6.1.200",
+    "pdfkit": "^0.19.1",
+    "tesseract.js": "^7.0.0",
+    "ws": "^8.21.1"
+  }
+}

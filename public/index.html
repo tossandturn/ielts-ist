@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>IELTS-ist</title>
+    <link rel="stylesheet" href="/styles.css?v=20260718-english-fix-1" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <button id="toggleSidebar" class="sidebar-toggle" type="button" aria-label="Toggle sidebar" aria-expanded="true">&lt;</button>
+        <div class="brand">
+          <div class="brand-mark">I</div>
+          <div>
+            <h1>IELTS-ist</h1>
+            <p>Cambridge IELTS practice / single modules / writing feedback</p>
+          </div>
+        </div>
+        <div id="aiStatus" class="status-pill">Checking AI</div>
+        <nav class="tabs" aria-label="Main navigation">
+          <button class="tab active" data-view="exam" data-short="Exam">Random exam</button>
+          <button class="tab" data-view="sequence" data-short="Seq">Same test</button>
+          <button class="tab" data-view="single" data-short="One">Single module</button>
+          <button class="tab" data-view="writing-upload" data-short="Write">Writing feedback</button>
+          <button class="tab" data-view="bank" data-short="Bank">Question bank</button>
+          <button class="tab" data-view="sources" data-short="Src">Sources</button>
+        </nav>
+        <div class="source-box">
+          <div class="source-title">Material note</div>
+          <p>The bank uses locally imported Cambridge IELTS papers. Objective modules can be auto-scored when answers are available.</p>
+        </div>
+      </aside>
+
+      <main>
+        <button id="globalSidebarToggle" class="inline-sidebar-toggle global-sidebar-toggle" type="button" aria-label="Open sidebar">&gt;</button>
+
+        <section id="exam" class="view active">
+          <div class="view-head">
+            <div>
+              <h2>Random Full Exam</h2>
+              <p>Randomly combine listening, reading, writing and speaking practice from the local question bank.</p>
+            </div>
+            <div class="timer">
+              <span id="examTimer">02:44:00</span>
+              <button id="examTimerToggle" class="icon-btn">Start</button>
+              <button id="examTimerReset" class="icon-btn">Reset</button>
+            </div>
+          </div>
+          <div class="actions">
+            <button id="buildExam" class="primary">Generate random exam</button>
+          </div>
+          <div id="examPaper" class="exam-grid"></div>
+          <section class="panel feedback">
+            <div class="panel-head">
+              <h3>Full exam report</h3>
+              <span id="examMode" class="mode-pill"></span>
+            </div>
+            <div id="examFeedback" class="feedback-output empty">After answering, submit to generate a full report.</div>
+          </section>
+        </section>
+
+        <section id="sequence" class="view">
+          <div class="view-head">
+            <div>
+              <h2>Same-Test Practice</h2>
+              <p>Choose one Cambridge IELTS book and test, then practise the complete set in order.</p>
+            </div>
+            <div class="timer">
+              <span>Same Test</span>
+            </div>
+          </div>
+          <div class="single-filters">
+            <select id="sequenceBookFilter"></select>
+            <select id="sequenceTestFilter"></select>
+          </div>
+          <div class="actions">
+            <button id="buildSequence" class="primary">Generate same-test paper</button>
+          </div>
+          <div id="sequencePaper" class="exam-grid"></div>
+          <section class="panel feedback">
+            <div class="panel-head">
+              <h3>Same-test report</h3>
+              <span id="sequenceMode" class="mode-pill"></span>
+            </div>
+            <div id="sequenceFeedback" class="feedback-output empty">After submitting, a report and PDF download will appear here.</div>
+          </section>
+        </section>
+
+        <section id="single" class="view">
+          <div class="view-head">
+            <div>
+              <h2>Single Module</h2>
+            </div>
+            <div class="segmented">
+              <button class="inline-sidebar-toggle" type="button" aria-label="Open sidebar">&gt;</button>
+              <button class="module-btn active" data-module="listening">Listening</button>
+              <button class="module-btn" data-module="reading">Reading</button>
+              <button class="module-btn" data-module="writing">Writing</button>
+              <button class="module-btn" data-module="speaking">Speaking</button>
+            </div>
+            <div class="timer single-sticky-timer">
+              <span id="singleTimer">00:30:00</span>
+              <button id="singleTimerToggle" class="icon-btn">Start</button>
+              <button id="singleTimerReset" class="icon-btn">Reset</button>
+            </div>
+          </div>
+          <section class="panel">
+            <div class="panel-head">
+              <h3 id="singleTitle">Listening</h3>
+              <select id="singleSelect"></select>
+            </div>
+            <div class="single-filters">
+              <select id="singleBookFilter"></select>
+              <select id="singleTestFilter"></select>
+              <select id="singleTaskFilter"></select>
+            </div>
+            <div id="singleContent"></div>
+          </section>
+          <section class="panel feedback">
+            <div class="panel-head">
+              <h3>Single result</h3>
+              <div class="panel-tools">
+                <span id="singleMode" class="mode-pill"></span>
+                <button id="clearSingleFeedback" class="secondary small-button">Clear</button>
+              </div>
+            </div>
+            <div id="singleFeedback" class="feedback-output empty">Submit answers to see the result.</div>
+          </section>
+        </section>
+
+        <section id="writing-upload" class="view">
+          <div class="view-head">
+            <div>
+              <h2>Writing Feedback</h2>
+              <p>Paste an IELTS Writing Task 1 or Task 2 prompt and your essay for Amber-style feedback.</p>
+            </div>
+          </div>
+          <section class="panel writing-upload-panel">
+            <label class="field-label" for="uploadPrompt">Writing prompt</label>
+            <textarea id="uploadPrompt" class="short-textarea" placeholder="Paste the IELTS Writing Task 1 or Task 2 prompt here..."></textarea>
+            <label class="field-label" for="uploadEssay">Your essay</label>
+            <textarea id="uploadEssay" placeholder="Paste your essay here..."></textarea>
+            <div class="word-count"><span id="uploadEssayWords">0</span> words</div>
+            <div class="actions">
+              <button id="submitUploadedWriting" class="primary">Submit writing feedback</button>
+              <button id="clearUploadedWriting" class="secondary">Clear</button>
+            </div>
+          </section>
+          <section class="panel feedback">
+            <div class="panel-head">
+              <h3>Writing feedback result</h3>
+              <span id="uploadWritingMode" class="mode-pill"></span>
+            </div>
+            <div id="uploadWritingFeedback" class="feedback-output empty">Submit a prompt and essay to see feedback.</div>
+          </section>
+        </section>
+
+        <section id="bank" class="view">
+          <div class="view-head">
+            <div>
+              <h2>Question Bank</h2>
+              <p>Import authorised practice materials for local use.</p>
+            </div>
+          </div>
+          <div class="bank-layout">
+            <section class="panel">
+              <div class="panel-head">
+                <h3>Import material</h3>
+                <select id="bankModule">
+                  <option value="listening">Listening</option>
+                  <option value="reading">Reading</option>
+                  <option value="writing">Writing</option>
+                </select>
+              </div>
+              <input id="bankTitle" class="text-input" placeholder="Title" />
+              <input id="bankAudioUrl" class="text-input spaced" placeholder="Listening audio URL or public/audio file name" />
+              <input id="bankSourceUrl" class="text-input spaced" placeholder="Source URL, optional" />
+              <input id="bankAudioFile" class="text-input spaced" type="file" accept="audio/*" />
+              <textarea id="bankPrompt" class="short-textarea" placeholder="Prompt, passage, transcript or task..."></textarea>
+              <textarea id="bankAnswers" class="short-textarea" placeholder="Q1=April&#10;Q2=Wednesday"></textarea>
+              <div class="actions">
+                <button id="saveBankItem" class="primary">Save to bank</button>
+                <button id="clearBank" class="secondary">Clear form</button>
+              </div>
+              <div class="bulk-import">
+                <h4>Bulk import</h4>
+                <p>Paste a JSON array. Listening supports <code>audioUrl</code>.</p>
+                <textarea id="bulkImport" class="short-textarea" placeholder='[{"module":"listening","title":"Cambridge IELTS 15 Test 1 Listening","audioUrl":"test1.mp3","prompt":"Questions 1-40...","answers":"Q1=..."}]'></textarea>
+                <div class="actions">
+                  <button id="importBulk" class="secondary">Import JSON</button>
+                </div>
+              </div>
+            </section>
+            <section class="panel">
+              <div class="panel-head">
+                <h3>Saved items</h3>
+                <button id="clearBankStore" class="secondary">Clear bank</button>
+              </div>
+              <div id="bankList" class="bank-list"></div>
+            </section>
+          </div>
+        </section>
+
+        <section id="sources" class="view">
+          <div class="view-head">
+            <div>
+              <h2>Sources</h2>
+              <p>Official and public practice-entry links are listed here.</p>
+            </div>
+          </div>
+          <section class="panel">
+            <div id="sourceLinks" class="source-list"></div>
+          </section>
+        </section>
+      </main>
+    </div>
+    <script src="/app.js?v=20260718-english-fix-1"></script>
+  </body>
+</html>

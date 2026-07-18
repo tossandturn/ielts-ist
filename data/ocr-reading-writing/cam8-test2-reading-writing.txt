@@ -1,0 +1,555 @@
+--- Page 39 ---
+Test 2
+Questions 37-40
+Which statement applies to each of the following people who were interviewed by Shona?
+Choose FOUR answers from the box and write the correct letter, A-F, next to questions
+37-40.
+A gave false data
+B decided to stop participating
+C refused to tell Shona about their job
+D kept changing their mind about participating
+E became very angry with Shona
+F was worried about confidentiality
+People interviewed by Shona
+37 a person interviewed in the street J
+38 an undergraduate at the university Jr—
+39 a colleague in her department J
+40 a tutor in a foreign university J
+40
+
+
+--- Page 40 ---
+Reading
+READING
+READING PASSAGE 1
+You should spend about 20 minutes on Questions 1-13, which are based on Reading
+Passage 1 below.
+Sheet glass manufacture:
+the float process
+Glass, which has been made since the time of the Mesopotamians and Egyptians, is lttle more
+than a mixture of sand, soda ash and lime. When heated to about 1500 degrees Celsius (°C)
+this becomes a molten mass that hardens when slowly cooled. The first successful method
+for making clear, flat glass involved spinning. This method was very effective as the glass
+had not touched any surfaces between being soft and becoming hard, so it stayed perfectly
+unblemished, with a ‘fire finish’. However, the process took a long time and was labour
+intensive.
+Nevertheless, demand for flat glass was very high and glassmakers across the world were
+looking for a method of making it continuously. The first continuous ribbon process involved
+squeezing molten glass through two hot rollers, similar to an old mangle. This allowed glass of
+virtually any thickness to be made non-stop, but the rollers would leave both sides of the glass
+marked, and these would then need to be ground and polished. This part of the process rubbed
+away around 20 per cent of the glass, and the machines were very expensive.
+The float process for making flat glass was invented by Alistair Pilkington. This process
+allows the manufacture of clear, tinted and coated glass for buildings, and clear and tinted
+glass for vehicles. Pilkington had been experimenting with improving the melting process,
+and in 1952 he had the idea of using a bed of molten metal to form the flat glass, eliminating
+altogether the need for rollers within the float bath. The metal had to melt at a temperature
+less than the hardening point of glass (about 600°C), but could not boil at a temperature
+below the temperature of the molten glass {about 1500°C). The best metal for the job was
+tin.
+The rest of the concept relied on gravity, which guaranteed that the surface of the molten
+metal was perfectly flat and horizontal. Consequently, when pouring molten glass onto the
+molten tin, the underside of the glass would also be perfectly flat. If the glass were kept hot
+enough, it would flow over the molten tin until the top surface was also flat, horizontal and
+perfectly parallel to the bottom surface. Once the glass cooled to 604°C or less it was too
+hard to mark and could be transported out of the cooling zone by rollers. The glass settled to
+a thickness of six millimetres because of surface tension interactions between the glass and
+the tin. By fortunate coincidence, 60 per cent of the flat glass market at that time was for six-
+millimetre glass.
+41
+
+
+--- Page 41 ---
+Test 2
+
+Pilkington built a pilot plant in 1953 and by 1955 he had convinced his company to build a
+full-scale plant. However, it took 14 months of non-stop production, costing the company
+£100,000 a month, before the plant produced any usable glass. Furthermore, once they
+succeeded in making marketable flat glass, the machine was turned off for a service to prepare
+it for years of continuous production. When it started up again it took another four months to
+get the process right again. They finally succeeded in 1959 and there are now float plants all
+over the world, with each able to produce around 1000 tons of glass every day, non-stop for
+around 15 years.
+
+Float plants today make glass of near optical quality. Several processes — melting, refining,
+homogenising — take place simultaneously in the 2000 tonnes of molten glass in the furnace.
+They occur in separate zones in a complex glass flow driven by high temperatures. It adds up
+to a continuous melting process, lasting as long as 50 hours, that delivers glass smoothly and
+continuously to the float bath, and from there to a coating zone and finally a heat treatment
+zone, where stresses formed during cooling are relieved.
+
+The principle of float glass is unchanged since the 1950s. However, the product has changed
+dramatically, from a single thickness of 6.8 mm to a range from sub-millimetre to 25 mm,
+from a ribbon frequently marred by inclusions and bubbles to almost optical perfection. To
+ensure the highest quality, inspection takes place at every stage. Occasionally, a bubble is not
+removed during refining, a sand grain refuses to melt, a tremor in the tin puts ripples into
+the glass ribbon. Automated on-line inspection does two things. Firstly, it reveals process
+faults upstream that can be corrected. Inspection technology allows more than 100 million
+measurements a second to be made across the ribbon, locating flaws the unaided eye would be
+unable to see. Secondly, it enables computers downstream to steer cutters around flaws.
+
+Float glass is sold by the square metre, and at the final stage computers translate customer
+requirements into patterns of cuts designed to minimise waste.
+
+42
+
+
+--- Page 42 ---
+Reading
+Questions 1-8
+Complete the table and diagram below.
+Choose NO MORE THAN TWO WORDS from the passage for each answer.
+Write your answers in boxes 1-8 on your answer sheet.
+Early methods of producing flat glass
+Loe Maem EG
+* Glass remained * Slow
+Ribbon + Could produce glass sheets | + Glass Was 5 ...........ccc.ceevueee
+of varying 4 ............ccooever..e + 20% of glass rubbed away
++ Non-stop process + Machines were expensive
+Pilkington’s float process
+| melting zone | cooling zone | 7
+[—— ER
+a I)
+43
+
+
+--- Page 43 ---
+Test 2
+Questions 9-13
+Do the following statements agree with the information given in Reading Passage 1?
+In boxes 9-13 on your answer sheet, write
+TRUE if the statement agrees with the information
+FALSE if the statement contradicts the information
+NOT GIVEN ifthere is no information on this
+9 The metal used in the float process had to have specific properties.
+10 Pilkington invested some of his own money in his float plant.
+11 Pilkington’s first full-scale plant was an instant commercial success.
+12 The process invented by Pilkington has now been improved.
+13 Computers are better than humans at detecting faults in glass.
+44
+
+
+--- Page 44 ---
+Reading
+READING PASSAGE 2
+You should spend about 20 minutes on Questions 14-26, which are based on Reading
+Passage 2 on the following pages.
+Questions 14-17
+Reading Passage 2 has six paragraphs, A-F.
+Choose the correct heading for paragraphs B and D—F from the list of headings below.
+Write the correct number, i-ix, in boxes 14-17 on your answer sheet.
+List of Headings
+i Predicting climatic changes
+ii The relevance of the Little Ice Age today
+iii How cities contribute to climate change
+iv. Human impact on the climate
+v How past climatic conditions can be determined
+vi A growing need for weather records
+vii A study covering a thousand years
+viii People have always responded to climate change
+ix Enough food at last
+Example Answer
+Paragraph A iii
+14 Paragraph B
+Example Answer
+Paragraph C v
+16 Paragraph D
+16 Paragraph E
+17 Paragraph F
+45
+
+
+--- Page 45 ---
+Test 2
+
+A This book will provide a detailed examination of the Little Ice Age and other climatic
+shifts, but, before | embark on that, let me provide a historical context. We tend to
+think of climate — as opposed to weather — as something unchanging, yet humanity
+has been at the mercy of climate change for its entire existence, with at least eight
+glacial episodes inthe past 730,000 years. Our ancestors adapted to the universal
+but irregular global warming since the end of the last great Ice Age, around 10,000
+years ago, with dazzling opportunism. They developed strategies for surviving
+harsh drought cycles, decades of heavy rainfall or unaccustomed cold; adopted
+agriculture and stock-raising, which revolutionised human life; and founded the
+world's first pre-industrial civilisations in Egypt, Mesopotamia and the Americas.
+
+But the price of sudden climate change, in famine, disease and suffering, was often
+high
+
+B The Little Ice Age lasted from roughly 1300 until the middle of the nineteenth
+century. Only two centuries ago, Europe experienced a cycle of bitterly cold
+winters; mountain glaciers in the Swiss Alps were the lowest in recorded memory,
+and pack ice surrounded Iceland for much of the year. The climatic events of the
+Little Ice Age did more than help shape the modern world. They are the deeply
+important context for the current unprecedented global warming. The Little Ice Age
+was far from a deep freeze, however; rather an irregular seesaw of rapid climatic
+shifts, few lasting more than a quarter-century, driven by complex and still little
+understood interactions between the atmosphere and the ocean. The seesaw
+brought cycles of intensely cold winters and easterly winds, then switched abruptly
+to years of heavy spring and early summer rains, mild winters, and frequent Atlantic
+storms, or to periods of droughts, light northeasterly winds, and summer heat
+waves.
+
+C Reconstructing the climate changes of the past is extremely difficult, because
+systematic weather observations began only a few centuries ago, in Europe and
+North America. Records from India and tropical Africa are even more recent.
+
+For the time before records began, we have only ‘proxy records’ reconstructed
+largely from tree rings and ice cores, supplemented by a few incomplete written
+accounts. We now have hundreds of tree-ring records from throughout the
+northern hemisphere, and many from south of the equator, too, amplified with a
+growing body of temperature data from ice cores drilled in Antarctica, Greenland,
+the Peruvian Andes, and other locations. We are close to a knowledge of annual
+summer and winter temperature variations over much of the northern hemisphere
+going back 600 years.
+
+46
+
+
+--- Page 46 ---
+Reading
+
+D This book is a narrative history of climatic shifts during the past ten centuries, and
+some of the ways in which people in Europe adapted to them. Part One describes
+the Medieval Warm Period, roughly 900 to 1200. During these three centuries,
+Norse voyagers from Northern Europe explored northern seas, settled Greenland,
+and visited North America. It was not a time of uniform warmth, for then, as always
+since the Great Ice Age, there were constant shifts in rainfall and temperature.
+Mean European temperatures were about the same as today, perhaps slightly
+cooler.
+
+E ltisknown that the Little Ice Age cooling began in Greenland and the Arctic in
+about 1200. As the Arctic ice pack spread southward, Norse voyages to the west
+were rerouted into the open Atlantic, then ended altogether. Storminess increased
+in the North Atlantic and North Sea. Colder, much wetter weather descended on
+Europe between 1315 and 1319, when thousands perished in a continent-wide
+famine. By 1400, the weather had become decidedly more unpredictable and
+stormier, with sudden shifts and lower temperatures that culminated in the cold
+decades of the late sixteenth century. Fish were a vital commodity in growing
+towns and cities, where food supplies were a constant concern. Dried cod and
+herring were already the staples of the European fish trade, but changes in water
+temperatures forced fishing fleets to work further offshore. The Basques, Dutch,
+and English developed the first offshore fishing boats adapted to a colder and
+stormier Atlantic. A gradual agricultural revolution in northern Europe stemmed
+from concerns over food supplies at a time of rising populations. The revolution
+involved intensive commercial farming and the growing of animal fodder on land
+not previously used for crops. The increased productivity from farmland made
+some countries self-sufficient in grain and livestock and offered effective protection
+against famine.
+
+F Global temperatures began to rise slowly after 1850, with the beginning of the
+Modern Warm Period. There was a vast migration from Europe by land-hungry
+farmers and others, to which the famine caused by the Irish potato blight
+contributed, to North America, Australia, New Zealand, and southern Africa.
+Millions of hectares of forest and woodland fell before the newcomers’ axes
+between 1850 and 1890, as intensive European farming methods expanded
+across the world. The unprecedented land clearance released vast quantities of
+carbon dioxide into the atmosphere, triggering for the first time humanly caused
+global warming. Temperatures climbed more rapidly in the twentieth century as
+the use of fossil fuels proliferated and greenhouse gas levels continued to soar.
+The rise has been even steeper since the early 1980s. The Little Ice Age has given
+way to a new climatic regime, marked by prolonged and steady warming. At the
+same time, extreme weather events like Category 5 hurricanes are becoming more
+frequent.
+
+47
+
+
+--- Page 47 ---
+Test 2
+Questions 18-22
+Complete the summary using the list of words, A-l, below.
+Write the correct letter, Al, in boxes 18-22 on your answer sheet.
+Weather during the Little Ice Age
+Documentation of past weather conditions is limited: our main sources of knowledge
+of conditions in the distant pastare 18 .................and 19 cece... . We
+can deduce that the Little Ice Age was a time of 20 ....................... , rather than of
+consistent freezing. Within it there were some periods of very cold winters, others of
+21... and heavy rain, and yet others that saw 22 ..................... with no
+rain at all.
+A climatic shifts Bice cores C tree rings
+D glaciers E interactions F weather observations
+G heat waves H storms I written accounts
+Questions 23-26
+Classify the following events as occurring during the
+A Medieval Warm Period
+B Little ce Age
+C Modern Warm Period
+Write the correct letter, A, B or C, in boxes 23-26 on your answer sheet.
+23 Many Europeans started farming abroad.
+24 The cutting down of trees began to affect the climate.
+25 Europeans discovered other lands.
+26 Changes took place in fishing patterns.
+48
+
+
+--- Page 48 ---
+Reading
+READING PASSAGE 3
+You should spend about 20 minutes on Questions 27-40, which are based on Reading
+Passage 3 on the following pages.
+Questions 27-32
+Reading Passage 3 has six paragraphs, A~F.
+Choose the correct heading for each paragraph from the list of headings below.
+Write the correct number, i-viii, in boxes 27-32 on your answer sheet.
+List of Headings
+
+i The difficulties of talking about smells
+
+ii The role of smell in personal relationships
+
+iii Future studies into smell
+
+iv The relationship between the brain and the
+
+nose
+v The interpretation of smells as a factor in
+defining groups
+
+vi Why our sense of smell is not appreciated
+
+vii Smell is our superior sense
+
+viii The relationship between smell and feelings
+27 Paragraph A
+28 Paragraph B
+29 Paragraph C
+30 Paragraph D
+31 Paragraph E
+32 Paragraph F
+
+49
+
+
+--- Page 49 ---
+Test 2
+The meaning and power of smell
+
+The sense of smell, or olfaction, is powerful. Odours affect us on a physical,
+
+psychological and social level. For the most part, however, we breathe in the aromas
+
+which surround us without being consciously aware of their importance to us. It is
+
+only when the faculty of smell is impaired for some reason that we begin to realise the
+
+essential role the sense of smell plays in our sense of well-being
+
+A A survey conducted by Anthony Synott at Montreal's Concordia University asked
+participants to comment on how important smell was to ther in their lives. It
+became apparent that smell can evoke strong emotional responses. A scent
+associated with a good experience can bring a rush of joy, while a foul odour or one:
+associated with a bad memory may make us grimace with disgust. Respondents
+to the survey noted that many of their olfactory likes and dislikes were based on
+emotional associations. Such associations can be powerful enough so that odours
+that we would generally label unpleasant become agreeable, and those that we
+would generally consider fragrant become disagreeable for particular individuals.
+The perception of smell, therefore, consists not only of the sensation of the odours
+themselves, but of the experiences and emotions associated with them.
+
+B Odours are also essential cues in social bonding. One respondent to the survey
+believed that there is no true emotional bonding without touching and smelling a
+loved one. In fact, infants recognise the odours of their mothers soon after birth
+and adults can often identify their children or spouses by scent. In one well-known
+test, women and men were able to distinguish by smell alone clothing worn by their
+marriage partners from similar clothing worn by other people. Most of the subjects
+would probably never have given much thought to odour as a cue for identifying
+family members before being involved in the test, but as the experiment revealed,
+even when not consciously considered, smells register.
+
+C In spite of its importance to our emotional and sensory lives, smell is probably
+the most undervalued sense in many cultures. The reason often given for the low
+regard in which smell is held is that, in comparison with its importance among
+animals, the human sense of smell is feeble and undeveloped. While it is true that
+the olfactory powers of humans are nothing like as fine as those possessed by
+certain animals, they are still remarkably acute. Our noses are able to recognise
+thousands of smells, and to perceive odours which are present only in extremely
+small quantities.
+
+D Smell, however, is a highly elusive phenomenon. Odours, unlike colours, for
+instance, cannot be named in many languages because the specific vocabulary
+simply doesn't exist. ‘It smells like . . .," we have to say when describing an odour,
+struggling to express our olfactory experience. Nor can odours be recorded
+there is no effective way to either capture or store them over time. In the realm
+of olfaction, we must make do with descriptions and recollections. This has
+implications for olfactory research.
+
+50
+
+
+--- Page 50 ---
+Reading
+E Most of the research on smell undertaken to date has been of a physical scientific
+nature. Significant advances have been made in the understanding of the biological
+and chemical nature of olfaction, but many fundamental questions have yet to be
+answered. Researchers have still to decide whether smell is one sense or two — one
+responding to odours proper and the other registering odourless chemicals in the
+air. Other unanswered questions are whether the nose is the only part of the body
+affected by odours, and how smells can be measured objectively given the non-
+physical components. Questions like these mean that interest in the psychology of
+smell is inevitably set to play an increasingly important role for researchers.
+F However, smell is not simply a biological and psychological phenomenon. Smell
+is cultural, hence it is a social and historical phenomenon. Odours are invested
+with cultural values: smells that are considered to be offensive in some cultures
+may be perfectly acceptable in others. Therefore, our sense of smell is a means
+of, and model for, interacting with the world. Different smells can provide us with
+intimate and emotionally charged experiences and the value that we attach to these
+experiences is interiorised by the members of society in a deeply personal way.
+Importantly, our commonly held feelings about smells can help distinguish us from
+other cultures. The study of the cultural history of smell is, therefore, in a very real
+sense, an investigation into the essence of human culture.
+Questions 33-36
+Choose the correct letter, A, B, C or D.
+Write the correct letter in boxes 33-36 on your answer sheet.
+33 According to the introduction, we become aware of the importance of smell when
+A we discover a new smell.
+B we experience a powerful smell.
+C our ability to smell is damaged.
+D we are surrounded by odours.
+34 The experiment described in paragraph B
+A shows how we make use of smell without realising it.
+B demonstrates that family members have a similar smell.
+C proves that a sense of smell is learnt.
+D compares the sense of smell in males and females.
+51
+
+
+--- Page 51 ---
+Test 2
+
+35 What is the writer doing in paragraph C?
+A supporting other research
+B making a proposal
+C rejecting a common belief
+D describing limitations
+
+36 What does the writer suggest about the study of smell in the atmosphere in
+paragraph E?
+A The measurement of smell is becoming more accurate.
+B Researchers believe smell is a purely physical reaction.
+C Most smells are inoffensive.
+D Smell is yet to be defined.
+
+Questions 37-40
+
+Complete the sentences below.
+
+Choose ONE WORD ONLY from the passage for each answer.
+
+Write your answers in boxes 37-40 on your answer sheet.
+
+37 Tests have shown that odours can help people recognise the .......................
+belonging to their husbands and wives.
+
+38 Certain linguistic groups may have difficulty describing smell because they lack the
+APProprate .......cccecvvecrennns
+
+39 The sense of smell may involve response o ........................ which do not smell, in
+addition to obvious odours.
+
+40 Odours regarded as unpleasant in certain ....................... are not regarded as
+unpleasant in others.
+
+52
+
+
+--- Page 52 ---
+Writing
+WRITING
+WRITING TASK 1
+You should spend about 20 minutes on this task.
+The three pie charts below show the changes in annual spending by a particular
+UK school in 1981, 1991 and 2001.
+Summarise the information by selecting and reporting the main features, and
+make comparisons where relevant.
+Write at least 150 words.
+Total School Spending 1981 Total School Spending 1991
+Insurance Insurance
+2% 3%
+7) Other workers’ _czzssy
+Other workers’ 8a] Salaries 44]
+salaries EEE] 209 AEE
+% ] Teachers’ fi Teachers’
+da salaries JRareioty salaries
+: 40% i 50%
+Resources 1
+e.g. books i
+Resources : 20%
+eg. books ~ i=
+15% rg -
+Fumiture and Fumiture and
+equipment equipment
+15% 5%
+Total School Spending 2001
+Other workers’ ~~ Insurance
+salaries _ 8%
+15% iid
+Resources fT 1 \
+e.g. books LC
+vw 45%
+Fumiure and Gees]
+0
+equipment |
+23% -
+53
+
+
+--- Page 53 ---
+Test 2
+
+WRITING TASK 2
+
+‘You should spend about 40 minutes on this task.
+
+Write about the following topic:
+Nowadays the way many people interact with each other has changed because
+of technology.
+In what ways has technology affected the types of relationships people make?
+Has this become a positive or negative development?
+
+Give reasons for your answer and include any relevant examples from your own
+
+knowledge or experience.
+
+Write at least 250 words.
+
+54
+
+
+--- Page 54 ---
+Speaking
+PART 1
+The examiner asks the candidate about him/herself, his/her home, work or studies and
+other familiar topics.
+EXAMPLE
+Newspapers and Magazines
++ Which magazines and newspapers do you read? [Why?]
++ What kinds of article are you most interested in? [Why?]
++ Have you ever read a newspaper or magazine in a foreign language? [When/Why?]
++ Do you think reading a newspaper or magazine in a foreign language is a good way to
+learn the language? [Why/Why not?]
+PART 2
+i i i You will have to talk about the
+Describe a restaurant that you enjoyed going to. topic for one to two minutes.
+You should say: You have one minute to think
+where the restaurant was about what you aie going to
+why you chose this restaurant say.
+what type of food you ate in this restaurantand | You can make some notes to
+explain why you enjoyed eating in this restaurant. | help you if you wish.
+PART 3
+Discussion topics:
+Restaurants
+Example questions:
+Why do you think people go to restaurants when they want to celebrate something?
+Which are more popular in your country: fast food restaurants or traditional restaurants?
+Why do you think that is?
+Some people say that food in an expensive restaurant is always better than food in a
+cheap restaurant — would you agree?
+Producing food
+Example questions:
+Do you think there will be a greater choice of food available in shops in the future, or will
+there be less choice?
+What effects has modern technology had on the way food is produced?
+How important is it for a country to be able to grow all the food it needs, without
+importing any from other countries?
+55

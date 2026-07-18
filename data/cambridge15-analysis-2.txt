@@ -1,0 +1,4203 @@
+Test 1
+
+Reading
+
+Passage 1 Nutmeg - a valuable spice
+
+文章概览
+
+标题：肉豆蔻：一种宝贵的香料
+
+体裁：说明文
+
+话题类别：事物发展史
+
+难度：简单
+
+考题解析
+
+Questions 1-4 Notes（填空）
+
+题号              定位词                       文章对应处                      答案及解析
+
+1               大定位：                         第一段第四句：                   oval
+                                             The tree is thickly       先用 tree 定大范围对应原文
+                tree;                        branched with dense       第一段, 找出关于树叶的描
+                                             foliage of tough, dark    写， 对于树叶的描写有
+                小定位： leaves, shape           green oval leaves...      tough,
+                                                                       dark green 和 oval, 所填空
+                                                                       为
+                                                                       形状， 因此答案是 oval。
+
+2                        大定位：             第一段第五和第六句：                 husk
+
+                         Fruit            The fruit is encased in a  根据题目中的 fruit 以及
+
+                         小定位：             fleshy husk. When the      ripe
+
+                         surrounds,       fruit is ripe, this husk   定位到第一段的第五和第
+
+                         breaks open,     splits into two halves...  六句。 原文第五句中的
+
+                         ripe                                        been cased in 和 题 目 中
+
+                                                                     的
+
+                                                                     surrounds 是同义表达；
+
+                                                                     第六
+
+                                                                     句的 splits into 和题目中
+
+                                                                     的
+
+3                                         第一段最后一句： These             seed
+
+                                          are the sources of the     题目中的 produce,在原文
+
+                                          two spices nutmeg and      中以短语 sources of 出
+
+                                          mace, the former being     现。 原文中 spices nutmeg
+
+                                          produced from the dried    和 mace 的原料分别来自
+
+                                          seed, and the latter       dried seed 和 aril.题目要填
+
+                                          from..                     入的是 spice nutmeg 的原
+
+                                       1
+                                                                                  料， 对应原文代
+                                                                                  词 former 后的内容， 所
+                                                                                  以 seed 为本题答案。
+
+4             大定位：                                       第一段最后一句： These           mace
+
+              tree, fruit                                are the sources of the   本题接上题。 题目问 aril
+
+              小定位：                                       two spices nutmeg and    所 produce 的物质。 原文
+
+              covering,                                  mace, the former being   中 aril 出现在句尾: and
+
+              aril,                                      produced from...and the  the latterfrom the aril. 我们
+
+              produce                                    latter from the aril.    只需找到 the latter 对应的
+
+                                                                                  信息就可以。倒回去看，
+
+                                                                                  the latter 对应的信息是
+
+                                                                                  mace.所以本题答案是
+
+                                                                                  mace。
+
+Questions 5-7 TFNG（判断题）
+
+5. In the Middle Ages, most Europeans knew where nutmeg was grown.
+
+参考译文   在中世纪， 大部分欧洲人知道肉豆蔻生长于哪里。
+
+考点词    knew where nutmeg was grown.
+
+定位词    Middle Ages
+
+       文章第二段第三句的后半句：
+
+文章对应处  ...but they never revealed the exact location of the source of
+
+       this extremely valuable commodity.
+
+       FALSE
+
+       文中的第二段内容对应题目中的时间段 Middle Ages， 于是
+
+答案及解析  定位到此段。 第一句讲的是肉豆蔻的用途， 第二句告诉我们
+       是阿拉伯人将这种香料带到欧洲。 重点是第三句指出， 他们
+
+       从未将这种香料的来源地公之于众， 此处题目和原文相矛
+
+       盾， 故判断本题是 FALSE。
+
+6. The VOC was the world‘s first major trading company.
+
+参考译文   联合东印度公司是世界上第一个大型贸易公司。
+
+考点词    the first major trading company
+
+定位词    VOC; trading
+
+       文章第四段前三句：
+
+       In 1602, the Dutch merchants founded the VOC, a trading
+
+文章对应处  corporation better known as...By 161, the VOC was the
+
+       richest commercial operation in the world. The company had
+
+       50,000 employees...with a private army of...
+
+答案及解析  NOT GIVEN
+       文中第四段的前三句是对 VOC 的描述。 根据描述信息， 我
+
+                                        2
+                           们知道它的建立时间， 它一度是最富有的商业运营公司， 拥
+
+                           有许多员工， 甚至还有军队。 但这些信息无法对应到题目中
+
+                           的关键词 the first. VOC 是否是第一家贸易公司， 判断依据不
+
+                           足。 所以， 此题只能判断为 NOT GIVEN。
+
+7. Following the Treaty of Breda, the Dutch had control of all the islands where
+
+nutmeg grew.
+
+参考译文                       伴随着布雷达条约的签订， 荷兰人控制了所有肉豆蔻生长的
+                           岛
+
+考点词                        had control of all the islands
+
+定位词                        the Treaty of Breda
+
+                           文章第五段倒数第五和第四句以及最后句：
+
+                           After decades of fighting for control of this tiny island, the
+
+文章对应处                      Dutch and British arrived at a compromise settlement, the
+
+                           Treaty of Breda, in 1667...the Dutch offer the trade...The
+
+                           Dutch now had a monopoly over the nutmeg trade which
+
+                           TRUE
+
+                           首先， 根据 the Treaty of Breda,定位到原文第五段最后几句。
+
+答案及解析                      条约签订的历史背景是荷兰为夺取小岛和英国达成的折中
+                           方案。 荷兰为了得到 the island of Run, 作为交换， 把曼哈顿给
+
+                           了英国。 但从最后句荷兰人垄断肉豆蔻贸易， 判断本题是
+
+                           TRUE
+
+Questions 8-13 Table（填空）
+
+题号    定位词                        文章对应处                        答案及解析
+
+                                 第二段第二句：                      Arabs
+                                                              先用 Middle Ages 定大范围对应原
+      大定位：                       Throughout this              文第二段, 找出关于香料交易的
+                                                              描写， 相关表达为 exclusive
+      Middle Ages                period, the                  importers, 所 指 的 就 是 the
+                                                              Arabs。
+8     小定位：                       Arabs were the
+                                                              plague
+      brought to                 exclusive                    根据题目中的 disease as 判断本
+                                                              题要所填的是一种疾病。 根据
+      Europe by                  importers of the             17 世纪， 先定位到第四段， 找到
+                                                              描述疾病的语句。 原文中 dying
+                                 spice to Europe.             of 后面所跟的就是疾病种类。 再
+                                                              往后读， 看到医生们认为 nutmeg
+                                 第四段第四和第                      held the cure。 held the cure 对应
+                                                              题目中的 against。 据此判断， 所
+                                 五句                           填疾病就是 plague。
+
+                                 ：
+
+              大定位：               ...thousands of
+              17th               People across
+              century 小          Europe were dying
+9                                Of the
+              定位：                plague...Doctors
+              against the        were desperate for a
+              disease            way to stop the
+
+                                 spread of this
+
+                                 disease, and they
+
+                                 decided nutmeg
+
+                                                           3
+10                          大定位：               exported nutmeg          lime
+                            17th century,      was covered with         第五段第四到第六句具体说明荷
+11                          Dutch              lime to make sure        兰人控制 nutmeg 的方法。 需要注
+                            小定位：               that there was no        意第七句的 in addition 是另一种控
+12                          put on,            chance a fertile         制 nutmeg 的方式： 将出口的
+                            avoid being        seed which could         nutmeg 涂上 lime, 注意动词表达
+              大定位：          cultivated,        be grown                 的替换， 题目中用的是 puton 而
+              Late 18th     outside the        elsewhere...             原文中则用被动语态的表达 be
+              century       islands                                     covered with。 因此介词 with 后的
+              小定位：                             第五段倒数第四和                 lime 就是本题的答案。
+13                          大定位：               第五                       Run
+              1778, half    17th               句：                       本题接上题。 第五段后半段讨论
+              of, Banda     century,           if the British           的是荷兰为了垄断肉豆蔻的贸易
+              Islands‘,     Dutch              would                    和英国人做的交易。 具体交易出
+              destroyed by  小定位：               give them the            现在对 The Treaty of Breda 的解释
+                            obtained,          island of Run,           里： 英国人同意给出 the islandof
+                            island,            they would in            Run, 如果荷兰人愿意让出北美的
+                            th                 turn give                曼哈顿。 本题所填是岛屿名称，
+                                                                        答案是 Run。
+                            1Britain...The     大定位：
+                            第六段第一句：            Late 18th                Mauritius
+                            ...in 1770, a      century                  本题填入内容为 1770 年，
+                            Frenchman named    小定                       nutmeg plants 被秘密带去的地
+                            Pierre Poivre      位：                       点。 根据 19 世纪和 1770， 定位
+                            successfully       1770,                    到第六段。 第一句就是答案。 注
+                            smuggled nutmeg    secretly,                意原文中的 smuggled 意为―走私，
+                            plants to safety   taken to                 偷运 ‖ 是 题目里 secretlytaken 的
+                            in Mauritius, ...                           同义表达。 答案为 Mauritius。
+                            第六段第三句：
+                            ...in 1778, a         本题根据 1778 定位到第六段第三
+                            volcanic eruption     句。 火山喷发导致了 tsunami,wipe
+                            in the                out 的意思是―消灭‖指的就是题目
+                            Banda region          中的 destroy, wipe out 后面还出现
+                            caused a tsunami      了量词 half, 因此， 本题填入
+                            that wiped out        wipe out 前主句中的 tsunami。
+                            half the nutmeg
+
+长难句解析：
+1. 第一段： Inside is a purple-brown shiny seed, 2-3 cm long by about 2 cm
+across, surrounded by a lacy red or crimson covering called an ‘aril’.
+● 语言点： 这个句子语言点很丰富。 首先， 前半句是完全倒装， 将介词
+inside 提前， 强调种子的位置； 中间半句是插入语， 描写种子的大小； 后
+半句的 surrounded 是非谓语， 解释覆盖种子的是什么物体。
+● 参考译文： 其中是紫色和褐色相间的发光的种子， 它有 2-3 厘米长，
+
+                                               4
+2cm 宽， 围绕着鲜红色或猩红色的覆盖物， 叫做“假种皮”。
+2. 第一段： These are the sources of the two spices nutmeg and mace, the
+former being produced from the dried seed and the latter from the aril.
+● 语言点： 这句话的语言点在于非谓语“the former being”， 后半句话的
+“the latter from”， 因为和前面一样， 使用非谓语“being”， 因此可以省去。
+● 参考译文： 他们是两种香料肉豆蔻和肉豆蔻皮的来源， 前者用干燥的
+种子生产， 后者来自假种皮。
+
+Passage 2 Driverless Car
+
+标题： 无人驾驶汽车
+
+体裁： 说明文
+
+话题类别： 交通类
+
+难度： 中等
+
+考题解析
+
+Questions 14-18 Matching（段落大意配对）
+
+题号    定位词                     文章对应处                       答案及解析
+                                                          C.
+             the amount of    C 段第三行： At                  根据题干， 描述汽车不
+             time,            present, the average        使用的时间， 其中百分
+14                            car spends more than        之 90 对应 amount of
+             a car is not in  90 percent of its life      time， not inuse 对应
+             use              parked.                     parked
+                                                          B题
+             several          B 段两个段落中心                   目问的是个人马路
+             advantages of    句： There are many           开车使用的好几个优
+             driverless       reasons why                 点， 抽象意义的单词必
+15                            Technology                  须举出实践的例子： B
+             vehicles,        is advancing so fast.       第一段里举出的第一个
+             individual       One frequently cited        例子是： safety， 第二段
+             road-users       motive is safety.           里明确举出了无人驾
+                              Another aim is to           驶还有其他的目的： 比
+                              free the time               如可以让人开车的时候
+                              people spend                休闲， 做其他事情， 还
+                              driving for other           有帮助老年人， 残疾人
+                              purposes.                   客服开车带来的困
+                                                          扰。 ， 多以选择 B 段两
+      choosing the            E 段第二段：                     个例子
+                              Specialised vehicles
+16    most                    may then be                 E题
+                                                          目问的是每次出行
+      appropriate                                      5  选择最适合的车辆类
+    vehicle for       available for              型， 这个也要举出不同
+    each trip         exceptional journeys,      的例子说明不同车适合
+                      such as going on           不同的行程， 对应的是
+    an estimate,      a family camping           E 段第二段最后一句
+                      trip or helping a son      话： 家庭野营一种车
+    how long,         or daughter move to        辆， 接送孩子上大学另
+                      university.                一种车辆。
+17  overcome a                                   G题
+                      G 段第二行：                    目问的是估计要花
+    number of         through                    多久克服各种问题。 G
+                      robust and targeted        段第二行 probably 对应
+    problems          research, these can        estimate， conquer 对 应
+                      most probably be           overcome problems，
+                      conquered within           next 10 years 对应 how
+                      the next 10 years.         long
+
+    use of            D 第二段倒数第二                  这
+                      行开始：                       道题问的是： 无人驾
+    driverless cars,  each vehicle would         驶汽车的使用对汽车的
+                      be used more               生产数量没有影响。 D
+    have no effect    intensively, and might     第二段最后两句话： 无
+                      need replacing             人驾驶车辆会越用越
+18  on,               sooner. This faster        多， 但是替换率也会加
+                      rate of turnover may       速。 这种快速的交替率
+    the number of     mean that vehicle          其实意味着车辆的生产
+                      production will not        并没有实际的减少， 其
+    vehicles          necessarily decrease.      中 vehicle production
+                                                 will not necessarily
+    manufactured                                 decrease 替换题干中的
+                                                 have no effecton the
+Questions 19-22 Summary（ 填空）                     number of vehicles
+                                                 manufactured
+题号  定位词               文章对应处
+                                                  答案及解析
+                      B 段第二行： indeed,             human errors
+                                                  这一题中， 问的是英
+    the Transport     research at the             国的交通研究实验室
+                                                  研究表明大多数的交
+    Research          UK's Transport              通事故部分是由于人
+                                                  为错误造成的。 其中
+    Laboratory,       Research                    定位到 B 段交通研究
+                                                  所实验室以后 ， most
+19  most motor        Laboratory has              替 换 90percent,
+
+    accidents,        demonstrated that more
+
+    partly,           than 90 percent of
+
+    due to            road collision involve
+
+                      human error as a
+
+                                              6
+    it may                   contributory factor.                            accidents 替 换 road
+                                                                             collisions,contributory
+    bring other              C 段第三行： Beyond
+                             these direct benefits,                          car-sharing
+    advantages,              we can consider the                             这一题是关于是说
+                             wider implications                              无人驾驶除了带来以
+    schemes,                 for transport and                               上的好处， 还能为交
+                             society,Automation                              通和社会带来什么
+20  workable,in              means that                                      好处， 其中 initiatives
+                             initiatives for                                 对应 schemes ， viable
+    towns and                car-sharing become                              对 应 workable， urban
+                             much more viable,                               areas 对应 towns and
+    cities,                  particularly in urban
+                                                                             ownership
+    fewer cars on            D 第二段第一 句：                                      题目问的是:根据密
+                             Modelling work by                               歇根大学交通研究院
+    the road.                the                                             研究表明自动车辆
+                             University of                                   会导致汽车的拥有率
+areas with                   Michigan                                        下降 43%， 这里
+                             Transportation                                  reduce 对应 drop， 只
+              the            Research Institute                              要找到这个密歇根大
+              University of  suggests automated                              学这个机构， 就能填
+              Michigan       vehicles might                                  出 ownership 这个答
+              Transportatio  reduce vehicle                                  案了
+21                           ownership by 43
+              n Research     percent                                         mileage
+              Institute,                                                     这道题目问的是： 但
+              43 percent     D 段第二行 but 后面                                   是， 每年汽车的什么
+              drop           一句话 but that                                    是现在的两倍， 只要
+                             vehicles'average                                定位到 annual 和
+              however,       annual                                          yearly 替换， double
+              the            mileage would                                   和 twice 做替换就可以
+              yearly, be     double as a result.                             了
+22
+              twice,
+              as high as it
+              currently is
+
+Questions 23-26 Multiple choices（多选题）
+23-24. Which TWO benefits of does the writer mention?
+A. Car travellers could enjoy considerable cost savings.
+B. It would be easier to find parking spaces in urban areas.
+C. Travellers could spend journeys doing something other than driving.
+D. People who find driving physically difficult could travel independently.
+E. A reduction in the number of cars would mean a reduction in pollution
+
+                                                     7
+译文               作者文中谈到自动汽车的两个好处是什么？
+定位词              A. 汽车驾驶员能享受很大的成本下降
+文章对应处            B. 比较容易在市中心找到停车位置
+                 C. 乘客除了开车意外可以在旅途中做其他事情
+答案及解析            D. 那些有生理障碍的人觉得很难独立开车
+                 E. 汽车数量的下降意味着污染的下降
+                 TWO benefits， automated vehicles
+                 B 段第二段： 两个 if 的条件状语从句举出两个例子
+                 If the vehicle can do some or all of the driving, it may be
+                 possible to be productive, to socialise or simply to
+                 relax while automation systems have responsibility for
+                 safe control of the vehicle.If the vehicle can do the
+                 driving, those who are challenged by existing mobility
+                 models - such as older or disabled travellers - may be able
+                 to enjoy significantly greater travel autonomy.
+                 C和D
+                 在这句话中， to be productive, to socialise or simply to
+                 relax， 对应题干中的 spend journeys doing something
+                 other than driving. those who are challenged by
+                 existing mobility models - such as older or disabled
+                 travellers ， 对应着题干中的 People who find driving
+                 physically difficult could travel independently.这道单选
+                 题两题挤在一个段落中， 比较容易定位。
+
+25-26. Which TWO challenges to automated vehicle development does the
+writer mention?
+A. making sure the general public has confidence in automated vehicles
+B. managing the pace of transition from conventional to automated vehicles
+C. deciding how to compensate professional drivers who become redundant
+D. setting up the infrastructure to make roads suitable for automated vehicles
+E. getting automated vehicles to adapt to various different driving conditions
+
+25-26. Which TWO challenges to automated vehicle development does the
+
+writer mention?
+
+A. making sure the general public has confidence in automated vehicles
+
+B. managing the pace of transition from conventional to automated vehicles
+
+C. deciding how to compensate professional drivers who become redundant
+
+D. setting up the infrastructure to make roads suitable for automated vehicles
+
+E. getting automated vehicles to adapt to various different driving conditions
+
+                 作者在文中提到的无人驾驶技术发展中遇见的两个挑
+
+参考译文             战是什么
+                 啊？
+
+                 A. 确保大众对自动骑车有信心
+
+                                  8
+定位词              B. 管理常规汽车到自动骑车的转变速度
+                 C. 决定这样去补偿过剩的职业驾驶员
+文章对              D. 建立基础设施使地面变得适合无人驾驶
+应处               E. 使自动驾驶车辆适应各种不同的开车情况
+                 TWO challenges
+答案及              F 段第二句和最后一句话：
+解析               These include the technical difficulties in ensuring that the
+                 vehicle works reliably in the infinite range of traffic,
+词汇&句型            weather and road situations it might encounter; and the
+单词/词组            societal changes that may be required for communities to
+driverless cars  trust and accept automated vehicles as being a valuable part
+automation       of the mobility landscape.
+                 A 和E
+                 F 段第一句中心句 There are a number of hurdles to
+                 overcome in delivering automated vehicles to our roads.其中
+                 hurdles 定位到题目到题干中 challenges， 然后作者举了两
+                 个例子： These include thetechnical difficulties in ensuring
+                 that the vehicle works reliably in the infinite range of
+                 traffic, weather and road situations it might encounter 替
+                 换题干中的 adapt to various different driving conditions.最
+                 后一句话：the societal changes that may be required for
+
+                 词性           词意          单词/词组                                 词性      词意
+                 无人驾驶汽        travel      交通需求                                  满足需求
+                 车            demand      meet                                              英里数
+                                          demand                                            促使， 导
+                 n.           自动化                                                           致，
+                                                                                            鼓励
+implementation   n.           执行， 完       mileage                               n.
+履行               robotic car  成，          n.                                    变更率， 成      杰 别出的， 特
+机器人汽车                         turnover                                          交
+                 adv.         从(某时)起      prompt
+onwards                       一直; 向       mobility                              v.
+                 n.           前; 前往       provider
+vehicle          大规模生产        汽车， 车辆      n.                                    移动汽车
+mass             即将发生的                    adj.                                  供
+production       自我驾驶能        compromise  v.                                    妥协
+on the horizon   力            unoccupied  exceptional                           无人占据的
+self-driving     v.           boost                                             促进
+capabilities                  测试， 实
+trial                         验，                                                adj.
+
+                                  9
+gather pace               加快步伐，                  hurdle                             n.            跨 难栏， ， 困  遇见， 遭遇
+advance                   速                      加速                                 n.                       责任， 义务
+                          v.                                                        adj.          合同
+road collisions                                  infinite                           encounter     无法衡量
+                          马路交通事                                                     liability     的，
+incidence                 故                      事件                                 enforcement   无穷的
+productive                                       多产的， 有                                           v.
+                          n.                     效
+socialize                                        社交， 交                                            n.
+                          a.                     际， 适用变
+are challenged                                                                                    n.         执行， 实施
+by                        v.                     landscape
+autonomy                                                                            n.            风景， 蓝图     处理
+implication               受到什么挑                  自主， 自由                                                      征服， 解决
+park                      战， 受困于                 应用， 实施                             address       v.         远程在位，
+                          什么                     停车                                 conquer       v.         遥
+                          n.                                                        telepresence  n.
+                          n.
+
+                          v.
+
+initiative                               倡议， 新方      concrete                       实际的预测
+                          n.                         predictions
+
+                                         案，
+
+主动性
+
+同义转换
+
+1. 停车: park = not in use
+
+2. 克服困难: overcome a number of problems = be conquered
+
+3. 倡议、 提议: schemes = initiatives
+
+4. 两倍: double = twice
+
+难句解析
+
+1. A 段第一段： But since Google announced in 2010 that it had been trialling
+
+self-driving cars on the streets of California, progress in this field has quickly
+
+gathered pace.
+
+● 语言点： 这句话是一个 since 的状语从句里面套了一个宾语从句， 其中
+
+2010 that it had been trialling self-driving cars on the streets of California 是宾
+
+语从
+
+句。 整个句子的主句是 progress in this field has quickly gathered pace
+
+● 参考译文： 但是自从谷歌公司 2010 年宣布它们开始在加利福尼亚的大
+
+道上试验无人驾驶汽车， 这个领域的进展已经开始快速提升。
+
+2. B 段第一段： One frequently cited motive is safety; indeed, research at the
+
+UK's Transport Research Laboratory has demonstrated that more than 90
+
+percent of road collisions involve human error as a contributory factor, and it is
+
+the primary cause in the vast majority.
+
+● 语言点： 这个句子的难点是一个句子后面用了一个分号， 可以再写一
+
+个意思更加深入的句子。 注意第三个句子用， and 连接这个， 所以这个三
+
+个句子分别用分号和， and 连接起来。
+
+                                                 10
+● 参考译文： 一个经常被引用的动机就是安全， 确实英国的交通研究试
+验室已经证明超过 90%以上的马路交通事故是犹豫人为错误诱发的， 而且
+这也是大多数事故的主要原因。
+佳句赏析及应用
+1. A 段第一段： A new challenge to vehicle production is now on the horizon
+and, again, it comes from automation.
+● 参考译文： 车辆生产的一个新挑战现在即将开始， 然后再次这次又是
+来自于
+自动化。
+● 应用： Finally, there are hopes on the horizon.
+2. A 段第二段： But since Google announced in 2010 that it had been trialling
+self-driving cars on the streets of California, progress in this field has quickly
+gathered pace.
+● 参考译文： 但是自从谷歌公司 2010 年宣布它们开始在加利福尼亚的大
+道上试验无人驾驶汽车， 这个领域的进展已经开始快速提升。
+● 应用： If these ideas gather pace, they could have made further progress in
+city management
+
+Passage 3 What is exploration?
+
+文章概览
+
+标题： 探索是什么？
+
+体裁： 议论文
+
+话题类别： 社会类
+
+难度： 中等
+
+考题解析
+
+Questions 27-32 Multiple choice（选择题）
+
+题号    定位词                       文章对应处               答案及解析
+                                                    A最
+                                第一段最后一行：            后一句两个例子都是
+                                                    为了证明逗号前面的观
+                                This questing       点—追寻的天性帮助人
+                                                    类这个物种在全球扩
+                                nature of ours      张。 选 A（探索是人类
+                                                    本性的一部分） 。
+27    New York                  undoubtedly
+                                                    CH
+                                helped our species  owever 反驳之前说探
+                                                    索者都是异类， 而是我
+                                spread around the   们每个人都有这样的本
+                                                    性。 选 E（爱探索的冲
+                                globe…              动人人都有） 。
+
+              second            第二段第四行：
+28                              That, however,
+                                doesn't take away
+              paragraph         from the fact that
+                                we all have this
+                                enquiring
+                                instinct, even
+                                today;
+
+                                                11
+29  Edgon Health     第三段第二行：                 C…
+                     …a fictional area       to suggest the desires
+    fourth           of uncultivated         and fears of his characters.
+                     land,                   文中说汤玛斯.哈代写
+30  paragraph, 'a    and used the            这部小说是为了探索小
+                     landscape to            说主人公的欲望和恐
+    golden age'      suggest the             惧， 对应选项中的情感
+                     desires and fears       状态， 选 C（哈代写这
+31  sixth paragraph  of his characters.      部小说是为了探索人们
+                                             的情感状态） 。
+32  last paragraph   第四段第三行：
+                     the word                D这
+                     'explorer'              是一个总结段落大意
+                     has become              的题目， 作者前面讲探
+                     associated with a       索的黄金时期已成为历
+                     past era. We            史， 就好像现在没再值
+                     think back to a         得探索一样， 但事实是
+                     golden age, as if       还有很多未知摆在人类
+                     Exploration peaked      的面前。 所以选 D（人
+                     Somehow in the          们认为不再需要探索这
+                     19th century - as if    样的想法是错误的）
+                     the process of
+                     discovery is now        A题
+                     on the decline,         目问当人们给―探索‖
+                     though the truth is     下定义的时候， 人们
+                     that…                   常常会怎样？ 这里段首
+                                             第一句讲人们的定义趋
+                     第六段第一行：                 向于反映自己专业领
+                     Each definition         域。 因此选 A（人们总
+                     is slightly             是会把自己对―探索‖的
+                     different - and         解读和他们的职业兴
+                     tends to reflect the    趣联系在一起） 。
+                     field of
+                     endeavour of each       B作
+                     pioneer.                者的兴趣在于对于熟
+                                             悉的事物有怎样新的
+                     第八段最后一行：                解读和见解。 选择 B
+                     and this is             （人们对熟悉事物的新
+                     what interests me:      发现） 。
+                     how a fresh
+                     interpretation,
+                     even of a well
+                     travelled route,
+
+                                         12
+                    can give its
+
+                    readers new
+
+                    insights.
+
+Questions 33-37 Matching（人名观点配对）
+
+33. He referred to the relevance of the form of transport used
+
+参考译文     他提到了与所使用的交通方式的关系。
+
+         第五段倒数第五行：
+
+文章对应     Wilfred Thesiger, who crossed Arabia's Empty Quarter in
+处        1946, and belongs to an era of unmechanised travel now
+         lost to the rest of us, told me, 'If I'd gone across by camel
+
+         when I could have gone by car, it would have been a
+
+stunt.'
+
+34. He described feelings on coming back home after a long journey.
+
+35. He worked for the benefit of specific groups of people.
+
+36. He did not consider learning about oneself an essential part of exploration.
+
+答案及解     E文
+析        中的 Wilfred Thesiger 提到 camel 和 car 对应题目中的
+         form of transport。
+
+参考译文     他描述了从一次长途旅行中返回的感受。
+文章对应     第三段第四行：
+处        Explorer and travel writer Peter Fleming talks of the
+         moment when the explorer returns to the existence
+答案及解     he has left behind with his loved ones.
+析        A文
+         中的 returns to the existence he has left behind with his
+         lovedones 与题目中 feelings on coming back home
+         after a long journey 一致。
+
+参考译文     他为了某一类人们的益处工作。
+文章对应     第五段第五行：
+处        Then Robin Hanbury-Tenison, a campaigner on behalf
+         of remote so-called 'tribal' peoples…
+答案及解     D文
+析        中的 on behalf of remote so-called 'tribal' peoples 与选项
+         中的
+         for the benefit of specific groups of people 一致。
+
+参考译文     他没有考虑到对自身的探究也是探索中必不可少的一部
+         第五段最后一句：
+文章对应     Wilfred Thesiger……To him, exploration meant bringing
+处        back information from a remote place regardless of
+         any great self-discovery.
+
+                                  13
+37. He defined exploration as being both unique and of value to others.
+
+Questions 38-40 Summary（ 填空）
+
+答案及解             E文
+析                中 Wilfred Thesiger 说―只要带回信息， 无视自我发现‖
+                 与选项
+
+中 regardless of any great self-discovery 对应。
+
+参考译文             他把―探索‖定义为唯一的并且还要带给其他人价值的事
+
+                 F 段第一句：
+
+文章对应             Ran Fiennes, … 'An explorer is someone who has
+
+处                done something that no human has done before - and
+
+                 also done something scientifically useful.'
+
+                 B文
+
+答案及解             中 no human has done before 跟题中的 unique 对应。
+
+析                文中 something scientifically useful 与 选项里的 of value to
+
+                 others 对应。
+
+题号    定位词                     文章对应处                                      答案及解析
+                              第七段第三句：
+              a large number  I've done a great                          expeditions
+38                            many expeditions and                       a large number of 与 a
+                              each one was unique.                       great many 对应。
+              of
+                              第七段第四句：                                    isolated/uncontacted
+      first                   I've lived for months                      题目中需要一个形
+                              alone with isolated                        容词来修饰 people，
+      stranger,               groups of people all                       这个句子中有两个形
+                              around the world，                          容词， 即答案。 内容
+39    certain,                even two                                   上因为这是些于世隔
+                              'uncontacted tribes'.                      绝的小村子， 所以作
+      had                                                                者对他们来说是第
+                                                                         一个陌生人。
+      encountered
+
+词汇 & 句型
+重点词汇
+
+      no need for             第七段倒数第五行：                                  surface
+                              We know how the                            题 目 中 earth 跟
+      furtuer                 land surface of our                        ourplanet 同 义 替
+                              planet lies; exploration                   换 ， surface of our
+40    exploration,            of it is now down to                       planet 与 Earth‘s
+                              the details – the habits                   surface 结构一致。
+      how buffalo             of microbes, say, or the
+                              grazing behaviour of
+      eat                     buffalo.
+
+                                              14
+词汇 & 句型
+重点词汇
+
+    no need for       第七段倒数第五行：                                  surface
+                      We know how the                            题 目 中 earth 跟
+    furtuer           land surface of our                        our planet 同 义 替
+                      planet lies; exploration                   换 ， surface of our
+40  exploration,      of it is now down to                       planet 与 Earth‘s
+                      the details – the habits                   surface 结构一致。
+    how buffalo       of microbes, say, or the
+                      grazing behaviour of
+    eat               buffalo.
+
+单词/词组        词性       词意                                         单词/词组         词性    词意
+slumped
+down         重重得坐下    bacteria                                   n.            细菌    简直没有
+grunt
+             v.       咕哝着说                                       scarcely      adv.  竞选者
+wildebeest   牛羚， 羚羊的                                                                 部落的
+             一        mountaineer                                n.            登山家   未机械化的
+yonder       adv.                                                                    噱头； 绝技
+ancestors    n.       在远处                                        campaigner    n.    努力
+scouts       n.       祖先                                         tribal        adj.  著名的
+investigate  v.       侦察兵                                        unmechanised  adj.
+quest        v.       调查                                         stunt         n.    标准
+nomadic      adj.     探索                                         endeavour     n.    明确的
+maintain     v.       游牧的                                        prominent     adj.  目标
+depleted     adj.     保持                                         cutting-edge  前沿    开始
+negotiate    v.       贫化的                                        criteria      n.    宣布
+             adj      协商                                         definite      adj.
+peculiar     .                                                                       远征
+             n.       异常的                                        objective     n.    唯一的
+breed        adj.                                                                    隔绝的
+inclined              品种                                         outset        n.
+venturing    冒险       倾向…的                                       declare       v.
+out
+enquiring    adj.     bias                                       n.            偏见
+instinct     n.
+fictional    adj.     探听的                                        expedition    n.
+                      天性                                         unique        adj.
+                      虚构的                                        isolated      adj.
+
+同义转换
+1. 探听的天性: questing nature = an intrinsic element of being human
+2. 调查人们的情绪状态: to investigate people's emotional
+
+                      15
+states = to suggest the desires and fears of his characters
+
+3. 倾向于反应自己研究领域: tends to reflect the field of
+
+endeavour of each pioneer = relate exploration to their own
+
+professional interests
+
+4. 使用的交通工具: form of transport used = by camel when I could have
+
+gone by car be
+
+难句解析
+
+1. 第二段： Our desire to discover, and then share that new-found knowledge,
+
+is part of what makes us human - indeed, this has played an important part in
+
+our success as a species.
+
+● 语言点： 这句话的语言点主要是插入语较长， 并有 and 连接的并列成分
+
+（then share that new-found knowledge） 。
+
+● 参考译文： 我们去发现， 然后再分享新知的可望是使我们成为人类的
+
+重要部分 – 甚至， 它在我们人类作为一个物种获取成功的路上扮演了一个
+
+非常重要的角色。
+
+2. 第二段： That, however, doesn't take away from the fact that we all have
+
+this enquiring instinct, even today; and that in all sorts of professions - whether
+
+artist, marine biologist or astronomer - borders of the unknown are being
+
+tested each day.
+
+uncultivated      adj.                   未经耕作的                   slant               n.    斜面
+                                                                                     adj.  大陆的
+characters        n.                     人物                      continental         航海
+                                                                                     n.    微生物类
+delve into        钻研                     voyages                 n.                  n.    水牛
+                                                                                     n.    专家
+humanity          n.                     人道； 仁慈                  microbes            v.    无视
+                                                                                     v.    运输
+remote            adj.                   偏远的                     buffalo             n.    诠释
+                                                                                     n.    深刻见解
+puny              adj.                   微不足道的                   specialists
+
+alien             n.                     外国人                     disregard
+
+crawling          v.                     匍匐前行                    conveying
+
+laboriously       adv.                   辛苦地                     interpretation
+
+confine           v.                     限制                      insights
+
+同义转换
+1. 探听的天性: questing nature = an intrinsic element of being human
+2. 调查人们的情绪状态: to investigate people's emotional
+states = to suggest the desires and fears of his characters
+3. 倾向于反应自己研究领域: tends to reflect the field of
+endeavour of each pioneer = relate exploration to their own
+professional interests
+4. 使用的交通工具: form of transport used = by camel when I could have
+gone by car be
+难句解析
+1. 第二段： Our desire to discover, and then share that new-found knowledge,
+is part of what makes us human - indeed, this has played an important part in
+our success as a species.
+● 语言点： 这句话的语言点主要是插入语较长， 并有 and 连接的并列成分
+
+                                                                   16
+（then share that new-found knowledge） 。
+
+● 参考译文： 我们去发现， 然后再分享新知的可望是使我们成为人类的
+
+重要部分 – 甚至， 它在我们人类作为一个物种获取成功的路上扮演了一个
+
+非常重要的角色。
+
+2. 第二段： That, however, doesn't take away from the fact that we all have
+
+this enquiring instinct, even today; and that in all sorts of professions - whether
+
+artist, marine biologist or astronomer - borders of the unknown are being
+
+tested each day.
+
+uncultivated      adj.                   未经耕作的        slant                           n.    斜面
+                                                                                      adj.  大陆的
+characters        n.                     人物           continental                     航海
+                                                                                      n.    微生物类
+delve into        钻研                     voyages      n.                              n.    水牛
+                                                                                      n.    专家
+humanity          n.                     人道； 仁慈       microbes                        v.    无视
+                                                                                      v.    运输
+remote            adj.                   偏远的          buffalo                         n.    诠释
+                                                                                      n.    深刻见解
+puny              adj.                   微不足道的        specialists
+
+alien             n.                     外国人          disregard
+
+crawling          v.                     匍匐前行         conveying
+
+laboriously       adv.                   辛苦地          interpretation
+
+confine           v.                     限制           insights
+
+● 语言点： 这句话的语言点是 the fact that 引导的同位语从句， 以及 and 连
+接的同位语从句的并列成分。 以及第二个同位语从句中还有插入成分
+（ whether artist, marine biologist or astronomer）
+● 参考译文： 但是， 那其实就是到今天， 我们仍然保有打探的天性， 以
+及在所有的职业中， 无论是艺术家， 海洋生物学家或是天文学家， 每一天，
+未知的边界都在拓宽。
+佳句赏析及应用
+1. 第一段： Over the years, we've come to think of explorers as a peculiar
+breed - different from the rest of us, different from those of us who are merely
+‗well travelled‘, even;
+● 参考译文： 多年以来， 我们都把探索者当作一种异类 – 跟我们都不一
+样的异类， 跟我们当中那些只是规矩的旅行的人不一样的异类。
+● 应用： Many children have been treated as peculiar breeds when they
+burst into laughter during a serious occasion, but actually this is common to
+humanity.
+2. 第三段： He is delving into matters we all recognise because they are
+common to humanity.
+● 参考译文： 他正在钻研一项我们都可以认识到的事情中， 因为这些事
+对人类
+都是普遍的。
+● 应用： Before our discussion goes further, shall we delve into this subject at first?
+
+                                                  17
+Text 2
+
+Reading
+
+Passage 1 Could urban engineers learn from dance?
+
+文章特点
+
+标题： 城市工程师能从舞蹈中学习吗
+
+体裁： 说明文
+
+话题类别： 城市类
+
+难度： 简单
+
+考题解析
+
+Questions 1-6 Matching（段落信息配对）
+
+1. reference to an appealing way of using dance that the writer is not proposing
+
+参考译文       提及了一种有吸引力的作者不提议的舞蹈使用方法
+
+解题关键词      an appealing way; using dance; not
+
+答案         B
+
+           B 段第二句：
+
+           That is not to suggest everyone should dance their way
+
+           to work, however healthy and happy it might make us, but
+
+段落对应处      rather that the techniques used by choreographers to
+
+           experiment with and design movement in dance could
+
+           provide engineers with tools to stimulate new ideas in city
+
+           making.
+
+           文中提到了 dance， not to suggest everyone should dance
+
+解析         对应到了 the writer is not proposing， healthy and
+
+           happy it mightmake us 则表明该方法是 appealing 的。
+
+2. an example of a contrast between past and present approaches to building
+
+参考译文                                                                              一个过去和现在建筑方法的对比示例
+                                                                                  contrast; past and present
+解题关键词                                                                             C
+                                                                                  C 段第一句：
+答案                                                                                Whereas medieval builders improvised and
+                                                                                  adapted construction through their intimate k
+段落对应处                                                                             materials and personal experience of the cond
+                                                                                  a site, building designs are now conceived an
+physical and social realities they are creating                                   media technologies that detach the designer
+Whereas 表示转折对应 contrast， 接着写到了 medieval
+builder                                                                           解析
+和 now， 对应 past and present。
+3. mention of an objective of both dance and engineering
+
+                                                                   18
+参考译文   提及一个舞蹈和工程学的目标
+解题关键词  objective; dance and engineering
+答案     F
+
+       F 段第三第四句：
+
+       Choreography may not seem an obvious choice for
+
+段落对应处  tackling this problem. Yet it shares with engineering
+
+       the aim of designing patterns of movement within
+
+       limitations of space.
+
+       该段提到了 Choreography（编舞者） ， shares with
+
+解析     engineering
+
+       the aim 对应到 objective
+
+4. reference to an unforeseen problem arising from ignoring the climate
+
+参考译文   提及因忽视气候而产生的不可预见的问题
+
+解题关键词  an unforeseen problem; ignoring the climate
+
+答案     D
+
+       D 段第四句：
+
+       They failed to take into account that purpose-built
+
+       street cafes could not operate in the hot sun without the
+
+段落对应处  protective awnings common in older buildings, and
+
+       would need energy-consuming air conditioning instead, or
+
+       that its giant car park would feel so unwelcoming that it
+
+       would put people off getting out of their cars.
+
+       failed to take into account 对应 ignore， 而 could not
+
+解析     operate in
+
+       the hot sun 则是具体的 problem。
+
+5. why some measures intended to help people are being reversed
+
+参考译文   为什么一些旨在帮助人们的措施被逆转了
+
+解题关键词  measures; help people; reversed
+
+答案     E
+
+       E 段第四句和最后一句：
+
+段落对应处  …were an engineering solution to pedestrian safety based
+       on models that prioritise the smooth flow of traffic.
+
+       As a result, many are now being removed……
+
+                               段落中 an engineering solution to pedestrian 对应
+解析
+
+                               measures
+
+intended to help people。 remove 对应 reverse。
+
+6. reference to how transport has an impact on human lives
+
+参考译文   提及运输对人类生活的影响
+
+解题关键词  transport; impact
+
+答案     A
+
+段落对应处  A 段第四句：
+       The ways we travel affect our physical and mental health,
+
+                                             19
+         our social lives, our access to work and culture, and the
+
+         air we breathe.
+
+         段落中 affect 对应 impact， our physical and mental
+
+解析       health, oursocial lives, our access to work and culture,
+
+         and the air we breathe 则是 human lives 的具体表现。
+
+Questions 7-13 Summary（填空）
+
+题号  定位词                      文章对应处                        答案及解析
+
+                             E 段第四句：
+
+              guard rails;   The guard rails that         safety
+              British        will be familiar to          通过 guard rails 和
+7                            anyone who has               Britishroads 定位到 E 段
+              roads;         attempted to cross a         第四句， 空 格 处 要
+              pedestrians;   British road, for            填 改 善 pedestrians
+                             example, were an             （行人） 的一个名词，
+                             engineering solution         对应原文 solution
+                             to pedestrian safety         topedestrian safety， 因
+                             based on models that         此答案是 safety
+                             prioritise the smooth
+
+                             flow of traffic.
+
+                             E 段第四句后半部分：
+
+                             …for example, were           traffic
+
+                             an engineering solution      本 题 接 上 题 ， is
+
+8   pedestrians;             to pedestrian safety         not disrupted 对应
+
+                             based on models that         smooth， 因此答案是
+
+                             prioritise the smooth        traffic
+
+                             flow of traffic.
+
+              access         E 段第五句话后半部                   carriageway
+              points;        分：                           通过 access points 定位
+9                            …and slow down               到 E 段第五句， cross one
+              encouraged     their progress across the    对应到 one for each
+              to cross;      road by using                carriageway， 因此答案
+                             staggered                    是 carriageway
+              psychological  access points to divide
+10                           the crossing into two        mobile
+                             - one for each               通 过 psychological
+              difficulties;  carriageway.                 difficulties 定位到 E 段
+                             E 段第六句前半部分：                  第六句 psychological
+                             In doing so they             barriers， less 对应
+                             make crossing feed           least， 所以答案是 mobile
+                             longer,
+                             introducing
+                             psychological
+                             barriers greatly
+
+                                                      20
+              cross the          impacting those that   dangerous
+11                               are the least          本题接上题， cross the
+                                 mobile...              road 对应 crossing to get
+              road;              E 段第六句后半部分：            around the guard rails， 空
+              separate;          …and encouraging       格部分为填空题， 因
+12                               others to make         此答案为 dangerous
+              and;               dangerous crossing to
+                                 get around the         communities
+                                 guard rails.           通过 separate 找到对
+                                 E 段第七句：                应 divide， 空格处填名
+                                 they divide            词， 因此答案为
+                                 communities and        communities
+                                 decrease
+                                 opportunities for
+                                 healthy
+                                 transport.
+
+              and;               E 段第七句：                healthy
+13                               they divide            本题接上题， 通过 and
+                                 communities            和 transport 定位， 空格
+              transport          and decrease           处填形容词， 因此答案
+                                 opportunities for      为 healthy
+词汇 & 句型                          healthy transport.
+重点词汇
+单词/词组                    词性       词意                    单词/词组               词性       词意
+urban                    adj.     城市的； 都市               consumption         n.       消耗； 消费
+impact                   n./v.    巨大影响； 冲               assumption          n.       假定； 假设
+sustainable              adj.     可持续的                  solely              adv.     只； 单独地
+                         （数量或比
+account for              例上） 占;解  quantitative          adj.                量化的； 定量  分配； 供应
+                         释， 说明                                              的        编舞者
+radical                  adj.     根本的； 彻底               distribution                 蓝图
+stimulate                v.       刺激； 使兴奋               choreographer       n.       密切关系的;
+suffer                   v.       受折磨;遭受                blueprint           n.       温
+medieval                          中世纪的                                      n.       脱离;挣脱
+conceive                 adj.     想象;构想                 intimate                     缺点； 不利条
+complexity                        复杂性； 难题               detach              adj.     流行的;普遍
+illustrate               v.       说明， 解释                drawback                     存
+                         n.                                                 v.
+                                                        prevalent           n.       adj.
+                         v.
+                                                        take                adj.
+pedestrian               n.       行人;步行者                into
+算                        awning   n.                    遮阳篷， 雨篷             考虑到;把…
+                                                                            计
+                                          21                                logical
+在内;                adj.           直觉的;易懂            efficiency                         n.       效率;效能
+符合逻辑的;             v.             给予…优先权                                                        交错的;错开
+按                                 n.                staggered                          adj.
+intuitive                         中断;扰乱                                                         n.
+prioritise         carriageway    处理； 对付            车行道;行车                             barrier
+的                                                                                               基础的;根本
+障碍;阻力              n.                    cognitive  fundamental                        adj.     审美的;美学
+disruption                                                                                      的
+tackle             v.                    abstract   aesthetic                          adj.
+implication
+             n.          含意;暗指           improvise                            adj.     感知的;认识
+outcome                                  scale                                n./adj.  抽象的;抽
+             n.          结果                                                            象(派)的
+expertise                                                                     v.       (文献等的)摘
+instant                   专门技能;专                                              n.       临时做;即兴
+             n.                                                                        创
+                                                                                       范围， 程度
+                          长;
+
+             adj.        立刻的;速食
+
+同义转换
+1. 提议、 建议: propose = suggest
+2. 忽略: ignore = fail to take into account
+3. 移除、 取消: remove = reverse
+4. 方式、 方法: measure = solution
+5. 困难、 障碍: barriers = difficulties
+6. 分割、 分离: separate = divide
+难句解析
+1. A 段 ： Transportation is estimated to account for 30% of energy
+consumption in most of the world's most developed nations, so lowering the
+need for energy-using vehicles is essential for decreasing the environmental
+impact of mobility.
+● 语言点： 句子是因果关系句， 以 so 来连接。 account for 后面常跟数据
+来表示占比 is essential for 指对„„是至关重要的。
+● 参考译文： 据估计， 在世界上大多数最发达国家， 交通运输占能源消
+耗的 30%， 因此降低对能源汽车的需求对于减少交通对环境的影响至关重
+要。
+2. A 段： Engineers are tasked with changing how we travel round cities
+through urban design, but the engineering industry still works on the
+assumptions that led to the creation of the energy-consuming
+transport systems we have now: the emphasis placed solely on efficiency,
+speed, and quantitative data.
+● 语言点： 这句话的难点在于修饰成分过长， assumption 后跟着 that 引
+导的从句修饰， energy-consuming transport systems 后省略了 that。
+● 参考译文： 工程师的任务是通过城市设计来改变我们在城市中的出行
+
+                                                                   22
+方式， 但工程行业仍然致力于引起我们现在所拥有的高能耗交通系统产生
+的假设： 只强调效率、 速度和数量数据。
+佳句赏析及应用
+1. B 段： That is not to suggest everyone should dance their way to work,
+however healthy and happy it might make us, but rather that the techniques
+used by choreographers to experiment with and design movement in dance
+could provide engineers with tools to stimulate new ideas in city-making.
+● 参考译文： 这并不是说每个人都应该按照自己的跳舞方式去工作， 不
+管这会让我们多么健康和快乐， 而是说编舞们在舞蹈中试验和设计动作的
+技巧可以为工程师们提供激发城市建设中的新思想的工具。
+● 应用： What matters most is not individual ability but cooperation.
+2. D 段： They failed to take into account that purpose-built street cafes
+could not operate in the hot sun without the protective awnings common in
+older buildings
+● 参考译文： 他们没有考虑到， 没有老旧建筑中常见的防护雨篷， 专门
+建造的
+街边咖啡馆就无法在烈日下营业。
+● 应用： They failed to take into account that players cannot get high
+scores without taking enough rest
+
+Passage 2 Should we try to bring extinct species back to life?
+
+文章特点
+
+标题： 我们应该设法使灭绝的物种复生吗？
+
+体裁： 议论文
+
+话题类别： 生物类
+
+难度： 中等
+
+考题解析
+
+Questions 14-17 Matching（段落信息配对）
+
+14. a reference to how further disappearance of multiple species could be
+
+avoided
+
+参考译文       提及如何避免多种物种的进一步灭绝
+
+解题关键词      further disappearance; multiple species
+
+答案         F
+
+段落对应处      F 段第三句：
+解析         She prefers to focus...to fully understand why various
+           species went extinct...how can we use it to
+           make genetic modifications which could prevent mass
+           extinctions in the future .
+           文中 use it 中 it 指代上半句的 emerging technology,而题
+           干中的 further disappearance of multiple
+           species...avoided 与原文的 prevent mass extinction in the
+           future 相对应。
+
+                                  23
+15. explanation of a way of reproducing an extinct animal using the DNA of
+
+only that species
+
+参考译文               解释了一种仅用该物种的 DNA 来繁殖已灭绝动物的方
+
+解题关键词              DNA; only that species
+
+答案                 A
+
+                   A 段第五句：
+
+                   The basic premise involves using cloning technology to
+
+段落对应处              turn the DNA of extinct animals into a fertilised
+
+                   embryo, which is carried by the nearest relative still in
+
+                   existence...
+
+                   文章对应句当中的 turn the DNA of extinct animals
+
+                               into afertilised embryo(受精胚胎)意味着该胚胎中只包含
+解析
+
+                               了 the DNA of extinct animals， 与题干 using the DNA of
+
+                   only that species 相对应。
+
+16. reference to a habitat which has suffered following the extinction of a
+
+species
+
+参考译文               提及一个因某个物种灭绝而受到破坏的栖息地
+
+解题关键词              a habitat; suffered
+
+答案                 D
+
+                   D 段第四句和第五句：
+
+                   Since the disappearance of this key species, ecosystems
+
+段落对应处              in the eastern US have suffered, as....This has left
+
+                   forests stagnant and therefore unwelcoming to the
+
+                   plants and animals....
+
+                   题目中 following the extinction of a species 与原文中
+
+                   Since thedisappearance of this key species 相对应， 题干
+
+解析                 中 a habitat which has suffered 与原文
+
+                   ecosystems...suffered, as...This has left forests stagnant
+
+                   and therefore unwelcoming 相对应。
+
+17. mention of the exact point at which a particular species became extinct
+
+参考译文               提出一个特定物种灭绝的确切时间点
+
+解题关键词              exact point; a particular species
+
+答案                 A
+
+                   A 段第三句：
+
+                   Sadly, the passenger pigeon‘s existence came to an end
+
+段落对应处              on
+
+                   1 September 1914, when the last living specimen died
+
+                   at Cincinnati Zoo.
+
+                   根据题干 exact point 预判定位一个具体的时间点， 同
+
+                               时， 原文中的 the passenger pigeon 与题干的 a particular
+解析
+
+                               species 相对应， 题干中 became extinct 是对原文中
+
+                   existence came to anend 的同义替换。
+
+Questions 18-22 Summary（填空）
+
+                                                      24
+题号  定位词                  文章对应处                        答案及解析
+
+              woolly     E 段第三句：                      genetic traits
+              mammoth;   By pinpointing which         通过标题中的
+              Professor  genetic traits made          woollymammoth 定位
+18                       it possible for              到 E 段， 题目中
+              George     mammoths to survive          identify 与原文中
+              Church;    the icy climate of the       pinpointing 相 对
+              tundra     tundra, the                  应 ， enable 与原文中的
+                         project‘s goal...            made it possible 相对
+    Asian                                             应， 可以看出题干横
+                         E 段第四句和第五句：                  向上应填 enable 的主
+    elephants;           'My highest ...              语， 对应到原文即为
+                         Asian elephant,' says        genetic traits。
+19  physical             Church, '.... Necessary
+                         adaptations would            heat loss
+    adaptation           include smaller ears,        题目中 to minimise...不
+                         thicker hair, and            定式表达目的， 相当
+    s                    extra insulating fat, all    于原文中 for the
+                         for the purpose of           purpose ofreducing...,
+20  thicker hair         reducing heat loss in        minimise 与 reduce 为
+                         the tundra, ...'             同义词， 故填 heat
+reduced size 属于同义        E 段第五句：                      loss。
+                         Necessary adaptations
+21  thicker hair         would include smaller        ears
+                         ears, thicker hair,          题目中 the mammoth
+    Repopulatin          and extra insulating         likefeatures of thicker
+                         fat, all for the purpose     hair 与横线上的内容
+22  g the tundra;                                     应为并列关系，
+                         E 段第五句：                      smaller ears 和 earsof a
+    environment;         Necessary adaptations
+                         would include smaller        fat/insulating fat
+                         ears, thicker hair,          题目中 the mammoth
+                         and extra insulating         likefeatures of thicker
+                         fat, all for the purpose     hair 与 20 题和 21 题需
+                         of...                        填写内容同为并列关
+                                                      系。 题目中的 more 与
+                         E 段第六句：                      extra 属于同义替换,
+                         This repopulation of         故横线应填 fat 或
+                         the tundra and boreal        insulating fat。
+                                                      emissions/carbon
+                                                  25  emissions
+                                                      题目中的 have an
+      temperature  forests of Eurasia and                                       impacton 与原文中的
+
+                   North America with                                           a useful factor in 相对
+
+                   large                                                        应， 题目中 decrease
+
+                   mammals could also be                                        与原文中的 reducing
+
+                   a useful factor in                                           相对应， 故应填
+
+                   reducing carbon                                              reducing 后面的宾语。
+
+                   emissions -
+
+                   elephants punch holes
+
+                   through...
+
+Questions 23-26 Matching（人名观点配对）
+
+23. Reintroducing an extinct species to its original habitat could improve the
+
+health of a particular species living there.
+
+参考译文  将灭绝的物种重新引入其原始栖息地可以改善生活在那
+      里的特定物种的健康状况。
+
+      B 段最后一句：
+
+文章对应  The return of thylacines to Tasmania could help to ensure
+
+处     that
+
+      devils are never again subjected to risks of this kind.
+
+      B在
+
+      B 段中 Michael Archer 先提及了一种疾
+
+答案及解  病...threatens theexistence of the Tasmanian devils（威胁
+
+析     了袋獾的生存） ， 后面 The return of thylacines ...are
+
+      never again subjected to risks of this kind（袋狼的回归保
+
+      证了袋獾不会再承受这样的风险） 与题干意思相对应。
+
+24. It is important to concentrate on the causes of an animal‘s extinction.
+
+参考译文  专注于研究动物灭绝的原因是很重要的。
+
+      F 段第三句：
+
+文章对应  She prefers to focus the debate on how this
+
+处     emerging technology could be used to fully understand
+
+      why various species went extinct in the first place, and ...
+
+      C文
+
+答案及解  中的 focus...on 与题干中的 concentrate on 属于同义词
+
+析     组， whyvarious species went extinct 与题干的 causes of
+
+      an animal‘s extinction 相对应。
+
+25. A species brought back from extinction could have an important beneficial
+
+impact on the vegetation of its habitat.
+
+参考译文  一个从灭绝中复活过来的物种可能对其栖息地的植被产
+      生重要的
+
+      D 段最后一句：
+
+文章对应  According to Novak, a hybridised band-tailed pigeon, with
+处     the added nesting habits of a passenger pigeon, could, in
+      theory, re-establish that forest disturbance, thereby creating
+
+      a habitat necessary for a great many other native species
+
+                                              26
+答案及解          to thrive.
+析             A文
+              中的 creating a habitat necessary for a great many
+              othernative species to thrive（为许多其他本地物种的繁
+              衍创造了必要的栖息地） 与题干的 have an important
+              beneficial impact on thevegetation of its habitat 相对应。
+
+26. Our current efforts at preserving biodiversity are insufficient.
+
+参考译文          我们目前在保护生物多样性上的努力是不够的。
+
+文章对应          F 段最后一句：
+处             she continues. ‗We know that what we are doing today is
+              not enough, and ...‘
+
+              C题
+
+答案及解          干中的 current 与原文 today 相对应， 题干 insufficient
+
+析             与原文
+
+              not enough 属于同义替换。
+
+词汇 & 句型            词性             词意                                  单词/词组         词性       词意
+重点词汇               adj.           传说的； 传奇                             resistance    n.       抵抗力； 抵抗
+单词/词组              adv.           潜在地； 可能                             pinpoint      v.       确定； 查明
+legendary          n.             群                                   tundra        n.       冻原
+potentially        adj.           雄心勃勃的                               preserve      v.       保护； 维持
+flock              n.             前提； 假定                              adaptation    n.       适应
+ambitious          n.                                                 insulating    adj.
+premise                           尖端科技                                                       隔热的； 绝缘
+cutting-edge       trial                                              测试； 试验        purpose
+technology         adj.           v.                                  trait         n.       n.
+的                  n.                                                 repopulation  n.
+目的                                使衰弱的                                                       特性； 特点
+debilitating       adj.                                               boreal        adj.     种群再分布；
+                   v.             综合症； 并发                             emission      n.       种群恢复
+syndrome           n.                                                 punch         v.
+                   v.             传染性的； 蔓                             mitigate      v.       北方的
+contagious         n.             延                                   permafrost    n.
+                   n.             突然出现                                prospect      n.       排放
+pop up             v.             千年； 千年期                             capture       v.       开洞
+millennia          n.             和...相同；                             emerging      n.
+is identical                      和...                                                       使缓和； 减轻
+to                                模板； 样板
+template                          插入； 嵌入                                                     永久冻土
+insertion                         散布； 驱散；                                                    前景
+                                  撒
+scatter                           公顷                                                         引起； 俘获
+
+hectare                                                                                      新兴技术
+
+                                  27
+disturbance             n.    干扰； 扰动              genetic                           adj.  遗传的； 基因
+                                                                                          修改； 修饰
+minimal                 adj.  最小限度的               modification                      n.    道德风险；
+                                                                                          道德危机
+stagnant                adj.  停滞的                 moral                                   计算
+                                                                                 n.
+
+                                                  hazard
+
+evolve                  v.    发展； 进化              calculate                         v.
+
+同义转换
+
+1. 灭绝: existence came to an end = went extinct = died out
+
+2. 目的是: aim to = for the purpose of
+
+3. 大量的: in vast numbers = significant numbers of = a great many
+
+4. 承担风险: be subjected to risks = take some risks
+
+难句解析
+
+1. 第一段： Flying in vast numbers across North America, with potentially
+
+many millions within a single flock, their migration was once one of nature's
+
+great spectacles.
+
+● 语言点： 这句话的语言点主要是现在分词（ Flying in vast numbers
+
+across North America） 作状语， with 结构作伴随状语。
+
+● 参考译文： 旅鸽大量飞跃北美， 每一群可能有数百万只， 它们的迁徙
+
+曾是大自然的一大奇观。
+
+2. 第二段： He points out that in the decades since the thylacine went extinct,
+
+there has been a spread in a ‗dangerously debilitating‘ facial tumour syndrome
+
+which threatens the existence of the Tasmanian devils, the island's other
+
+notorious resident.
+
+● 语言点： 这句话的语言点是宾语从句(He points out that)， 时间状语
+
+从句(since the thylacine went extinct)， 限制性定语从句（ which
+
+threatens the existence of the Tasmanian devils） 以及 Tasmanian devils 的同位
+
+语 the island's other notorious resident。
+
+● 参考译文： 他指出， 袋狼灭绝后的几十年里， 一种面部肿瘤综合症蔓延
+
+开了， 这种疾病危险性极高， 会使动物逐渐衰弱， 严重威胁到岛上另一个
+
+臭名昭著的动物袋獾的生存。
+
+佳句赏析及应用
+
+1. 第一段： Sadly, the passenger pigeon's existence came to an end on 1
+
+September 1914, when the last living specimen died at Cincinnati Zoo.
+
+● 参考译文： 令人悲伤的是， 1914 年 9 月 1 日旅鸽彻底灭绝了， 最后一
+
+只活的标本在辛辛那提动物园死亡。
+
+● 应用： I'm just dreading when the nice summer weather finally comes to an
+
+end.
+
+2. 第二段： In Australia, the thylacine, more commonly known as the
+
+Tasmanian tiger, is another extinct creature which genetic scientists are striving
+
+to bring back to life.
+
+● 参考译文： 在澳大利亚， 袋狼， 更常见的名字是塔斯马尼亚虎， 是另
+
+一种已
+
+经灭绝的生物， 基因科学家正在努力使其复活。
+
+● 应用： We must strive to narrow the gap between rich and poor.
+
+                                                  28
+Passage 3 Having a laugh
+
+文章特点
+
+标题： 笑一笑
+
+体裁： 议论文
+
+话题类别： 心理类
+
+难度： 较难
+
+考题解析
+
+Questions 27-31 Multiple choice（选择题）
+
+题号    定位词                 文章对应处                   答案及解析
+
+              first       整个第一段                   CC
+27                                                选项中 its value to
+                                                  science research 与第一段中
+              paragraph                           最后一句…laughter and
+                                                  human provide psychological
+29    Santa Cruz          整个第三段                   scientists with rich resource
+                                                  for studying
+              Charley     第二段第三行：                 human
+28                        Back in 1950,           psychonology ranging from …同
+                          US sound                义替 换 。 A 选 项 中 impact
+              Douglass                            on language 只是最后一句话
+                                                  中的部分内容， 太片面。 B 选
+                                                  项中 human culture 虽在第一段
+                                                  第二行出现， 但是所表达的意
+                                                  思和选项中完全不同， 并未
+                                                  提到 function 内容。 D 选项也
+                                                  在第二行出现， 但是只是在表
+                                                  述事实， 而不是整段想要表达
+                                                  的内容。 因此选 C。
+
+                                                  B
+                                                  选项中“不同地区文化产生
+                                                  了一样的结果”这正好与文章
+                                                  第三段最后一句“结果在全世
+                                                  界范围都是出奇地一致…‖同义
+                                                  替换。 A 选项中“不同类别的笑
+                                                  声”以及 C 选项“不同的学术科
+                                                  目的数量”以及 D 选项中“记录
+                                                  很多种人的笑声”这些都不是
+                                                  研究中最重要的点， 因此选
+                                                  B。
+                                                  A
+                                                  选项“他了解到在小组环境
+                                                  中享受幽默的重要性”正好与
+
+                                         29
+30  San Diego            engineer               第二段第四行“增加录制的笑
+                         Charley                声只是为了让人们觉得他们
+              fifth      Douglass hated         一个社会场景中， 例如在拥挤
+31                       dealing with           的剧院”同义替换。 而 B 选项
+                         the unpredictable      “他认为在家看电视的人需要
+              paragraph  laughter of            别人告诉他们什么时候可以
+                         live audiences,        笑”， 这与文章想表达的意思
+                         so                     有偏差。 C 选项“他想要他的
+                         started recording      电视剧能在社会范围层面吸
+                         his own ‗laugh         引观众”虽然也提及了社会概
+                         tracks‘. 到第二           念， 但是却不是文中所说“增加
+                         段结尾。                   录制的笑声只是为了让人们
+                                                觉得他们一个社会场景中”所
+                         整个第四段                  以 C 选项错误。 D 选项的话
+                                                定位点未提及 Charley
+                         整个第五段                  Douglass 的喜好， 所以排除。
+                                                因此选 A
+
+                                                B第
+                                                四段整个段落都在描写
+                                                UCSD 的实验。 而其中 C 选
+                                                项， 彼此没有见过的参与者成
+                                                为了朋友， 整个段落都未提
+                                                及。 D 选项， 有的参与者不
+                                                能笑， 与实验中大家需要发
+                                                出主导性或者顺从的笑内容有
+                                                矛盾。 而 A 选项中描述参与者
+                                                内心不安情绪， 这在实验中
+                                                并未提及参与者内心感受，
+                                                所以排除。 B 选项中---参与
+                                                者交换了角色， 这个是在第
+                                                四段倒数第五行中写道： 当
+                                                每位学生轮流嘲笑彼此， 使
+                                                用温和的有侮辱性的绰号
+                                                时， 他们的笑声会被记录下
+                                                来。 所以 B 选项中“互换角色”
+                                                成立， 因此选 B。
+                                                D第
+                                                五段的研究描述中讲到，
+                                                相比发生顺从笑容的人， 发
+                                                出主导性笑容的人会被认为
+                                                社会地位更高。 低社会地位
+                                                的人如果发出主导性笑容的
+                                                话也会被评为社会地位高的
+
+                                            30
+                                                     人。 所以 A 选项， 主导性笑容
+                                                     是由高社会地位的人或者低社
+                                                     会地位的人发出的已经非常明显了， 这和文
+                                                     章描述相悖， 所以排除。 B
+                                                     选项， 拥有权利的低社会地位
+                                                     的人仍然会发出顺从性笑
+                                                     容， 文中未提及相关描述，
+                                                     不选。 C 选项， 低地位的人和
+                                                     高地位的人顺从笑容都是一
+                                                     样的， 文中也未提及。 D 选
+                                                     项， 高地位的人可以从他笑的
+                                                     方式中判断出来， 这个与第
+                                                     五段最后一句“无论发出主导
+                                                     性笑容还是顺从性笑容， 高
+                                                     社会地位的人都会被认为拥
+                                                     有较高社会地位”内容同义替
+                                                     换， 因此选 D。
+
+Questions 32-34 Summary（选择题）
+
+题  定位词                      文章对应处                    答案及解析
+                                                     F问
+             Australian     通过                       题： 每一个 video 设计来产生
+                            Australian National      不同种类的 ___. 所填词性为
+             National       University 定位到第          名词， 根据定位点句
+32                          六段， 再通                   子―…watch a video clip
+                            过―video‖定位到第六            eliciting either humor,
+             University;    段第六行                     contentment, or neural feelings‖
+                                                     所以需要填能够和―幽默，
+             three videos,                           开心,感觉‖ 同义替换的单词，
+                                                     所以―emotion 情感‖入选。 因此
+                                                     选 F。
+
+             video,         定位在第七段第五行                H题
+33                                                   目： 看___的 video 的人在完
+                                                     成任务时坚持时间更长， 也
+             task                                    比其他两组更努力地完成任
+                                                     务。 所填词性为形容
+                                                     词， ―longer‖与文章中的第七
+                                                     段第六行的―spending more
+                                                     time working on the task‖ 同义
+                                                     替换， 需要填的单词为―Mr.
+                                                     Beans-憨豆先生‖的同义替换，
+                                                     所以选―amusing 有趣的‖video.
+                                                     因此选 H。
+
+                                                 31
+             second     第八段第二句                                                  C题
+34                                                                              目： 在第二个研究中， 要
+                                                                                求完
+             study,                                                             成____的任务的参与者产生
+                                                                                的结果是一样的。 所填词性
+             Cheng and  第九段第一句                                                  为形容词， 第八段第二句中
+35                                                                              说， 看幽默的 video 的人愿意
+                                                                                花更多时间在无聊的工作
+             Lu Wang                                                            中。 而这个结果和第 33 题中
+                                                                                描述的实验结果是一样的。 所
+36  无                   根据顺序原则定位在                                               以需要选的是―tedious 无聊
+                        文章最后一句                                                  的‖单词的同义词‖， ―boring‖入
+                                                                                选。 因此选 C。
+Questions 37-40 YES/ NO/ NOT GIVEN（判断题）
+37. Participants in the Santa Cruz study were more accurate at identifying the  D题
+laughs of friends than those of strangers.                                      目： 幽默不仅减少___而且
+参考译文                                                                            能帮助构建社会性的连接。
+                                                                                所填词性为名词， 题目中
+地识别朋友的笑声。                                                                       的―reduce‖正好和文章中
+more accurate at identifying the laughs of friends than those                   的―relieve‖同义替换， 题目
+of strangers.                                                                   中的―build
+                                                                                socialconnections‖ 和 文 章 中
+                                                                   32           的― facilitate social
+                                                                                relationships‖ 同义替换， 所以
+                                                                                需要选和文章词汇―stress‖同
+                                                                                义替换的单词， ―anxiety‖入
+                                                                                选， 因此选 D。
+                                                                                E根
+                                                                                据题目―not only…but also‖
+                                                                                定位在最后一句
+                                                                                中―moreimportantly,
+                                                                                engergising‖ 所以所填单词形
+                                                                                容词， 且为―engergising‖的
+                                                                                同义替换词， ―stimulating‖入
+                                                                                选。 因此选 E。
+
+                                                                                                                       与识别陌生人的笑声相比， Santa Cruz 实验中
+                                                                                                                       更准确
+
+                                                                                                                       考点词
+定位词                                                                           Santa Cruz， participants
+
+      文章第三段第三句和第四句：
+
+文章对   Participants were asked whether they thought the
+应处    people laughing were friends or strangers. On average , the
+      results are remarkably consistent…
+
+答案及   NOT GIVEN
+解析    定位点句子意思： 实验参与者需辨别是朋友还是陌生人的
+      笑声， 而最后结果是基本上全球范围都是一致的。 所以句
+      子中并未对猜测的准确度进行对比， 只是强调全世界的调
+
+      查结果都是一样的， 因此为 NOT GIVEN。
+
+38. The researchers in the San Diego study were correct in their predictions
+
+regarding the behaviour of the high-status individuals.
+
+参考译文  San Diego 实验中研究者对于高地位的人的行为预测是正
+
+考点词   were correct in their predictions
+
+定位词   San Diego study
+
+文章对   文章第四段第五句：
+应处    Analysis revealed that, as expected, high-status
+      individuals produced more dominant laughs and ….
+
+答案及   YES
+解析    文中第四段第五句中 as expected （正如预测所说） 就和
+      题目中的 correct in their prediction （他们的预测是正确
+      的） 是同义替换， 且后半句就是在讲 high-status
+      individuals 行为的描述。 因此为 YES。
+
+39. The participants in the Australia National University study were given a
+
+fixed amount of time to complete the task focusing on employee profiles.
+
+参考译文  澳大利亚国立大学实验中的参与者有固定的时间来完成
+      专注雇员
+
+考点词   were given a fixed amount of time
+定位词   Australia National University, employee profiles
+
+文章对   第七段第二行：
+应处    The students then completed a task requiring persistence
+      in
+答案及   which they were asked to guess the potential performance
+解析    of
+      employees based on provided profiles, and were told that
+      making
+      10 correct assessments in a row would lead to a
+      win…Participants were allowed to quit the task at any
+      point.
+      NO
+      定位点讲到实验要求参与者完成一个需要恒心的任务---
+      根据员工的简介猜测其未来的表现…到第七段第四行描
+
+                                                    33
+               写参与者可以在任何时间点停止任务。 所以参与者是没
+
+               有固定时间来完成任务的， 因此选 NO。
+
+40. Cheng and Wang's conclusions were in line with established notions
+
+regarding task performance.
+
+参考译文           陈和王的结论与任务表现相关的既定的观点相同。
+
+考点词            in line with
+
+定位词            Cheng and Wang's conclusions
+
+               最后一段
+
+               ‗
+
+               Although humour has been found to help relieve stress
+
+文章对            and facilitate social relationships, the traditional view
+应处             of task performance implies that individuals should avoid
+               things such as humour that may distract them from the
+
+               accomplishment of task goals,‘ Cheng and Wang conclude.
+
+               ‘We suggest that humour is not only enjoyable but more
+
+               importantly, energising.’
+
+               NO
+
+答案及            从定位点句子可以看出， 尽管传统观点… 但是我们觉得
+解析             幽默…。
+               从这里看出陈和王的观点与传统观点是不一致的。 因此选
+
+               NO。
+
+词汇 & 句型                      词性              词意                           单词/词组         词性    词意
+重点词汇                         n.              刺激， 刺激                       chimp         n.    黑猩猩
+单词/词组                        n.              倭猩猩                          neuroscience  n.    神经科学
+stimuli                      n.              知觉， 感                        evolution     n.
+bonobo                       adj.            知；                           sample        n.    进 变化， ， 演
+perception                   adj.            无法预言的                        indigenous    adj.
+                             n.              不同的                          city-dweller  n.    样本
+unpredictable                adj.            部落                           code          n.    土生土长的
+diverse                      adj.            一致的                          hierarchy     n.    城市居民
+tribe                                                                                         密码
+consistent                   adj.            复杂的                          dominant      adj.  阶级， 等级
+                             adj.                                         randomly      adv.  制
+complex                      n.              高社会地位                        tease         v.    首要的， 主
+                             adv.            的                            insulting     adj.  导
+high-status                                  顺从的                                              随机地
+                             n.              群体， 同仁                       variable      adj.  戏弄， 取消
+submissive                                   轻微地， 稍
+fraternity                                   微                                                侮 犯辱的， 冒
+mildly
+                                             场地， 球场                                           多变的， 易
+pitch                                                                                         变
+
+                                             34
+versus          prep.                 对抗                                          context         n.      背景， 上下
+rate            v.                    评价， 评估                                      hypothesis      n.      假说， 假设
+respite         n.                                                                tedious                 冗长的， 单
+facilitate      v.                    暂停， 暂缓                                      replenishment   adj.    调
+recruit         v.                                                                ostensibly              补充， 补给
+                                      促进， 促使                                                      n.      表面的， 宣
+cross out       划掉， 删掉                                                            n.                      称
+elicit          v.                    吸收， 征募                                      contentment     adj.
+factual         adj.                                                              persistence             满意， 满足
+profile         n.                    clip                                        assessment      夹子， 电影
+consecutive     adj.                                                              quit            片       坚 不持， 契而
+replicate       v.                    引出， 探出                                      multiplication  n.
+by hand         手工                    事实的 真                                       v.                      评价， 看法
+                                      实                                                           n.      停止， 戒掉
+                                      简介， 侧影                                                              增加， 乘
+                                      连续不断的                                                       n.
+                                      复制                                                          v.
+                                      relieve                                                     n.
+                                                                                                  解除， 减轻
+
+stress                         精神压力，  distract                                    v.              转移， 分心
+accomplishment  n.                    energising
+
+                               紧
+
+                n.  成就， 成绩                                                        adj.            有干劲的
+
+同义转换
+1. 无聊的: tedious = boring
+2. 焦虑: anxiety = stress
+3. 有干劲的: stimulating = energising
+4. 既定的观点: traditional view = established notion
+难句解析
+1. 第四段： A team led by Christopher Oveis from the University of California,
+San Diego, found that high-status individuals had different laughs from
+low-status individuals, and that strangers‘ judgements of an individual's social
+status were influenced by the dominant or submissive quality of their laughter.
+● 语言点： 这句话的语言点主要宾语从句 (found that)， 句中引导两个宾
+语从句由 and 连接。
+● 参考译文： 加州大学圣地亚哥分校的 Christopher Oveis 领导的团队发
+现高社会地位的人和低社会地位的人的笑声不一样， 而且陌生人对于人的
+社会地位的判断受到其笑声的主导性或者顺序性特征的影响。
+2. 第四段： In their study, 48 male college students were randomly assigned to
+groups of four, with each group composed of two low-status members, who
+had just joined their college fraternity group, and two high-status members,
+older students who had been active in the fraternity for at least two years.
+● 语言点： 这句话的语言点是两个定语从句 (who that)， 以及伴随状语
+（with） 。 ● 参考译文： 在他们的研究中， 48 位男性大学生被随机分配
+为四组， 每一组由刚刚参加大学联谊会的两位低地位成员以及在大学联
+谊会中一直活跃的两位高地位成员组成。
+
+                                                                   35
+佳句赏析及应用
+1. 第一段： Like other human emotions and expressions, laughter and humour
+provide psychological scientists with rich resources for studying human
+psychology, ranging from the development of language to the neuroscience
+of social perception.
+● 参考译文： 和其他人类情感表达一样， 笑声和幽默为心理科学家提供
+了研究
+人类心理的丰富资源， 从研究语言的发展到研究社会认知的神经心理学。
+● 应用： Accommodation ranges from tourist class to luxury hotels.
+2. 第四段： Researchers have also found that different types of laughter serve
+as codes to complex human social hierarchies.
+● 参考译文： 研究者也发现了不同类别的笑声可用作解开复杂人类社会
+阶级的
+密码。
+● 应用： The sofa will serve as a bed for a night or two
+
+Test 3
+
+Reading
+
+Passage 1 Henry Moore (1898-1986)
+
+文章特点
+
+标题： 亨利·摩尔 (1898-1986)
+
+体裁： 说明文
+
+话题类别： 人物介绍
+
+难度： 简单
+
+考题解析
+
+Questions 1-7 TRUE/ FALSE/ NOT GIVEN（判断题）
+
+1. On leaving school, Moore did what his father wanted him to do.
+
+参考译文     离开学校后， 摩尔做了父亲想让他做的事。
+
+考点词      complied with
+
+定位词      After leaving school; father
+
+         文章第二段的第四句：
+
+文章对应     After leaving school, Moore hoped to become a sculptor,
+
+处        but instead he complied with his father‘s wish that he
+
+         train as a schoolteacher.
+
+         TRUE
+
+         首先根据题目中的 On leaving school 定位到文中的第一
+
+答案及解     段。 第一段主要简单的描述了摩尔的家庭背景， 重点是
+析        提到了父亲对他的期许。 考察 comply with 的意思即照
+         做、 遵守。 根据文中...he complied with is father‘s wish...
+
+         他遵从了父亲的愿望成为了一名老师， 故判断本题是
+
+         TRUE。
+
+2. Moore began studying sculpture in his first term at the Leeds School of Art.
+
+                                           36
+参考译文      摩尔在利兹艺术学院的第一学期开始学习雕塑。
+
+考点词       appointed; first term
+
+定位词       Leeds School of Art; first year
+
+          文章第二段前三句：
+
+文章对应      After the war, Moore enrolled at the Leeds School of
+处         Art, where he studied for two year. In his first year, he
+          spent most of his time drawing. Although he wanted to
+
+          study sculpture, no teacher was appointed until his second
+
+          FALSE
+
+          首先根据题目中的 in his first term at the Leeds School of
+
+答案及解      Art 定位到文中的第二段。 文章第二段描述了摩尔在利
+析         兹艺术学院的时光。 根据描述信息， 我们知道他在利
+          兹艺术学院的第一年大部分时间都在画画， 虽然他想
+
+          学习雕塑， 但直到第二年才有老师被任命。 所以， 此
+
+          题判断为 FALSE。
+
+year.
+
+3. When Moore started at the Royal College of Art, its reputation for teaching
+
+sculpture was excellent.
+
+参考译文      当摩尔开始在皇家艺术学院工作时， 该学院在教授雕塑
+          方面有很高的声誉。
+
+考点词       reputation; excellent
+
+定位词       Royal College of Art
+
+          文章第二段的最后两句
+
+          At the end of that year, he passed the sculpture
+
+文章对应      examination and was awarded a scholarship to the Royal
+
+处         College of Art in London. In September 1921, he moved
+
+          to London and began three years of advanced study in
+
+          sculpture.
+
+          NOT GIVEN
+
+          根据 Royal College of Art 定位到文章第二段的最后两
+
+答案及解      句， 文中只提到他通过了雕塑考试， 并获得了伦敦皇家
+
+析         艺术学院的奖学金。 1921 年 9 月， 他搬到伦敦， 开始了
+
+          三年的雕刻高级学习。 并没有关于皇家艺术学院的任何
+
+          描述， 因此判断本题是 NOT GIVEN。
+
+4. Moore became aware of ancient sculpture as a result of visiting London
+
+museums.
+
+参考译文      参观了伦敦的博物馆后， 摩尔开始对古代雕塑感兴趣。
+
+考点词       become aware of; discover
+
+定位词       London museums; ancient sulpture
+
+          文章第三段的前两句
+
+文章对应      ...Moore visited many of the London museums, particularly
+
+处         the British Museum, which had a wide-ranging collection of
+
+          ancient sculpture. During these visits, he discovered the
+
+                                            37
+答案及解               power and beauty of ancient Egyptian and African
+析                  sculpture.
+                   TURE
+                   根据题目中的 London museum 定位到文章第三段。 文中
+                   提到摩尔参观了伦敦的许多博物馆， 那里收藏了大量的
+                   古代雕塑。 在这些访问中， 他发现了古埃及和非洲雕塑
+                   的力量和美丽。 考察 be aware of 是意识到、 觉察到的意
+                   思。 根据题目描述， 摩尔确实在参观了伦敦的博物馆
+                   后， 对古代雕塑产生了兴趣， 与文中描述相符， 故判断
+                   本题是 TRUE。
+
+5. The Trocadero Museum‘s Mayan sculpture attracted a lot of public interest.
+
+参考译文               特罗卡迪罗博物馆的玛雅雕塑吸引了许多公众的兴趣。
+
+考点词                attracted; public interest
+
+定位词                Trocadero Museum; Mayan sculpture
+
+                   文章第四段的第二句和第四句
+
+                   When he visited the Trocadero Museum in Paris, he
+
+文章对应               was impressed by a cast of a Mayan sculpture of the rain
+
+处                  spirit... Moore became fascinated with this stone
+
+                   sculpture, which he thought had a power and originality that
+
+                   no other stone sculpture possessed.
+
+                   NOT GIVEN
+
+                   首先根据题目中的 Trocadero Museum‘s Mayan sculpture
+
+答案及解               定位到文章第四段。 根据文中信息， 我们了解到摩尔参
+
+析                  观特罗卡迪罗博物馆时对一尊玛雅雕像印象深刻， 认为
+
+                   它具有其他石雕所没有的力量， 并没有提到其他公众，
+
+                   故判断本题是 NOT GIVEN。
+
+6. Moore thought the Mayan sculpture was similar in certain respects to other
+
+stone sculptures.
+
+参考译文               摩尔认为， 玛雅雕塑在某些方面与其他石雕相似。
+
+考点词                similar; no other stone sculpture possessed
+
+定位词                other stone sculpture
+
+                   文章第四段的第四句
+
+文章对应               Moore became fascinated with this stone sculpture, which
+
+处                  he thought had a power and originality that no other
+
+                   stone sculpture possessed.
+
+                   FALSE
+
+答案及解               从文章第四段我们了解摩尔对玛雅雕塑很感兴趣。 定位
+
+析                  到第四句， 他认为那座石雕具有其他石雕没有的力量和
+
+                   创造力， 因此与题意正好相反， 故判断本题是 FALSE。
+
+7. The artists who belonged to Unit One wanted to make modern art and
+
+architecture more popular.
+
+参考译文               第一单元的艺术家们想让现代艺术和建筑更受欢迎。
+
+考点词                merits; emerging
+
+                                                        38
+定位词                  modern art and architecture
+
+                     文章第五段的最后一句
+
+文章对应                 The aim of the group was to convince the English public of
+
+处                    the merits of the emerging international movement in
+
+                     modern art and architecture.
+
+                     TURE
+
+答案及解                 首先根据题目中的 Unit One 定位到文章第五段。 第五段
+析                    最后一句提到艺术家们的目标是说服英国公众， 让大家
+                     知道现代艺术和建筑的价值， 言外之意就是他们想让现
+
+                     代艺术和建筑更受欢迎， 故判断本题是 TURE。
+
+Questions 8-13 Table（填空）
+
+题号    定位词                  文章对应处                        答案及解析
+
+                                                        resignation
+
+      大定位：                 第六段最后一句：                     先用 the Royal College 定大
+                                                        范围对应原文第六段， 最
+      the Royal            There were calls for         后一句 he left...和题目中
+                                                        他离开了皇家学院相对
+      College              his resignation from         应。 文中 There were calls
+                                                        表明大家让他离职的呼声
+                 小定        the Royal College...         很高， 那么也就意味着他
+8                          He left to start a           被催促着递交辞呈， 然后
+                                                        离开皇家学院。 故所填的
+                 位：
+
+      There                sculpture department at
+
+      were                 the Chelsea School of
+
+      calls                Art in London.
+
+                                                        名词就是 resignation。
+
+      大定位：                 第八段第二句：                      materials
+                                                        根据题目中的 1940s 定位
+      1940s                A shortage of                到文中第八段。 可以从题
+                                                        目中 Mooreturns to drawing
+9     小定位：                 materials forced             because...了解到要填的是
+                                                        摩尔开始画画的原因， 进
+      focus on             him to focus on              而定位到第二句话。 题 目
+                                                        中 的 are not
+      drawing,             drawing.                     readily available 和文中
+                                                        shortage 意思相近， 故
+      shortage                                          materials 就是本题的答案。
+                                                        miners
+      大定位：                 第八段最后一句：                     文章开头提到 Castleford 是
+                                                        摩尔的家乡， 根据题目
+      1940s                In 1942, he                  Whilevisiting his
+                                                        hometown 可以定位到第
+      小定位：                 returned to                  八段的最后一句， 说他回
+                                                        到 Castleford， 为在那里工
+10    In 1942, he          Castleford to make a         作的矿工画了一系列素
+
+      returned to          series of sketches of
+
+      Castleford,          the miners who
+
+      sketches             worked there.
+
+                                                    39
+                                                          描。 文中的 sketches 是草
+                                                          图的意思跟题目中的
+                                                          drawings 相对应， 故本题的
+                                                          答案为 miners。
+
+                 大定位：        第九段第一句：                      family
+                 1940s       In 1944, Harlow,             本题同样是定位在 1940s 阶
+                 小定位：        a town near                  段，
+11                           London,offered               承接上一题。 题目中提到
+                 In 1944,    Moore a commission           摩尔被雇用， 从而定位到
+                 offered, a  for a sculpture              第九段第
+                 sculpture   depicting a family.          一 句 offered Moore a
+                                                          commission for... 这意味着
+                 大定位：        第九段倒数第二句：                    摩尔被雇用去做一些事
+                 1940s       In this way,                 情， 正是本题要填的具体
+                 小定          Moore's                      的工作内容， 即为一个家
+                 位：          work became                  庭做个雕塑， 答案是
+12                           available to collectors      family。
+                 Moore's     all over the world.          collectors
+                 work,                                    根据题目中的 Moore‘s
+                 became                                   work 可以定位到第九段，
+                 available                                因为第九段提到了许多关
+                                                          于摩尔的铜铸泥人的内
+                                                          容。 从题目我们能判断出
+                                                          要填的是谁开始买他的
+                                                          作品。 文中的 became
+                                                          available to 与题目中 start to
+                                                          buy 相呼应， 故答案为
+                                                          collectors。
+
+    大定位：                     第九段最后一句：                     income
+                                                          根据题目中的
+    1940s                    The boost to his             ambitioussculptures 定位到
+                                                          第九段最后一句。 make it
+    小定                       income enabled               possible 意为有可能和题目
+                                                          中 enable 相对应， boost to
+    位：                       him to take on               his income 代表收入增加
+                                                          从而使摩尔能做更加有雄
+13  boost,                   ambitious projects           心的作品。 因此本题填入
+                                                          income。
+    enabled,                 and start
+
+    ambitious                working on the
+
+    projects                 scale he felt his
+
+                             sculpture demanded.
+
+词汇 & 句型                      词                            单词/词组  词 性 词意
+重点词汇                                      词意
+
+单词/词组                        性
+
+                                                      40
+sculptor          n.    雕刻家                              comply               v.              遵守； 顺从
+                                                                                              登记； 注册
+abandon           v.    遗弃； 放弃                           enroll               v.              任命； 委派
+                                                                                              古代的
+sculpture         n.    雕塑                               appoint              v.              传统
+                                                                                              倾斜的
+wide-ranging      adj.  广泛的                              ancient              adj.            雕刻
+                                                                                              承认； 赞誉
+primitive         adj.  原始的； 远古                          tradition            n.              说服； 使信服
+                                                                                              建筑学
+impress           v.    给人印象                             reclining            adj.            展览
+                                                                                              声名狼藉的
+fascinated        adj.  着迷的                              carve                v.              期满； 终止
+                                                                                              激进的
+depiction         v.    描写； 叙述                           recognition          n.              相似之处
+                                                                                              草图
+instructor        n.    指导书； 教员                          convince             v.              佣金； 服务费
+                                                                                              推动； 增加
+emerging          adj.  新兴的                              architecture         n.
+                                                                                              革命的
+abstract          adj.  抽象的                              exhibition           n.
+                                                                                              有角的； 生硬
+enthusiastically  adv. 热心地                               notorious            adj.            人物
+                                                                                              称赞
+resignation       n.    辞职                               expire               v.
+
+inclination       n.    倾向； 爱好                           radical              adj.
+
+sketchbook        n.    写生簿； 随笔                          resemblanc           n.
+
+shortage          n.    短缺； 不足                           sketch               n.
+
+studio            n.    工作室                              commission           n.
+
+bronze            n.    青铜； 青铜制                          boost                n.
+
+critic            n.    评论家                              revolutionar
+                                                                                        adj.
+
+                                                         y
+
+harsh             adj.  严厉的； 粗糙                          angular              adj.
+
+menace            n.    威胁； 恐吓                           figure               n.
+
+appreciation      n.    欣赏                               acclaim              v.
+
+同义转换
+
+1. 发现、 发觉: discover = become aware of
+
+2. 着迷、 感兴趣: became fascinated with = attracted a lot of interest
+
+3. 缺少、 未获得: a shortage of = are not readily available
+
+4. 草图、 简笔画: sketches = a type of simple drawing
+
+5. 给佣金、 被雇用: offered a commission = be employed
+
+6. 使能够、 使有可能: enable = make it possible
+
+难句解析
+
+1. 第一段： After leaving school, Moore hoped to become a sculptor, but
+
+instead he complied with his father's wish that he train as a schoolteacher.
+
+● 语言点： 这个句子语言点在于 but 作为转折连词连接两个句子， 后半句
+
+包含了一个 that 引导的定语从句修饰 father‘s wish。
+
+● 参考译文： 离开学校后， 摩尔希望成为一名雕塑家， 但他顺从了父亲的
+
+愿望， 成为了一名教师。
+
+2. 第三段： Alongside the instruction he received at the Royal College, Moore
+
+visited many of the London museums, particularly the British Museum, which
+
+had a wide-ranging collection of ancient sculpture.
+
+● 语言点： 这个句子语言点在于定语从句（which had a wide-ranging
+
+collection of ancient sculpture） ， 用来解释说明伦敦博物馆的特点， 以及插入
+
+语（particularly the British Museum） 。 “alongside”表示“在„„的同时”。
+
+● 参考译文： 在皇家学院接受指导期间， 摩尔还参观了伦敦的许多博物
+
+                                                     41
+馆， 尤其是大英博物馆， 那里收藏了大量的古代雕塑。
+佳句赏析及应用
+1. 第一段： After leaving school, Moore hoped to become a sculptor, but
+instead he complied with his father's wish that he train as a schoolteacher.
+● 参考译文： 离开学校后， 摩尔希望成为一名雕塑家， 但他顺从了父亲
+的愿望
+成为了一名教师。
+● 应用： Some beaches had failed to comply with environmental regulations.2.
+第三段： During these visits, he discovered the power and beauty of ancient
+Egyptian and African sculpture
+● 参考译文： 在这些访问期间， 他发现了古埃及和非洲雕塑的力量和美
+丽。
+● 应用： These stunning pictures give a unique perspective of the power and
+beauty of volcanoes.
+
+Passage 2 The Desolenator: producing clean water
+
+文章特点
+
+标题： Desolenator 装置:生产清洁水
+
+体裁： 说明文
+
+话题类别:商业类
+
+难度： 中等
+
+考题解析
+
+Questions 14-20 Matching（段落标题匹配）
+
+题号    答案   段落对应处                                      解析
+                                                      本段第一句描述了在东南
+           A 段第一句和第二                                  亚看到的太阳能热水器，
+                                                      使主人公 William Janssen
+           句： William Janssen                         印象深刻。 第二句说 20 年
+                                                      后， Janssen 据此发明出了
+           was impressed                              一个便携设备。 impressed
+                                                      with 和 basic idea 与选项中
+           with the                                   的 initial inspiration 对应，
+                                                      protable device 与选项中
+           basic rooftop solar                        的 new product 对应，
+                                                      develop…into 用法与选项
+14    iii  heating systems…                           中的 from…to 对应。
+           Two decades later
+
+           Janssen developed
+
+           that basic idea
+
+           he saw in
+
+           Southeast Asia into
+
+           a portable device...
+
+15    vi   B 段第一句：                                    B 段第一句讲到可以净化
+           …take water from                           各种水源， 第二句进一步
+           different places, such                     讲述其价值， 比如被污染
+           as the sea, rivers,                        的水源也可以净化。
+           boreholes and                              water from different places
+           rain…in regions                            对应选项中的 water from a
+           where natural                              rangeof sources。
+
+                                                  42
+16  v     groundwater                         C 段开始描述了该设备的
+          reserves…                           净水容量， 第二句中的
+17  x     polluted… seawater                  unlikestandard desalination
+          is the only water                   techniques 表明下文要讲
+18  iv    source…                             述与其他净水技术的区
+                                              别。
+19  viii  C 段第二句：                             unlike 与选项中的 differrent
+          Its main selling point              对应 ， standard
+          is that unlike                      desalination techniques 与
+          standard desalination               alternatives 对
+          techniques, it doesn't              应。
+          require a generated
+          power supply: just                  D 段第一句讲到至少全球
+          sunlight.                           2/3 的人口每年至少有一
+                                              个月会面临缺水问题。 第
+          D 段第一句和第二                           二句 Janssen 指出到 2030 年
+          句：                                  全球一半人口面临用水压
+          …at least two-thirds                力。
+          of the world's                      two-thirds of the world's
+          population lives with               population 和 half of
+          severe water                        the world's population 对应
+          scarcity... by 2030                 选项中的 the number of
+          half of the world's                 people。 Water scarcity 和
+          population will be                  water stress 对应选项中
+          living with water                   water shortages。
+          stress...
+                                              E 段开头就说该设备瞄准
+          E 段第一句：                             了各种各样的用户， 从发
+          ...a wide variety of                展中国家到发达国家的不
+          users - from                        同人群。 下文是具体展
+          homeowners in                       开。
+          the developing                      a wide variety of users 对应
+          world…to people                     选项中 The range of
+          living off the grid                 potentialcustomers。
+          in rural parts of the
+          US.                                 F 段第一句表明价格不固
+                                              定。 第二句第三句分别介
+          F 段第一句、 第二句                         绍在发展中国家和发达国
+          和第                                  家的定价情况。 说明该设
+          三句：
+          Prices will vary
+
+                                          43
+                           according to where                  备并不单纯追求利润。
+                           it is bought. In the
+                           developing world…                   G 段第二句讲到该公司已
+                           depend on what                      募集到了多少资金。
+                           deal aid                            raised…in funding 对应选项
+                           organisations can                   中的
+                           negotiate. In                       getting the finance。
+                           developed countries…
+                           $1,000 (£685) a unit...             答案及解析
+                                                               wheels
+20  i                      G 段第二句：                             这一题中问的是该设备可
+                           It has raised £340,000              以用于很多地方的原因。 C
+                           in funding so far.                  段第三句说该设备很容易运
+                                                               输， 因为有 2 个 轮 子 。
+Questions 21-26 Summary（填空）                                    thanks to its two wheels 对
+                                                               应 题 干 的 as it has…， 因
+题号  定位词                    文章对应处                               此填 wheels。
+
+              different    C 段第三句： It                          film
+21                         measures 120 cm by 90               这一题是问水进入管道
+                           cm, and is                          后， 以怎样的形式流动到
+              locations    easy to transport,                  太阳能面板上。 C 段第四
+                           thanks to its two                   句说 flows as a thin film。
+                           wheels.                             Water enters through a pipe
+                                                               对应题干 water is fed into
+              pipe, solar  C 段第四句： Water                       a pipe， over a solar panel 对
+22                         enters through a pipe,              应 between…and the
+                           and flows as a thin                 surface of a solar panel。
+              panel        film between a                      因此填 film。
+                           sheet of double                     filter
+                           glazing and the surface             题目问的是抓住水中颗粒
+                           of a solar                          物的工具。 根据 C 段第七
+                           panel, where it is                  句可知， 该 设 备 有 过
+                           heated by the sun.                  滤 器 。 particles…are
+                                                               caught 对应 trap particles。
+              particles,   C 段第七句： The                         因此填 filter。
+23                         device has a very                   waste
+                           simple filter to trap
+              caught       particles, and this
+                           can easily be
+24  tube,                  shaken to remove them.
+
+                           C 段第八句： There
+
+                                                           44
+          comes out             are two tubes for             这一题问的是净化后的水
+                                liquid coming out: one        从一个管子中流出， 另一
+                                for the waste -               个管子里流出的是什么。
+                                salt from                     根据 C 段第八句， 一个管
+                                seawater, fluoride, etc.      子用于废弃物， 另一个管
+                                – and another for             子用于净化后的水。
+                                the distilled water.          distilled water 对应
+                                                              purtified water。 因此填
+                                                              waste。
+
+              screen,           C 段 第 九 句 ： The               performance
+25                              performance of the            这一题是在问设备屏幕上
+                                unit is shown on an           显示什么。 根据 C 段第九
+              displays          LCD screen and                句， 设备的性能表现会显
+                                transmitted to the            示在 LCD 屏幕上。
+              transmits,        company which                 displays 对应 shown。 因此
+26                              provides servicing            填 performance。
+                                when necessary.
+              requires          C 段 第 九 句 ： The               servicing
+                                performance of the            这一题是问设备信息会传输
+词汇 & 句型                         unit is shown on an           到公司后， 以便公司需要进
+重点词汇                            LCD screen and                行什么样的工作。 when
+单词/词组                           transmitted to the            necessary 对应 requires。
+be impressed                    company which                 因此填 servicing。
+with                            provides servicing
+                                when necessary.
+
+                          词性     词意                           单词/词组                 词性      词意
+                          使留下印象  enormous
+                                                              adj.                  巨大的     生产
+heating                   n.     供暖系统                                                       升（容量）
+                                                              The Gulf              海湾、 波斯
+absorb                    v.     吸收                                                 湾       标准的
+                                 家庭的                          produce               v.      方法、 技术
+domestic                  adj.   十年                           litre                 n.      需要
+                                 便于携带的                        per day               每天      供应
+decade                    n.     设备                           standard              n.      测量
+                                 净化                           techinique            n.      运输
+portable                  adj.   运行                           require               v.      车轮、 轮子
+                                 可移动的                         supply                n.      进入
+device                    n.     去除污物、 脱                      measure               v.
+                                 钻孔、 开口                       trasnport             v.
+purify                    v.     消费、 消耗                       wheel                 n.
+                                                              enter                 v.
+operate                   v.
+
+mobile                    adj.
+
+desalination              n.
+
+borehole                  n.
+
+consumption               n.
+
+                                                          45
+particularly     adv.                      尤其                          film          n.     薄层
+                                           自然保护区                       solar panel   太阳能面板
+reserve          n.                                                                         过滤器
+                                                                                     被转换为   困住
+pollute          v.                        污染                          be            n.     超过
+                                                                       converted to  v.
+                                                                                     缺乏
+available        adj.                      可获得的                        filter        v.
+                                                                                     支付得起
+sustainable      adj.                      可持续的                        trap
+
+large-scale      大规模的                      scarcity                    n.
+
+processing       n.                        处理、 加工                      exceed
+
+be               面对                        afford                      v.
+
+confronted 同义转换
+
+1. 净水: distilled water = purified water
+
+2. 筹集资金: finance = raise…in funding
+
+3. 需要: require… = provide… when necessary
+
+难句解析
+
+1. A 段： Travelling around Thailand in the 1990s, William Janssen was
+
+impressed with the basic rooftop solar heating systems that were on many
+
+homes, where energy from the sun was absorbed by a plate and then used to
+
+heat water for domestic use.
+
+● 语言点： 这句话的语言点主要是非谓语动词（travelling around
+
+Thailand in the 1990s） ， travelling 现在分词表伴随或结果， 这里表伴随，
+
+主人公是在泰国旅游时对屋顶的太阳能热水器产生了深刻印象。
+
+● 参考译文： 1990 年代， 威廉·詹森在泰国旅行时， 对许多房屋屋顶的
+
+太阳能供热系统印象深刻， 该板子可以吸收太阳热量， 然后加热家庭用水。
+
+2. B 段： The Desolenator operates as a mobile desalination unit that can take
+
+water from different places, such as the sea, rivers, boreholes and rain, and
+
+purify it for human consumption.
+
+● 语言点： 这句话的语言点是并列结构的辨别， 该句的谓语动词是
+
+operates， that 引导的定语从句修饰 unit， 从句中的并列结构是 take water…
+
+and purify it。 此外， 插入语 such as 对 places 进行补充说明。
+
+● 参考译文： Desolenator 装置是以一个可移动的淡化装置运转， 该装置
+
+可以从大海、 河流、 天然出水口和雨水这些不同水源处取水， 并将水净化
+
+以供人类适用。
+
+佳句赏析及应用
+
+1. A 段： Two decades later Janssen developed that basic idea he saw in
+
+Southeast Asia into a portable device that uses the power from the sun to
+
+purify water.
+
+● 参考译文： 20 年后， 詹森将他在东南亚看到的这个基本概念发展成为
+
+了一种便携设备， 该设备将利用太阳能净化水。
+
+● 应用： Motion pictures were to develop into mass entertainment.
+
+2. C 段： It measures 120 cm by 90 cm, and is easy to transport, thanks to its
+
+two wheels.
+
+● 参考译文： 它的尺寸是长 120 厘米宽 90 厘米， 易于运输， 多亏了有两
+
+                                                     46
+个轮子。
+● 应用： It‘s thanks to you that he‘s in this mess.
+
+Passage 3 Why fairy tales are really scary tales
+
+文章特点
+
+标题： 为什么童话故事很可怕？
+
+体裁： 说明文
+
+话题类别： 人文类
+
+难度： 较难
+
+考题解析
+
+Questions 27-31 Complete each sentence with the correct ending（句子配对）
+
+题号    定位词                   文章对应处                     答案及解析
+
+                            第一段第一行：
+
+              无明显定位         People of every           C通
+              词， 整篇文章       culture tell each other   过文章可以判断， 同
+27                          fairy tales but the       一个故事， 不同地区有
+              都在讲 fairy     same story often takes    不同的版本， 因此选
+              tale          a variety of forms in     “C”。
+                            different parts of the
+
+                            world.
+
+28    Tehrani               第二段第一行：                   B题
+                            …‗It might be what        干提到 Tehrani 接受
+              social        we find interesting       童话中对生命有益的教
+29                          about this story is that  训， 原文中说到童话
+                            it‘s got this survival    中包含了与生存相关
+              significance  relevant information      的信息， 而 Tehrani 对
+                            in it,‘ says              此的研究却相反， 因此
+                            anthropologist Jamie      选 B。
+                            Tehrani at Durham
+                            University in the UK.     F题
+                            But his research          干说到关于童话的
+                            suggests otherwise.       社会意义的各种理论，
+                            第二段第五行：                   原文中提到我们对讲
+                            ‗W                        故事的历史和史前史
+                            e have this huge          的认识有很大的差
+                            gap in our                距， 但各种学家还是继
+                            knowledge about the       续解释童话在人类社
+                            history and               会中的重要性， 选 F。
+                            prehistory of
+                            storytelling…That
+                            hasn‘t stopped
+                            anthropologists,
+                            folklorists and other
+
+                                                  47
+                             academics devising
+                             theories to explain
+                             the importance of
+                             fairy tales in human
+                             society…
+
+                             第二段最后一
+
+                             句： Now
+
+                             Tehrani has found
+
+                             a way to test
+
+                             these ideas,
+
+                             borrowing a
+
+                             technique from
+
+                             evolutionary
+
+                             biologists 第三段第          A题
+                                                      目提到对童话发展
+    Insights,                一行：                      的了解和洞察， 原文
+                                                      中提到了 Tehrani 借鉴
+30  developmen               To work out the          生物学家的方法来研
+                                                      究， 所以选 A。
+    t                        evolutionary history,
+                                                      E这
+                             development and          道题题干提到了
+                                                      Tehrani 分析的所有的童
+                             relationships among      话故事， 在文章第四
+                                                      段看到对于不同地区
+                             groups of organisms,     的童话故事分析是以
+                                                      oral 的形式记录， 与选
+                             biologists compare       项 E 中的 spoken 同意替
+                                                      换， 因此选 E。
+                             the characteristics of
+                                                      答案及解析
+                             living species in a
+                                                      D原
+                             process called           文提到 Tehrani 通过系
+                                                      统进化分析确定它们确
+                             ‗phylogenetic            实是相关的有联系的，
+                                                      “related”结合选项， 应该
+                             analysis‘…
+
+                             第四段第二行：
+
+                             Checking for variants
+
+                             of these two tales and
+
+              destruction,   similar stories from
+31                           Africa, East Asia
+                             and other regions,
+              logging
+
+                             he ended up with 58
+
+                             stories recorded from
+
+                             oral traditions
+
+Questions 32-36 Summary（选择）
+
+题号  定位词                      文章对应处
+
+    Phylogenetic             第四段：
+                             … with 58
+32  analysis                 stories …Once his
+                             phylogenetic
+    58 stories               analysis had
+
+                                                  48
+              Fewest         established that they      选 D links。
+33                           were indeed
+                             related, he used the       F题
+              which aspects  same methods to            目中提到童话故事
+                             explore how they           中什么最少那它就是最
+34  Contrary                 have developed and         重要， 原文说到“alter
+                             altered over time.         least”变化最小， 所以选
+              Surprised                                 F variations。
+35                           第五段：
+                             First he tested some       B题
+              unimportant    assumptions about          干提到故事中的， 往
+                             which aspects of the       往会随着时间的推移而
+                             story alter least as it    改变， 故事的中间部分
+                             evolves, indicating        似乎并不比其他部分重
+                             their importance.          要。 原文中第六段
+                                                        Tehrani 的看法和第五段
+                             第五段：                       Folklorists 的看法相反，
+                             Folklorists believe        用了 转 折 ，
+                             that what happens in a     “ incidents ”“episodes” 对
+                             story is more central      应选项 B events。
+                             to the story than
+                             the characters in it…      C题
+                             第六段：                       干中提到他觉得故
+                             However, Tehrani           事中似乎提供了某种
+                             found no                   不重要的细节。
+                             significant difference     “unimportant”对应原文的
+                             in the rate of             “trivial”， 令他惊讶的
+                             evolution of
+                             incidents compared
+                             with that of
+                             characters. ‗Certain
+                             episodes are very
+                             stable because they
+                             are crucial to the
+                             story, but there are
+                             lots of other details
+                             that can evolve quite
+                             freely
+                             第七段：
+                             But the really big
+                             surprise came when
+                             he looked at the
+                             cautionary elements
+                             of the story…Yet in
+
+                                                    49
+                      his analysis such                    是“
+                      elements were just as                cautionaryelements ”
+                      flexible as                          ， 所以选 C. warning
+                      seemingly trivial
+                      details.
+
+                      第八段：
+
+                      The answer, it
+
+                      would appear,is                      G. horror
+                                                           题干中的 most important
+                      fear-blood                           in
+                                                           a story's survival 与原
+    most important    thirsty and                          文 the best preserved of all
+                      gruesome aspects of                  对应， 原文中答案是
+36  in a story's      the story, such as the               fear， 所以选项对应
+                      eating of the                        horror。
+    survival
+                                                           答案及解析
+                      grandmother by the
+                                                           B题
+                      wolf, turned out to be               干提到 Tehrani 用什么
+                                                           样的方法测定童话故
+                      the best preserved of                事， 原文第四段的
+                                                           “ analysis ”， “Checking”都
+                      all.                                 有这样的意思， 这一段提
+                                                           到了“小红帽”在不同地区
+Questions 37-40 Multiple choice（选择题）                       的不同版本。 所以， 答
+                                                           案是 B。
+题号  定位词               文章对应处
+
+                      第四段：
+
+                      Tehrani‘s analysis
+
+                      focused on Little
+
+                      Red Riding Hood in its
+
+                      many forms, which
+
+                      include another Western fairy
+
+              Method  tale known as The
+37                    Wolf and the Kids.
+                      Checking for variants
+              test
+
+                      of these two tales and
+
+                      similar stories from
+
+                      Africa, East Asia
+
+                      and other regions, he ended up with
+
+                      58 stories recorded from oral
+
+                      traditions.
+
+38  Jack Zipes        第九段：                                 D通
+                      Jack Zipes… is                       过原文中的
+                      unconvinced by                       unconvinced 可 以 得
+                      Tehrani‘s views on                   知 Jack Zipes 是 不 同
+                      fairy tales. ‗Even if                意 Tehrani 的看法的，
+                      they‘re gruesome, they               他认为童话的流传跟
+                      won‘t                                恐怖与否没有太大的
+                      stick unless they                    关联， 而是与它的意义
+
+                                              50
+                       matter,‘ he says. He       有关， 所以选 D。
+                       believes the perennial
+    Chinese and        theme of                   ATe
+                       women as victims in        hrani 举出中国和日本
+39  Japanese           stories like Little        的例子就是为了反驳
+                       Red Riding Hood            JackZipes 的观点， 即女
+    fairy tales        explains why they          性一般是受害者， 而在
+                       continue to feel           中国和日本却不是这
+                       relevant.                  样， 所以选 A。
+                       第九段：
+                       But Tehrani points
+                       out that although this is
+                       often the case in
+                       Western
+                       versions, it is not
+                       always true
+                       elsewhere. In
+                       Chinese and Japanese
+                       versions, often known
+                       as The Tiger
+                       Grandmother, the villain
+                       is a woman, and in
+                       both Iran and Nigeria,
+                       the victim is a boy.
+
+              Mathias  最后一段：                      AClasen 认为恐怖故事让
+40                     Clasen believes that       我们能在不经历真正
+                       scary stories teach us     危险的情况下感受到害
+              Clasen   what it feels like to      怕的感觉， 所以答案为
+                       be afraid without          A。
+词汇 & 句型                having to experience
+重点词汇                   real
+单词/词组                  danger...
+disposes of
+cupboard               词性      词意                 单词/词组              词性     词意
+woodcutter             处置， 吃光  victim             n                  受害者
+anthropologist         n.      碗柜； 食橱             cautionary         adj.   警告的
+alter                                                                       反派主角，
+genre                  n.      樵夫                 villain            adj.   坏
+phylogenetic                                                                吞下
+                       n.      人类学家               swallow            v.
+                       v.      改变                 point out          指出
+                       n.      类型； 体裁             seek out           寻找
+                       adj.    系统发育的              a variety of       各种各样的
+
+                                     51
+disguise          v.                       掩饰； 假装                             appeal         n.    吸引力
+
+folklorists       n.                       民俗学家                               be             归因于   史前， 初期
+                                                                              attributed to        粘住
+                                                                                             n.    相关的
+sibling           n.                       兄弟姊妹                               prehistory     v.    进化的
+                                                                                             adj.  长久的
+episode           n.                       一段经历                               stick          adj.
+                                                                                             adj.  变体
+narrative         n.                       叙述                                 relevant             吸引人的
+                                                                                             n.
+transmit          v.                       传播                                 evolutionary   adj.
+
+conserved         adj.                     保守的                                perennial
+
+hunter-gatherer   采集狩猎的人                   work out                           想出
+
+gruesome          v.                       可怕的                                variant
+
+retain            v.                       保持； 保留                             gripping
+
+同义转换
+
+1. 警告: cautionary messages = warning
+
+2. 不重要的: trivial = unimportant
+
+3. 可怕的: gruesome = scary
+
+4. 不相信: be unconvinced by = don't believe
+
+难句解析
+
+1. 第二段： ‗It might be what we find interesting about this story is that it‘s
+
+got this survival-relevant information in it,‘ says anthropologist Jamie
+
+Tehrani at Durham University in the UK.
+
+● 语言点： 这句话的语言点主要是从句中套从句， 句中有两个表语从句，
+
+第一
+
+个是 might be 后面的， 省略了 that， 第二是此从句中 is 后面的。
+
+● 参考译文： 英国达勒姆大学（Durham University） 的人类学家杰米·特
+
+赫拉尼（Jamie Tehrani） 说， 我们发现这个故事有趣的地方可能在于它包
+
+含了与生存相关的信息。
+
+2. 第四段： Checking for variants of these two tales and similar stories from
+
+Africa, East Asia and other regions, he ended up with 58 stories recorded from
+
+oral traditions.
+
+● 语言点： 这句话的语言点是非谓语动词作状语（Checking for…） ,状语
+
+的逻辑主语是 he。
+
+● 参考译文： 通过对这两个故事的变体以及来自非洲、 东亚和其他地区
+
+的类似故事的研究， 他最终从口头传统中记录了 58 个故事
+
+佳句赏析及应用
+
+1. 第一段： In the story of Little Red Riding Hood that European children
+
+are familiar with, a young girl on the way to see her grandmother meets a
+
+wolf and tells him where she is going.
+
+● 参考译文： 在欧洲的孩子们熟悉的小红帽故事里， 一个小女孩在去看
+
+奶奶的
+
+路上遇到了一只狼， 并且告诉了他她的去向。
+
+● 应用： He does not seem to be familiar with research which might have
+
+strengthened his own arguments.
+
+2. 第二段： The universal appeal of these tales is frequently attributed to the
+
+idea that they contain cautionary messages: in the case of Little Red Riding
+
+                                               52
+Hood, to listen to your mother, and avoid talking to strangers.
+● 参考译文： 这些故事的普遍吸引力常常归因于这样一种观念： 它们包
+含着警示信息： 以小红帽为例—要听妈妈的话， 避免和陌生人说话。
+● 应用： He reckons about 80% of these deaths might be attributed to
+smoking
+
+Test 4
+
+Reading
+
+Passage 1 The return of the huarango
+
+文章特点
+
+标题： 华兰戈树的回归
+
+体裁： 说明文
+
+话题类别： 事物发展史
+
+难度： 简单
+
+考题解析
+
+Questions 1-5 Notes（填空）
+
+题号       定位词              文章对应处                             答案及解析
+                                                            water
+              大定位：        第一段第五句：                           先用 below the surface 定
+                          They stretch down                 大范围对应原文第一段,
+              below the   50-80 metres and, as              找到地表下贮藏着水资
+              surface;    well as sucking                   源， 之后结合 access， 在
+1                         up water for the tree…            第一段第五句中找到对应
+              小定                                            的 sucking up water， 因此
+              位：                                            答案是 water。
+                                                            diet
+              access                                        根据题目中的 inhabitant
+                                                            定位到第二段的第二句。
+              大定          第二段第二句：                           原文中的 key 和题目中的
+              位：          He believes the                   crucial 是同义表达； 原文
+                          huarango was key to               中的 ancient 和题目中的 a
+              inhabitant  the ancient                       long time ago 也是同义表
+2                         people‘s diet and,                达， 因此答案是 diet。
+                          because …                         drought
+              小定                                            题目中的 periods of,在原文
+              位：          第二段第二句： …                         中以 years of 呈现。 题
+                          itallowed local people            中的 survive 与原文
+              crucial     to                                withstand 相对应， 所以
+                          withstand years of                drought 为本题答案。
+              大定          drought when their
+              位：          other crops failed.               erosion
+                                                            从 soil 定位到第二段的
+              periods     第二段第四句：                           第四句， 原文中的 leads
+3                         Cutting down native
+                          woodland leads to
+              of 小定
+              位：                                        53
+
+              survive
+
+         大定
+
+4        位：
+
+         prevents
+    小定                      erosion ， as there is                                to 与 prevents 互为反义
+    位： soil                 nothing to keep the                                  词， 结合后文的 nothing to
+                            soil in place.                                       keep， 定位到本题答案是
+                                                                                 erosion。
+    大定位： land               第二段倒数第二句：                                            desert
+                                                                                 从 land 定位至第二段倒
+              小定位：          So when the huarangos                                数第二句， 题中的
+5                           go, the land turns into                              becoming 与原文的 turns
+                                                                                 into 对应； 结合空格中所
+              prevents…                                                          要填写的词性是名词， 因
+                                                                                 此答案为 desert。
+    from                    a desert.
+                                                                            答案及解析
+Questions 6-8 Table（填空）                                                     (its/ huarango /the) branches
+                                                                            先用表格中的 Part of tree 确
+题号  定位词                     文章对应处                                           定所要填写的是树的一部
+                                                                            分， 因此定位至第三段；
+              大定位：          第三段第三句：                                         运用题干中的 fuel 定位至
+                            … while its                                     第三段第三句中的
+              Part of tree  branches were                                   charcoal， 从而确定答案为
+6                           used for                                        (its/ huarango /the)
+                            charcoal for                                    branches。
+              小定位：          cooking and
+                            heating…
+              fuel
+
+              大定位：          第三段第三句：                                         leaves (and) bark 两个答案
+                            Its leaves and                                  的填写不分先后次序
+              Part of tree  bark were                                       根据题干中的 medicine 定
+7                           used for                                        位至第 三 段 第 三 句 开 头
+                            herbal                                          中 的 remedies， 再往前寻找
+              小定位：          remedies, …                                     有关树的部分的内容， 从
+                                                                            而确定答案为 leaves 与
+              medicine                                                      bark。
+                                                                            (its/ huarango /the) trunk
+    大定位：                    第三段第三句结                                         运用 construction 定位至原
+                            尾：                                              句中的 build houses， 因为两
+    Part of tree            …, and its                                      者属于从属关系， 从而定
+                            trunk was used to                               位至关键词 trunk， 因此答
+8   小定位：                    build houses.                                   案为(its/huarango /the)
+                                                                            trunk。
+    constructio
+                                                                                                                   当地家庭中的人们告诉 Whaley 用华兰戈树制作的物
+    n                                                                                                              的传统
+                                                                                                                   traditional uses
+Questions 9-13 TRUE/ FALSE/ NOT GIVEN（判断题）
+9. Local families have told Whaley about some traditional uses of huarango
+products.
+
+参考译文
+
+考点词
+
+                                                     54
+定位词                                                                       Local families, huarango products
+                                                                          文章第五段中第二句至段尾
+文章对应处                                                                     So, he has been working with local families to attempt
+                                                                          to create a sustainable income from the huarangos by
+                                                                          turning their products into foodstuffs. ‗Boil up the bea
+                                                                          and you get this thick brown syrup like molasses. You
+                                                                          can also use it in drinks, soups or stews.‘ The pods can be
+
+grounded into flour to make cakes, and the seeds
+roasted into a sweet, chocolatey ‗coffee‘. ‗It‘s packed
+full of vitamins and minerals,‘ Whaley says.
+
+            NOT GIVEN
+            文中的第五段主要说明运用华兰戈树所制作的产品及
+
+答案及解析       其用途， 运用题干中的 local families 以及 huarango
+            products 定位至第五段。 画线句阐述了华兰戈树产品
+            的用途， 但是这段话仅仅是由 Whaley 所说的， 无法
+            判断这些信息的获取来源是否来源于当地家庭， 故判
+
+            断本题是 NOT GIVEN。
+
+10. Farmer Alberto Benevides is now making a good profit from growing
+
+huarangos.  农民 Alberto Benevides 现在正通过种植华兰戈树来获
+参考译文        取大量
+
+考点词         a good profit
+
+定位词         Farmer Alberto Benevides， growing huarangos
+            文章第六段第一、 二、 四句：
+
+文章对应处       And some farmers are already planting huarangos.
+            Alberto Benevides, … , has been planting the tree for
+            13 years. … His farm is relatively small and doesn‘t yet
+
+            provide him with enough to live on…
+
+            FALSE
+            文中第六段主要阐述了农民种植华兰戈树的情况。
+
+答案及解析       因此结合 Farmer Alberto Benevides， growing huarangos
+            定位至段落第一、 二、 四句。 由 doesn‘t yet provide
+            him with enough to liveon 可见 Alberto Benevides 通过
+            种植华兰戈树的收成并不好， 与题干描述不符。 所
+
+            以， 此题判断为 FALSE。
+
+11. Whaley needs the co-operation of farmers to help preserve the area‘s
+
+wildlife.
+
+参考译文        Whaley 需要同农民们合作以保护当地的野生动物。
+考点词         co-operation
+
+定位词         farmers， wildlife
+
+文章对应处       文章第七段第二第三句及最后一句：
+            Some of these cut across the forests and break up
+
+                                                   55
+       the corridors that allow the essential movement of
+       mammals, birds and pollen up and down the narrow
+
+       forest strip. In the hope of counteracting this, he‘s
+       persuading farmers to let him plant forest corridors on
+
+       their land.
+       …and providing a refuge for bio-control insects.
+
+答案及解析  TRUE
+       根据 wildlife 可定位至第七段， 加粗字中有几种野生动
+       物； 其次根据段中划线句的 persuade farmers to let
+       him 与题干中的 needs the co-operation of farmers 相
+       符， 因此本题为 TRUE。
+
+12. For Whaley‘s project to succeed, it needs to be extended over a very large
+
+area.
+
+参考译文   为使得 Whaley 的项目取得成功， 需要将其覆盖到一个
+       很大的
+
+考点词    a very large area
+定位词    succeed， extended
+
+       文章第八段第一、 三、 四句：
+
+       If we can record biodiversity and see how it all works,
+
+文章对应处  then
+       we‘re in a good position to move on from there.
+
+       ‗It‘s not like a rainforest that needs to have this
+
+       huge expanse. Life has always been confined to
+
+       corridors and islands here.
+
+答案及解析  FALSE
+       第八段主要阐述 Whaley 的项目的前景， 因此根据题干
+       将重点放置在第八段。 原文中 in a good position 可与
+       succeed 相对应， 从而定位段落。 段落下文中的 this
+       huge expanse 与 a verylarge area 是同义转换， 而句子
+       开头出现了 It‘s not like 的否定结构， 因此可判断本题
+       的答案为 FALSE。
+
+13. Whaley has plans to go to Africa to set up a similar project.
+
+参考译文   Whaley 已经计划去非洲开展一个类似的项目。
+
+考点词    a similar project
+
+定位词    Africa
+
+       文章第八段倒数第一句：
+
+       ‗
+
+文章对应处  If we can do it here, in the most fragile system on Earth,
+       then that‘s a real message of hope for lots of places,
+       including Africa, where there is drought and they just
+       can‘t afford to wait for rain.‘
+
+答案及解析  NOT GIVEN
+       本题由题干中的 Africa 可定位至第八段最后一句， 本
+       句主要讲
+
+                                                                   56
+               的是 Whaley 对于其项目的设想， 这一点可以从 If 这个
+               词中看出。 由此可见文中仅仅提到项目给 Africa 等地
+               带来希望， 没有明确阐述 Whaley 是否已经做出相关计
+               划。 因此可判断本题的答案为 NOT GIVEN。
+
+词汇 & 句型        词性    词意              单词/词组            词性                     词意
+重点词汇           n.    华兰戈树            arid             adj.                   干旱的
+单词/词组          n.    山谷              Peru             n.                     秘鲁
+huarango       adj.  本国的             coast            n.                     海岸
+valley         adj.  狭窄的             strip            n.                     狭长地带
+native         n.    沙漠              squeeze          v.                     挤
+narrow         adj.  脆的； 易碎          ecosystem        n.                     生态系统
+desert         n.    来源              locate           v.                     位于
+fragile        n.    表面； 表层          suited           adj.                   合适的
+source         v.    伸展              suck up          吸取
+surface        n.    下层土             archaeobotanist  n.                     考古植物学
+stretch                                                                      关键的； 主
+subsoil        n.    地形              key              adj.                   要
+                                                                             饮食
+landscape      adj.  古代的             diet             n.                     干旱
+               v.    经得起             drought          n.                     林地
+ancient        v.    取代              woodland         n.                     至关重要的
+withstand      n.    侵蚀； 腐蚀          vital            adj.                   树皮
+replace        n.    豆荚              bark             n.
+erosion
+pod                          草药的； 草  remedy           n.    疗法
+
+herbal         adj.                  charcoal
+                             本       majority
+branch                               initially
+rapidly        n.    树枝                               n.    木炭
+agriculture                          pioneering
+               adv.  迅速地             succeed          n.    多数
+ethnobotanist                        aspirational
+               n.    农业                               adv.  最初地
+habitat                              reinstate
+prejudice      n.    民族植物学           molass                          首创的； 先
+                                     syrup            adj.
+resuscitation                        corridor
+                                                                     驱
+foodstuff                            mammal
+organic        n.    栖息地                              v.    成功
+roast                                refuge
+               n.    偏见                               adj.  有雄心壮志
+essential                            57
+               n.    复苏； 复兴                                          使复苏； 使
+counteract                                            v.
+
+                                                                     复
+
+               n.    食物                               n.    糖蜜草
+
+               adj.  有机的                              n.    糖浆
+
+               v.    烤                                n.    走廊
+
+                             基本的； 必                   n.    哺乳动物
+
+               adj.
+                             要
+
+                             抵消； 综                    n.    避难所
+
+               v.
+                             合；
+同义转换
+1. 伸展: extend= stretch down
+2. 重要的: be key to = a crucial part of
+3. 生存: survive = withstand
+4. 居住人员:inhabitant= people
+5. 过去的: a long time ago = ancient
+6. 药品: medicine = remedy
+难句解析
+1. 第一段： They stretch down 50-80 metres and, as well as sucking up water
+for the tree, they bring it into the higher subsoil, creating a water source for
+other plant life.
+● 语言点： 这句话中包含了两个伴随状语。 sucking up water for the tree
+为前文 stretch down 50-80 metres 提供了补充说明； creating a water
+source for other plant life 为 they bring it into the higher subsoil 提供了补充说
+明， 阐述了树根将水分带到下层土的结果。
+● 参考译文： 这些树根伸展至地下 50-80 米， 同时从中为树木吸取水分。
+树根将水分带到离地面更近的下层土地带， 为其它植物提供了水资源。
+2. 第四段： ‗Of the forests that were here 1,000 years ago, 99 per cent have
+already gone,‘ says botanist Oliver Whaley from Kew Gardens in London, who,
+together with ethnobotanist Dr William Milliken, is running a pioneering
+project to protect and restore the rapidly disappearing habitat.
+● 语言点： 这句话中包含了一个 that 引导的定语从句， 修饰 forests； 此
+外还有一个 who 引导的定语从句， 修饰 Oliver Whaley； together with 遵循就
+远原则， 即谓语与主语相对应。 在本句中 together with 的谓语与前面 Oliver
+Whaley 对应， 因此谓语为 is。
+● 参考译文： “在这里生长超过 1000 年的森林中， 有百分之 99 已经消失
+了， ”来自伦敦 Kew Gardens 的植物学家 Oliver Whaley 说道。 他与民族
+植物学家 William Milliken 博士正在一起开展一个探索性的项目， 旨在保护
+与恢复正在快速消失的栖息地。
+佳句赏析及应用
+1. 第一段： It hardly ever rains there, and the only year-round source of water
+is located tens of metres below the surface.
+● 参考译文： 秘鲁南海岸几乎没有降雨， 一整年的唯一水资源位于地表
+下数十
+米的地方。
+● 应用： This difference allows the satellite to capture a year-round sea ice
+record, despite cloud cover and months of polar night.
+2. 第三段： The majority of the huarango forests in the valley have already
+been cleared for fuel and agriculture --- initially, these were smallholdings, but
+now they‘re huge farms producing crops for the international market.
+● 参考译文： 山谷中大多数华兰戈树都遭到砍伐用作燃料与农业用途。
+砍伐后的土地一开始只是小农田， 但是如今它们变成了为国际市场生产农
+作物的大型农场。
+● 应用： Yet the majority of these employees have no voice, especially when
+
+                                                                   58
+it comes to their own safety.
+Passage 2 Silbo Gomero - the whistle ‘language’ of the Canary Islands
+文章特点
+
+标题： Silbo Gomero—一种加那利群岛使用的―哨语‖
+体裁： 说明文
+
+话题类别： 语言介绍
+
+难度： 中等
+
+考题解析
+
+Questions 14-19 YES/ NO/ NOT GIVEN（判断题）
+
+14. La Gomera is the most mountainous of all the Canary Islands.
+
+参考译文        戈梅拉岛是所有加那利群岛中山峦最多的岛屿。
+
+考点词         the most mountainous of all the Canary Islands.
+
+定位词         La Gomera； mountainous
+            文章第一段前两句：
+
+            La Gomera is one of the Canary Islands situated in
+
+文章对应处       the Atlantic Ocean off the northwest coast of Africa.
+            This small volcanic island is mountainous, with steep
+            rocky slopes and deep, wooded ravines, rising to 1,487
+
+            metres at its highest peak.
+
+            NOT GIVEN
+            根据 La Gomera 戈梅拉岛和 mountainous 可以定位到
+            文中的第一段前两句话。 文中提到戈梅拉岛是加那利
+
+答案及解析       群岛中的一个小岛， 也提到该岛有很多山， 但并未将
+
+            戈梅拉岛与加那利群岛的其他岛屿作比较， 因此无法
+            得知戈梅拉岛是否是所有加那利群岛中山峦最多的岛
+
+            屿。 所以， 这道题的答案是 NOT GIVEN。
+
+15. Silbo is only appropriate for short and simple messages.
+
+参考译文        哨语只适用于表达简短的信息。
+
+考点词         only appropriate for short and simple messages.
+
+定位词         Silbo; short and simple messages
+            文章第五段第三句：
+
+文章对应处       ‗
+            In daily life they use whistles to communicate
+
+            short
+            commands, but any Spanish sentence could be whistled.‘
+
+答案及解析       FALSE
+            根据文中第五段的第三句话的描述， 我们知道任何西
+            班牙的语句都可以使用哨语。 因此， 哨语不可能只适
+
+            用于表达简短的信息。 所以， 此题答案为 FALSE。
+
+16. In the brain-activity study, silbadores and non-whistlers produced different
+
+results.
+
+参考译文        在大脑活动研究中， 吹口哨的人和不吹口哨的人有着
+            不同的结
+
+考点词         produced different results
+
+                                                                  59
+定位词               Silbadores； non-whistlers
+                  文章第六段：
+
+                  The study team used neuroimaging equipment to contrast
+
+文章对应处             the brain activity of silbadores while listening to
+                  whistled and spoken Spanish. Results showed the left
+                  temporal...When the experiments were repeated with
+                  non-whistlers, however, activation was observed in all
+                  areas of the brain.
+
+答案及解析             TRUE
+                  根据 Silbadores 和 non-whistlers 可以定位到原文第六
+                  段。 根据第六段的内容表述， 研究中， silbadores 的
+                  结果是大脑中的左颞叶和大脑额叶产生反应， 而 non
+                  whistler 的结果是大脑中的所有区域都产生了反应，
+                  因此， 在大脑活动研究中， 吹口哨的人和不吹口哨的
+
+                  人有着不同的结果。 判断本题是 TRUE。
+
+17. The Spanish introduced Silbo to the islands in the 15th century.
+
+参考译文              西班牙人在 15 世纪将哨语带到岛上。
+考点词               introduced Silbo to the islands in the 15th century
+
+定位词               Spanish; 15th century
+                  文章第八段第一句：
+
+文章对应处             Carreiras says the origins of Silbo Gomero
+                  remain obscure,but that indigenous Canary
+                  Islanders,who were of North African origin, already had
+                  a whistled language when Spain conquered the volcanic
+
+                  islands in the 15th century.
+
+                  FALSE
+
+答案及解析             根据定位词可以定位到文章的第八段。 根据描述信
+                  息， 我们知道当地人在 15 世纪西班牙入侵之前已经
+                  拥有哨语。 所以， 此题的答案为 FALSE。
+
+18. There is precise data available regarding all of the whistle languages in
+
+existence today.
+
+参考译文              我们有关于现存的所有哨语的珍贵的资料。
+
+考点词               all of the whistle languages in existence today
+
+定位词               whistle languages in existence today
+
+文章对应处             文章第八段第三句： There are thought 5 to be as many
+                  as 70 whistled languages still in use, though only 12 have
+
+                  been described and studied scientifically.
+
+                  FALSE
+
+                  根据文中第八段的第三句的描述， 我们知道现存的哨
+
+答案及解析             语中只有
+
+                  12 种被科学的描述记录， 因此， 我们并没有所有现存
+                  哨语的资料。 所以， 此题的答案为 FALSE。
+
+                                                                      60
+19. The children of Gomera now learn Silbo.
+
+参考译文                      现在， 戈梅拉岛的孩子在学习哨语。
+
+考点词                       now learn Silbo
+
+定位词                       The children of Gomer
+
+                          文章第九段第三句：
+
+文章对应处                     Since 1999, Silbo Gomero has been taught in all of
+
+                          the island‘s elementary schools.
+
+答案及解析                     TRUE
+                          根据文中第九段的第三句的描述， 我们知道自从 1999
+                          年开始， 这座小岛上所有的小学都在教授哨语。 所
+
+                          以， 此题的答案为 TRUE。
+
+Questions 20-26 Table（填空）
+
+题号    定位词                                    文章对应处                            答案及解析
+
+      大定位：                                   第四段第一句：                          Words
+                                             Silbo is a substitute            先 用 High- and low
+      High- and low                          for Spanish, with                frequency tones 定大范
+                                             individual words                 围对应原文第四段开
+20    frequency                              recorded into                    头第一句, 同时确定
+                                             whistles which                   Spanish 直接修饰
+      tones 小定                               have high- and                   words， 所以答案就是
+                                             low-frequency                    words。
+      位： Spanish                             tones.
+
+      大定位：                                   第四段第二句的前                         Finger
+                                             半句                               首先， 审题可以知道答
+      Pitch of                               ：                                案与 silbador 存在所属
+                                             Awhistler-or                     关系， 然后根据 Pitch of
+21    whistle 小定                             silbador- puts a                 whistle， 先定位到第四
+                                             finger in his or                 段第二句。 同时此句中
+      位：                                     her mouth to                     有另一个定位词
+                                             increase the                     silbador， 因此， 只需
+      Silbador‘s                             whistle’s                        要在此句中寻找
+                                             pitch, ...                       silbador 的所有物， 答案
+                                                                              为 finger。
+
+              大定位：                           第四段第二句的后                         direction
+                                             半句                               根据 cupped hand 定位
+              Cuppedhand                     ：                                到第四段第二句的后半
+22                                           ...while the other               句， 另外在此句中可
+                                             hand can be cupped               以找到 changed（改变）
+              小定位：                           to adjust the                    的同义替换词 adjust（调
+                                             direction of the                 整） ， 因此， adjust （ 调
+              Changed                        sound.                           整） 的对象 direction
+                                                                              即为本道题的答案。
+
+                                                                    61
+              大定位：          第五段第三句的前                commands
+                            半句                      根据 everyday use 可定
+              Everyday      ：                       位至第五段第三句
+              use 小定        In daily life they      话， everyday 替换成
+23                          use whistles to         daily life， 在此句中可
+              位：            communicate             找到另一个定位词的
+                            short commands, ...     同义替换词，
+              Transmission                          transmission 替 换 成
+              of brief      第五段最后一                  communicate， brief 替
+                            句： Silbo has            换成 short， 因此答案为
+    大定位：                    proved                  被 short 直 接 修 饰
+                            particularly useful     的 对 象 commands。
+    Relay essential         when fires have         fires
+                            occurred on the         首先， 根据题干中的
+    information             island and rapid        e.g.可知， 本题的答案
+                            communication           为一个人们需要知道的
+24  quickly 小定              across large areas      具体的名词。 根据
+                            has been vital.         relay essential
+    位：                                              information quickly 定位
+                            第九段第一                   至第五段最后一句的
+    e.g.;inform             句： But with             rapidcommunication。
+                            modern                  此句中只有 fires 是一个
+    people about            communication           人们需要知道的具体事
+                            technology now          物， 所以答案只能填
+    大定位：                    widely                  fires。
+                            available,
+    Future                  researchers say         technology
+                            whistled                本 题 根 据 Future
+25  under threat            languages like          underthreat 定位到最后
+                            Silbo are               一段第一句。 哨语正面
+    小定位：                    threatened with         临灭绝的危机， 之后找
+                            extinction.             到 new 的同义替换词
+    New                     第九段最后一句：                modern， 现代科技是导
+                            ‗T                      致哨语面临消失的原
+    大定位：                    he local                因。 因此， 本题填入
+                            authorities are         的答案为 technology。
+    Canaries‘               trying to get an
+                                                    award
+26  authorities                                 62  首先， 根据答案前的
+                                                    aUNESCO 可知本题答
+    小定位：                                            案为一个单数名词。
+                                                    然后根据
+    A UNESCO
+                         award from the                                   Canaries‘ authorities
+                         organisation to                                  可定位至第九段的最
+                         declare...‘                                      后一句 话 ， 本 句 话
+                                                                          中 的 organization 指代
+                                                                          上一句的 UNESCO， 本
+                                                                          句中的单数名词为 an
+                                                                          award。 因此， 答案为
+                                                                          award。
+
+词汇 & 句型         词性       词意                                               单词/词组                  词性       词意
+重点词汇            adj.     多山的                                              whistle                n.       口哨； 汽笛
+单词/词组           n.       地域； 地区                                           activate               v.       刺激； 使活动
+mountainous                                                                                      灵活的； 易弯
+terrain         奉献给， 献身  flexible                                         adj.                   曲        说明； 翻译
+                                                                                                 v.       代用品； 代替
+dedicated to    adj.     至关重要的                                            interpret              n.       声调； 基本音
+                n.       神经影像                                             substitute             n.       （脑、 肺等
+vital           adj.     暂时的； 当时                                          tones                           的）
+neuroimaging                                                                                     n.       显著地； 非常
+temporal        v.       调整                                               lobe                            频率； 频繁
+                                                                                                 adv.     聋的
+adjust          v.       占用； 使参加                                          remarkably             n.       激活； 活化作
+                n.       地区； 范围                                           frequency              adj.     含糊； 不明确
+engage          n.       程度； 音高                                           deaf                   n.       命令； 指令
+region          n.       方向； 指导                                           activation             n.       能力； 容量
+pitch           adj.     额的； 正面的                                          ambiguity              n.       独特地； 珍奇
+direction       n.       牧师； 指导者                                          command                n.
+frontal         n.       半球                                               capacity               adv.     本土的； 土著
+shepherd        n.       形式； 程序                                           uniquely               试图抓住     幸存； 生还
+hemisphere      adj.     多样的； 许多                                          grab onto              adj.
+modality        adj.     模糊的                                              indigenous             v.       稠密的； 浓厚
+multiple        v.       征服； 攻克                                           survive
+obscure                  系统地； 合乎                                                                 adj.     减少； 变小
+conquer         adv.     科                                                dense                           流畅的;流利的
+                         灭绝； 消失                                                                  v.
+scientifically  n.       基本的； 初级                                          dwindle                adj.
+                adj.                                                      fluent
+extinction
+elementary
+
+同义转换
+1. 调整、 改变: adjust = change
+2. 每天、 日常: everyday = daily life
+3. 简短的、 短暂的: brief = short
+4. 快速的: quickly = rapid
+5. 面临...威胁: under threat = be threatened with
+难句解析
+1. 第二段： Researchers say that Silbo activates parts of the brain normally
+
+                                                                   63
+associated with spoken language, suggesting that the brain is remarkably
+
+flexible in its ability to interpret sounds as language.
+● 语言点： 这句话的语言点主要是宾语从句(say that...)， 过去分词
+（associated with） 做后置定语和现在分词加宾语从句做伴随状语
+（suggesting that the brain is remarkably flexible in its ability to interpret sounds
+as language） 。
+● 参考译文： 研究者表明， 哨语可以激活大脑中负责口语的部分区域，
+这意味着大脑在把声音转化为语言的能力上是非常灵活的。
+
+2. 第三段： Science has developed the idea of brain areas that are dedicated to
+
+language, and we are starting to understand the scope of signals that can be
+
+recognised as language.
+
+● 语言点： 这句话的语言点是两个定语从句（brain areas that.../ the scope
+of signals that... ） ， 并用 and 连接。
+● 参考译文： 科学中对于管理语言的大脑区域已经形成概念， 而且我们
+开始去了解那些可以被认为是语言的信号的范围。
+
+佳句赏析及应用
+
+1. 第一段： It is also home to the best known of the world’s whistle
+
+‘languages’, a means of transmitting information over long distances which is
+
+perfectly adapted to the extreme terrain of the island.
+● 参考译文： 这也是世界闻名的哨语的发源地。 哨语是一种完美适应岛
+屿的极
+
+端地形， 可以长距离传递信息的方法
+
+● 应用： However, it is home to ten language families, including at least three
+
+families that have only one language each.
+
+2. 第四段： Silbo is a substitute for Spanish, with individual words recoded
+
+into whistles which have high-and low-frequency tones.
+● 参考译文： Silbo 是西班牙语的一种替代语言， 每个单词都记录为有高
+低频声调的哨声。
+
+● 应用： The course teaches you the theory but there's no substitute for
+
+practical experience.
+
+Passage 3 Environmental practices of big businesses
+文章特点
+
+标题： 大企业的环境准则
+
+体裁： 议论文
+
+话题类别： 商业类
+
+难度： 中等
+
+考题解析
+
+Questions 27-31 Summary（选择）
+
+题号    定位词                文章对应处                                                        答案及解析
+
+27    无                  根据文章主题进行                                                     D根
+                         选择                                                           据题干， 企业为了追逐利
+                                                                                      益， 不惜伤害人类和环
+                                                                                      境， 因此选“D”， 即他们的
+                                                                                      做法没有道德准则。
+
+                                                     64
+28  government              第一段第六行：                     E题
+                            When government             目问的是缺少政府的什
+29  public                  Regulation is               么会造成环境问题， 原文
+                            effective, and when         的表述是“当政府的管制
+                            the public is               是有效的时候”， 在这道题
+                            environmentally             中， regulation 同义替换
+                            aware,                      control， 因此选 E。
+                            environmentally
+                            clean big businesses        F题
+                            may out-compete             目问的是缺少公众的什
+                            dirty                       么会造成环境问题， 原文
+                            ones…                       的表述是“当公众对环境保
+                            第一段第六行：                     护有意识的时候”， 因此可
+                            When government             以理解为公民参 与 保 护
+                            regulation is               环境，选
+                            effective, and when         F(involvement)。
+                            the public is
+                            environmentally             H题
+                            aware,                      目问的是企业追逐利
+                            environmentally             益， 所
+                            clean big businesses        造成的环境问题是什么。
+                            may out-compete             因此定位到第一段第四
+                            dirty                       行， 提到了“无管理、 无限
+                                                        度的捕鱼”， 所以选 H
+    environmenta            第一段第四行：                     (overfishing)。
+                            This is still the case      B这
+30  l,                      today for fishermen         道题问的是， 除了过度
+                            in an unmanaged             捕鱼以外， 还造成什么环
+    problems                fishery without             境问题？ 依然定位在第一
+                            quotas...                   段， 关键词是 logging， 意
+                                                        思是“砍伐树木”， 因此选 B
+                            第一段第五行：                     (trees)。
+
+                            …and for                    答案及解析
+                                                        C这
+              destruction,  international               一题中， 问的是关于第
+31                          logging companies           三段的段落大意。 这一段
+                            with short-term leases      只有两句话， 大致意思是
+              logging
+
+                            on tropical
+
+                            rainforest land…
+
+Questions 32-34 Multiple choice（选择题）
+
+题号  定位词                     文章对应处
+
+32  无                       根据段落大意进行
+                            选择
+
+                                                    65
+                                                                         “我们总是责怪企业， 但
+                                                                         是却忽视了公众责任， 公
+                                                                         众有能力干涉环境破坏性
+                                                                         政策， 并创造良好政策和
+                                                                         利润”。 因此选 C（普通人
+                                                                         的行为可以阻止环境破
+                                                                         坏） 。
+
+33    无                 根据段落大意进行                                         D这
+                        选择                                               一题是关于第四段， 公
+                                                                         众可以做的事情。 根据段
+              exert     第五段第一句， 同                                        落， 公众可以控告企业、
+34                      时参考这一段的例                                         选择购买良好商品、 让雇
+                        子                                                员羞愧以至于投诉公司、
+              pressure                                                   让政府嘉奖保护环境的企
+                                                                         业、 以及迫使政府立法推
+                                                                         动环境保护。 以上都是公
+                                                                         众可以做到的事情， 因此
+                                                                         选 D（影响企业和政府的环
+                                                                         境政策） 。
+                                                                         B题
+                                                                         目问的是， 在 BSE 事件
+                                                                         中， 大企业施加了什么压
+                                                                         力？ 根据第五段的表述就
+                                                                         可以知道， 这个例子是关
+                                                                         于快餐店通过顾客购买量
+                                                                         的减少， 给肉类供应商施
+                                                                         压， 使其遵守法律规定，
+                                                                         改变供货方式， 阻断疾病
+                                                                         的传播。 因此选 B （快餐
+                                                                         店迫使肉类供应商遵循法
+                                                                         规） 。
+
+Questions 35-39 YES/ NO/ NOT GIVEN（判断题）
+
+35. The public should be prepared to fund good environmental practices.
+
+参考译文                    公众应该准备资金支持良好的环境项目。
+
+考点词                     the public, fund, environmental practices
+
+定位词                     public, fund, environmental practices
+
+文章对应                    第六段第二行：
+处                       I also believe that the public must accept the necessity
+                        for higher prices for products to cover the added costs,
+答案及解                    if any, of sound environmental practices.
+析                       YES
+                        在这句话中， higher prices for products to cover the added
+
+                                                                    66
+      costs 指的是产品的高价， 也就是说， 公众必须接受将来
+      为了好的环境操作而投资， 所以是 YES。 sound 的意思
+      是“稳健的”， 对应了题干中的 good。
+
+36. There is a contrast between the moral principles of different businesses.
+
+参考译文  在不同企业的道德标准中有着明显对照。
+
+考点词   contrast, moral principles, businesses
+定位词   moral principles, businesses
+      第六段第四行：
+文章对应  My view may seem to ignore the belief that businesses
+处     should act in accordance with moral principles even if this
+      leads to a reduction in their profits.
+
+答案及解  NOT GIVEN
+析     这句话中， 作者提到了企业的道德准则， 但并没有表示
+      这些道德
+      准则之间有什么区别， 因此是 NOT GIVEN。
+
+37. It is important to make a clear distinction between acceptable and
+
+unacceptable behaviour.
+
+参考译文  明确区分可接受和不可接受的行为是很重要的。
+
+考点词   make a clear distinction, acceptable and unacceptable
+      behaviour
+
+定位词   make a clear distinction, acceptable and unacceptable
+      behaviour
+文章对应  最后一段第二行：
+处     My conclusion is not a moralistic one about who is right
+      or wrong, admirable or selfish, a good guy or a bad guy.
+
+      NO
+
+答案及解  根据文章， 作者并不想作出明显的道德区分， 谁的行为
+
+析     是好的， 谁的行为是坏的， 并不重要。 acceptable and
+
+      unacceptablebehaviour 对应了 right and wrong。
+
+38. The public have successfully influenced businesses in the past.
+
+参考译文  在过去， 公众已经成功地影响了企业。
+
+考点词   the public, past, influence business
+
+定位词   the public, past, business
+
+      最后一段第三行：
+
+文章对应  In the past, businesses have changed when the public came
+      to expect and require different behavior, to reward
+
+处     businesses for behavior that the public wanted, and to make
+
+      things difficult for businesses practicing behaviors that the
+
+      public didn‘t want.
+
+      YES
+
+答案及解  从这句话能够看出， 在过去， 公众可以通过奖励或者操
+
+析     控企业行
+
+      为， 深深影响着企业， 所以是 YES。
+
+                                                                     67
+39. In the future, businesses will show more concern for the environment.
+
+参考译文           在将来， 企业会对环境有着更多的关注。
+
+考点词            businesses, concern, environment
+
+定位词            future, businesses, environment
+
+文章对应           最后一段最后一句： I predict that in the future, just as in
+处              the past,changes in public attitudes will be essential for
+               changes in businesses‘ environmental practices.
+
+               NOT GIVEN
+
+答案及解           这句话的意思是， 将来会和过去一样， 公众态度的转变
+
+析              对于企业环境操作的改变有着重要影响。 没有提到将来
+
+               的企业是否会更关心环境问题， 因此是 NOT GIVEN。
+
+Question 40 Multiple choice（选择题）
+
+题号    定位词                 文章对应处                                            答案及解析
+
+                                                                           D开
+
+                          主要看开头、 结尾和                                       头部分先提出大企业操
+
+40    无                   主体                                               作会影响环境， 但是主体
+
+                          部分的论证内容                                          部分通过论证， 作者的观
+
+                                                                           点是公众的行为也会对环境产生影响
+
+词汇 & 句型        词                                 单词/词组                            词性         词意
+重点词汇                       词意                    be liable for
+                                                 ultimate                         /          对……负责
+单词/词组          性                                                                  adj.       最终的
+                                                 illegal
+logging        n.         伐木                     profitable                       adj.       非法的
+lease                                            by…means                         v.
+tropical       n.         租赁                     under obligation                            有利可图的
+rainforest                                                                        /          通过……
+quota          /          热带雨林                   in the long run                  /          方
+                                                 track record                                出于义务
+sue            n.         配额                     exert pressure on                /
+                                                 /                                /          长期来说
+shareholder    v.         控告                     supply chain                     /
+                                                 contract                         担心         政绩
+sustainable    n.         股东                     outraged                         /          给……施压
+                                                 out-compete                      n.
+enforce                    可持续发                                                   adj.       供应链
+stockholder    adj.                              in turn                          v.         合同
+humanitarian                                     fundamental                                 愤怒的
+sentiment                  展                                                      /          超过、 赢过
+practice                                                                          adj.
+transmit       v.         强制执行                                                               反过来说
+sound
+in accordance  n.         股东                                                                 基本的
+with
+comply         adj. 人文的
+
+               n.         情绪
+
+               n.         行为、 准则
+
+               v.         传播
+
+               adj. 稳固的
+
+               /          和……一致
+
+               v.         遵守
+
+                                                 68
+plummet          v.  下滑地厉害   in the short term                                  /     短期来看
+                                                                                      贪污的
+be sensitive to  /   对……敏感   corrupt                                            adj.  老练的
+                                                                                      道德的
+be ashamed of    /   对……害羞   sophisticated                                      adj.  涵盖费用
+
+breach           v.  违背、 冲破  moralistic                                         adj.
+
+fiduciary        adj. 信托的    cover costs                                        /
+
+同义转换
+1. 道德准则: moral standards = moral principles
+2. 过度捕鱼: overfishing = an unmanaged fishery without quotas
+3. 管制、 控制: regulation = control
+4. 准备、 接受: be prepared to = accept the necessity for
+难句解析
+1. 第 二 段 ： It ignores the fact that businesses are not charities but
+profit-making companies, and that publicly owned companies with
+shareholders are under obligation to those shareholders to maximize profits,
+provided that they do so by legal means.
+● 语言点： 这句话的语言点主要是同位语从句(the fact that)， 句中有两个
+同位语从句， 并由 and 连接。 此外， provided that 意为“如果”。
+● 参考译文： 这忽略了一个事实， 就是企业不是慈善机构， 而是获取利益
+的公司， 并且股份公司要保证股东利益的最大化， 如果他们这么做是合法
+的话。
+2. 第三段： In the long run, it is the public, either directly or through its
+politicians, that has the power to make such destructive policies unprofitable
+and illegal, and to make sustainable environmental policies profitable.
+● 语言点： 这句话的语言点是强调句(it is the public that)， 以及插入语
+(either directly or through its politicians)。 并且， 强调句的前后两部分用 and
+进行连接。 ● 参考译文： 长期来看， 公众有能力让这些破坏性的政策变
+得无利可图、 不合法规， 并有能力让可持续发展的环境政策变得利润丰富，
+无论是通过直接干涉还是政客干涉。
+佳句赏析及应用
+1. 第一段： The environmental practices of big businesses are shaped by a
+fundamental fact that for many of us offends our sense of justice.
+●参考译文： 大企业的环境操作被一个基本的事实塑造， 这个事实是这些
+操作
+侵犯了我们的公正意识。
+●应用： How will kids be shaped by the coronavirus crisis?
+2. 第一段： When government regulation is effective, and when the public is
+environmentally aware, environmentally clean big businesses may out-compete
+dirty ones, but the reverse is likely to be true if government regulation is
+ineffective and if the public doesn‘t care.
+●参考译文： 当政府监管有效的时候， 并且当公众意识到保护环境的时候，
+保护
+环境的大企业可能超越肮脏的企业。 但是如果政府监管无效， 公众不关
+
+                                                                   69
+心环境
+的话， 反之亦然。
+●应用： The reverse is likely to be true if our team wins the game.
+
+                                                                   70
+
