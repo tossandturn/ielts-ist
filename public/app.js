@@ -3297,10 +3297,10 @@ function listeningCaptionSpeakerOrder(prefix, section = "") {
   const payload = listeningCaptionPayload(prefix);
   const selected = listeningCaptionSection(payload, section);
   const candidates = [
-    ...(Array.isArray(selected?.speakers) ? selected.speakers : []),
-    ...(Array.isArray(payload?.speakers) ? payload.speakers : []),
     ...(Array.isArray(selected?.sentences) ? selected.sentences.map((item) => item?.speaker) : []),
     ...(Array.isArray(selected?.timedWords) ? selected.timedWords.map((item) => item?.speaker) : []),
+    ...(Array.isArray(selected?.speakers) ? selected.speakers : []),
+    ...(Array.isArray(payload?.speakers) ? payload.speakers : []),
   ];
   const seen = new Set();
   return candidates
@@ -3453,7 +3453,27 @@ function listeningCaptionTranscriptText(prefix, section = "") {
   return selected?.text || payload.text || "";
 }
 
+function listeningCaptionTranscriptEntries(prefix, section = "") {
+  const payload = listeningCaptionPayload(prefix);
+  if (!isReliableListeningCaptionPayload(payload, section)) return [];
+  const selected = listeningCaptionSection(payload, section);
+  if (Array.isArray(selected?.sentences) && selected.sentences.length) {
+    const model = listeningTimedCaptionModel(selected, payload);
+    return model.segments.map((segment) => ({ speaker: segment.speaker, text: segment.text })).filter((entry) => entry.text);
+  }
+  return [];
+}
+
 function renderCaptionTranscript(prefix, text, section = "") {
+  const entries = listeningCaptionTranscriptEntries(prefix, section);
+  if (entries.length) {
+    return entries
+      .map((entry) => {
+        const voice = listeningCaptionVoice(prefix, entry.speaker, section);
+        return captionDisplayLineHtml({ ...entry, voice });
+      })
+      .join("");
+  }
   const lines = listeningCaptionSentences(text);
   if (!lines.length) return `<p class="caption-transcript-empty">No saved transcript yet.</p>`;
   return lines
@@ -3551,45 +3571,6 @@ function listeningTimedSentences(section, payload) {
     .filter((item) => item.text);
 }
 
-function shouldInheritPreviousListeningSpeaker(previous, current) {
-  if (!previous || !current) return false;
-  const previousSpeaker = String(previous.speaker || "").trim();
-  const currentSpeaker = String(current.speaker || "").trim();
-  if (!previousSpeaker || !currentSpeaker || previousSpeaker === currentSpeaker) return false;
-  const previousText = normalizeListeningCaptionText(previous.text || "");
-  const currentText = normalizeListeningCaptionText(current.text || "");
-  if (!previousText || !currentText || isListeningNarratorCaption(currentText)) return false;
-  const gap = Number(current.start) - Number(previous.end);
-  const duration = Number(current.end) - Number(current.start);
-  if (Number.isFinite(gap) && (gap < -0.12 || gap > 0.35)) return false;
-  const wordCount = listeningCaptionWordList(currentText).length;
-  const startsAsContinuation = /^[a-z]/.test(currentText) || /^[,;:)-]/.test(currentText);
-  const previousLooksOpen = !/[.!?]$/.test(previousText);
-  const shortTail = Number.isFinite(duration) && duration > 0 && duration <= 1.8 && wordCount <= 6;
-  return startsAsContinuation || (previousLooksOpen && shortTail);
-}
-
-function repairListeningCaptionSpeakerTurns(sentences, timedWords) {
-  if (!Array.isArray(sentences) || sentences.length < 2) return sentences;
-  const repaired = sentences.map((sentence) => ({ ...sentence }));
-  const wordUpdates = [];
-  for (let index = 1; index < repaired.length; index += 1) {
-    const previous = repaired[index - 1];
-    const current = repaired[index];
-    if (!shouldInheritPreviousListeningSpeaker(previous, current)) continue;
-    current.speaker = previous.speaker;
-    wordUpdates.push({ sentenceIndex: current.index ?? index, speaker: previous.speaker });
-  }
-  if (Array.isArray(timedWords) && wordUpdates.length) {
-    wordUpdates.forEach(({ sentenceIndex, speaker }) => {
-      timedWords.forEach((word) => {
-        if (Number(word.sentenceIndex) === Number(sentenceIndex)) word.speaker = speaker;
-      });
-    });
-  }
-  return repaired;
-}
-
 function timedCaptionWindow(words, visibleCount) {
   const start = Math.max(0, visibleCount - 16);
   return words.slice(start, visibleCount).map((item) => item.word).join(" ");
@@ -3603,10 +3584,28 @@ function listeningCaptionWordList(text) {
     .filter(Boolean);
 }
 
+function dominantListeningWordSpeaker(words) {
+  const counts = new Map();
+  (Array.isArray(words) ? words : []).forEach((word) => {
+    const speaker = String(word?.speaker || "").trim();
+    if (!speaker) return;
+    counts.set(speaker, (counts.get(speaker) || 0) + 1);
+  });
+  let best = "";
+  let bestCount = 0;
+  counts.forEach((count, speaker) => {
+    if (count > bestCount) {
+      best = speaker;
+      bestCount = count;
+    }
+  });
+  return best;
+}
+
 function listeningTimedCaptionModel(selected, payload) {
   const text = selected?.text || payload?.text || "";
   const timedWords = listeningTimedWords(selected, payload);
-  const timedSentences = repairListeningCaptionSpeakerTurns(listeningTimedSentences(selected, payload), timedWords);
+  const timedSentences = listeningTimedSentences(selected, payload);
   if (timedSentences.length) {
     const segments = [];
     let cursor = 0;
@@ -3634,7 +3633,10 @@ function listeningTimedCaptionModel(selected, payload) {
         ...word,
         speaker: word.speaker || sentence.speaker,
       }));
-      const speaker = sentence.speaker || words.find((word) => word.speaker)?.speaker || inferListeningCaptionSpeaker(sentence.text, segments.length);
+      const speaker = dominantListeningWordSpeaker(words) || sentence.speaker || inferListeningCaptionSpeaker(sentence.text, segments.length);
+      words.forEach((word) => {
+        word.speaker = speaker;
+      });
       segments.push({
         speaker,
         text: sentence.text,
@@ -3646,9 +3648,10 @@ function listeningTimedCaptionModel(selected, payload) {
       });
       cursor += words.length;
     });
+    const mergedSegments = mergeListeningCaptionSegments(segments);
     return {
-      words: segments.flatMap((segment) => segment.words),
-      segments,
+      words: mergedSegments.flatMap((segment) => segment.words),
+      segments: mergedSegments,
       source: "asr-timed",
     };
   }
@@ -3686,9 +3689,10 @@ function listeningTimedCaptionModel(selected, payload) {
     segments.push(segment);
   });
   if (segments.length) {
+    const mergedSegments = mergeListeningCaptionSegments(segments);
     return {
-      words: segments.flatMap((segment) => segment.words),
-      segments,
+      words: mergedSegments.flatMap((segment) => segment.words),
+      segments: mergedSegments,
     };
   }
   const fallbackWords = plainTimedWords;
@@ -3696,6 +3700,41 @@ function listeningTimedCaptionModel(selected, payload) {
     words: timedWords,
     segments: fallbackWords.length ? [{ speaker: "Voice 1", text: fallbackWords.join(" "), words: timedWords, start: 0, end: fallbackWords.length }] : [],
   };
+}
+
+function shouldMergeListeningCaptionSegment(previous, current) {
+  if (!previous || !current) return false;
+  if (String(previous.speaker || "").trim().toLowerCase() !== String(current.speaker || "").trim().toLowerCase()) return false;
+  const previousText = normalizeListeningCaptionText(previous.text || "");
+  const currentText = normalizeListeningCaptionText(current.text || "");
+  if (!previousText || !currentText || isListeningNarratorCaption(previousText) || isListeningNarratorCaption(currentText)) return false;
+  const gap = Number(current.sentenceStart) - Number(previous.sentenceEnd);
+  const closeTiming = !Number.isFinite(gap) || (gap >= -0.15 && gap <= 0.65);
+  const currentContinues = /^[a-z,;:)-]/.test(currentText);
+  const previousLooksOpen = !/[.!?]$/.test(previousText);
+  const previousShort = listeningCaptionWordList(previousText).length <= 7;
+  return closeTiming && (currentContinues || previousLooksOpen || previousShort);
+}
+
+function mergeListeningCaptionSegments(segments) {
+  const merged = [];
+  segments.forEach((segment) => {
+    const previous = merged.at(-1);
+    if (shouldMergeListeningCaptionSegment(previous, segment)) {
+      previous.text = normalizeListeningCaptionText(`${previous.text} ${segment.text}`);
+      previous.words = [...previous.words, ...segment.words];
+      previous.sentenceEnd = segment.sentenceEnd;
+      return;
+    }
+    merged.push({ ...segment, words: [...(segment.words || [])] });
+  });
+  let cursor = 0;
+  merged.forEach((segment) => {
+    segment.start = cursor;
+    segment.end = cursor + segment.words.length;
+    cursor = segment.end;
+  });
+  return merged;
 }
 
 function inferListeningCaptionSpeaker(text, index = 0) {
