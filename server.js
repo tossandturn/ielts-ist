@@ -8,13 +8,23 @@ const { execFile } = require("child_process");
 const PDFDocument = require("pdfkit");
 const WebSocket = require("ws");
 const { WebSocketServer } = require("ws");
+const { createWorker } = require("tesseract.js");
+let DatabaseSync = null;
+try {
+  ({ DatabaseSync } = require("node:sqlite"));
+} catch {
+  DatabaseSync = null;
+}
 
 loadEnvFile(path.join(__dirname, ".env.local"));
 loadEnvFile(path.join(__dirname, ".env"));
 loadEnvFile(path.join(__dirname, "..", ".env"));
 
 const PORT = Number(process.env.PORT || 4321);
+const STARTED_AT = Date.now();
 const PUBLIC_DIR = path.join(__dirname, "public");
+const APP_DB_PATH = process.env.IELTSIST_DB_PATH || path.join(__dirname, "data", "ieltsist.sqlite");
+const ADMIN_API_SECRET = process.env.ADMIN_API_SECRET || "";
 const DEFAULT_CAMBRIDGE15_DIR = process.platform === "win32"
   ? "C:\\Users\\10604\\Desktop\\ap物理真题训练\\剑15"
   : path.join(__dirname, "data", "cambridge15");
@@ -24,6 +34,7 @@ const CAMBRIDGE15_PDF = path.join(CAMBRIDGE15_DIR, "剑15.pdf");
 const QUESTION_BANK_PATH = path.join(__dirname, "data", "cambridge15-bank.json");
 const CAMBRIDGE_LOCAL_BANK_PATH = path.join(__dirname, "data", "cambridge-local-bank.json");
 const SPEAKING_BANK_PATH = path.join(__dirname, "data", "speaking-bank.json");
+const LISTENING_ASR_CACHE_PATH = path.join(__dirname, "data", "listening-asr-cache.json");
 const MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
 const OPENAI_BASE_URL = (process.env.OPENAI_BASE_URL || process.env.UUAPI_BASE_URL || "https://api.openai.com/v1").replace(/\/+$/, "");
@@ -31,7 +42,19 @@ const VOICE_CHAT_URL = process.env.VOICE_CHAT_URL || "https://chatgpt.com/";
 const DASHSCOPE_API_KEY = process.env.DASHSCOPE_API_KEY || process.env.QWEN_API_KEY || "";
 const DASHSCOPE_WORKSPACE_ID = process.env.DASHSCOPE_WORKSPACE_ID || process.env.QWEN_WORKSPACE_ID || "";
 const DASHSCOPE_REGION = process.env.DASHSCOPE_REGION || "cn-beijing";
+const DEFAULT_DASHSCOPE_COMPAT_BASE_URL = DASHSCOPE_WORKSPACE_ID
+  ? `https://${DASHSCOPE_WORKSPACE_ID}.${DASHSCOPE_REGION}.maas.aliyuncs.com/compatible-mode/v1`
+  : "https://dashscope.aliyuncs.com/compatible-mode/v1";
+const DASHSCOPE_COMPAT_BASE_URL = (process.env.DASHSCOPE_COMPAT_BASE_URL || DEFAULT_DASHSCOPE_COMPAT_BASE_URL).replace(/\/+$/, "");
+const WRITING_AI_MODEL = process.env.WRITING_AI_MODEL || process.env.QWEN_WRITING_MODEL || "qwen3.7-max";
+const WRITING_AI_BASE_URL = (process.env.WRITING_AI_BASE_URL || process.env.QWEN_WRITING_BASE_URL || DASHSCOPE_COMPAT_BASE_URL).replace(/\/+$/, "");
+const WRITING_AI_API_KEY = process.env.WRITING_AI_API_KEY || process.env.QWEN_WRITING_API_KEY || DASHSCOPE_API_KEY;
 const QWEN_REALTIME_MODEL = process.env.QWEN_REALTIME_MODEL || "qwen3.5-omni-flash-realtime";
+const QWEN_ASR_MODEL = process.env.QWEN_ASR_MODEL || "qwen3-asr-flash-realtime";
+const LISTENING_ASR_CACHE_SOURCE = "qwen-asr-live-vad-v1";
+const DASHSCOPE_WEBRTC_ENDPOINT = (process.env.DASHSCOPE_WEBRTC_ENDPOINT || process.env.QWEN_WEBRTC_ENDPOINT || "").replace(/\/+$/, "");
+const QWEN_WEBRTC_EXCHANGE_PROXY_URL = (process.env.QWEN_WEBRTC_EXCHANGE_PROXY_URL || "").trim();
+const QWEN_WEBRTC_MODE = (process.env.QWEN_WEBRTC_MODE || "auto").toLowerCase();
 const FISH_API_URL = process.env.FISH_API_URL || "https://api.fish.audio/v1/tts";
 const FISH_MODEL = process.env.FISH_MODEL || "s2.1-pro-free";
 const FISH_API_KEY = process.env.FISH_API_KEY || process.env.FISH_AUDIO_API_KEY || process.env.FISHAUDIO_API_KEY || "";
@@ -51,6 +74,12 @@ const IMPORTED_BANKS = [CAMBRIDGE15_BANK, LOCAL_CAMBRIDGE_BANK];
 const LOCAL_FILE_INDEX = new Map((LOCAL_CAMBRIDGE_BANK.localFiles || []).map((file) => [file.id, file]));
 
 const recentWindow = "2025-07 to 2026-07";
+const TASKS_CACHE_TTL_MS = 10 * 60_000;
+const LISTENING_SCRIPT_CACHE_TTL_MS = 10 * 60_000;
+const REPORT_DOWNLOAD_TTL_MS = 2 * 60 * 60_000;
+let tasksPayloadCache = null;
+const reportDownloads = new Map();
+const listeningScriptCache = new Map();
 
 const officialSources = [
   {
@@ -508,6 +537,9 @@ function tasksPayload() {
     aiEnabled: Boolean(OPENAI_API_KEY),
     model: OPENAI_API_KEY ? MODEL : null,
     aiBaseUrl: OPENAI_API_KEY ? OPENAI_BASE_URL : null,
+    writingAiEnabled: Boolean(WRITING_AI_API_KEY),
+    writingModel: WRITING_AI_API_KEY ? WRITING_AI_MODEL : null,
+    writingAiBaseUrl: WRITING_AI_API_KEY ? WRITING_AI_BASE_URL : null,
     voiceChatUrl: VOICE_CHAT_URL,
     ttsEnabled: Boolean(FISH_API_KEY),
     recentWindow,
@@ -547,10 +579,336 @@ function loadQuestionBank(filePath) {
   }
 }
 
+function asrCacheKey(id, section) {
+  return `${String(id || "").trim()}::${String(section || "").trim()}`;
+}
+
+function loadListeningAsrCache() {
+  if (!fs.existsSync(LISTENING_ASR_CACHE_PATH)) return {};
+  try {
+    const parsed = JSON.parse(fs.readFileSync(LISTENING_ASR_CACHE_PATH, "utf8"));
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch (error) {
+    console.warn(`Failed to load listening ASR cache: ${error.message}`);
+    return {};
+  }
+}
+
+function saveListeningAsrCache(cache) {
+  fs.mkdirSync(path.dirname(LISTENING_ASR_CACHE_PATH), { recursive: true });
+  const tempPath = `${LISTENING_ASR_CACHE_PATH}.${process.pid}.tmp`;
+  fs.writeFileSync(tempPath, JSON.stringify(cache, null, 2), "utf8");
+  fs.renameSync(tempPath, LISTENING_ASR_CACHE_PATH);
+}
+
+function readListeningAsrCache(id, section) {
+  const cache = loadListeningAsrCache();
+  const item = cache[asrCacheKey(id, section)];
+  if (!item?.text) return null;
+  if (!isUsableListeningAsrText(item.text)) return null;
+  return item;
+}
+
+function isUsableListeningAsrText(text) {
+  const clean = cleanListeningScriptText(text);
+  const words = clean.split(/\s+/).filter(Boolean);
+  if (words.length < 80) return false;
+  if (/published by cambridge|this recording is copyright|cambridge assessment english/i.test(clean) && words.length < 180) return false;
+  return true;
+}
+
+function writeListeningAsrCache({ id, section, text, source = LISTENING_ASR_CACHE_SOURCE }) {
+  const cleanText = cleanListeningScriptText(text);
+  if (!id || !section || cleanText.length < 8) return null;
+  if (!isUsableListeningAsrText(cleanText)) return null;
+  const cache = loadListeningAsrCache();
+  const key = asrCacheKey(id, section);
+  const existing = cache[key];
+  if (existing?.source === LISTENING_ASR_CACHE_SOURCE && existing.text && existing.text.length >= cleanText.length) return existing;
+  const item = {
+    id,
+    section: String(section),
+    text: cleanText,
+    source: source || LISTENING_ASR_CACHE_SOURCE,
+    mode: "live-vad",
+    version: 1,
+    timedWords: buildListeningTimedWords(cleanText),
+    updatedAt: new Date().toISOString(),
+  };
+  cache[key] = item;
+  saveListeningAsrCache(cache);
+  return item;
+}
+
+function buildListeningTimedWords(text) {
+  const words = String(text || "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  return words.map((word, index) => ({
+    word,
+    index,
+    progress: words.length > 1 ? index / (words.length - 1) : 0,
+  }));
+}
+
+function listeningIdParts(id) {
+  const match = String(id || "").match(/^cam(\d+)-(?:l-)?test(\d+)/i);
+  if (!match) return null;
+  return { book: Number(match[1]), test: Number(match[2]) };
+}
+
+function cleanListeningScriptText(text) {
+  return String(text || "")
+    .replace(/\u000c/g, "\n")
+    .replace(/\r\n?/g, "\n")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+}
+
+function trimListeningOcrScope(text) {
+  const clean = cleanListeningScriptText(text);
+  const readingStart = clean.search(/\n\s*(?:---\s*Page\s+\d+\s*---\s*\n)?\s*(?:Test\s+\d+\s*\n)?\s*READING\b/i);
+  const passageStart = clean.search(/\n\s*READING\s+PASSAGE\s+1\b/i);
+  const stops = [readingStart, passageStart].filter((index) => index > 0);
+  return stops.length ? cleanListeningScriptText(clean.slice(0, Math.min(...stops))) : clean;
+}
+
+function splitListeningOcrSections(text) {
+  const clean = trimListeningOcrScope(text);
+  const sections = [];
+  const sectionPattern = /\bSECTION\s+([1-4])\b([\s\S]*?)(?=\bSECTION\s+[1-4]\b|$)/gi;
+  let sectionMatch;
+  while ((sectionMatch = sectionPattern.exec(clean))) {
+    const part = Number(sectionMatch[1]);
+    const partText = cleanListeningScriptText(sectionMatch[2]);
+    if (partText && partText.length > 40) {
+      sections.push({
+        part,
+        title: `Section ${part}`,
+        text: partText,
+      });
+    }
+  }
+  return sections.length ? sections : clean ? [{ part: null, title: "OCR text", text: clean }] : [];
+}
+
+function listeningSourceCandidates(test) {
+  const candidates = [];
+  const explicitSource = String(test?.questionPaperSource || test?.transcriptSource || test?.scriptSource || "").trim();
+  if (explicitSource) {
+    const resolved = path.isAbsolute(explicitSource) ? path.normalize(explicitSource) : path.resolve(__dirname, explicitSource);
+    if (fs.existsSync(resolved)) {
+      candidates.push({ path: resolved, kind: /(?:^|[-\\\/])cam\d+-pages\.txt$/i.test(resolved) ? "book-pages" : "paper" });
+    }
+  }
+  const parts = listeningIdParts(test?.id || "");
+  if (!parts) return candidates;
+  const files = [
+    { path: path.join(__dirname, "data", "ocr-listening", `cam${parts.book}-test${parts.test}.txt`), kind: "paper" },
+    { path: path.join(__dirname, "data", "extracted-text", `cam${parts.book}-pages.txt`), kind: "book-pages" },
+    { path: path.join(__dirname, "data", "ocr-cambridge-16-21", `cam${parts.book}-pages.txt`), kind: "book-pages" },
+    { path: path.join(__dirname, "data", "extracted-text", `cam${parts.book}.txt`), kind: "paper" },
+  ];
+  for (const file of files) {
+    if (fs.existsSync(file.path) && !candidates.some((item) => item.path === file.path)) {
+      candidates.push(file);
+    }
+  }
+  return candidates;
+}
+
+function extractListeningAudioscriptSections(text, testNumber) {
+  const clean = cleanListeningScriptText(text);
+  const nextTest = Number(testNumber) + 1;
+  const testPattern = new RegExp(
+    String.raw`\bTEST\s+${Number(testNumber)}\b([\s\S]*?)(?=\bTEST\s+${nextTest}\b|Listening and Reading answer keys\b|Sample Writing answers\b|Sample answer sheets\b|Acknowledgements\b|$)`,
+    "i",
+  );
+  const audioscriptMatches = [...clean.matchAll(/\bAudioscripts\b/gi)];
+  for (const audioscriptMatch of audioscriptMatches) {
+    const source = clean.slice(audioscriptMatch.index);
+    const match = testPattern.exec(source);
+    if (!match?.[1]) continue;
+    if (match.index > 500) continue;
+    const block = cleanListeningScriptText(match[1]);
+    const sections = [];
+    const partPattern = /\b(?:PART|SECTION)\s+([1-4])\b([\s\S]*?)(?=\b(?:PART|SECTION)\s+[1-4]\b|$)/gi;
+    let partMatch;
+    while ((partMatch = partPattern.exec(block))) {
+      const part = Number(partMatch[1]);
+      const partText = cleanListeningScriptText(partMatch[2]);
+      if (partText && partText.length > 80) {
+        sections.push({
+          part,
+          title: `Part ${part}`,
+          text: partText,
+        });
+      }
+    }
+    if (sections.length) return sections;
+    if (block.length > 500) {
+      return [{ part: null, title: "Audioscript", text: block }];
+    }
+  }
+  return [];
+}
+
+function collectStringValues(value, output = []) {
+  if (!value) return output;
+  if (typeof value === "string") {
+    output.push(value);
+    return output;
+  }
+  if (Array.isArray(value)) {
+    value.forEach((item) => collectStringValues(item, output));
+    return output;
+  }
+  if (typeof value === "object") {
+    Object.values(value).forEach((item) => collectStringValues(item, output));
+  }
+  return output;
+}
+
+function findListeningAudioscriptInBanks(test) {
+  const parts = listeningIdParts(test?.id || "");
+  if (!parts) return null;
+  if (parts.book !== 15) return null;
+  for (const bank of IMPORTED_BANKS) {
+    const strings = collectStringValues(bank);
+    for (const text of strings) {
+      if (!/\bAudioscripts\b/i.test(text)) continue;
+      const sections = extractListeningAudioscriptSections(text, parts.test);
+      if (sections.length) {
+        return {
+          available: true,
+          mode: "audioscript",
+          source: `Cambridge ${parts.book} bank text`,
+          text: sections.map((section) => `${section.title}\n${section.text}`).join("\n\n"),
+          sections,
+        };
+      }
+    }
+  }
+  return null;
+}
+
+function listeningPageUrlToPath(pageUrl) {
+  try {
+    const pathname = decodeURIComponent(new URL(pageUrl, "http://localhost").pathname || "");
+    const resolved = path.resolve(PUBLIC_DIR, `.${pathname}`);
+    if (!resolved.startsWith(path.resolve(PUBLIC_DIR))) return "";
+    return resolved;
+  } catch {
+    return "";
+  }
+}
+
+async function recognizeListeningPages(pageImageUrls = []) {
+  const urls = Array.isArray(pageImageUrls) ? pageImageUrls.filter(Boolean).slice(0, 10) : [];
+  if (!urls.length) return "";
+  const worker = await createWorker("eng");
+  try {
+    const chunks = [];
+    for (const url of urls) {
+      const filePath = listeningPageUrlToPath(url);
+      if (!filePath || !fs.existsSync(filePath)) continue;
+      const result = await worker.recognize(fs.readFileSync(filePath));
+      const text = cleanListeningScriptText(result?.data?.text || "");
+      if (text) chunks.push(text);
+    }
+    return cleanListeningScriptText(chunks.join("\n\n"));
+  } finally {
+    await worker.terminate();
+  }
+}
+
+async function resolveListeningScripts(test, pageImageUrls = [], options = {}) {
+  const allowOcr = options.allowOcr !== false;
+  const testId = String(test?.id || "");
+  const pageKey = Array.isArray(pageImageUrls) ? pageImageUrls.filter(Boolean).join("|") : "";
+  const cacheKey = `${testId}|${allowOcr ? "ocr" : "no-ocr"}|${pageKey}`;
+  const cached = listeningScriptCache.get(cacheKey);
+  if (cached && Date.now() - cached.createdAt < LISTENING_SCRIPT_CACHE_TTL_MS) {
+    return cached.value;
+  }
+
+  const parts = listeningIdParts(testId);
+  const candidates = listeningSourceCandidates(test);
+  for (const candidate of candidates) {
+    if (candidate.kind !== "book-pages") continue;
+    const rawText = cleanListeningScriptText(fs.readFileSync(candidate.path, "utf8"));
+    if (!rawText) continue;
+    if (parts) {
+      const sections = extractListeningAudioscriptSections(rawText, parts.test);
+      if (sections.length) {
+        const value = {
+          available: true,
+          mode: "audioscript",
+          source: path.relative(__dirname, candidate.path),
+          text: sections.map((section) => `${section.title}\n${section.text}`).join("\n\n"),
+          sections,
+        };
+        listeningScriptCache.set(cacheKey, { createdAt: Date.now(), value });
+        return value;
+      }
+    }
+  }
+
+  const bankAudioscript = findListeningAudioscriptInBanks(test);
+  if (bankAudioscript) {
+    listeningScriptCache.set(cacheKey, { createdAt: Date.now(), value: bankAudioscript });
+    return bankAudioscript;
+  }
+
+  if (allowOcr) {
+    for (const candidate of candidates) {
+      if (candidate.kind === "book-pages") continue;
+      const rawText = trimListeningOcrScope(fs.readFileSync(candidate.path, "utf8"));
+      if (!rawText) continue;
+      const sections = splitListeningOcrSections(rawText);
+      const value = {
+        available: true,
+        mode: "ocr",
+        source: path.relative(__dirname, candidate.path),
+        text: rawText,
+        sections,
+      };
+      listeningScriptCache.set(cacheKey, { createdAt: Date.now(), value });
+      return value;
+    }
+  }
+
+  const ocrText = allowOcr ? trimListeningOcrScope(await recognizeListeningPages(pageImageUrls)) : "";
+  const ocrSections = splitListeningOcrSections(ocrText);
+  const value = ocrText
+    ? {
+        available: true,
+        mode: "ocr",
+        source: "page OCR",
+        text: ocrText,
+        sections: ocrSections,
+      }
+    : {
+        available: false,
+        mode: "missing",
+        source: allowOcr ? "" : "ocr-disabled",
+        text: "",
+        sections: [],
+      };
+  listeningScriptCache.set(cacheKey, { createdAt: Date.now(), value });
+  return value;
+}
+
 function getSpeakingSets() {
   const bank = loadQuestionBank(SPEAKING_BANK_PATH);
-  return Array.isArray(bank.speakingSets) && bank.speakingSets.length
-    ? bank.speakingSets
+  const sets = Array.isArray(bank.speakingSets) ? bank.speakingSets : [];
+  const visibleSets = sets.filter((set) => isEnabledCambridgeBook(set) && hasPageImages(set, "speakingPageImages"));
+  return visibleSets.length
+    ? visibleSets
     : fallbackSpeakingSets;
 }
 
@@ -560,6 +918,74 @@ function sendJson(res, status, value) {
     "cache-control": "no-store",
   });
   res.end(JSON.stringify(value));
+}
+
+function cleanupReportDownloads() {
+  const now = Date.now();
+  for (const [id, report] of reportDownloads.entries()) {
+    if (!report?.expiresAt || report.expiresAt <= now) reportDownloads.delete(id);
+  }
+}
+
+function safePdfFileName(fileName) {
+  const cleaned = path.basename(String(fileName || "ielts-report.pdf"))
+    .replace(/[^\w.-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return /\.pdf$/i.test(cleaned) ? cleaned : `${cleaned || "ielts-report"}.pdf`;
+}
+
+function pdfDataUrlToBuffer(pdfDataUrl) {
+  const match = String(pdfDataUrl || "").match(/^data:application\/pdf;base64,([A-Za-z0-9+/=\r\n]+)$/);
+  if (!match) return null;
+  return Buffer.from(match[1].replace(/\s+/g, ""), "base64");
+}
+
+function registerPdfDownload(pdfDataUrl, fileName) {
+  const buffer = pdfDataUrlToBuffer(pdfDataUrl);
+  if (!buffer?.length) return "";
+  cleanupReportDownloads();
+  const id = crypto.randomUUID();
+  reportDownloads.set(id, {
+    buffer,
+    fileName: safePdfFileName(fileName),
+    createdAt: Date.now(),
+    expiresAt: Date.now() + REPORT_DOWNLOAD_TTL_MS,
+  });
+  return `/api/report/pdf/${encodeURIComponent(id)}`;
+}
+
+function addPdfDownloadUrl(result, fallbackName) {
+  if (!result?.pdfDataUrl) return result;
+  const pdfFileName = result.pdfFileName || fallbackName || "ielts-report.pdf";
+  return {
+    ...result,
+    pdfFileName,
+    pdfUrl: registerPdfDownload(result.pdfDataUrl, pdfFileName),
+  };
+}
+
+function handleReportPdfDownload(req, res) {
+  cleanupReportDownloads();
+  const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+  const id = decodeURIComponent(url.pathname.replace(/^\/api\/report\/pdf\//, ""));
+  const report = reportDownloads.get(id);
+  if (!report) {
+    res.writeHead(404, { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" });
+    res.end("PDF report expired. Please generate the report again.");
+    return;
+  }
+  res.writeHead(200, {
+    "content-type": "application/pdf",
+    "content-length": report.buffer.length,
+    "content-disposition": `inline; filename="${report.fileName}"`,
+    "cache-control": "private, no-store",
+    "x-content-type-options": "nosniff",
+  });
+  if (req.method === "HEAD") {
+    res.end();
+    return;
+  }
+  res.end(report.buffer);
 }
 
 function sendCompressedJson(req, res, status, value, cacheControl = "no-store") {
@@ -589,6 +1015,49 @@ function sendCompressedJson(req, res, status, value, cacheControl = "no-store") 
   res.end(json);
 }
 
+function getTasksPayloadCache() {
+  const now = Date.now();
+  if (tasksPayloadCache && now - tasksPayloadCache.createdAt < TASKS_CACHE_TTL_MS) return tasksPayloadCache;
+  const json = JSON.stringify(tasksPayload());
+  const etag = `"tasks-${crypto.createHash("sha1").update(json).digest("hex").slice(0, 16)}"`;
+  const gzip = zlib.gzipSync(json, { level: 6 });
+  tasksPayloadCache = {
+    createdAt: now,
+    json,
+    gzip,
+    etag,
+    byteLength: Buffer.byteLength(json),
+  };
+  return tasksPayloadCache;
+}
+
+function sendTasksPayload(req, res) {
+  const cache = getTasksPayloadCache();
+  if (req.headers["if-none-match"] === cache.etag) {
+    res.writeHead(304, {
+      "etag": cache.etag,
+      "cache-control": "private, max-age=600, stale-while-revalidate=3600",
+    });
+    res.end();
+    return;
+  }
+  const acceptsGzip = /\bgzip\b/i.test(req.headers["accept-encoding"] || "");
+  const body = acceptsGzip ? cache.gzip : Buffer.from(cache.json);
+  res.writeHead(200, {
+    "content-type": "application/json; charset=utf-8",
+    "content-length": body.length,
+    "cache-control": "private, max-age=600, stale-while-revalidate=3600",
+    "etag": cache.etag,
+    "vary": "Accept-Encoding",
+    ...(acceptsGzip ? { "content-encoding": "gzip" } : {}),
+  });
+  if (req.method === "HEAD") {
+    res.end();
+    return;
+  }
+  res.end(body);
+}
+
 function readBody(req) {
   return new Promise((resolve, reject) => {
     let body = "";
@@ -604,14 +1073,422 @@ function readBody(req) {
   });
 }
 
+function readJsonBody(req) {
+  return readBody(req).then((body) => JSON.parse(body || "{}"));
+}
+
+let appDb = null;
+
+function getAppDb() {
+  if (!DatabaseSync) throw new Error("SQLite is not available in this Node runtime.");
+  if (appDb) return appDb;
+  fs.mkdirSync(path.dirname(APP_DB_PATH), { recursive: true });
+  appDb = new DatabaseSync(APP_DB_PATH);
+  appDb.exec(`
+    PRAGMA journal_mode = WAL;
+    PRAGMA foreign_keys = ON;
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT NOT NULL UNIQUE,
+      password_hash TEXT NOT NULL,
+      salt TEXT NOT NULL,
+      avatar_data_url TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS sessions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      token_hash TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL,
+      expires_at TEXT NOT NULL,
+      last_seen_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS memberships (
+      user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      plan TEXT NOT NULL,
+      starts_at TEXT NOT NULL,
+      expires_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS redemption_codes (
+      code TEXT PRIMARY KEY,
+      plan TEXT NOT NULL,
+      days INTEGER NOT NULL,
+      max_uses INTEGER NOT NULL DEFAULT 1,
+      used_count INTEGER NOT NULL DEFAULT 0,
+      active INTEGER NOT NULL DEFAULT 1,
+      created_at TEXT NOT NULL,
+      expires_at TEXT
+    );
+    CREATE TABLE IF NOT EXISTS redemption_uses (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      code TEXT NOT NULL REFERENCES redemption_codes(code),
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      used_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS drafts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      draft_key TEXT NOT NULL,
+      module TEXT NOT NULL,
+      title TEXT NOT NULL,
+      payload_json TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      UNIQUE(user_id, draft_key)
+    );
+    CREATE TABLE IF NOT EXISTS vocabulary_items (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      term TEXT NOT NULL,
+      context TEXT,
+      explanation TEXT,
+      source TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      UNIQUE(user_id, term, source)
+    );
+  `);
+  return appDb;
+}
+
+function nowIso() {
+  return new Date().toISOString();
+}
+
+function normalizeUsername(username) {
+  return String(username || "").trim().toLowerCase();
+}
+
+function validateUsername(username) {
+  return /^[a-z0-9_]{3,24}$/.test(username);
+}
+
+function hashPassword(password, salt = crypto.randomBytes(16).toString("hex")) {
+  const passwordHash = crypto.scryptSync(String(password || ""), salt, 64).toString("hex");
+  return { salt, passwordHash };
+}
+
+function verifyPassword(password, salt, expectedHash) {
+  const actual = crypto.scryptSync(String(password || ""), salt, 64);
+  const expected = Buffer.from(String(expectedHash || ""), "hex");
+  return expected.length === actual.length && crypto.timingSafeEqual(actual, expected);
+}
+
+function hashToken(token) {
+  return crypto.createHash("sha256").update(String(token || "")).digest("hex");
+}
+
+function publicUser(row, membership = null) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    username: row.username,
+    avatarDataUrl: row.avatar_data_url || "",
+    membership: membership ? {
+      plan: membership.plan,
+      startsAt: membership.starts_at,
+      expiresAt: membership.expires_at,
+      active: Date.parse(membership.expires_at) > Date.now(),
+    } : null,
+  };
+}
+
+function getRequestToken(req) {
+  const auth = req.headers.authorization || "";
+  const bearer = auth.match(/^Bearer\s+(.+)$/i)?.[1];
+  if (bearer) return bearer.trim();
+  const cookie = req.headers.cookie || "";
+  return cookie.split(/;\s*/).map((part) => part.split("=")).find(([key]) => key === "ieltsist_session")?.[1] || "";
+}
+
+function requireUser(req) {
+  const token = getRequestToken(req);
+  if (!token) {
+    const error = new Error("Please log in first.");
+    error.statusCode = 401;
+    throw error;
+  }
+  const db = getAppDb();
+  const tokenHash = hashToken(token);
+  const row = db.prepare(`
+    SELECT users.*, sessions.expires_at AS session_expires_at
+    FROM sessions
+    JOIN users ON users.id = sessions.user_id
+    WHERE sessions.token_hash = ?
+  `).get(tokenHash);
+  if (!row || Date.parse(row.session_expires_at) <= Date.now()) {
+    const error = new Error("Login expired. Please log in again.");
+    error.statusCode = 401;
+    throw error;
+  }
+  db.prepare("UPDATE sessions SET last_seen_at = ? WHERE token_hash = ?").run(nowIso(), tokenHash);
+  return row;
+}
+
+function currentMembership(userId) {
+  return getAppDb().prepare("SELECT * FROM memberships WHERE user_id = ?").get(userId) || null;
+}
+
+function createSession(userId) {
+  const db = getAppDb();
+  const token = crypto.randomBytes(32).toString("base64url");
+  const createdAt = nowIso();
+  const expiresAt = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString();
+  db.prepare("INSERT INTO sessions (user_id, token_hash, created_at, expires_at, last_seen_at) VALUES (?, ?, ?, ?, ?)")
+    .run(userId, hashToken(token), createdAt, expiresAt, createdAt);
+  return { token, expiresAt };
+}
+
+function setSessionCookie(res, token, expiresAt) {
+  res.setHeader("Set-Cookie", `ieltsist_session=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Expires=${new Date(expiresAt).toUTCString()}`);
+}
+
+async function handleAuthApi(req, res) {
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  if (req.method === "POST" && url.pathname === "/api/auth/register") {
+    const payload = await readJsonBody(req);
+    const username = normalizeUsername(payload.username);
+    const password = String(payload.password || "");
+    if (!validateUsername(username)) {
+      sendJson(res, 400, { error: "Username must be 3-24 characters: lowercase letters, numbers, or underscore." });
+      return;
+    }
+    if (password.length < 6 || password.length > 72) {
+      sendJson(res, 400, { error: "Password must be 6-72 characters." });
+      return;
+    }
+    const db = getAppDb();
+    const exists = db.prepare("SELECT id FROM users WHERE username = ?").get(username);
+    if (exists) {
+      sendJson(res, 409, { error: "Username already exists." });
+      return;
+    }
+    const createdAt = nowIso();
+    const { salt, passwordHash } = hashPassword(password);
+    const result = db.prepare("INSERT INTO users (username, password_hash, salt, created_at, updated_at) VALUES (?, ?, ?, ?, ?)")
+      .run(username, passwordHash, salt, createdAt, createdAt);
+    const session = createSession(Number(result.lastInsertRowid));
+    const user = db.prepare("SELECT * FROM users WHERE id = ?").get(Number(result.lastInsertRowid));
+    setSessionCookie(res, session.token, session.expiresAt);
+    sendJson(res, 200, { token: session.token, expiresAt: session.expiresAt, user: publicUser(user, currentMembership(user.id)) });
+    return;
+  }
+  if (req.method === "POST" && url.pathname === "/api/auth/login") {
+    const payload = await readJsonBody(req);
+    const username = normalizeUsername(payload.username);
+    const user = getAppDb().prepare("SELECT * FROM users WHERE username = ?").get(username);
+    if (!user || !verifyPassword(payload.password, user.salt, user.password_hash)) {
+      sendJson(res, 401, { error: "Invalid username or password." });
+      return;
+    }
+    const session = createSession(user.id);
+    setSessionCookie(res, session.token, session.expiresAt);
+    sendJson(res, 200, { token: session.token, expiresAt: session.expiresAt, user: publicUser(user, currentMembership(user.id)) });
+    return;
+  }
+  if (req.method === "POST" && url.pathname === "/api/auth/logout") {
+    const token = getRequestToken(req);
+    if (token) getAppDb().prepare("DELETE FROM sessions WHERE token_hash = ?").run(hashToken(token));
+    res.setHeader("Set-Cookie", "ieltsist_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0");
+    sendJson(res, 200, { ok: true });
+    return;
+  }
+  if (req.method === "GET" && url.pathname === "/api/me") {
+    const user = requireUser(req);
+    sendJson(res, 200, { user: publicUser(user, currentMembership(user.id)) });
+    return;
+  }
+  sendJson(res, 405, { error: "Method not allowed" });
+}
+
+function redemptionPlanDays(plan) {
+  const key = String(plan || "").toLowerCase();
+  if (key === "week" || key === "weekly") return 7;
+  if (key === "month" || key === "monthly") return 31;
+  if (key === "year" || key === "yearly") return 366;
+  return 0;
+}
+
+async function handleRedeem(req, res) {
+  const user = requireUser(req);
+  const payload = await readJsonBody(req);
+  const code = String(payload.code || "").trim().toUpperCase();
+  if (!code) {
+    sendJson(res, 400, { error: "Redemption code is required." });
+    return;
+  }
+  const db = getAppDb();
+  const row = db.prepare("SELECT * FROM redemption_codes WHERE code = ?").get(code);
+  if (!row || !row.active || row.used_count >= row.max_uses || (row.expires_at && Date.parse(row.expires_at) <= Date.now())) {
+    sendJson(res, 400, { error: "Invalid or expired redemption code." });
+    return;
+  }
+  const used = db.prepare("SELECT id FROM redemption_uses WHERE code = ? AND user_id = ?").get(code, user.id);
+  if (used) {
+    sendJson(res, 409, { error: "This code has already been used by this account." });
+    return;
+  }
+  const current = currentMembership(user.id);
+  const now = Date.now();
+  const base = current && Date.parse(current.expires_at) > now ? Date.parse(current.expires_at) : now;
+  const expiresAt = new Date(base + Number(row.days) * 24 * 60 * 60 * 1000).toISOString();
+  const startsAt = current?.starts_at || nowIso();
+  const updatedAt = nowIso();
+  db.exec("BEGIN");
+  try {
+    db.prepare("UPDATE redemption_codes SET used_count = used_count + 1 WHERE code = ?").run(code);
+    db.prepare("INSERT INTO redemption_uses (code, user_id, used_at) VALUES (?, ?, ?)").run(code, user.id, updatedAt);
+    db.prepare(`
+      INSERT INTO memberships (user_id, plan, starts_at, expires_at, updated_at)
+      VALUES (?, ?, ?, ?, ?)
+      ON CONFLICT(user_id) DO UPDATE SET plan = excluded.plan, expires_at = excluded.expires_at, updated_at = excluded.updated_at
+    `).run(user.id, row.plan, startsAt, expiresAt, updatedAt);
+    db.exec("COMMIT");
+  } catch (error) {
+    db.exec("ROLLBACK");
+    throw error;
+  }
+  const refreshed = getAppDb().prepare("SELECT * FROM users WHERE id = ?").get(user.id);
+  sendJson(res, 200, { ok: true, user: publicUser(refreshed, currentMembership(user.id)) });
+}
+
+async function handleAdminRedemptionCodes(req, res) {
+  if (!ADMIN_API_SECRET || req.headers["x-admin-secret"] !== ADMIN_API_SECRET) {
+    sendJson(res, 403, { error: "Admin API secret is required." });
+    return;
+  }
+  const payload = await readJsonBody(req);
+  const plan = String(payload.plan || "").toLowerCase();
+  const days = Number(payload.days || redemptionPlanDays(plan));
+  const count = Math.max(1, Math.min(500, Number(payload.count || 1)));
+  const maxUses = Math.max(1, Math.min(1000, Number(payload.maxUses || 1)));
+  if (!days) {
+    sendJson(res, 400, { error: "Plan must be week, month, or year, or provide days." });
+    return;
+  }
+  const db = getAppDb();
+  const createdAt = nowIso();
+  const expiresAt = payload.expiresAt ? new Date(payload.expiresAt).toISOString() : null;
+  const codes = [];
+  for (let i = 0; i < count; i += 1) {
+    const code = String(payload.prefix || "IELTS").toUpperCase() + "-" + crypto.randomBytes(6).toString("base64url").toUpperCase();
+    db.prepare("INSERT INTO redemption_codes (code, plan, days, max_uses, created_at, expires_at) VALUES (?, ?, ?, ?, ?, ?)")
+      .run(code, plan || `${days}d`, days, maxUses, createdAt, expiresAt);
+    codes.push(code);
+  }
+  sendJson(res, 200, { ok: true, codes, plan: plan || `${days}d`, days, maxUses });
+}
+
+async function handleDraftsApi(req, res) {
+  const user = requireUser(req);
+  const db = getAppDb();
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  if (req.method === "GET") {
+    const rows = db.prepare("SELECT id, draft_key, module, title, payload_json, updated_at FROM drafts WHERE user_id = ? ORDER BY updated_at DESC LIMIT 100").all(user.id);
+    sendJson(res, 200, {
+      drafts: rows.map((row) => ({
+        id: row.id,
+        key: row.draft_key,
+        module: row.module,
+        title: row.title,
+        payload: JSON.parse(row.payload_json || "{}"),
+        updatedAt: row.updated_at,
+      })),
+    });
+    return;
+  }
+  if (req.method === "POST") {
+    const payload = await readJsonBody(req);
+    const key = String(payload.key || "").slice(0, 160);
+    const moduleName = String(payload.module || "practice").slice(0, 40);
+    const title = String(payload.title || "Untitled draft").slice(0, 180);
+    if (!key) {
+      sendJson(res, 400, { error: "Draft key is required." });
+      return;
+    }
+    const updatedAt = nowIso();
+    db.prepare(`
+      INSERT INTO drafts (user_id, draft_key, module, title, payload_json, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?)
+      ON CONFLICT(user_id, draft_key) DO UPDATE SET module = excluded.module, title = excluded.title, payload_json = excluded.payload_json, updated_at = excluded.updated_at
+    `).run(user.id, key, moduleName, title, JSON.stringify(payload.payload || {}), updatedAt);
+    sendJson(res, 200, { ok: true, updatedAt });
+    return;
+  }
+  if (req.method === "DELETE") {
+    const key = String(url.searchParams.get("key") || "");
+    if (!key) {
+      sendJson(res, 400, { error: "Draft key is required." });
+      return;
+    }
+    db.prepare("DELETE FROM drafts WHERE user_id = ? AND draft_key = ?").run(user.id, key);
+    sendJson(res, 200, { ok: true });
+    return;
+  }
+  sendJson(res, 405, { error: "Method not allowed" });
+}
+
+async function handleVocabularyApi(req, res) {
+  const user = requireUser(req);
+  const db = getAppDb();
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  if (req.method === "GET") {
+    const rows = db.prepare("SELECT id, term, context, explanation, source, created_at, updated_at FROM vocabulary_items WHERE user_id = ? ORDER BY updated_at DESC LIMIT 300").all(user.id);
+    sendJson(res, 200, { items: rows });
+    return;
+  }
+  if (req.method === "POST") {
+    const payload = await readJsonBody(req);
+    const term = String(payload.term || "").trim().slice(0, 120);
+    if (!term) {
+      sendJson(res, 400, { error: "Vocabulary term is required." });
+      return;
+    }
+    const source = String(payload.source || "Help").slice(0, 80);
+    const updatedAt = nowIso();
+    db.prepare(`
+      INSERT INTO vocabulary_items (user_id, term, context, explanation, source, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(user_id, term, source) DO UPDATE SET context = excluded.context, explanation = excluded.explanation, updated_at = excluded.updated_at
+    `).run(user.id, term, String(payload.context || "").slice(0, 1000), String(payload.explanation || "").slice(0, 3000), source, updatedAt, updatedAt);
+    sendJson(res, 200, { ok: true });
+    return;
+  }
+  if (req.method === "DELETE") {
+    const id = Number(url.searchParams.get("id"));
+    if (!Number.isFinite(id)) {
+      sendJson(res, 400, { error: "Vocabulary id is required." });
+      return;
+    }
+    db.prepare("DELETE FROM vocabulary_items WHERE user_id = ? AND id = ?").run(user.id, id);
+    sendJson(res, 200, { ok: true });
+    return;
+  }
+  sendJson(res, 405, { error: "Method not allowed" });
+}
+
 function resolveReportFont() {
   const candidates = [
+    process.env.IELTSIST_REPORT_FONT,
+    path.join(__dirname, "data", "fonts", "NotoSansCJKsc-Regular.otf"),
+    path.join(__dirname, "data", "fonts", "NotoSansSC-Regular.otf"),
+    path.join(__dirname, "data", "fonts", "NotoSansSC-Regular.ttf"),
+    "/usr/share/fonts/truetype/arphic-gbsn00lp/gbsn00lp.ttf",
+    "/usr/share/fonts/truetype/arphic-gkai00mp/gkai00mp.ttf",
+    "/usr/share/fonts/truetype/lxgw-wenkai/LXGWWenKai-Regular.ttf",
+    "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+    "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc",
+    "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
+    "/usr/share/fonts/truetype/wqy/wqy-microhei.ttc",
+    "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc",
+    "/usr/share/fonts/opentype/adobe-source-han-sans/SourceHanSansCN-Regular.otf",
     "C:\\Windows\\Fonts\\NotoSansSC-VF.ttf",
-    "C:\\Windows\\Fonts\\msyh.ttc",
     "C:\\Windows\\Fonts\\simhei.ttf",
     "C:\\Windows\\Fonts\\Deng.ttf",
+    "C:\\Windows\\Fonts\\msyh.ttc",
   ];
-  return candidates.find((file) => fs.existsSync(file)) || null;
+  return candidates.filter(Boolean).find((file) => fs.existsSync(file)) || null;
 }
 
 function createReportPdfDataUrl(title, body, options = {}) {
@@ -899,20 +1776,45 @@ function serveStatic(req, res) {
                     ? "application/pdf"
                     : ext === ".mp3"
                       ? "audio/mpeg"
+                      : ext === ".m4a"
+                        ? "audio/mp4"
+                        : ext === ".wav"
+                          ? "audio/wav"
                       : "application/octet-stream";
-    const cacheControl = ext === ".html"
-      ? "no-cache"
-      : "public, max-age=31536000, immutable";
-    res.writeHead(200, {
-      "content-type": type,
-      "content-length": data.length,
-      "cache-control": cacheControl,
-    });
-    if (req.method === "HEAD") {
-      res.end();
+    if ([".mp3", ".m4a", ".wav"].includes(ext)) {
+      serveFile(req, res, filePath, type);
       return;
     }
-    res.end(data);
+    const cacheControl = ext === ".html"
+      ? "no-store"
+      : "public, max-age=31536000, immutable";
+    const acceptsGzip = /\bgzip\b/i.test(req.headers["accept-encoding"] || "");
+    const gzipEligible = [".html", ".css", ".js", ".json", ".svg"].includes(ext) && data.length > 1024;
+    const sendBody = (body, extraHeaders = {}) => {
+      res.writeHead(200, {
+        "content-type": type,
+        "content-length": body.length,
+        "cache-control": cacheControl,
+        ...(gzipEligible ? { "vary": "Accept-Encoding" } : {}),
+        ...extraHeaders,
+      });
+      if (req.method === "HEAD") {
+        res.end();
+        return;
+      }
+      res.end(body);
+    };
+    if (acceptsGzip && gzipEligible) {
+      zlib.gzip(data, { level: 6 }, (gzipErr, compressed) => {
+        if (gzipErr) {
+          sendBody(data);
+          return;
+        }
+        sendBody(compressed, { "content-encoding": "gzip" });
+      });
+      return;
+    }
+    sendBody(data);
   });
 }
 
@@ -939,7 +1841,7 @@ function serveFile(req, res, filePath, contentType) {
         "content-length": end - start + 1,
         "content-range": `bytes ${start}-${end}/${stat.size}`,
         "accept-ranges": "bytes",
-        "cache-control": "public, max-age=3600",
+        "cache-control": "public, max-age=31536000, immutable",
       });
       if (req.method === "HEAD") {
         res.end();
@@ -952,7 +1854,7 @@ function serveFile(req, res, filePath, contentType) {
       "content-type": contentType,
       "content-length": stat.size,
       "accept-ranges": "bytes",
-      "cache-control": "public, max-age=3600",
+      "cache-control": "public, max-age=31536000, immutable",
     });
     if (req.method === "HEAD") {
       res.end();
@@ -991,16 +1893,17 @@ function resolvePortableLocalFilePath(filePath) {
   return filePath;
 }
 
-async function callOpenAI({ system, user, temperature = 0.3 }) {
-  if (!OPENAI_API_KEY) return null;
-  const chatResponse = await fetch(`${OPENAI_BASE_URL}/chat/completions`, {
+async function callOpenAI({ system, user, temperature = 0.3, apiKey = OPENAI_API_KEY, baseUrl = OPENAI_BASE_URL, model = MODEL, allowResponsesFallback = true }) {
+  if (!apiKey) return null;
+  const normalizedBaseUrl = String(baseUrl || "").replace(/\/+$/, "");
+  const chatResponse = await fetch(`${normalizedBaseUrl}/chat/completions`, {
     method: "POST",
     headers: {
-      authorization: `Bearer ${OPENAI_API_KEY}`,
+      authorization: `Bearer ${apiKey}`,
       "content-type": "application/json",
     },
     body: JSON.stringify({
-      model: MODEL,
+      model,
       messages: [
         { role: "system", content: system },
         { role: "user", content: user },
@@ -1016,14 +1919,17 @@ async function callOpenAI({ system, user, temperature = 0.3 }) {
   }
 
   const chatError = await chatResponse.text();
-  const response = await fetch(`${OPENAI_BASE_URL}/responses`, {
+  if (!allowResponsesFallback) {
+    throw new Error(`AI API failed. chat=${chatResponse.status}: ${chatError.slice(0, 500)}`);
+  }
+  const response = await fetch(`${normalizedBaseUrl}/responses`, {
     method: "POST",
     headers: {
-      authorization: `Bearer ${OPENAI_API_KEY}`,
+      authorization: `Bearer ${apiKey}`,
       "content-type": "application/json",
     },
     body: JSON.stringify({
-      model: MODEL,
+      model,
       input: [
         { role: "system", content: system },
         { role: "user", content: user },
@@ -1047,6 +1953,349 @@ async function callOpenAI({ system, user, temperature = 0.3 }) {
     }
   }
   return chunks.join("\n").trim();
+}
+
+async function callWritingAI({ system, user, temperature = 0.25 }) {
+  return callOpenAI({
+    system,
+    user,
+    temperature,
+    apiKey: WRITING_AI_API_KEY,
+    baseUrl: WRITING_AI_BASE_URL,
+    model: WRITING_AI_MODEL,
+    allowResponsesFallback: false,
+  });
+}
+
+function parseImageDataUrl(dataUrl) {
+  const match = String(dataUrl || "").match(/^data:image\/(?:png|jpeg|jpg|webp);base64,([A-Za-z0-9+/=]+)$/);
+  if (!match) {
+    const error = new Error("Invalid screenshot data.");
+    error.statusCode = 400;
+    throw error;
+  }
+  const buffer = Buffer.from(match[1], "base64");
+  if (!buffer.length || buffer.length > 12 * 1024 * 1024) {
+    const error = new Error("Screenshot is empty or too large.");
+    error.statusCode = 400;
+    throw error;
+  }
+  return buffer;
+}
+
+async function recognizeHelpImage(imageBuffer) {
+  const worker = await createWorker("eng");
+  try {
+    const result = await worker.recognize(imageBuffer);
+    return String(result?.data?.text || "").replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+  } finally {
+    await worker.terminate();
+  }
+}
+
+function localHelpExplanation(ocrText, warning = "") {
+  const clean = String(ocrText || "").trim();
+  if (!clean) {
+    return [
+      "I could not recognize enough text from this screenshot.",
+      "Try selecting a tighter area around the question text, or type the sentence/question in the chat box.",
+      warning ? `Local note: ${warning}` : "",
+    ].filter(Boolean).join("\n");
+  }
+  return [
+    "Recognized text:",
+    clean,
+    "",
+    "Local mode: AI explanation is unavailable right now. You can ask a follow-up question, or retry after the AI service recovers.",
+    warning ? `Local note: ${warning}` : "",
+  ].filter(Boolean).join("\n");
+}
+
+function compactHelpText(value, maxLength = 12000) {
+  const clean = String(value || "").replace(/\r\n?/g, "\n").replace(/[ \t]+/g, " ").replace(/\n{3,}/g, "\n\n").trim();
+  return clean.length > maxLength ? `${clean.slice(0, maxLength)}\n...[truncated]` : clean;
+}
+
+function normalizeHelpContext(value) {
+  if (!value || typeof value !== "object") return {};
+  const reading = value.reading && typeof value.reading === "object" ? value.reading : null;
+  const listening = value.listening && typeof value.listening === "object" ? value.listening : null;
+  const normalizeQuestions = (questions) => Array.isArray(questions)
+    ? questions.slice(0, 40).map((question, index) => ({
+        number: Number(question.number || index + 1),
+        id: String(question.id || `q${index + 1}`).slice(0, 40),
+        question: String(question.question || "").slice(0, 300),
+        expectedAnswer: String(question.expectedAnswer || "").slice(0, 160),
+        studentAnswer: String(question.studentAnswer || "").slice(0, 160),
+      }))
+    : [];
+  return {
+    activeView: String(value.activeView || "").slice(0, 40),
+    activeModule: String(value.activeModule || "").slice(0, 40),
+    reading: reading ? {
+      module: "reading",
+      mode: String(reading.mode || "").slice(0, 40),
+      id: String(reading.id || "").slice(0, 80),
+      title: String(reading.title || "").slice(0, 180),
+      source: String(reading.source || "").slice(0, 120),
+      period: String(reading.period || "").slice(0, 80),
+      questions: normalizeQuestions(reading.questions),
+      paperText: compactHelpText(reading.paperText || "", 18000),
+    } : null,
+    listening: listening ? {
+      module: "listening",
+      mode: String(listening.mode || "").slice(0, 40),
+      id: String(listening.id || "").slice(0, 80),
+      title: String(listening.title || "").slice(0, 180),
+      source: String(listening.source || "").slice(0, 120),
+      period: String(listening.period || "").slice(0, 80),
+      activeSection: String(listening.activeSection || "").slice(0, 20),
+      audioTime: Number.isFinite(Number(listening.audioTime)) ? Number(listening.audioTime) : null,
+      questions: normalizeQuestions(listening.questions),
+      questionPaper: compactHelpText(listening.questionPaper || "", 16000),
+      audioScript: compactHelpText(listening.audioScript || "", 16000),
+    } : null,
+  };
+}
+
+function helpContextBlock(helpContext) {
+  const context = normalizeHelpContext(helpContext);
+  if (!context.reading && !context.listening) return "Structured app context: no current Reading or Listening paper context was detected.";
+  if (context.listening && (!context.reading || context.activeModule === "listening")) {
+    const listening = context.listening;
+    const listeningQuestionLines = listening.questions
+      .map((question) => `Q${question.number}: ${question.question || "(question text unavailable)"} | key: ${question.expectedAnswer || "(no key imported)"} | student: ${question.studentAnswer || "(blank)"}`)
+      .join("\n");
+    return [
+      "Structured app context:",
+      "Current module: Listening",
+      `Paper: ${[listening.title, listening.source, listening.period].filter(Boolean).join(" - ") || listening.id || "(unknown)"}`,
+      listening.activeSection ? `Active section: ${listening.activeSection}` : "",
+      Number.isFinite(Number(listening.audioTime)) ? `Audio time: ${listening.audioTime}s` : "",
+      "",
+      "Answer key and student answers:",
+      listeningQuestionLines || "(no question table available)",
+      "",
+      "Listening question paper OCR text:",
+      listening.questionPaper || "(no question paper text available)",
+      "",
+      "Listening audioscript / ASR caption text:",
+      listening.audioScript || "(no audioscript or ASR caption text available)",
+    ].filter((line) => line !== "").join("\n");
+  }
+  const reading = context.reading;
+  const questionLines = reading.questions
+    .map((question) => `Q${question.number}: ${question.question || "(question text unavailable)"} | key: ${question.expectedAnswer || "(no key imported)"} | student: ${question.studentAnswer || "(blank)"}`)
+    .join("\n");
+  return [
+    "Structured app context:",
+    `Current module: Reading`,
+    `Paper: ${[reading.title, reading.source, reading.period].filter(Boolean).join(" · ") || reading.id || "(unknown)"}`,
+    "",
+    "Answer key and student answers:",
+    questionLines || "(no question table available)",
+    "",
+    "Reading paper / passage OCR text:",
+    reading.paperText || "(no passage text available)",
+  ].join("\n");
+}
+
+async function buildHelpExplanation(ocrText, helpContext = {}) {
+  const clean = String(ocrText || "").trim();
+  if (!clean) return { mode: "local", answer: localHelpExplanation(clean) };
+  let ai = null;
+  let warning = "";
+  try {
+    ai = await callOpenAI({
+      system: [
+        "You are an IELTS tutor inside an IELTS practice web app.",
+        "Explain the selected question area clearly and concisely.",
+        "The student is Chinese, so use Chinese for explanations and translations, but keep IELTS keywords in English.",
+        "The structured Reading/Listening context is authoritative app data. Use it even if the screenshot OCR is short, partial, or noisy.",
+        "If it is a Reading question or the student asks why an answer is correct, use the structured Reading context: identify the question number, correct answer, student's answer if present, source sentence/paragraph, keyword-paraphrase link, and why wrong options or wrong answers fail.",
+        "If it is a Listening question, use the structured Listening context: identify the question number, correct answer, student's answer if present, relevant question-paper wording, audioscript/ASR evidence, distractors, spelling/plural/number issues, and what the student should listen for.",
+        "For Reading/Listening answer explanations, do not just translate. Give evidence logic: question focus -> locating/listening keywords -> matching/paraphrase -> answer conclusion.",
+        "Do not guess beyond the OCR/context. If the exact source sentence is not visible, say what is missing and explain from the available answer key and recognized text only.",
+        "Keep the answer compact and student-facing. Avoid raw Markdown decorations like ### headings or excessive **bold**. Use short labeled sections and simple bullets only when useful.",
+      ].join("\n"),
+      user: [
+        helpContextBlock(helpContext),
+        "",
+        "OCR text from the student's selected screenshot:",
+        clean,
+      ].join("\n"),
+      temperature: 0.2,
+    });
+  } catch (error) {
+    warning = error.message || "AI unavailable";
+  }
+  return {
+    mode: ai ? "ai" : "local",
+    answer: ai || localHelpExplanation(clean, warning),
+    warning,
+  };
+}
+
+async function handleHelpExplain(req, res) {
+  const payload = JSON.parse((await readBody(req)) || "{}");
+  const imageBuffer = parseImageDataUrl(payload.imageDataUrl);
+  const helpContext = normalizeHelpContext(payload.helpContext);
+  let ocrText = "";
+  let ocrWarning = "";
+  try {
+    ocrText = await recognizeHelpImage(imageBuffer);
+  } catch (error) {
+    ocrWarning = error.message || "OCR failed";
+  }
+  const explanation = ocrText
+    ? await buildHelpExplanation(ocrText, helpContext)
+    : { mode: "local", answer: localHelpExplanation("", ocrWarning), warning: ocrWarning };
+  sendJson(res, 200, {
+    ocrText,
+    answer: explanation.answer,
+    mode: explanation.mode,
+    warning: explanation.warning || ocrWarning,
+  });
+}
+
+async function handleHelpChat(req, res) {
+  const payload = JSON.parse((await readBody(req)) || "{}");
+  const message = String(payload.message || "").trim();
+  const contextText = String(payload.contextText || "").trim();
+  const helpContext = normalizeHelpContext(payload.helpContext);
+  const history = Array.isArray(payload.history) ? payload.history.slice(-8) : [];
+  const hasImage = Boolean(payload.imageDataUrl);
+  if (!message && !hasImage) {
+    sendJson(res, 400, { error: "Message is required." });
+    return;
+  }
+  let imageOcrText = "";
+  let imageOcrWarning = "";
+  if (hasImage) {
+    try {
+      imageOcrText = await recognizeHelpImage(parseImageDataUrl(payload.imageDataUrl));
+    } catch (error) {
+      imageOcrWarning = error.message || "OCR failed";
+    }
+  }
+  let ai = null;
+  let warning = "";
+  try {
+    ai = await callOpenAI({
+      system: [
+        "You are an IELTS tutor helping inside an IELTS practice web app.",
+        "Answer the student's follow-up based on the OCR context, structured app context, and conversation.",
+        "Use Chinese explanations by default. Keep IELTS terms and quoted question words in English.",
+        "The structured Reading/Listening context is authoritative app data. Use it even if the screenshot OCR is short, partial, or noisy.",
+        "Be direct and practical; explain vocabulary, paraphrase, question type, strategy, and answer-location logic when relevant.",
+        "If the student asks why a Reading answer is correct or why their answer is wrong, identify the relevant question number from their message/OCR/history, then use the Reading answer key and passage OCR text to explain: correct answer, source evidence, keyword-paraphrase chain, and why alternatives fail.",
+        "If the student asks a Listening question, identify the relevant question number from their message/OCR/history, then use the Listening answer key, question paper OCR, and audioscript/ASR text to explain: correct answer, audio evidence, distractors, paraphrase, spelling/plural/number format, and how to catch it next time.",
+        "If options A/B/C/D or True/False/Not Given are involved, explain option-by-option only when the option text is available. Otherwise state that the option text is not visible and ask for a screenshot of the options.",
+        "Never invent evidence. If the passage sentence is unavailable, say so and explain from the answer key plus visible OCR only.",
+        "Keep the answer compact and student-facing. Avoid raw Markdown decorations like ### headings or excessive **bold**. Use short labeled sections and simple bullets only when useful.",
+      ].join("\n"),
+      user: [
+        helpContextBlock(helpContext),
+        "",
+        "OCR context:",
+        contextText || "(No OCR context was captured.)",
+        "",
+        "Attached screenshot OCR:",
+        imageOcrText || (hasImage ? "(No readable text recognized from the attached screenshot.)" : "(none)"),
+        "",
+        "Recent conversation:",
+        history.map((item) => `${item.role || "assistant"}: ${item.content || ""}`).join("\n") || "(none)",
+        "",
+        `Student question: ${message}`,
+      ].join("\n"),
+      temperature: 0.25,
+    });
+  } catch (error) {
+    warning = error.message || "AI unavailable";
+  }
+  sendJson(res, 200, {
+    mode: ai ? "ai" : "local",
+    answer: ai || localHelpExplanation([contextText, imageOcrText].filter(Boolean).join("\n\n"), warning || imageOcrWarning),
+    ocrText: imageOcrText,
+    warning: warning || imageOcrWarning,
+  });
+}
+
+async function handleListeningScripts(req, res) {
+  const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+  const payload = req.method === "GET" || req.method === "HEAD"
+    ? {
+        id: url.searchParams.get("id") || "",
+        pageImageUrls: url.searchParams.getAll("pageImageUrl"),
+        allowOcr: url.searchParams.get("allowOcr") !== "false",
+      }
+    : await readJsonBody(req);
+  const id = String(payload.id || "").trim();
+  if (!id) {
+    sendJson(res, 400, { error: "Listening test id is required." });
+    return;
+  }
+  const test = IMPORTED_BANKS.flatMap((bank) => bank.listeningTests || []).find((item) => item.id === id);
+  if (!test) {
+    sendJson(res, 404, { error: "Listening test not found." });
+    return;
+  }
+  const pageImageUrls = Array.isArray(payload.pageImageUrls) ? payload.pageImageUrls.filter(Boolean) : [];
+  const scripts = await resolveListeningScripts(test, pageImageUrls, { allowOcr: payload.allowOcr !== false });
+  sendJson(res, 200, {
+    id,
+    title: test.title || "",
+    source: test.source || "",
+    mode: scripts.mode,
+    available: scripts.available,
+    sourceLabel: scripts.source || "",
+    text: scripts.text || "",
+    sections: scripts.sections || [],
+  });
+}
+
+async function handleListeningAsrCache(req, res) {
+  const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+  if (req.method === "GET") {
+    const id = String(url.searchParams.get("id") || "").trim();
+    const section = String(url.searchParams.get("section") || "").trim();
+    if (!id || !section) {
+      sendJson(res, 400, { error: "Listening id and section are required." });
+      return;
+    }
+    const item = readListeningAsrCache(id, section);
+    sendJson(res, 200, {
+      available: Boolean(item),
+      id,
+      section,
+      text: item?.text || "",
+      timedWords: Array.isArray(item?.timedWords) ? item.timedWords : buildListeningTimedWords(item?.text || ""),
+      sentences: Array.isArray(item?.sentences) ? item.sentences : [],
+      speakers: Array.isArray(item?.speakers) ? item.speakers : [],
+      timing: item?.timing || null,
+      duration: Number.isFinite(Number(item?.duration)) ? Number(item.duration) : 0,
+      source: item?.source || "",
+      model: item?.model || "",
+      mode: item?.mode || "",
+      version: item?.version || 0,
+      updatedAt: item?.updatedAt || "",
+    });
+    return;
+  }
+  if (req.method === "POST") {
+    const payload = await readJsonBody(req);
+    const id = String(payload.id || "").trim();
+    const section = String(payload.section || "").trim();
+    const text = String(payload.text || "").trim();
+    if (!id || !section || !text) {
+      sendJson(res, 400, { error: "Listening id, section, and text are required." });
+      return;
+    }
+    const item = writeListeningAsrCache({ id, section, text, source: LISTENING_ASR_CACHE_SOURCE });
+    sendJson(res, 200, { ok: Boolean(item), item });
+    return;
+  }
+  sendJson(res, 405, { error: "Method not allowed" });
 }
 
 async function synthesizeFish(text, voice = "examiner") {
@@ -1118,6 +2367,68 @@ function scoreObjective(questions, answers = {}) {
 
 function wordCount(text) {
   return (text || "").trim().split(/\s+/).filter(Boolean).length;
+}
+
+function extractSpeakingBand(text) {
+  const clean = String(text || "");
+  const directPatterns = [
+    /overall\s*band\s*[:：]?\s*(?:band\s*)?([0-9](?:\.\d)?)/i,
+    /overall\s*(?:speaking\s*)?band\s*(?:score)?\s*(?:is|=|:|：|-)?\s*([0-9](?:\.\d)?)/i,
+    /overall\s*(?:speaking\s*)?(?:score|result)\s*(?:is|=|:|：|-)?\s*(?:band\s*)?([0-9](?:\.\d)?)/i,
+    /final\s*(?:speaking\s*)?(?:band|score)\s*(?:is|=|:|：|-)?\s*([0-9](?:\.\d)?)/i,
+    /(?:speaking\s*)?band\s*score\s*(?:is|=|:|：|-)?\s*([0-9](?:\.\d)?)/i,
+  ];
+  for (const pattern of directPatterns) {
+    const match = clean.match(pattern);
+    const value = Number.parseFloat(match?.[1]);
+    if (Number.isFinite(value) && value >= 0 && value <= 9) {
+      return Math.round(value * 2) / 2;
+    }
+  }
+  const criterionPatterns = [
+    /(?:fluency\s*(?:and|&)\s*coherence|\bfc\b)\s*(?:band|score)?\s*(?:is|=|:|：|-)?\s*([0-9](?:\.\d)?)/i,
+    /(?:lexical\s*resource|\blr\b)\s*(?:band|score)?\s*(?:is|=|:|：|-)?\s*([0-9](?:\.\d)?)/i,
+    /(?:grammatical\s*range\s*(?:and|&)\s*accuracy|\bgra\b)\s*(?:band|score)?\s*(?:is|=|:|：|-)?\s*([0-9](?:\.\d)?)/i,
+    /(?:pronunciation|\bp\b)\s*(?:band|score)?\s*(?:is|=|:|：|-)?\s*([0-9](?:\.\d)?)/i,
+  ];
+  const scores = criterionPatterns
+    .map((pattern) => Number.parseFloat(clean.match(pattern)?.[1]))
+    .filter((score) => Number.isFinite(score) && score >= 0 && score <= 9);
+  if (scores.length === 4) {
+    const avg = scores.reduce((sum, score) => sum + score, 0) / 4;
+    return Math.round(avg * 2) / 2;
+  }
+  const heuristic = wordCount(clean) > 180 ? 6.5 : 6.0;
+  return Math.round(heuristic * 2) / 2;
+}
+
+function extractSpeakingBandStable(text) {
+  const clean = String(text || "").replace(/\*/g, " ");
+  const directPatterns = [
+    /overall\s*speaking\s*band\s*(?:score)?\s*(?:is|=|:|-)?\s*([0-9](?:\.\d)?)/i,
+    /overall\s*band\s*(?:score)?\s*(?:is|=|:|-)?\s*([0-9](?:\.\d)?)/i,
+    /overall\s*(?:speaking\s*)?(?:score|result)\s*(?:is|=|:|-)?\s*(?:band\s*)?([0-9](?:\.\d)?)/i,
+    /final\s*(?:speaking\s*)?(?:band|score)\s*(?:is|=|:|-)?\s*([0-9](?:\.\d)?)/i,
+    /(?:speaking\s*)?band\s*score\s*(?:is|=|:|-)?\s*([0-9](?:\.\d)?)/i,
+  ];
+  for (const pattern of directPatterns) {
+    const value = Number.parseFloat(clean.match(pattern)?.[1]);
+    if (Number.isFinite(value) && value >= 0 && value <= 9) return Math.round(value * 2) / 2;
+  }
+  const criterionPatterns = [
+    /(?:fluency\s*(?:and|&)\s*coherence|\bfc\b)\s*(?:band|score)?\s*(?:is|=|:|-)?\s*([0-9](?:\.\d)?)/i,
+    /(?:lexical\s*resource|\blr\b)\s*(?:band|score)?\s*(?:is|=|:|-)?\s*([0-9](?:\.\d)?)/i,
+    /(?:grammatical\s*range\s*(?:and|&)\s*accuracy|\bgra\b)\s*(?:band|score)?\s*(?:is|=|:|-)?\s*([0-9](?:\.\d)?)/i,
+    /(?:pronunciation|\bp\b)\s*(?:band|score)?\s*(?:is|=|:|-)?\s*([0-9](?:\.\d)?)/i,
+  ];
+  const scores = criterionPatterns
+    .map((pattern) => Number.parseFloat(clean.match(pattern)?.[1]))
+    .filter((score) => Number.isFinite(score) && score >= 0 && score <= 9);
+  if (scores.length === 4) {
+    const avg = scores.reduce((sum, score) => sum + score, 0) / 4;
+    return Math.round(avg * 2) / 2;
+  }
+  return extractSpeakingBand(text);
 }
 
 function localWritingFeedback(prompt, essay, warning = "") {
@@ -1243,7 +2554,10 @@ async function handleWriting(req, res) {
   }
   const feedback = ai || localWritingFeedback(prompt, essay, warning);
   const pdfDataUrl = await createWritingReportPdfDataUrl(prompt, feedback);
-  sendJson(res, 200, { mode: ai ? "ai" : "local", feedback, pdfDataUrl, pdfFileName: "ielts-writing-feedback.pdf", warning });
+  sendJson(res, 200, addPdfDownloadUrl(
+    { mode: ai ? "ai" : "local", feedback, pdfDataUrl, pdfFileName: "ielts-writing-feedback.pdf", warning },
+    "ielts-writing-feedback.pdf"
+  ));
 }
 
 async function handleSpeaking(req, res) {
@@ -1280,7 +2594,8 @@ async function handleSpeaking(req, res) {
   } catch (error) {
     warning = error.message || "AI unavailable";
   }
-  sendJson(res, 200, { mode: ai ? "ai" : "local", feedback: ai || local, warning });
+  const feedback = ai || local;
+  sendJson(res, 200, { mode: ai ? "ai" : "local", feedback, band: extractSpeakingBandStable(feedback), warning });
 }
 
 async function handleSpeakingTurn(req, res) {
@@ -1468,7 +2783,7 @@ async function handleFullExam(req, res) {
     speaking.selfReportedBand ? `Speaking self-reported: Band ${speaking.selfReportedBand}` : "Speaking self-reported: not submitted",
   ].join("\n");
   const pdfDataUrl = await createReportPdfDataUrl("IELTS Full Exam Report", reportBody);
-  sendJson(res, 200, {
+  sendJson(res, 200, addPdfDownloadUrl({
     mode: ai ? "ai" : "local",
     feedback,
     pdfDataUrl,
@@ -1477,7 +2792,7 @@ async function handleFullExam(req, res) {
     reading,
     speaking,
     warning,
-  });
+  }, "ielts-full-exam-report.pdf"));
 }
 
 function createWritingReportPdfDataUrl(prompt, body) {
@@ -1578,18 +2893,32 @@ function fullExamSystemPrompt() {
   ].join("\n");
 }
 
-async function handleWriting(req, res) {
-  const payload = JSON.parse((await readBody(req)) || "{}");
+const writingFeedbackJobs = new Map();
+const WRITING_FEEDBACK_JOB_TTL_MS = 30 * 60 * 1000;
+
+function cleanupWritingFeedbackJobs() {
+  const now = Date.now();
+  for (const [id, job] of writingFeedbackJobs) {
+    if (now - job.createdAt > WRITING_FEEDBACK_JOB_TTL_MS) writingFeedbackJobs.delete(id);
+  }
+}
+
+function parseWritingPayload(payload) {
   const prompt = String(payload.prompt || "").trim();
   const essay = String(payload.essay || "").trim();
   if (!prompt || !essay) {
-    sendJson(res, 400, { error: "Prompt and essay are both required." });
-    return;
+    const error = new Error("Prompt and essay are both required.");
+    error.statusCode = 400;
+    throw error;
   }
+  return { prompt, essay };
+}
+
+async function buildWritingFeedbackResult(prompt, essay) {
   let ai = null;
   let warning = "";
   try {
-    ai = await callOpenAI({
+    ai = await callWritingAI({
       system: writingSystemPrompt(),
       user: `Prompt: ${prompt}\n\nStudent essay:\n${essay}`,
     });
@@ -1598,7 +2927,63 @@ async function handleWriting(req, res) {
   }
   const feedback = ai || localWritingFeedback(prompt, essay, warning);
   const pdfDataUrl = await createWritingReportPdfDataUrl(prompt, feedback);
-  sendJson(res, 200, { mode: ai ? "ai" : "local", feedback, pdfDataUrl, pdfFileName: "ielts-writing-feedback.pdf", warning });
+  return addPdfDownloadUrl(
+    { mode: ai ? `ai:${WRITING_AI_MODEL}` : "local", feedback, pdfDataUrl, pdfFileName: "ielts-writing-feedback.pdf", warning },
+    "ielts-writing-feedback.pdf"
+  );
+}
+
+async function handleWriting(req, res) {
+  const payload = JSON.parse((await readBody(req)) || "{}");
+  const { prompt, essay } = parseWritingPayload(payload);
+  sendJson(res, 200, await buildWritingFeedbackResult(prompt, essay));
+}
+
+async function handleWritingJobStart(req, res) {
+  cleanupWritingFeedbackJobs();
+  const payload = JSON.parse((await readBody(req)) || "{}");
+  const { prompt, essay } = parseWritingPayload(payload);
+  const id = crypto.randomUUID();
+  const job = {
+    id,
+    status: "pending",
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    result: null,
+    error: "",
+  };
+  writingFeedbackJobs.set(id, job);
+  buildWritingFeedbackResult(prompt, essay)
+    .then((result) => {
+      job.status = "done";
+      job.updatedAt = Date.now();
+      job.result = result;
+    })
+    .catch((error) => {
+      job.status = "error";
+      job.updatedAt = Date.now();
+      job.error = error.message || "Writing feedback failed";
+    });
+  sendJson(res, 202, { jobId: id, status: job.status, message: "Writing feedback job started." });
+}
+
+function handleWritingJobStatus(req, res) {
+  cleanupWritingFeedbackJobs();
+  const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+  const id = decodeURIComponent(url.pathname.replace(/^\/api\/writing\/feedback\/job\//, ""));
+  const job = writingFeedbackJobs.get(id);
+  if (!job) {
+    sendJson(res, 404, { error: "Writing feedback job not found or expired." });
+    return;
+  }
+  sendJson(res, 200, {
+    jobId: job.id,
+    status: job.status,
+    createdAt: job.createdAt,
+    updatedAt: job.updatedAt,
+    result: job.result,
+    error: job.error,
+  });
 }
 
 async function handleSpeaking(req, res) {
@@ -1633,7 +3018,8 @@ async function handleSpeaking(req, res) {
   } catch (error) {
     warning = error.message || "AI unavailable";
   }
-  sendJson(res, 200, { mode: ai ? "ai" : "local", feedback: ai || local, warning });
+  const feedback = ai || local;
+  sendJson(res, 200, { mode: ai ? "ai" : "local", feedback, band: extractSpeakingBandStable(feedback), warning });
 }
 
 async function handleFullExam(req, res) {
@@ -1703,7 +3089,7 @@ async function handleFullExam(req, res) {
     speaking.selfReportedBand ? `Speaking self-reported: Band ${speaking.selfReportedBand}` : "Speaking self-reported: not submitted",
   ].join("\n");
   const pdfDataUrl = await createReportPdfDataUrl("IELTS Full Exam Report", reportBody);
-  sendJson(res, 200, {
+  sendJson(res, 200, addPdfDownloadUrl({
     mode: ai ? "ai" : "local",
     feedback,
     pdfDataUrl,
@@ -1712,13 +3098,67 @@ async function handleFullExam(req, res) {
     reading,
     speaking,
     warning,
-  });
+  }, "ielts-full-exam-report.pdf"));
 }
 
 const server = http.createServer(async (req, res) => {
   try {
-    if (req.method === "GET" && req.url.startsWith("/api/tasks")) {
-      sendCompressedJson(req, res, 200, tasksPayload(), "private, max-age=300");
+    if (req.method === "OPTIONS") {
+      res.writeHead(204, {
+        "access-control-allow-origin": "*",
+        "access-control-allow-methods": "GET,POST,DELETE,HEAD,OPTIONS",
+        "access-control-allow-headers": "content-type,authorization",
+        "access-control-max-age": "86400",
+      });
+      res.end();
+      return;
+    }
+    if (req.method === "GET" && req.url === "/healthz") {
+      sendJson(res, 200, {
+        ok: true,
+        name: "IELTS-ist",
+        uptimeSeconds: Math.round((Date.now() - STARTED_AT) / 1000),
+        now: new Date().toISOString(),
+      });
+      return;
+    }
+    if (req.method === "GET" && req.url === "/api/qwen-runtime") {
+      sendJson(res, 200, {
+        ok: true,
+        realtimeModel: QWEN_REALTIME_MODEL,
+        asrModel: QWEN_ASR_MODEL,
+        webrtcMode: QWEN_WEBRTC_MODE,
+        webrtcEnabled: QWEN_WEBRTC_MODE !== "off",
+        exchangeProxyConfigured: !!QWEN_WEBRTC_EXCHANGE_PROXY_URL,
+      });
+      return;
+    }
+    if (req.url.startsWith("/api/auth/") || req.url === "/api/me") {
+      await handleAuthApi(req, res);
+      return;
+    }
+    if (req.method === "POST" && req.url === "/api/redeem") {
+      await handleRedeem(req, res);
+      return;
+    }
+    if (req.method === "POST" && req.url === "/api/admin/redemption-codes") {
+      await handleAdminRedemptionCodes(req, res);
+      return;
+    }
+    if (req.url.startsWith("/api/drafts")) {
+      await handleDraftsApi(req, res);
+      return;
+    }
+    if (req.url.startsWith("/api/vocabulary")) {
+      await handleVocabularyApi(req, res);
+      return;
+    }
+    if ((req.method === "GET" || req.method === "HEAD") && req.url.startsWith("/api/tasks")) {
+      sendTasksPayload(req, res);
+      return;
+    }
+    if ((req.method === "GET" || req.method === "HEAD") && req.url.startsWith("/api/report/pdf/")) {
+      handleReportPdfDownload(req, res);
       return;
     }
     if ((req.method === "GET" || req.method === "HEAD") && req.url === "/cambridge15/pdf") {
@@ -1742,6 +3182,14 @@ const server = http.createServer(async (req, res) => {
       serveFile(req, res, resolved, "audio/mpeg");
       return;
     }
+    if (req.method === "POST" && req.url === "/api/writing/feedback/start") {
+      await handleWritingJobStart(req, res);
+      return;
+    }
+    if (req.method === "GET" && req.url.startsWith("/api/writing/feedback/job/")) {
+      handleWritingJobStatus(req, res);
+      return;
+    }
     if (req.method === "POST" && req.url === "/api/writing/feedback") {
       await handleWriting(req, res);
       return;
@@ -1762,8 +3210,28 @@ const server = http.createServer(async (req, res) => {
       await handleSpeakingRecording(req, res);
       return;
     }
+    if (req.method === "POST" && req.url === "/api/help/explain") {
+      await handleHelpExplain(req, res);
+      return;
+    }
+    if (req.method === "POST" && req.url === "/api/help/chat") {
+      await handleHelpChat(req, res);
+      return;
+    }
+    if ((req.method === "GET" || req.method === "HEAD" || req.method === "POST") && req.url.startsWith("/api/listening/scripts")) {
+      await handleListeningScripts(req, res);
+      return;
+    }
+    if (req.url.startsWith("/api/listening/asr-cache")) {
+      await handleListeningAsrCache(req, res);
+      return;
+    }
     if (req.url.startsWith("/api/qwen-session")) {
       await handleQwenHttpSession(req, res);
+      return;
+    }
+    if (req.url === "/api/qwen-webrtc-offer") {
+      await handleQwenWebRtcOffer(req, res);
       return;
     }
     if (req.method === "POST" && req.url === "/api/listening/score") {
@@ -1784,28 +3252,121 @@ const server = http.createServer(async (req, res) => {
     }
     sendJson(res, 405, { error: "Method not allowed" });
   } catch (error) {
-    sendJson(res, 500, { error: error.message || "Server error" });
+    sendJson(res, error.statusCode || 500, { error: error.message || "Server error" });
   }
 });
 
 const qwenWss = new WebSocketServer({ noServer: true });
+const qwenAsrWss = new WebSocketServer({ noServer: true });
 const qwenHttpSessions = new Map();
+
+function createQwenMetrics(source, req) {
+  return {
+    source,
+    sessionId: crypto.randomUUID().slice(0, 8),
+    turnId: 0,
+    audioBytes: 0,
+    audioMessages: 0,
+    committedAudioBytes: 0,
+    committedAudioMessages: 0,
+    commitAt: 0,
+    responseCreatedAt: 0,
+    firstDeltaAt: 0,
+    userAgent: req?.headers?.["user-agent"] || "",
+    remote: req?.headers?.["x-forwarded-for"] || req?.socket?.remoteAddress || "",
+  };
+}
+
+function estimateBase64Bytes(audio) {
+  const text = String(audio || "");
+  return Math.floor((text.length * 3) / 4);
+}
+
+function qwenMetricsLog(metrics, message, extra = {}) {
+  const safeExtra = Object.entries(extra)
+    .filter(([, value]) => value !== undefined && value !== "")
+    .map(([key, value]) => `${key}=${JSON.stringify(value)}`)
+    .join(" ");
+  console.log(`[qwen-turn] session=${metrics.sessionId} source=${metrics.source} turn=${metrics.turnId} ${message}${safeExtra ? ` ${safeExtra}` : ""}`);
+}
+
+function noteQwenAudio(metrics, bytes) {
+  if (!metrics || !Number.isFinite(bytes) || bytes <= 0) return;
+  metrics.audioBytes += bytes;
+  metrics.audioMessages += 1;
+}
+
+function noteQwenCommit(metrics) {
+  if (!metrics) return;
+  metrics.turnId += 1;
+  metrics.commitAt = Date.now();
+  metrics.responseCreatedAt = 0;
+  metrics.firstDeltaAt = 0;
+  metrics.committedAudioBytes = metrics.audioBytes;
+  metrics.committedAudioMessages = metrics.audioMessages;
+  metrics.audioBytes = 0;
+  metrics.audioMessages = 0;
+  qwenMetricsLog(metrics, "commit", {
+    audioBytes: metrics.committedAudioBytes,
+    audioMessages: metrics.committedAudioMessages,
+    remote: metrics.remote,
+    ua: metrics.userAgent.slice(0, 120),
+  });
+}
+
+function noteQwenServerEvent(metrics, type) {
+  if (!metrics || !metrics.commitAt || !type) return;
+  const now = Date.now();
+  if (type === "response.created" && !metrics.responseCreatedAt) {
+    metrics.responseCreatedAt = now;
+    qwenMetricsLog(metrics, "response-created", { ms: now - metrics.commitAt });
+  }
+  if (/^response\.(?:audio|output_audio|audio_transcript|text|output_text)\.delta$/.test(type) && !metrics.firstDeltaAt) {
+    metrics.firstDeltaAt = now;
+    qwenMetricsLog(metrics, "first-delta", { ms: now - metrics.commitAt, event: type });
+  }
+  if (type === "response.done") {
+    qwenMetricsLog(metrics, "response-done", {
+      ms: now - metrics.commitAt,
+      firstDeltaMs: metrics.firstDeltaAt ? metrics.firstDeltaAt - metrics.commitAt : "",
+      responseCreatedMs: metrics.responseCreatedAt ? metrics.responseCreatedAt - metrics.commitAt : "",
+    });
+    metrics.commitAt = 0;
+  }
+}
 
 server.on("upgrade", (req, socket, head) => {
   const url = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);
-  if (url.pathname !== "/qwen-client") {
+  if (url.pathname === "/qwen-client") {
+    qwenWss.handleUpgrade(req, socket, head, (ws) => {
+      qwenWss.emit("connection", ws, req);
+    });
+    return;
+  }
+  if (url.pathname === "/qwen-asr-client") {
+    qwenAsrWss.handleUpgrade(req, socket, head, (ws) => {
+      qwenAsrWss.emit("connection", ws, req);
+    });
+    return;
+  }
+  {
     socket.destroy();
     return;
   }
-  qwenWss.handleUpgrade(req, socket, head, (ws) => {
-    qwenWss.emit("connection", ws, req);
-  });
 });
 
-qwenWss.on("connection", (client) => {
+qwenWss.on("connection", (client, req) => {
   let upstream;
+  const metrics = createQwenMetrics("ws", req);
+  qwenMetricsLog(metrics, "client-connected", {
+    remote: metrics.remote,
+    ua: metrics.userAgent.slice(0, 120),
+  });
 
   const sendClient = (message) => {
+    if (message?.type === "event") noteQwenServerEvent(metrics, message.eventType || message.payload?.type || "");
+    if (message?.type === "status" && message.status === "qwen-open") qwenMetricsLog(metrics, "qwen-open", { region: message.region, model: message.model });
+    if (message?.type === "error") qwenMetricsLog(metrics, "error", { message: String(message.message || "").slice(0, 220) });
     if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify(message));
   };
 
@@ -1820,6 +3381,7 @@ qwenWss.on("connection", (client) => {
         sendClient({ type: "error", message: "Qwen realtime is not connected." });
         return;
       }
+      noteQwenAudio(metrics, raw.length || raw.byteLength || 0);
       upstream.send(JSON.stringify({
         event_id: `event_${crypto.randomUUID()}`,
         type: "input_audio_buffer.append",
@@ -1847,6 +3409,11 @@ qwenWss.on("connection", (client) => {
       return;
     }
 
+    if (event.type === "ping") {
+      sendClient({ type: "status", status: "pong", at: event.at || Date.now() });
+      return;
+    }
+
     if (!upstream || upstream.readyState !== WebSocket.OPEN) {
       sendClient({ type: "error", message: "Qwen realtime is not connected." });
       return;
@@ -1858,6 +3425,7 @@ qwenWss.on("connection", (client) => {
     }
 
     if (event.type === "audio.append") {
+      noteQwenAudio(metrics, estimateBase64Bytes(event.audio));
       upstream.send(JSON.stringify({
         event_id: `event_${crypto.randomUUID()}`,
         type: "input_audio_buffer.append",
@@ -1867,6 +3435,7 @@ qwenWss.on("connection", (client) => {
     }
 
     if (event.type === "audio.commit") {
+      noteQwenCommit(metrics);
       upstream.send(JSON.stringify({
         event_id: `event_${crypto.randomUUID()}`,
         type: "input_audio_buffer.commit",
@@ -1878,6 +3447,10 @@ qwenWss.on("connection", (client) => {
       upstream.send(JSON.stringify({
         event_id: `event_${crypto.randomUUID()}`,
         type: "response.create",
+        response: {
+          modalities: ["text", "audio"],
+          ...(event.instructions ? { instructions: event.instructions } : {}),
+        },
       }));
     }
   });
@@ -1886,7 +3459,198 @@ qwenWss.on("connection", (client) => {
   client.on("error", closeUpstream);
 });
 
-function forwardQwenClientEvent(upstream, event, sendClient) {
+function buildQwenAsrSessionUpdate(config = {}) {
+  const vadConfig = config.turnDetection === "manual"
+    ? null
+    : {
+        type: "server_vad",
+        threshold: Number.isFinite(Number(config.vadThreshold)) ? Number(config.vadThreshold) : 0.0,
+        silence_duration_ms: Number.isFinite(Number(config.silenceDurationMs)) ? Number(config.silenceDurationMs) : 500,
+      };
+  return {
+    event_id: `event_${crypto.randomUUID()}`,
+    type: "session.update",
+    session: {
+      modalities: ["text"],
+      input_audio_format: "pcm",
+      sample_rate: 16000,
+      instructions: config.instructions || "Transcribe the incoming IELTS listening audio accurately. Return concise transcript text as soon as speech is recognized.",
+      turn_detection: vadConfig,
+      input_audio_transcription: {
+        model: config.transcriptionModel || QWEN_ASR_MODEL,
+        language: config.language || "en",
+      },
+    },
+  };
+}
+
+function connectQwenAsrRealtime(config, sendClient) {
+  const apiKey = DASHSCOPE_API_KEY;
+  const workspaceId = DASHSCOPE_WORKSPACE_ID;
+  const region = config.region || DASHSCOPE_REGION;
+  const model = config.model || QWEN_ASR_MODEL;
+
+  if (!apiKey || !workspaceId) {
+    queueMicrotask(() => sendClient({
+      type: "error",
+      message: "Qwen ASR key or workspace is not configured on the server.",
+    }));
+    return undefined;
+  }
+
+  const url = `wss://${workspaceId}.${region}.maas.aliyuncs.com/api-ws/v1/realtime?model=${encodeURIComponent(model)}`;
+  const upstream = new WebSocket(url, {
+    headers: { Authorization: `Bearer ${apiKey}` },
+    handshakeTimeout: 15000,
+  });
+  let upstreamPingTimer = null;
+  const clearUpstreamPing = () => {
+    if (upstreamPingTimer) clearInterval(upstreamPingTimer);
+    upstreamPingTimer = null;
+  };
+
+  upstream.on("open", () => {
+    sendClient({ type: "status", status: "qwen-asr-open", region, model });
+    upstream.send(JSON.stringify(buildQwenAsrSessionUpdate(config)));
+    upstreamPingTimer = setInterval(() => {
+      if (upstream.readyState === WebSocket.OPEN) {
+        try {
+          upstream.ping();
+        } catch {
+          clearUpstreamPing();
+        }
+      }
+    }, 15_000);
+    upstreamPingTimer.unref?.();
+  });
+
+  upstream.on("message", (data) => {
+    try {
+      const message = JSON.parse(data.toString("utf8"));
+      sendClient({ type: "event", eventType: message.type, payload: message });
+    } catch {
+      sendClient({ type: "raw", data: data.toString("base64") });
+    }
+  });
+
+  upstream.on("unexpected-response", (_request, response) => {
+    let body = "";
+    response.on("data", (chunk) => { body += chunk.toString("utf8"); });
+    response.on("end", () => {
+      sendClient({
+        type: "error",
+        message: `Qwen ASR handshake failed: HTTP ${response.statusCode} ${body.slice(0, 300)}`,
+      });
+    });
+  });
+
+  upstream.on("close", (code, reason) => {
+    clearUpstreamPing();
+    sendClient({ type: "status", status: "qwen-asr-closed", code, reason: reason.toString("utf8") });
+  });
+
+  upstream.on("error", (error) => {
+    clearUpstreamPing();
+    const detail = error?.message || error?.code || "connection failed or closed before the ASR handshake completed";
+    sendClient({ type: "error", message: `Qwen ASR error: ${detail}` });
+  });
+
+  return upstream;
+}
+
+qwenAsrWss.on("connection", (client, req) => {
+  let upstream;
+  const metrics = createQwenMetrics("asr-ws", req);
+  qwenMetricsLog(metrics, "client-connected", {
+    remote: metrics.remote,
+    ua: metrics.userAgent.slice(0, 120),
+  });
+
+  const sendClient = (message) => {
+    if (message?.type === "error") qwenMetricsLog(metrics, "error", { message: String(message.message || "").slice(0, 220) });
+    if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify(message));
+  };
+
+  const closeUpstream = () => {
+    if (upstream?.readyState === WebSocket.OPEN) upstream.close(1000, "client closed");
+    upstream = undefined;
+  };
+
+  client.on("message", (raw, isBinary) => {
+    if (isBinary) {
+      if (!upstream || upstream.readyState !== WebSocket.OPEN) {
+        sendClient({ type: "error", message: "Qwen ASR is not connected." });
+        return;
+      }
+      noteQwenAudio(metrics, raw.length || raw.byteLength || 0);
+      upstream.send(JSON.stringify({
+        event_id: `event_${crypto.randomUUID()}`,
+        type: "input_audio_buffer.append",
+        audio: Buffer.from(raw).toString("base64"),
+      }));
+      return;
+    }
+    let event;
+    try {
+      event = JSON.parse(raw.toString("utf8"));
+    } catch {
+      sendClient({ type: "error", message: "Invalid ASR client message JSON." });
+      return;
+    }
+
+    if (event.type === "connect") {
+      closeUpstream();
+      upstream = connectQwenAsrRealtime(event, sendClient);
+      return;
+    }
+
+    if (event.type === "disconnect") {
+      closeUpstream();
+      sendClient({ type: "status", status: "disconnected" });
+      return;
+    }
+
+    if (!upstream || upstream.readyState !== WebSocket.OPEN) {
+      sendClient({ type: "error", message: "Qwen ASR is not connected." });
+      return;
+    }
+
+    if (event.type === "audio.commit") {
+      noteQwenCommit(metrics);
+      upstream.send(JSON.stringify({
+        event_id: `event_${crypto.randomUUID()}`,
+        type: "input_audio_buffer.commit",
+      }));
+      return;
+    }
+
+    if (event.type === "session.finish") {
+      upstream.send(JSON.stringify({
+        event_id: `event_${crypto.randomUUID()}`,
+        type: "session.finish",
+      }));
+      return;
+    }
+
+    if (event.type === "response.create") {
+      upstream.send(JSON.stringify({
+        event_id: `event_${crypto.randomUUID()}`,
+        type: "response.create",
+        response: { modalities: ["text"] },
+      }));
+    }
+  });
+
+  client.on("close", closeUpstream);
+  client.on("error", closeUpstream);
+});
+
+function forwardQwenClientEvent(upstream, event, sendClient, metrics) {
+  if (event.type === "ping") {
+    sendClient({ type: "status", status: "pong", at: event.at || Date.now() });
+    return;
+  }
+
   if (!upstream || upstream.readyState !== WebSocket.OPEN) {
     sendClient({ type: "error", message: "Qwen realtime is not connected." });
     return;
@@ -1898,6 +3662,7 @@ function forwardQwenClientEvent(upstream, event, sendClient) {
   }
 
   if (event.type === "audio.append") {
+    noteQwenAudio(metrics, estimateBase64Bytes(event.audio));
     upstream.send(JSON.stringify({
       event_id: `event_${crypto.randomUUID()}`,
       type: "input_audio_buffer.append",
@@ -1909,6 +3674,7 @@ function forwardQwenClientEvent(upstream, event, sendClient) {
   if (event.type === "audio.batch" && Array.isArray(event.chunks)) {
     for (const audio of event.chunks) {
       if (!audio) continue;
+      noteQwenAudio(metrics, estimateBase64Bytes(audio));
       upstream.send(JSON.stringify({
         event_id: `event_${crypto.randomUUID()}`,
         type: "input_audio_buffer.append",
@@ -1919,6 +3685,7 @@ function forwardQwenClientEvent(upstream, event, sendClient) {
   }
 
   if (event.type === "audio.commit") {
+    noteQwenCommit(metrics);
     upstream.send(JSON.stringify({
       event_id: `event_${crypto.randomUUID()}`,
       type: "input_audio_buffer.commit",
@@ -1930,6 +3697,10 @@ function forwardQwenClientEvent(upstream, event, sendClient) {
     upstream.send(JSON.stringify({
       event_id: `event_${crypto.randomUUID()}`,
       type: "response.create",
+      response: {
+        modalities: ["text", "audio"],
+        ...(event.instructions ? { instructions: event.instructions } : {}),
+      },
     }));
   }
 }
@@ -1967,9 +3738,17 @@ async function handleQwenHttpSession(req, res) {
       waiters: [],
       upstream: undefined,
       lastSeen: Date.now(),
+      metrics: createQwenMetrics("http", req),
     };
     qwenHttpSessions.set(id, session);
-    const sendClient = (message) => enqueueQwenHttp(session, message);
+    qwenMetricsLog(session.metrics, "client-connected", {
+      remote: session.metrics.remote,
+      ua: session.metrics.userAgent.slice(0, 120),
+    });
+    const sendClient = (message) => {
+      if (message?.type === "event") noteQwenServerEvent(session.metrics, message.eventType || message.payload?.type || "");
+      enqueueQwenHttp(session, message);
+    };
     session.upstream = connectQwenRealtime(config, sendClient);
     sendJson(res, 200, { id });
     return;
@@ -1991,7 +3770,10 @@ async function handleQwenHttpSession(req, res) {
       sendJson(res, 200, { ok: true });
       return;
     }
-    forwardQwenClientEvent(session.upstream, event, (message) => enqueueQwenHttp(session, message));
+    forwardQwenClientEvent(session.upstream, event, (message) => {
+      if (message?.type === "event") noteQwenServerEvent(session.metrics, message.eventType || message.payload?.type || "");
+      enqueueQwenHttp(session, message);
+    }, session.metrics);
     sendJson(res, 200, { ok: true });
     return;
   }
@@ -2020,6 +3802,85 @@ async function handleQwenHttpSession(req, res) {
   sendJson(res, 405, { error: "Method not allowed" });
 }
 
+function qwenRealtimeHttpEndpoint(region = DASHSCOPE_REGION) {
+  if (DASHSCOPE_WEBRTC_ENDPOINT) return DASHSCOPE_WEBRTC_ENDPOINT;
+  if (DASHSCOPE_WORKSPACE_ID) return `https://${DASHSCOPE_WORKSPACE_ID}.${region}.maas.aliyuncs.com`;
+  return "https://dashscope.aliyuncs.com";
+}
+
+async function requestQwenWebRtcAnswer(offerSdp, req) {
+  if (QWEN_WEBRTC_EXCHANGE_PROXY_URL) {
+    const startedAt = Date.now();
+    const response = await fetch(QWEN_WEBRTC_EXCHANGE_PROXY_URL, {
+      method: "POST",
+      headers: {
+        "content-type": "application/sdp",
+        "x-ieltsist-client-ip": String(req.headers["x-forwarded-for"] || req.socket?.remoteAddress || ""),
+        "x-ieltsist-user-agent": String(req.headers["user-agent"] || "").slice(0, 300),
+      },
+      body: offerSdp,
+    });
+    const text = await response.text();
+    console.log(`[qwen-webrtc] proxy status=${response.status} ms=${Date.now() - startedAt} proxy=${new URL(QWEN_WEBRTC_EXCHANGE_PROXY_URL).origin} model=${QWEN_REALTIME_MODEL}`);
+    if (!response.ok) return { ok: false, status: response.status, text };
+    const contentType = response.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      try {
+        const json = JSON.parse(text);
+        return { ok: true, status: response.status, text: json.sdp || json.answerSdp || json.answer || "" };
+      } catch {
+        return { ok: false, status: 502, text: "Invalid JSON returned by Qwen WebRTC exchange proxy." };
+      }
+    }
+    return { ok: true, status: response.status, text };
+  }
+
+  const url = new URL("/api/v1/webrtc/realtime", `${qwenRealtimeHttpEndpoint(DASHSCOPE_REGION)}/`);
+  url.searchParams.set("model", QWEN_REALTIME_MODEL);
+  const startedAt = Date.now();
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "content-type": "application/sdp",
+      "authorization": `Bearer ${DASHSCOPE_API_KEY}`,
+      ...(DASHSCOPE_WORKSPACE_ID ? { "x-dashscope-workspace": DASHSCOPE_WORKSPACE_ID } : {}),
+    },
+    body: offerSdp,
+  });
+  const text = await response.text();
+  console.log(`[qwen-webrtc] offer status=${response.status} ms=${Date.now() - startedAt} endpoint=${url.origin} model=${QWEN_REALTIME_MODEL}`);
+  return { ok: response.ok, status: response.status, text };
+}
+
+async function handleQwenWebRtcOffer(req, res) {
+  if (req.method !== "POST") {
+    sendJson(res, 405, { error: "Method not allowed" });
+    return;
+  }
+  if (!DASHSCOPE_API_KEY && !QWEN_WEBRTC_EXCHANGE_PROXY_URL) {
+    sendJson(res, 500, { error: "Qwen realtime key is not configured on the server." });
+    return;
+  }
+  const offerSdp = await readBody(req);
+  if (!offerSdp || !/^v=0/m.test(offerSdp)) {
+    sendJson(res, 400, { error: "Invalid WebRTC offer SDP." });
+    return;
+  }
+  const answer = await requestQwenWebRtcAnswer(offerSdp, req);
+  if (!answer.ok) {
+    sendJson(res, answer.status, {
+      error: `Qwen WebRTC SDP exchange failed: HTTP ${answer.status}`,
+      detail: answer.text.slice(0, 500),
+    });
+    return;
+  }
+  res.writeHead(200, {
+    "content-type": "application/sdp; charset=utf-8",
+    "cache-control": "no-store",
+  });
+  res.end(answer.text);
+}
+
 setInterval(() => {
   const now = Date.now();
   for (const [id, session] of qwenHttpSessions) {
@@ -2046,10 +3907,26 @@ function connectQwenRealtime(config, sendClient) {
     headers: { Authorization: `Bearer ${apiKey}` },
     handshakeTimeout: 15000,
   });
+  let upstreamPingTimer = null;
+
+  const clearUpstreamPing = () => {
+    if (upstreamPingTimer) clearInterval(upstreamPingTimer);
+    upstreamPingTimer = null;
+  };
 
   upstream.on("open", () => {
     sendClient({ type: "status", status: "qwen-open", region, model });
     upstream.send(JSON.stringify(buildQwenSessionUpdate(config)));
+    upstreamPingTimer = setInterval(() => {
+      if (upstream.readyState === WebSocket.OPEN) {
+        try {
+          upstream.ping();
+        } catch {
+          clearUpstreamPing();
+        }
+      }
+    }, 15_000);
+    upstreamPingTimer.unref?.();
   });
 
   upstream.on("message", (data) => {
@@ -2073,11 +3950,15 @@ function connectQwenRealtime(config, sendClient) {
   });
 
   upstream.on("close", (code, reason) => {
-    sendClient({ type: "status", status: "qwen-closed", code, reason: reason.toString("utf8") });
+    clearUpstreamPing();
+    const reasonText = reason.toString("utf8");
+    sendClient({ type: "status", status: "qwen-closed", code, reason: reasonText });
   });
 
   upstream.on("error", (error) => {
-    sendClient({ type: "error", message: `Qwen realtime error: ${error.message}` });
+    clearUpstreamPing();
+    const detail = error?.message || error?.code || "connection failed or closed before the realtime handshake completed";
+    sendClient({ type: "error", message: `Qwen realtime error: ${detail}` });
   });
 
   return upstream;
