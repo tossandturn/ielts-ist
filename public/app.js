@@ -74,6 +74,268 @@ const listeningAudioGraphs = new WeakMap();
 const listeningAsrCacheSource = "qwen-asr-live-vad-v1";
 const listeningCaptionDefaultWordsPerSecond = 1.45;
 const listeningCaptionLoopWarmupMs = 9000;
+const builtInPublicSpeakingTopics = [
+  {
+    id: "public-speaking-work-study",
+    module: "speaking",
+    title: "Work / Study / Routine",
+    source: "Public topics",
+    period: "Public examples",
+    topicKeywords: "work, study, routine",
+    part1Topic: "Work or study",
+    part1: ["Do you work or study?", "What do you like most about your work or studies?", "Do you prefer studying in the morning or in the evening?"],
+    part2: "Describe a subject or skill you enjoyed learning. You should say what it was, where you learned it, who helped you, and explain why you enjoyed learning it.",
+    part3Topics: ["education", "motivation", "future skills"],
+    part3: ["What makes a subject difficult for students?", "How can teachers make lessons more practical?", "What skills will be important for young people in the future?"],
+  },
+  {
+    id: "public-speaking-hometown",
+    module: "speaking",
+    title: "Hometown / City / Local Area",
+    source: "Public topics",
+    period: "Public examples",
+    topicKeywords: "hometown, city, local area",
+    part1Topic: "Hometown",
+    part1: ["Where is your hometown?", "What do people usually do there at weekends?", "Has your hometown changed much in recent years?"],
+    part2: "Describe an interesting place in your hometown. You should say where it is, what people can do there, how often you go there, and explain why it is interesting.",
+    part3Topics: ["urban change", "community", "public facilities"],
+    part3: ["Why do some people move away from their hometowns?", "What public facilities should every city have?", "How can cities preserve their local culture?"],
+  },
+  {
+    id: "public-speaking-home",
+    module: "speaking",
+    title: "Home / Room / Living Place",
+    source: "Public topics",
+    period: "Public examples",
+    topicKeywords: "home, room, living place",
+    part1Topic: "Home",
+    part1: ["Do you live in a house or an apartment?", "Which room do you spend the most time in?", "What would you like to change about your home?"],
+    part2: "Describe a room where you feel relaxed. You should say where it is, what it looks like, what you usually do there, and explain why it helps you relax.",
+    part3Topics: ["housing", "design", "living habits"],
+    part3: ["What makes a home comfortable?", "Do people in your country prefer large homes?", "How might homes change in the future?"],
+  },
+  {
+    id: "public-speaking-family-friends",
+    module: "speaking",
+    title: "Family / Friends / Relationships",
+    source: "Public topics",
+    period: "Public examples",
+    topicKeywords: "family, friends, relationships",
+    part1Topic: "Family and friends",
+    part1: ["Do you spend more time with family or friends?", "How do you usually keep in touch with friends?", "What kind of person do you like to make friends with?"],
+    part2: "Describe a person who has helped you. You should say who this person is, how you know them, what they did for you, and explain how you felt about their help.",
+    part3Topics: ["friendship", "generations", "support"],
+    part3: ["Why is friendship important?", "Do people make friends differently now than in the past?", "Should young people rely more on family or friends for advice?"],
+  },
+  {
+    id: "public-speaking-daily-routine",
+    module: "speaking",
+    title: "Daily Routine / Time / Habits",
+    source: "Public topics",
+    period: "Public examples",
+    topicKeywords: "daily routine, time, habits",
+    part1Topic: "Daily routine",
+    part1: ["What is your daily routine like?", "Are you usually busy during the week?", "What time of day do you feel most productive?"],
+    part2: "Describe a useful habit you have developed. You should say what the habit is, when you started it, how it helps you, and explain why you want to keep it.",
+    part3Topics: ["time management", "discipline", "modern life"],
+    part3: ["Why do some people find it hard to manage time?", "Do routines make life easier or less interesting?", "How has technology changed people's daily habits?"],
+  },
+  {
+    id: "public-speaking-hobbies",
+    module: "speaking",
+    title: "Hobbies / Free Time / Interests",
+    source: "Public topics",
+    period: "Public examples",
+    topicKeywords: "hobbies, free time, interests",
+    part1Topic: "Free time",
+    part1: ["What do you do in your free time?", "Did you have a hobby when you were a child?", "Would you like to try a new hobby?"],
+    part2: "Describe an activity you do in your free time. You should say what it is, where you do it, who you do it with, and explain why you enjoy it.",
+    part3Topics: ["leisure", "stress", "work-life balance"],
+    part3: ["Why do people need leisure activities?", "Are hobbies becoming more expensive?", "Should schools give students more time for hobbies?"],
+  },
+  {
+    id: "public-speaking-travel-journey",
+    module: "speaking",
+    title: "Travel / City / Journey",
+    source: "Public topics",
+    period: "Public examples",
+    topicKeywords: "travel, city, journey",
+    part1Topic: "Travel",
+    part1: ["Do you like travelling?", "Which city would you like to visit again?", "How do you usually plan a trip?"],
+    part2: "Describe a memorable journey you took. You should say where you went, who you went with, what happened during the journey, and explain why it was memorable.",
+    part3Topics: ["tourism", "local communities", "visitor limits"],
+    part3: ["How has tourism changed local communities?", "What are the advantages and disadvantages of travelling abroad?", "Should popular tourist places limit visitor numbers?"],
+  },
+  {
+    id: "public-speaking-technology-daily-life",
+    module: "speaking",
+    title: "Technology / Smartphone / Communication",
+    source: "Public topics",
+    period: "Public examples",
+    topicKeywords: "technology, smartphone, communication",
+    part1Topic: "Technology",
+    part1: ["What technology do you use every day?", "Do you prefer texting or calling people?", "Has technology changed the way you study?"],
+    part2: "Describe a piece of technology that helps you in daily life. You should say what it is, how often you use it, what you use it for, and explain why it is useful.",
+    part3Topics: ["communication", "age groups", "over-reliance"],
+    part3: ["How has technology changed communication?", "Do older people and young people use technology differently?", "What problems can happen when people rely too much on technology?"],
+  },
+  {
+    id: "public-speaking-environment-recycling",
+    module: "speaking",
+    title: "Environment / Recycling / Pollution",
+    source: "Public topics",
+    period: "Public examples",
+    topicKeywords: "environment, recycling, pollution",
+    part1Topic: "Environment",
+    part1: ["Do you try to recycle things in your daily life?", "What environmental problem is common in your city?", "Did you learn about environmental protection at school?"],
+    part2: "Describe a place in your area that has been affected by pollution. You should say where it is, what kind of pollution it has, how people are affected, and explain what could be done to improve it.",
+    part3Topics: ["public responsibility", "schools", "technology"],
+    part3: ["Who should take more responsibility for protecting the environment, individuals or governments?", "How can schools encourage children to care about nature?", "Do you think technology can solve environmental problems?"],
+  },
+  {
+    id: "public-speaking-food-cooking",
+    module: "speaking",
+    title: "Food / Cooking / Restaurants",
+    source: "Public topics",
+    period: "Public examples",
+    topicKeywords: "food, cooking, restaurants",
+    part1Topic: "Food",
+    part1: ["What food do you like eating?", "Do you often cook at home?", "Do you prefer eating at home or in restaurants?"],
+    part2: "Describe a meal you enjoyed. You should say what you ate, where you had it, who you were with, and explain why you enjoyed the meal.",
+    part3Topics: ["healthy eating", "food culture", "restaurants"],
+    part3: ["Why do people like eating out?", "How important is traditional food to a culture?", "Should schools teach children how to cook healthy meals?"],
+  },
+  {
+    id: "public-speaking-health-fitness",
+    module: "speaking",
+    title: "Health / Fitness / Lifestyle",
+    source: "Public topics",
+    period: "Public examples",
+    topicKeywords: "health, fitness, lifestyle",
+    part1Topic: "Health",
+    part1: ["How do you keep healthy?", "Do you think you get enough exercise?", "What healthy habit would you like to develop?"],
+    part2: "Describe something you do to stay healthy. You should say what it is, how often you do it, who encouraged you to do it, and explain how it benefits you.",
+    part3Topics: ["public health", "exercise", "modern lifestyle"],
+    part3: ["Why are many people less active than before?", "Should governments encourage people to exercise more?", "How can companies help employees stay healthy?"],
+  },
+  {
+    id: "public-speaking-sports",
+    module: "speaking",
+    title: "Sports / Games / Competition",
+    source: "Public topics",
+    period: "Public examples",
+    topicKeywords: "sports, games, competition",
+    part1Topic: "Sports",
+    part1: ["Do you like playing sports?", "What sports are popular in your country?", "Did you play sports when you were a child?"],
+    part2: "Describe a sport or game you enjoy watching or playing. You should say what it is, how you became interested in it, how often you do it or watch it, and explain why you enjoy it.",
+    part3Topics: ["teamwork", "competition", "professional sports"],
+    part3: ["What can children learn from playing team sports?", "Is competition always good for young people?", "Why do professional athletes earn high salaries?"],
+  },
+  {
+    id: "public-speaking-music",
+    module: "speaking",
+    title: "Music / Concerts / Songs",
+    source: "Public topics",
+    period: "Public examples",
+    topicKeywords: "music, concerts, songs",
+    part1Topic: "Music",
+    part1: ["What kind of music do you like?", "Do you often listen to music while studying or working?", "Have you ever been to a concert?"],
+    part2: "Describe a song or piece of music you like. You should say what it is, when you first heard it, what it is about, and explain why you like it.",
+    part3Topics: ["culture", "media", "children"],
+    part3: ["Why is music important in many cultures?", "Do people listen to music differently now than in the past?", "Should children learn to play a musical instrument?"],
+  },
+  {
+    id: "public-speaking-reading-books",
+    module: "speaking",
+    title: "Reading / Books / Stories",
+    source: "Public topics",
+    period: "Public examples",
+    topicKeywords: "reading, books, stories",
+    part1Topic: "Reading",
+    part1: ["Do you enjoy reading?", "What kinds of books do you like?", "Do you prefer paper books or e-books?"],
+    part2: "Describe a book or story that you remember well. You should say what it was about, when you read it, who recommended it, and explain why you remember it.",
+    part3Topics: ["reading habits", "education", "digital media"],
+    part3: ["Why do some people read less nowadays?", "How can parents encourage children to read?", "Will printed books remain popular in the future?"],
+  },
+  {
+    id: "public-speaking-shopping",
+    module: "speaking",
+    title: "Shopping / Money / Online Stores",
+    source: "Public topics",
+    period: "Public examples",
+    topicKeywords: "shopping, money, online stores",
+    part1Topic: "Shopping",
+    part1: ["Do you enjoy shopping?", "What do you usually buy online?", "Do you compare prices before buying things?"],
+    part2: "Describe something useful you bought recently. You should say what it was, where you bought it, how much you use it, and explain why it was a good purchase.",
+    part3Topics: ["consumer habits", "online shopping", "advertising"],
+    part3: ["Why has online shopping become popular?", "Do advertisements influence what people buy?", "Should people be taught how to manage money at school?"],
+  },
+  {
+    id: "public-speaking-transport",
+    module: "speaking",
+    title: "Transport / Commuting / Traffic",
+    source: "Public topics",
+    period: "Public examples",
+    topicKeywords: "transport, commuting, traffic",
+    part1Topic: "Transport",
+    part1: ["How do you usually travel around your city?", "Do you prefer public transport or private cars?", "Is traffic a problem where you live?"],
+    part2: "Describe a journey you make regularly. You should say where you go, how you travel, how long it takes, and explain how you feel about this journey.",
+    part3Topics: ["public transport", "traffic", "city planning"],
+    part3: ["How can cities reduce traffic congestion?", "Should public transport be cheaper?", "Will people use fewer cars in the future?"],
+  },
+  {
+    id: "public-speaking-weather",
+    module: "speaking",
+    title: "Weather / Seasons / Climate",
+    source: "Public topics",
+    period: "Public examples",
+    topicKeywords: "weather, seasons, climate",
+    part1Topic: "Weather",
+    part1: ["What kind of weather do you like?", "Does the weather affect your mood?", "What is the weather like in your hometown?"],
+    part2: "Describe a time when the weather changed your plans. You should say what the weather was like, what you planned to do, how your plan changed, and explain how you felt.",
+    part3Topics: ["climate", "work", "travel"],
+    part3: ["How does weather affect people's daily lives?", "Do different jobs depend on the weather?", "How should cities prepare for extreme weather?"],
+  },
+  {
+    id: "public-speaking-education",
+    module: "speaking",
+    title: "Education / Teachers / Exams",
+    source: "Public topics",
+    period: "Public examples",
+    topicKeywords: "education, teachers, exams",
+    part1Topic: "Education",
+    part1: ["What was your favorite subject at school?", "Do you prefer learning alone or with others?", "Are exams useful for students?"],
+    part2: "Describe a teacher who impressed you. You should say who the teacher was, what subject they taught, what they were like, and explain why they impressed you.",
+    part3Topics: ["school systems", "testing", "online learning"],
+    part3: ["What qualities should a good teacher have?", "Are exams the best way to measure students' ability?", "Will online learning replace traditional classrooms?"],
+  },
+  {
+    id: "public-speaking-festivals",
+    module: "speaking",
+    title: "Festivals / Celebrations / Culture",
+    source: "Public topics",
+    period: "Public examples",
+    topicKeywords: "festivals, celebrations, culture",
+    part1Topic: "Festivals",
+    part1: ["What festivals are important in your country?", "Do you prefer celebrating with family or friends?", "Did you enjoy festivals more when you were a child?"],
+    part2: "Describe a celebration you enjoyed. You should say what the celebration was, where it took place, who was there, and explain why it was enjoyable.",
+    part3Topics: ["traditions", "community", "commercialisation"],
+    part3: ["Why are traditional festivals important?", "Do festivals bring people closer together?", "Have festivals become too commercial?"],
+  },
+  {
+    id: "public-speaking-future-plans",
+    module: "speaking",
+    title: "Future Plans / Goals / Ambition",
+    source: "Public topics",
+    period: "Public examples",
+    topicKeywords: "future plans, goals, ambition",
+    part1Topic: "Future plans",
+    part1: ["Do you often make plans for the future?", "What goal are you working towards now?", "Do you prefer short-term or long-term plans?"],
+    part2: "Describe a goal you would like to achieve. You should say what the goal is, why you want to achieve it, what you need to do, and explain how you would feel if you achieved it.",
+    part3Topics: ["ambition", "planning", "young people"],
+    part3: ["Why do some people find it difficult to make long-term plans?", "Is ambition always a positive quality?", "How can young people choose a suitable career goal?"],
+  },
+];
 
 function countWords(text) {
   return String(text || "").trim().split(/\s+/).filter(Boolean).length;
@@ -699,7 +961,7 @@ function singleOptions(moduleName) {
 function mergedItems(moduleName) {
   const user = getBank(moduleName);
   const data = state.data || {};
-  const builtIn =
+  const builtInRaw =
     moduleName === "listening"
       ? data.listeningTests
       : moduleName === "reading"
@@ -709,6 +971,9 @@ function mergedItems(moduleName) {
           : moduleName === "speaking"
             ? data.speakingSets
             : [];
+  const builtIn = moduleName === "speaking"
+    ? [...(Array.isArray(builtInRaw) ? builtInRaw : []), ...builtInPublicSpeakingTopics]
+    : builtInRaw;
   return [...user, ...(Array.isArray(builtIn) ? builtIn : [])];
 }
 
@@ -7883,13 +8148,18 @@ function renderSpeakingTopicFilters(items) {
   const select = $("bankTopicBook");
   if (!select) return;
   const current = select.value || "all";
-  const books = [...new Set(items.map(itemBook).filter((value) => value !== null && value !== undefined))]
+  const books = [...new Set(items.filter((item) => !isPublicSpeakingTopic(item)).map(itemBook).filter((value) => value !== null && value !== undefined))]
     .sort((a, b) => Number(a) - Number(b));
   select.innerHTML = [
     `<option value="all">All Cambridge</option>`,
+    `<option value="public">Public topics</option>`,
     ...books.map((book) => `<option value="${escapeHtml(book)}">Cambridge ${escapeHtml(book)}</option>`),
   ].join("");
-  select.value = books.map(String).includes(current) ? current : "all";
+  select.value = current === "public" || books.map(String).includes(current) ? current : "all";
+}
+
+function isPublicSpeakingTopic(item) {
+  return item?.source === "Public topics" || String(item?.id || "").startsWith("public-speaking-");
 }
 
 function activateSpeakingTopicFromBank(id) {
@@ -7916,7 +8186,12 @@ function renderBankList() {
   const query = ($("bankTopicSearch")?.value || "").trim().toLowerCase();
   const book = $("bankTopicBook")?.value || "all";
   const filtered = topics.filter((item) => {
-    const bookOk = book === "all" || String(itemBook(item)) === book;
+    const publicTopic = isPublicSpeakingTopic(item);
+    const bookOk = book === "public"
+      ? publicTopic
+      : book === "all"
+        ? !publicTopic
+        : !publicTopic && String(itemBook(item)) === book;
     const searchOk = !query || speakingTopicSearchText(item).includes(query);
     return bookOk && searchOk;
   });
