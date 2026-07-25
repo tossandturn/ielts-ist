@@ -18,7 +18,6 @@
 - After ASR cache changes, verify local and public deployments, including monotonic timestamps and speaker-colored bubbles.
 - Keep secrets in `.env.local`; never print or commit API keys.
 - GitHub sync rule: after every code, data, docs, or deployment-facing change, sync the changed files to GitHub through Clash. Use the configured Git proxy (`http.proxy` / `https.proxy`, currently expected to point at Clash such as `http://127.0.0.1:7897`) and push only the intended files; never include secrets, local databases, generated caches, or unrelated dirty worktree changes unless explicitly requested.
-- UI change rule: before shipping any visual/UI change, test the actual browser states that previously broke: sidebar collapsed and expanded, ultra-wide desktop, desktop, iPad portrait/landscape, Single Module Listening with Caption on, Writing immersive, Speaking immersive, and public `https://ieltsist.com` after deployment. Treat screenshots from the user as regression tests.
 
 ## Sub-Agent Invocation Protocol - 2026-07-25
 
