@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>IELTS-ist</title>
-    <link rel="stylesheet" href="/styles.css?v=20260725-ux-rollback-2" />
+    <link rel="stylesheet" href="/styles.css?v=20260725-layout-fixes-1" />
   </head>
   <body>
     <div class="app-shell">
@@ -24,13 +24,8 @@
           <button class="tab" data-view="sequence" data-short="Seq">Same test</button>
           <button class="tab" data-view="writing-upload" data-short="Write">Writing feedback</button>
           <button class="tab" data-view="mine" data-short="Mine">Mine</button>
-          <button class="tab" data-view="bank" data-short="Bank">Question bank</button>
-          <button class="tab" data-view="sources" data-short="Src">Sources</button>
+          <button class="tab" data-view="bank" data-short="Topics">Speaking topics</button>
         </nav>
-        <div class="source-box">
-          <div class="source-title">Material note</div>
-          <p>The bank uses locally imported Cambridge IELTS papers. Objective modules can be auto-scored when answers are available.</p>
-        </div>
       </aside>
 
       <main>
@@ -180,58 +175,16 @@
         <section id="bank" class="view">
           <div class="view-head">
             <div>
-              <h2>Question Bank</h2>
-              <p>Import authorised practice materials for local use.</p>
-            </div>
-          </div>
-          <div class="bank-layout">
-            <section class="panel">
-              <div class="panel-head">
-                <h3>Import material</h3>
-                <select id="bankModule">
-                  <option value="listening">Listening</option>
-                  <option value="reading">Reading</option>
-                  <option value="writing">Writing</option>
-                </select>
-              </div>
-              <input id="bankTitle" class="text-input" placeholder="Title" />
-              <input id="bankAudioUrl" class="text-input spaced" placeholder="Listening audio URL or public/audio file name" />
-              <input id="bankSourceUrl" class="text-input spaced" placeholder="Source URL, optional" />
-              <input id="bankAudioFile" class="text-input spaced" type="file" accept="audio/*" />
-              <textarea id="bankPrompt" class="short-textarea" placeholder="Prompt, passage, transcript or task..."></textarea>
-              <textarea id="bankAnswers" class="short-textarea" placeholder="Q1=April&#10;Q2=Wednesday"></textarea>
-              <div class="actions">
-                <button id="saveBankItem" class="primary">Save to bank</button>
-                <button id="clearBank" class="secondary">Clear form</button>
-              </div>
-              <div class="bulk-import">
-                <h4>Bulk import</h4>
-                <p>Paste a JSON array. Listening supports <code>audioUrl</code>.</p>
-                <textarea id="bulkImport" class="short-textarea" placeholder='[{"module":"listening","title":"Cambridge IELTS 15 Test 1 Listening","audioUrl":"test1.mp3","prompt":"Questions 1-40...","answers":"Q1=..."}]'></textarea>
-                <div class="actions">
-                  <button id="importBulk" class="secondary">Import JSON</button>
-                </div>
-              </div>
-            </section>
-            <section class="panel">
-              <div class="panel-head">
-                <h3>Saved items</h3>
-                <button id="clearBankStore" class="secondary">Clear bank</button>
-              </div>
-              <div id="bankList" class="bank-list"></div>
-            </section>
-          </div>
-        </section>
-
-        <section id="sources" class="view">
-          <div class="view-head">
-            <div>
-              <h2>Sources</h2>
-              <p>Official and public practice-entry links are listed here.</p>
+              <h2>Speaking Topics</h2>
+              <p>Choose a common IELTS speaking topic and start a practice conversation.</p>
             </div>
           </div>
           <section class="panel">
-            <div id="sourceLinks" class="source-list"></div>
+            <div class="topic-toolbar">
+              <input id="bankTopicSearch" class="text-input" placeholder="Search topics, Cambridge book, or Part 2 cue cards..." />
+              <select id="bankTopicBook"></select>
+            </div>
+            <div id="bankList" class="bank-list speaking-topic-list"></div>
           </section>
         </section>
       </main>
@@ -278,8 +231,8 @@
     <div id="annotationToolbar" class="annotation-toolbar" aria-label="PDF annotation tools">
       <button id="toggleAnnotation" class="icon-btn" type="button">Draw</button>
       <button id="toggleEraser" class="icon-btn" type="button">Erase</button>
-      <button id="clearAnnotation" class="icon-btn" type="button">Clear page</button>
+      <button id="clearAnnotation" class="icon-btn" type="button">Clear paper</button>
     </div>
-    <script src="/app.js?v=20260725-caption-restored-2"></script>
+    <script src="/app.js?v=20260725-layout-fixes-1"></script>
   </body>
 </html>

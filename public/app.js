@@ -2999,16 +2999,19 @@ function bindPdfAnnotations() {
 
 function clearVisibleAnnotationPage() {
   const canvases = [...document.querySelectorAll(".pdf-annotation-canvas")];
-  const visible = canvases.find((canvas) => {
-    const rect = canvas.getBoundingClientRect();
-    return rect.width > 0 && rect.height > 0 && rect.bottom > 72 && rect.top < window.innerHeight - 24;
-  }) || canvases[0];
-  if (!visible) return;
-  visible.getContext("2d").clearRect(0, 0, visible.width, visible.height);
-  const key = visible.dataset.annotationKey;
+  if (!canvases.length) return;
+  const visibleKeys = new Set();
+  canvases.forEach((canvas) => {
+    canvas.getContext("2d")?.clearRect(0, 0, canvas.width, canvas.height);
+    if (canvas.dataset.annotationKey) visibleKeys.add(canvas.dataset.annotationKey);
+  });
   const map = readAnnotations();
-  delete map[key];
+  visibleKeys.forEach((key) => delete map[key]);
   writeAnnotations(map);
+}
+
+function clearAllAnnotationPages() {
+  clearVisibleAnnotationPage();
 }
 
 function readingQuestionStartLine(text) {
@@ -4535,31 +4538,28 @@ function renderWritingExamTwoColumn(tasks = [], prefixRoot = "exam") {
 }
 
 function renderSpeaking(set, prefix = "single") {
-  const item = normalizeItem(set);
-  const pdfHtml = item.speakingPageImages?.length
-    ? prefix === "exam"
-      ? ""
-      : renderPageImages(item.speakingPageImages, "Speaking prompt PDF")
-    : "";
-  return `
-    <div class="module-meta">${[item.source, item.period || ""].filter(Boolean).join(" · ")}</div>
-    <h3>${item.title}</h3>
-    ${pdfHtml}
-    ${renderRealtimeSpeakingPanel(item, prefix, { showTranscript: prefix !== "exam" })}
-  `;
+  return renderSpeakingExamTwoColumn(set, prefix);
 }
 
 function renderSpeakingExamTwoColumn(set, prefix = "exam") {
   const item = normalizeItem(set);
-  const pdfHtml = prefix === "exam" || !item.speakingPageImages?.length
-    ? ""
-    : renderPageImages(item.speakingPageImages, "Speaking prompt PDF");
-  return `<div class="exam-two-column speaking-two-column">
-    <section class="exam-left-pane">
-      <div class="module-meta">${[item.source, item.period || ""].filter(Boolean).join(" · ")}</div>
+  const pdfHtml = item.speakingPageImages?.length
+    ? renderPageImages(item.speakingPageImages, "Speaking prompt PDF")
+    : `<div class="speaking-paper-placeholder">
+        ${item.part1Topic ? `<p><strong>Part 1:</strong> ${escapeHtml(item.part1Topic)}</p>` : ""}
+        ${item.part2 ? `<p><strong>Part 2:</strong> ${escapeHtml(compactDialogueText(item.part2).slice(0, 260))}</p>` : ""}
+        ${item.part3Topics ? `<p><strong>Part 3:</strong> ${escapeHtml(Array.isArray(item.part3Topics) ? item.part3Topics.join(", ") : item.part3Topics)}</p>` : ""}
+      </div>`;
+  const leftPane = prefix === "exam"
+    ? `<div class="speaking-orb-stage">
+        <div id="${prefix}-speaking-orb" class="speaking-voice-orb" aria-hidden="true"></div>
+        <div class="speaking-orb-label">Speaking exam</div>
+      </div>`
+    : `<div class="module-meta">${[item.source, item.period || ""].filter(Boolean).join(" · ")}</div>
       <h3>${item.title}</h3>
-      ${pdfHtml}
-    </section>
+      ${pdfHtml}`;
+  return `<div class="exam-two-column speaking-two-column">
+    <section class="exam-left-pane ${prefix === "exam" ? "speaking-orb-pane" : ""}">${leftPane}</section>
     <aside class="exam-right-pane speaking-answer-pane">
       ${renderRealtimeSpeakingPanel(item, prefix, { showTranscript: prefix !== "exam" })}
     </aside>
@@ -7058,8 +7058,10 @@ function sendQwenMicPacket(prefix, pcm, level) {
   const normalizedLevel = Math.min(1, level * 14);
   const bar = $(`${prefix}-qwen-level`);
   const meter = $(`${prefix}-qwen-meter`);
+  const orb = $(`${prefix}-speaking-orb`);
   if (bar) bar.style.width = `${Math.round(normalizedLevel * 100)}%`;
   if (meter) meter.textContent = normalizedLevel.toFixed(2);
+  if (orb) orb.style.setProperty("--voice-level", normalizedLevel.toFixed(3));
   if (session.inputPaused || session.turnCommitted || qwenOutputBusy(prefix)) {
     if (session.transport === "webrtc") qwenSetWebRtcAudioSending(prefix, false);
     return;
@@ -7201,8 +7203,10 @@ async function stopQwenMic(prefix, commit = false) {
   clearQwenWebRtcFallbackTimer(prefix);
   const bar = $(`${prefix}-qwen-level`);
   const meter = $(`${prefix}-qwen-meter`);
+  const orb = $(`${prefix}-speaking-orb`);
   if (bar) bar.style.width = "0%";
   if (meter) meter.textContent = "0.00";
+  if (orb) orb.style.setProperty("--voice-level", "0");
   const button = document.querySelector(`.qwen-mic-toggle[data-prefix="${prefix}"]`);
   if (button) button.textContent = "Toggle mic";
   if (commit && wasActive) commitQwenAnswer(prefix);
@@ -8153,27 +8157,89 @@ function saveBank() {
   renderBankList();
 }
 
+function speakingTopicSummary(item) {
+  const parts = [];
+  if (item.part1Topic) parts.push(`Part 1: ${item.part1Topic}`);
+  if (item.part2) parts.push(`Part 2: ${compactDialogueText(item.part2).slice(0, 170)}`);
+  if (item.part3Topics) parts.push(`Part 3: ${Array.isArray(item.part3Topics) ? item.part3Topics.join(", ") : item.part3Topics}`);
+  return parts.filter(Boolean).join(" · ");
+}
+
+function speakingTopicSearchText(item) {
+  return [
+    item.title,
+    item.source,
+    item.period,
+    item.part1Topic,
+    item.part2,
+    Array.isArray(item.part1) ? item.part1.join(" ") : item.part1,
+    Array.isArray(item.part3) ? item.part3.join(" ") : item.part3,
+    Array.isArray(item.part3Topics) ? item.part3Topics.join(" ") : item.part3Topics,
+  ].filter(Boolean).join(" ").toLowerCase();
+}
+
+function renderSpeakingTopicFilters(items) {
+  const select = $("bankTopicBook");
+  if (!select) return;
+  const current = select.value || "all";
+  const books = [...new Set(items.map(itemBook).filter((value) => value !== null && value !== undefined))]
+    .sort((a, b) => Number(a) - Number(b));
+  select.innerHTML = [
+    `<option value="all">All Cambridge</option>`,
+    ...books.map((book) => `<option value="${escapeHtml(book)}">Cambridge ${escapeHtml(book)}</option>`),
+  ].join("");
+  select.value = books.map(String).includes(current) ? current : "all";
+}
+
+function activateSpeakingTopicFromBank(id) {
+  const topic = mergedItems("speaking").map(normalizeItem).find((item) => item.id === id);
+  if (!topic) return;
+  syncCurrentDraftNow();
+  state.activeModule = "speaking";
+  state.activeSingle = topic;
+  ["singleBookFilter", "singleTestFilter", "singleTaskFilter"].forEach((id) => {
+    if ($(id)) $(id).value = "all";
+  });
+  document.querySelectorAll(".module-btn").forEach((item) => item.classList.toggle("active", item.dataset.module === "speaking"));
+  activateView("single", true);
+  resetSingleTimer("speaking");
+  renderSingle();
+  setSingleImmersive("speaking");
+}
+
 function renderBankList() {
-  if (!state.userBank.length) {
-    $("bankList").innerHTML = `<div class="notice">No saved user questions yet.</div>`;
+  const root = $("bankList");
+  if (!root) return;
+  const topics = mergedItems("speaking").map(normalizeItem);
+  renderSpeakingTopicFilters(topics);
+  const query = ($("bankTopicSearch")?.value || "").trim().toLowerCase();
+  const book = $("bankTopicBook")?.value || "all";
+  const filtered = topics.filter((item) => {
+    const bookOk = book === "all" || String(itemBook(item)) === book;
+    const searchOk = !query || speakingTopicSearchText(item).includes(query);
+    return bookOk && searchOk;
+  });
+  if (!filtered.length) {
+    root.innerHTML = `<div class="notice">No speaking topics match this search.</div>`;
     return;
   }
-  $("bankList").innerHTML = state.userBank
+  root.innerHTML = filtered
     .map(
       (item) => `
-      <div class="bank-item">
-        <div><strong>${item.title}</strong></div>
-        <div class="module-meta">${item.module} · ${item.source}</div>
-        <button class="link-btn delete-bank" data-id="${item.id}">Delete</button>
+      <div class="bank-item speaking-topic-card">
+        <div class="topic-card-head">
+          <div>
+            <strong>${escapeHtml(item.title || "Speaking topic")}</strong>
+            <div class="module-meta">${[item.source, item.period || "", itemBook(item) ? `Cambridge ${itemBook(item)}` : "", itemTest(item) ? `Test ${itemTest(item)}` : ""].filter(Boolean).join(" · ")}</div>
+          </div>
+          <button class="primary small-button practice-speaking-topic" data-id="${escapeHtml(item.id)}">Practice</button>
+        </div>
+        <p>${escapeHtml(speakingTopicSummary(item) || "IELTS speaking practice topic")}</p>
       </div>`,
     )
     .join("");
-  document.querySelectorAll(".delete-bank").forEach((button) => {
-    button.onclick = () => {
-      state.userBank = state.userBank.filter((item) => item.id !== button.dataset.id);
-      saveBank();
-      renderSingle();
-    };
+  document.querySelectorAll(".practice-speaking-topic").forEach((button) => {
+    button.onclick = () => activateSpeakingTopicFromBank(button.dataset.id);
   });
 }
 
@@ -8352,7 +8418,7 @@ function bindEvents() {
   $("helpSaveVocab")?.addEventListener("click", saveHelpVocabulary);
   $("toggleAnnotation")?.addEventListener("click", () => setAnnotationMode(!state.annotation.enabled || state.annotation.erasing, false));
   $("toggleEraser")?.addEventListener("click", () => setAnnotationMode(!state.annotation.erasing, true));
-  $("clearAnnotation")?.addEventListener("click", clearVisibleAnnotationPage);
+  $("clearAnnotation")?.addEventListener("click", clearAllAnnotationPages);
   $("helpCaptureCancel")?.addEventListener("click", () => {
     hideHelpCaptureOverlay();
     stopHelpCaptureStream();
@@ -8479,16 +8545,16 @@ function bindEvents() {
   $("sequenceTimerReset").addEventListener("click", resetSequenceTimer);
   $("singleTimerToggle").addEventListener("click", () => (state.singleTimerId ? stopSingleTimer() : startSingleTimer()));
   $("singleTimerReset").addEventListener("click", () => resetSingleTimer(state.activeModule));
-  $("saveBankItem").addEventListener("click", saveBankItem);
-  $("clearBank").addEventListener("click", () => {
-    $("bankTitle").value = "";
-    $("bankAudioUrl").value = "";
-    $("bankSourceUrl").value = "";
-    $("bankAudioFile").value = "";
-    $("bankPrompt").value = "";
-    $("bankAnswers").value = "";
+  $("saveBankItem")?.addEventListener("click", saveBankItem);
+  $("clearBank")?.addEventListener("click", () => {
+    if ($("bankTitle")) $("bankTitle").value = "";
+    if ($("bankAudioUrl")) $("bankAudioUrl").value = "";
+    if ($("bankSourceUrl")) $("bankSourceUrl").value = "";
+    if ($("bankAudioFile")) $("bankAudioFile").value = "";
+    if ($("bankPrompt")) $("bankPrompt").value = "";
+    if ($("bankAnswers")) $("bankAnswers").value = "";
   });
-  $("bankAudioFile").addEventListener("change", (event) => {
+  $("bankAudioFile")?.addEventListener("change", (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
     if (file.size > 4 * 1024 * 1024) {
@@ -8501,14 +8567,16 @@ function bindEvents() {
     };
     reader.readAsDataURL(file);
   });
-  $("importBulk").addEventListener("click", importBulkBank);
-  $("clearBankStore").addEventListener("click", () => {
+  $("importBulk")?.addEventListener("click", importBulkBank);
+  $("clearBankStore")?.addEventListener("click", () => {
     if (confirm("Clear the user question bank?")) {
       state.userBank = [];
       saveBank();
       renderSingle();
     }
   });
+  $("bankTopicSearch")?.addEventListener("input", renderBankList);
+  $("bankTopicBook")?.addEventListener("change", renderBankList);
 }
 
 async function init() {
@@ -8519,9 +8587,11 @@ async function init() {
   $("aiStatus").textContent = state.data.aiEnabled
     ? `AI connected · ${state.data.model}${state.data.ttsEnabled ? " · Fish TTS" : " · Browser TTS"}`
     : "Local mode · OPENAI_API_KEY not detected";
-  $("sourceLinks").innerHTML = state.data.officialSources
-    .map((source) => `<a href="${source.url}" target="_blank" rel="noreferrer">${source.label}</a>`)
-    .join("");
+  if ($("sourceLinks")) {
+    $("sourceLinks").innerHTML = state.data.officialSources
+      .map((source) => `<a href="${source.url}" target="_blank" rel="noreferrer">${source.label}</a>`)
+      .join("");
+  }
   renderBankList();
   updateUserChrome();
   renderMine();

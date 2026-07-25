@@ -3190,6 +3190,175 @@ body.has-pdf-pages .annotation-toolbar {
   padding: 12px;
 }
 
+/* Targeted exam layout fixes after restoring caption-capable JS. */
+body.single-immersive-mode[data-immersive-module="writing"] #singleContent .exam-two-column,
+body.immersive-mode[data-immersive-module="writing"] .exam-section.focused-section .exam-two-column {
+  height: calc(100dvh - 104px) !important;
+  min-height: 0 !important;
+  grid-template-columns: minmax(0, 64fr) minmax(320px, 36fr) !important;
+  gap: 10px !important;
+}
+
+body.single-immersive-mode[data-immersive-module="writing"] #singleContent .exam-left-pane,
+body.single-immersive-mode[data-immersive-module="writing"] #singleContent .exam-right-pane,
+body.immersive-mode[data-immersive-module="writing"] .exam-section.focused-section .exam-left-pane,
+body.immersive-mode[data-immersive-module="writing"] .exam-section.focused-section .exam-right-pane {
+  height: 100% !important;
+  max-height: none !important;
+  overflow: auto !important;
+}
+
+body.single-immersive-mode[data-immersive-module="writing"] #singleContent .writing-answer-pane,
+body.immersive-mode[data-immersive-module="writing"] .exam-section.focused-section .writing-answer-pane {
+  align-content: stretch;
+}
+
+body.single-immersive-mode[data-immersive-module="writing"] #singleContent .writing-answer-block,
+body.immersive-mode[data-immersive-module="writing"] .exam-section.focused-section .writing-answer-block {
+  min-height: 0;
+}
+
+body.single-immersive-mode[data-immersive-module="writing"] #singleContent .writing-answer-block textarea,
+body.immersive-mode[data-immersive-module="writing"] .exam-section.focused-section .writing-answer-block textarea {
+  min-height: calc((100dvh - 220px) / 2) !important;
+}
+
+body.single-immersive-mode[data-immersive-module="listening"] #singleContent .listening-study .pdf-pages,
+body.immersive-mode[data-immersive-module="listening"] .exam-section.focused-section .listening-study .pdf-pages {
+  height: calc(100dvh - 104px) !important;
+  min-height: 0 !important;
+}
+
+body.single-immersive-mode[data-immersive-module="listening"] #singleContent .listening-study .pdf-study-layout,
+body.immersive-mode[data-immersive-module="listening"] .exam-section.focused-section .listening-study .pdf-study-layout {
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
+body.single-immersive-mode[data-immersive-module="listening"] #singleContent .listening-study .pdf-scroll-box,
+body.single-immersive-mode[data-immersive-module="listening"] #singleContent .listening-study .paper-answer-scroll,
+body.immersive-mode[data-immersive-module="listening"] .exam-section.focused-section .listening-study .pdf-scroll-box,
+body.immersive-mode[data-immersive-module="listening"] .exam-section.focused-section .listening-study .paper-answer-scroll {
+  height: 100% !important;
+  max-height: none !important;
+  overflow: auto !important;
+}
+
+body.single-immersive-mode[data-immersive-module="speaking"] #singleContent .speaking-two-column,
+body.immersive-mode[data-immersive-module="speaking"] .exam-section.focused-section .speaking-two-column {
+  display: grid !important;
+  height: calc(100dvh - 104px) !important;
+  min-height: 0 !important;
+  grid-template-columns: minmax(0, 58fr) minmax(340px, 42fr) !important;
+  gap: 10px !important;
+}
+
+body.single-immersive-mode[data-immersive-module="speaking"] #singleContent .speaking-two-column .exam-left-pane,
+body.single-immersive-mode[data-immersive-module="speaking"] #singleContent .speaking-two-column .exam-right-pane,
+body.immersive-mode[data-immersive-module="speaking"] .exam-section.focused-section .speaking-two-column .exam-left-pane,
+body.immersive-mode[data-immersive-module="speaking"] .exam-section.focused-section .speaking-two-column .exam-right-pane {
+  display: block !important;
+  width: auto !important;
+  height: 100% !important;
+  max-height: none !important;
+  margin: 0 !important;
+  overflow: auto !important;
+}
+
+.speaking-answer-pane .qwen-speaking {
+  min-height: 100%;
+  align-content: start;
+}
+
+.speaking-answer-pane .dialogue-log {
+  min-height: clamp(260px, 42dvh, 520px);
+  max-height: clamp(300px, 52dvh, 620px);
+  background: #f2f5f8;
+}
+
+.dialogue-bubble:not(.system) {
+  width: min(78%, 520px);
+  max-width: min(78%, 520px);
+  border-radius: 18px;
+  padding: 10px 14px;
+}
+
+.dialogue-bubble.examiner {
+  border-bottom-left-radius: 6px;
+}
+
+.dialogue-bubble.candidate {
+  border-bottom-right-radius: 6px;
+}
+
+.speaking-orb-pane {
+  display: grid !important;
+  place-items: center;
+  background: radial-gradient(circle at 50% 45%, #f7fbff 0, #e9f2f4 54%, #dde8ed 100%) !important;
+}
+
+.speaking-orb-stage {
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+}
+
+.speaking-voice-orb {
+  --voice-level: 0;
+  position: relative;
+  width: clamp(160px, 28vw, 320px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 42% 34%, rgba(255,255,255,.95), rgba(255,255,255,0) 28%),
+    radial-gradient(circle at 50% 50%, #62c7d1 0, #168293 58%, #0d5e6c 100%);
+  box-shadow:
+    0 0 calc(28px + var(--voice-level) * 70px) rgba(22, 130, 147, .36),
+    inset 0 -18px 42px rgba(4, 68, 78, .28);
+  transform: scale(calc(1 + var(--voice-level) * .16));
+  transition: transform .08s linear, box-shadow .08s linear;
+}
+
+.speaking-voice-orb::after {
+  content: "";
+  position: absolute;
+}
+
+.speaking-orb-label {
+  color: #385061;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.topic-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(160px, 220px);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.speaking-topic-list {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+.speaking-topic-card {
+  display: grid;
+  gap: 8px;
+}
+
+.topic-card-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.speaking-topic-card p {
+  margin: 0;
+  color: #445468;
+  line-height: 1.5;
+}
+
 @media (max-width: 1060px) {
   .app-shell {
     grid-template-columns: 220px minmax(0, 1fr);
