@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>IELTS-ist</title>
-    <link rel="stylesheet" href="/styles.css?v=20260726-speaker-captions-1" />
+    <link rel="stylesheet" href="/styles.css?v=20260726-speaking-topics-layout-1" />
   </head>
   <body>
     <div class="app-shell">
@@ -183,7 +183,32 @@
             <div class="topic-toolbar">
               <input id="bankTopicSearch" class="text-input" placeholder="Search topics, Cambridge book, or Part 2 cue cards..." />
               <select id="bankTopicBook"></select>
+              <button id="togglePublicTopicForm" class="secondary small-button" type="button">Create public topic</button>
             </div>
+            <form id="publicTopicForm" class="public-topic-form" hidden>
+              <div class="public-topic-grid">
+                <label class="field-label" for="publicTopicKeywords">
+                  <span>Keywords</span>
+                  <input id="publicTopicKeywords" class="text-input" placeholder="e.g. hometown, transport, technology" />
+                </label>
+                <label class="field-label" for="publicTopicPart1">
+                  <span>Part 1 questions</span>
+                  <textarea id="publicTopicPart1" class="short-textarea" placeholder="One question per line"></textarea>
+                </label>
+                <label class="field-label" for="publicTopicPart2">
+                  <span>Part 2 cue card</span>
+                  <textarea id="publicTopicPart2" class="short-textarea" placeholder="Describe..."></textarea>
+                </label>
+                <label class="field-label" for="publicTopicPart3">
+                  <span>Part 3 questions</span>
+                  <textarea id="publicTopicPart3" class="short-textarea" placeholder="One question per line"></textarea>
+                </label>
+              </div>
+              <div class="actions">
+                <button id="savePublicTopic" class="primary small-button" type="button">Save topic</button>
+                <button id="clearPublicTopic" class="secondary small-button" type="button">Clear</button>
+              </div>
+            </form>
             <div id="bankList" class="bank-list speaking-topic-list"></div>
           </section>
         </section>
@@ -233,6 +258,6 @@
       <button id="toggleEraser" class="icon-btn" type="button">Erase</button>
       <button id="clearAnnotation" class="icon-btn" type="button">Clear paper</button>
     </div>
-    <script src="/app.js?v=20260726-speaker-captions-1"></script>
+    <script src="/app.js?v=20260726-speaking-topics-layout-1"></script>
   </body>
 </html>

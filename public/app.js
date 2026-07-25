@@ -7835,11 +7835,42 @@ function speakingTopicSummary(item) {
   return parts.filter(Boolean).join(" · ");
 }
 
+function speakingTopicKeywords(item) {
+  const raw = [
+    item.topicKeywords,
+    item.keywords,
+    item.part1Topic,
+    item.title,
+    Array.isArray(item.part3Topics) ? item.part3Topics.join(" ") : item.part3Topics,
+  ].filter(Boolean).join(" ");
+  const stop = new Set([
+    "ielts", "speaking", "part", "test", "topic", "practice", "cambridge", "academic", "general", "questions", "question",
+    "and", "the", "your", "you", "that", "this", "these", "those", "with", "without", "where", "what", "when", "why",
+    "how", "who", "whose", "which", "about", "after", "before", "into", "from", "have", "has", "had", "are", "was",
+    "were", "will", "would", "could", "should", "does", "did", "doing", "done", "someone", "something", "anything",
+  ]);
+  const words = String(raw || "")
+    .toLowerCase()
+    .replace(/cambridge\s*\d+/g, " ")
+    .replace(/test\s*\d+/g, " ")
+    .split(/[^a-z0-9]+/i)
+    .map((word) => word.trim())
+    .filter((word) => word.length >= 3 && !stop.has(word));
+  const seen = new Set();
+  const keywords = words.filter((word) => {
+    if (seen.has(word)) return false;
+    seen.add(word);
+    return true;
+  });
+  return keywords.slice(0, 6);
+}
+
 function speakingTopicSearchText(item) {
   return [
     item.title,
     item.source,
     item.period,
+    item.topicKeywords,
     item.part1Topic,
     item.part2,
     Array.isArray(item.part1) ? item.part1.join(" ") : item.part1,
@@ -7895,22 +7926,75 @@ function renderBankList() {
   }
   root.innerHTML = filtered
     .map(
-      (item) => `
+      (item) => {
+        const keywords = speakingTopicKeywords(item);
+        const fallbackKeyword = itemBook(item) ? `cambridge ${itemBook(item)}` : "ielts";
+        const chips = (keywords.length ? keywords : [fallbackKeyword])
+          .map((keyword) => `<span>${escapeHtml(keyword)}</span>`)
+          .join("");
+        const origin = item.source === "Public topics"
+          ? "Public topic"
+          : [itemBook(item) ? `Cam ${itemBook(item)}` : "", itemTest(item) ? `Test ${itemTest(item)}` : ""].filter(Boolean).join(" · ");
+        return `
       <div class="bank-item speaking-topic-card">
         <div class="topic-card-head">
-          <div>
-            <strong>${escapeHtml(item.title || "Speaking topic")}</strong>
-            <div class="module-meta">${[item.source, item.period || "", itemBook(item) ? `Cambridge ${itemBook(item)}` : "", itemTest(item) ? `Test ${itemTest(item)}` : ""].filter(Boolean).join(" · ")}</div>
-          </div>
+          <div class="topic-keywords">${chips}</div>
           <button class="primary small-button practice-speaking-topic" data-id="${escapeHtml(item.id)}">Practice</button>
         </div>
-        <p>${escapeHtml(speakingTopicSummary(item) || "IELTS speaking practice topic")}</p>
-      </div>`,
+        <div class="topic-origin">${escapeHtml(origin || "Speaking")}</div>
+      </div>`;
+      },
     )
     .join("");
   document.querySelectorAll(".practice-speaking-topic").forEach((button) => {
     button.onclick = () => activateSpeakingTopicFromBank(button.dataset.id);
   });
+}
+
+function publicTopicLines(id) {
+  return String($(id)?.value || "")
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
+function clearPublicTopicForm() {
+  ["publicTopicKeywords", "publicTopicPart1", "publicTopicPart2", "publicTopicPart3"].forEach((id) => {
+    if ($(id)) $(id).value = "";
+  });
+}
+
+function savePublicTopic() {
+  const keywordText = $("publicTopicKeywords")?.value.trim() || "";
+  const keywords = keywordText
+    .split(/[,，;\n]+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+  const part1 = publicTopicLines("publicTopicPart1");
+  const part2 = $("publicTopicPart2")?.value.trim() || "";
+  const part3 = publicTopicLines("publicTopicPart3");
+  if (!keywords.length && !part1.length && !part2 && !part3.length) {
+    alert("Add keywords or at least one speaking question.");
+    return;
+  }
+  const title = keywords.length ? keywords.slice(0, 4).join(" / ") : (part2 || part1[0] || part3[0] || "Public speaking topic").slice(0, 80);
+  state.userBank.unshift({
+    id: `public-speaking-${Date.now()}`,
+    module: "speaking",
+    title,
+    topicKeywords: keywords.join(", "),
+    part1Topic: keywords[0] || title,
+    part1,
+    part2,
+    part3,
+    part3Topics: keywords,
+    source: "Public topics",
+    period: "Student upload",
+  });
+  saveBank();
+  clearPublicTopicForm();
+  const form = $("publicTopicForm");
+  if (form) form.hidden = true;
 }
 
 function saveBankItem() {
@@ -8247,6 +8331,12 @@ function bindEvents() {
   });
   $("bankTopicSearch")?.addEventListener("input", renderBankList);
   $("bankTopicBook")?.addEventListener("change", renderBankList);
+  $("togglePublicTopicForm")?.addEventListener("click", () => {
+    const form = $("publicTopicForm");
+    if (form) form.hidden = !form.hidden;
+  });
+  $("savePublicTopic")?.addEventListener("click", savePublicTopic);
+  $("clearPublicTopic")?.addEventListener("click", clearPublicTopicForm);
 }
 
 async function init() {
