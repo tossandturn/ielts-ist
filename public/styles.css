@@ -3250,17 +3250,33 @@ body.immersive-mode[data-immersive-module="writing"] .exam-section.focused-secti
 
 body.single-immersive-mode[data-immersive-module="writing"] #singleContent .writing-answer-pane,
 body.immersive-mode[data-immersive-module="writing"] .exam-section.focused-section .writing-answer-pane {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
   align-content: stretch;
+  gap: 12px;
 }
 
 body.single-immersive-mode[data-immersive-module="writing"] #singleContent .writing-answer-block,
 body.immersive-mode[data-immersive-module="writing"] .exam-section.focused-section .writing-answer-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   min-height: 0;
+  margin-bottom: 0;
+  overflow: hidden;
 }
 
 body.single-immersive-mode[data-immersive-module="writing"] #singleContent .writing-answer-block textarea,
 body.immersive-mode[data-immersive-module="writing"] .exam-section.focused-section .writing-answer-block textarea {
-  min-height: calc((100dvh - 220px) / 2) !important;
+  flex: 1 1 auto;
+  min-height: 0 !important;
+  height: auto;
+}
+
+body.single-immersive-mode[data-immersive-module="writing"] #singleContent .writing-answer-block .word-count,
+body.immersive-mode[data-immersive-module="writing"] .exam-section.focused-section .writing-answer-block .word-count {
+  flex: 0 0 auto;
+  margin-top: 0;
 }
 
 body.single-immersive-mode[data-immersive-module="listening"] #singleContent .listening-study .pdf-pages,
