@@ -261,17 +261,25 @@ function renderVocabularyList(items) {
 }
 
 function renderVocabularyItem(item, label) {
-  const title = compactText(cleanReviewText(item.term || "Untitled"), 64);
-  const detail = compactText(cleanReviewText(item.explanation || item.context || ""), 150);
+  const rawTerm = cleanReviewText(item.term || item.context || "Untitled");
+  const title = compactText(rawTerm, classifyVocabularyItem(item) === "word" ? 48 : 96);
+  const explanation = cleanReviewText(item.explanation || "");
+  const context = cleanReviewText(item.context || "");
   const date = new Date(item.updated_at || item.updatedAt || Date.now()).toLocaleDateString();
+  const details = [
+    explanation ? `<div><span>Analysis</span><p>${escapeHtml(explanation)}</p></div>` : "",
+    context && context !== rawTerm ? `<div><span>Captured text</span><p>${escapeHtml(context)}</p></div>` : "",
+    `<div><span>Type</span><p>${escapeHtml(label)}</p></div>`,
+    `<div><span>Saved</span><p>${escapeHtml(date)}</p></div>`,
+  ].filter(Boolean).join("");
   return `<article class="vocab-item">
     <div>
-      <div class="vocab-title-row">
-        <strong>${escapeHtml(title)}</strong>
-        <span class="vocab-kind">${escapeHtml(label)}</span>
-      </div>
-      ${detail ? `<p>${escapeHtml(detail)}</p>` : ""}
-      <span>${escapeHtml(date)}</span>
+      <details class="vocab-details">
+        <summary class="vocab-title-row">
+          <strong>${escapeHtml(title)}</strong>
+        </summary>
+        <div class="vocab-analysis">${details}</div>
+      </details>
     </div>
     <button class="secondary small-button delete-vocab" data-vocab-id="${escapeHtml(item.id)}">Delete</button>
   </article>`;

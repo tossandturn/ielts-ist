@@ -2458,11 +2458,51 @@ body.has-pdf-pages .annotation-toolbar {
   align-items: center;
   gap: 6px;
   min-width: 0;
+  cursor: pointer;
+  list-style: none;
 }
 
 .vocab-title-row strong {
   min-width: 0;
   overflow-wrap: anywhere;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.vocab-title-row::-webkit-details-marker {
+  display: none;
+}
+
+.vocab-title-row::after {
+  content: "Open";
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.vocab-details[open] .vocab-title-row::after {
+  content: "Close";
+}
+
+.vocab-analysis {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #e3e9ef;
+}
+
+.vocab-analysis div {
+  display: grid;
+  gap: 3px;
+}
+
+.vocab-analysis span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
 }
 
 .vocab-kind {
