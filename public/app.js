@@ -8,72 +8,20 @@
   examSeconds: 164 * 60,
   examTotal: 164 * 60,
   examTimerId: null,
-  sequenceSeconds: 164 * 60,
-  sequenceTotal: 164 * 60,
-  sequenceTimerId: null,
   singleSeconds: 30 * 60,
   singleTotal: 30 * 60,
   singleTimerId: null,
-  listeningScripts: {},
-  listeningCaptionState: {},
-  listeningTimedCaptionLoops: {},
-  listeningAsr: {},
-  listeningCaptionVoices: {},
-  listeningCaptionHomes: {},
   recognition: null,
   recording: false,
   autoSpeaking: {},
   speakingSessions: {},
   speakingTimers: {},
   qwenSpeaking: {},
-  qwenRuntime: null,
-  qwenRuntimeLoadedAt: 0,
-  authToken: "",
-  currentUser: null,
-  serverDrafts: [],
-  vocabItems: [],
-  draftSaveTimer: null,
-  annotation: {
-    enabled: false,
-    activeCanvas: null,
-    drawing: false,
-    erasing: false,
-    pointers: new Set(),
-    pointerPositions: new Map(),
-    scrollTarget: null,
-    lastMultiTouchY: 0,
-    lastX: 0,
-    lastY: 0,
-  },
-  help: {
-    stream: null,
-    video: null,
-    selecting: false,
-    startX: 0,
-    startY: 0,
-    contextText: "",
-    context: null,
-    pendingImageDataUrl: "",
-    captureMode: "explain",
-    history: [],
-    captureRequestId: 0,
-    selectionRect: null,
-    dragMode: "",
-    activeHandle: "",
-    originRect: null,
-  },
 };
 
 const $ = (id) => document.getElementById(id);
 const storeKey = "ieltsTrainerUserBank";
 const sidebarStoreKey = "ieltsTrainerSidebarCollapsed";
-const authStoreKey = "ieltsistAuthToken";
-const draftStoreKey = "ieltsistDeviceDrafts";
-const annotationStoreKey = "ieltsistPdfAnnotations";
-const listeningAudioGraphs = new WeakMap();
-const listeningAsrCacheSource = "qwen-asr-live-vad-v1";
-const listeningCaptionDefaultWordsPerSecond = 1.45;
-const listeningCaptionLoopWarmupMs = 9000;
 
 function countWords(text) {
   return String(text || "").trim().split(/\s+/).filter(Boolean).length;
@@ -95,425 +43,6 @@ function setFeedbackHtml(id, html, modeId, mode) {
 
 function clearSingleFeedback() {
   setFeedback("singleFeedback", "After you submit a single module, the score will appear here.", "singleMode", "");
-}
-
-function readLocalDrafts() {
-  try {
-    return JSON.parse(localStorage.getItem(draftStoreKey) || "[]");
-  } catch {
-    return [];
-  }
-}
-
-function writeLocalDrafts(drafts) {
-  localStorage.setItem(draftStoreKey, JSON.stringify(drafts.slice(0, 80)));
-}
-
-function upsertLocalDraft(draft) {
-  const drafts = readLocalDrafts().filter((item) => item.key !== draft.key);
-  drafts.unshift(draft);
-  writeLocalDrafts(drafts);
-}
-
-function authHeaders() {
-  return state.authToken ? { authorization: `Bearer ${state.authToken}` } : {};
-}
-
-function membershipLabel(user = state.currentUser) {
-  const membership = user?.membership;
-  if (!membership?.expiresAt) return "Free account";
-  const date = new Date(membership.expiresAt);
-  return `${membership.plan || "member"} · ${membership.active ? "active until" : "expired"} ${date.toLocaleDateString()}`;
-}
-
-function updateUserChrome() {
-  const avatar = $("brandAvatar");
-  const info = $("brandUserInfo");
-  const user = state.currentUser;
-  if (avatar) {
-    avatar.textContent = user?.username ? user.username.slice(0, 1).toUpperCase() : "I";
-    avatar.style.backgroundImage = user?.avatarDataUrl ? `url("${user.avatarDataUrl}")` : "";
-    avatar.classList.toggle("has-avatar", Boolean(user?.avatarDataUrl));
-  }
-  if (info) info.textContent = user ? `${user.username} · ${membershipLabel(user)}` : "Cambridge IELTS practice / single modules / writing feedback";
-}
-
-async function refreshMineData() {
-  if (!state.authToken) {
-    state.serverDrafts = [];
-    state.vocabItems = [];
-    renderMine();
-    return;
-  }
-  try {
-    const [me, drafts, vocab] = await Promise.all([
-      getJson("/api/me"),
-      getJson("/api/drafts"),
-      getJson("/api/vocabulary"),
-    ]);
-    state.currentUser = me.user || null;
-    state.serverDrafts = drafts.drafts || [];
-    state.vocabItems = vocab.items || [];
-  } catch (error) {
-    if (/log in|expired|401/i.test(error.message)) {
-      state.authToken = "";
-      state.currentUser = null;
-      localStorage.removeItem(authStoreKey);
-    }
-  }
-  updateUserChrome();
-  renderMine();
-}
-
-function renderMine() {
-  const node = $("mineContent");
-  if (!node) return;
-  const localDrafts = readLocalDrafts();
-  if (!state.currentUser) {
-    node.innerHTML = `
-      <section class="panel auth-panel">
-        <div class="panel-head"><h3>Login or register</h3></div>
-        <form id="authForm" class="auth-form">
-          <input id="authUsername" class="text-input" autocomplete="username" placeholder="Username: 3-24 lowercase letters/numbers/_" />
-          <input id="authPassword" class="text-input spaced" type="password" autocomplete="current-password" placeholder="Password" />
-          <div class="actions">
-            <button id="loginUser" class="primary" type="submit">Login</button>
-            <button id="registerUser" class="secondary" type="button">Register</button>
-          </div>
-        </form>
-        <div id="authMessage" class="compact-notice"></div>
-      </section>
-      <section class="panel">
-        <div class="panel-head"><h3>Device drafts</h3></div>
-        ${renderDraftList(localDrafts, "local")}
-      </section>`;
-    bindMineControls();
-    return;
-  }
-  node.innerHTML = `
-    <section class="panel auth-panel">
-      <div class="panel-head">
-        <h3>${escapeHtml(state.currentUser.username)}</h3>
-        <button id="logoutUser" class="secondary small-button">Logout</button>
-      </div>
-      <div class="membership-card">
-        <strong>${escapeHtml(membershipLabel())}</strong>
-        <span>Redeem a weekly, monthly or yearly code to extend access.</span>
-      </div>
-      <div class="redeem-row">
-        <input id="redeemCode" class="text-input" placeholder="Redemption code" />
-        <button id="redeemCodeButton" class="primary">Redeem</button>
-      </div>
-      <div id="redeemMessage" class="compact-notice"></div>
-      <div class="mine-vocab-section">
-        <div class="panel-head compact-head"><h3>Vocabulary notebook</h3></div>
-        ${renderVocabularyList(state.vocabItems)}
-      </div>
-    </section>
-    <section class="panel">
-      <div class="panel-head"><h3>Draft box</h3><button id="syncDraftsNow" class="secondary small-button">Sync</button></div>
-      ${renderDraftList([...state.serverDrafts, ...localDrafts], "mixed")}
-    </section>`;
-  bindMineControls();
-}
-
-function renderDraftList(drafts, mode) {
-  if (!drafts.length) return `<div class="empty-list">No saved drafts yet.</div>`;
-  const seen = new Set();
-  return `<div class="draft-list">${drafts
-    .filter((draft) => {
-      const key = draft.key || draft.draft_key;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    })
-    .map((draft) => {
-      const key = draft.key || draft.draft_key;
-      return `<article class="draft-item">
-        <div>
-          <strong>${escapeHtml(draft.title || "Untitled draft")}</strong>
-          <span>${escapeHtml(draft.module || "practice")} · ${escapeHtml(new Date(draft.updatedAt || draft.updated_at || Date.now()).toLocaleString())}</span>
-        </div>
-        <div class="draft-actions">
-          <button class="secondary small-button restore-draft" data-draft-key="${escapeHtml(key)}" data-draft-mode="${escapeHtml(mode)}">Restore</button>
-          <button class="secondary small-button delete-draft" data-draft-key="${escapeHtml(key)}">Delete</button>
-        </div>
-      </article>`;
-    }).join("")}</div>`;
-}
-
-function renderVocabularyList(items) {
-  if (!items.length) return `<div class="empty-list compact-empty">No saved items yet.</div>`;
-  const buckets = [
-    { key: "word", label: "单词翻译" },
-    { key: "sentence", label: "句子翻译" },
-    { key: "paragraph", label: "整段翻译" },
-  ];
-  const grouped = buckets.map((bucket) => ({
-    ...bucket,
-    items: items.filter((item) => classifyVocabularyItem(item) === bucket.key),
-  })).filter((bucket) => bucket.items.length);
-  return `<div class="vocab-list">${grouped.map((bucket) => `
-    <section class="vocab-group">
-      <div class="vocab-group-title">${escapeHtml(bucket.label)}</div>
-      ${bucket.items.map((item) => renderVocabularyItem(item, bucket.label)).join("")}
-    </section>`).join("")}</div>`;
-}
-
-function renderVocabularyItem(item, label) {
-  const title = compactText(cleanReviewText(item.term || "Untitled"), 64);
-  const detail = compactText(cleanReviewText(item.explanation || item.context || ""), 150);
-  const date = new Date(item.updated_at || item.updatedAt || Date.now()).toLocaleDateString();
-  return `<article class="vocab-item">
-    <div>
-      <div class="vocab-title-row">
-        <strong>${escapeHtml(title)}</strong>
-        <span class="vocab-kind">${escapeHtml(label)}</span>
-      </div>
-      ${detail ? `<p>${escapeHtml(detail)}</p>` : ""}
-      <span>${escapeHtml(date)}</span>
-    </div>
-    <button class="secondary small-button delete-vocab" data-vocab-id="${escapeHtml(item.id)}">Delete</button>
-  </article>`;
-}
-
-function classifyVocabularyItem(item) {
-  const source = String(item.source || "").toLowerCase();
-  if (source.includes("paragraph")) return "paragraph";
-  if (source.includes("sentence")) return "sentence";
-  if (source.includes("word")) return "word";
-  return classifyVocabularyText(item.term || item.context || "");
-}
-
-function classifyVocabularyText(value) {
-  const text = cleanReviewText(value);
-  const wordCount = text.split(/\s+/).filter(Boolean).length;
-  const asciiWordCount = (text.match(/[A-Za-z][A-Za-z'-]*/g) || []).length;
-  const cjkCount = (text.match(/[\u4e00-\u9fff]/g) || []).length;
-  const hasSentencePunctuation = /[.!?。！？；;]/.test(text);
-  if (!hasSentencePunctuation && (asciiWordCount <= 4 || wordCount <= 4) && cjkCount <= 8 && text.length <= 40) return "word";
-  if (text.length <= 160 && (text.match(/[.!?。！？]/g) || []).length <= 1) return "sentence";
-  return "paragraph";
-}
-
-function cleanReviewText(value) {
-  return String(value || "")
-    .replace(/\*\*/g, "")
-    .replace(/`/g, "")
-    .replace(/^#{1,6}\s*/gm, "")
-    .replace(/^\s*[-*]\s+/gm, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function compactText(value, maxLength) {
-  const text = cleanReviewText(value);
-  if (text.length <= maxLength) return text;
-  return `${text.slice(0, Math.max(0, maxLength - 1)).trim()}…`;
-}
-
-async function submitAuth(mode) {
-  const message = $("authMessage");
-  try {
-    const username = $("authUsername")?.value || "";
-    const password = $("authPassword")?.value || "";
-    const json = await postJson(`/api/auth/${mode}`, { username, password });
-    state.authToken = json.token || "";
-    state.currentUser = json.user || null;
-    if (state.authToken) localStorage.setItem(authStoreKey, state.authToken);
-    updateUserChrome();
-    await syncCurrentDraftNow();
-    await refreshMineData();
-  } catch (error) {
-    if (message) message.textContent = error.message;
-  }
-}
-
-async function logoutUser() {
-  try {
-    await postJson("/api/auth/logout", {});
-  } catch {
-    // Local logout still works when the network is unavailable.
-  }
-  state.authToken = "";
-  state.currentUser = null;
-  localStorage.removeItem(authStoreKey);
-  updateUserChrome();
-  renderMine();
-}
-
-async function redeemCode() {
-  const message = $("redeemMessage");
-  try {
-    const code = $("redeemCode")?.value || "";
-    const json = await postJson("/api/redeem", { code });
-    state.currentUser = json.user || state.currentUser;
-    if (message) message.textContent = "Redeemed. Membership updated.";
-    updateUserChrome();
-    renderMine();
-  } catch (error) {
-    if (message) message.textContent = error.message;
-  }
-}
-
-function bindMineControls() {
-  $("authForm")?.addEventListener("submit", (event) => {
-    event.preventDefault();
-    submitAuth("login");
-  });
-  $("registerUser")?.addEventListener("click", () => submitAuth("register"));
-  $("logoutUser")?.addEventListener("click", logoutUser);
-  $("redeemCodeButton")?.addEventListener("click", redeemCode);
-  $("syncDraftsNow")?.addEventListener("click", syncAllLocalDrafts);
-  document.querySelectorAll(".restore-draft").forEach((button) => {
-    button.onclick = () => restoreDraft(button.dataset.draftKey);
-  });
-  document.querySelectorAll(".delete-draft").forEach((button) => {
-    button.onclick = () => deleteDraft(button.dataset.draftKey);
-  });
-  document.querySelectorAll(".delete-vocab").forEach((button) => {
-    button.onclick = () => deleteVocabulary(button.dataset.vocabId);
-  });
-}
-
-function draftFieldKey(field) {
-  if (field.id) return `id:${field.id}`;
-  const prefix = field.dataset?.prefix || "";
-  const qid = field.dataset?.qid || "";
-  if (prefix && qid) return `qid:${prefix}:${qid}`;
-  return "";
-}
-
-function findDraftField(key) {
-  if (key.startsWith("id:")) return $(key.slice(3));
-  if (key.startsWith("qid:")) {
-    const [, prefix, ...qidParts] = key.split(":");
-    const qid = qidParts.join(":");
-    return [...document.querySelectorAll(".answer-input, .paper-answer-input, .page-card-input")]
-      .find((field) => field.dataset.prefix === prefix && field.dataset.qid === qid) || null;
-  }
-  return $(key);
-}
-
-function currentDraftSnapshot() {
-  const activeView = document.querySelector(".view.active")?.id || "practice";
-  const values = {};
-  document.querySelectorAll(".view.active textarea, .view.active input.answer-input, .view.active input.paper-answer-input, .view.active input.page-card-input, .view.active input.band-input").forEach((field) => {
-    const key = draftFieldKey(field);
-    if (key) values[key] = field.value || "";
-  });
-  const hasContent = Object.values(values).some((value) => String(value || "").trim());
-  if (!hasContent) return null;
-  const activeTitle = document.querySelector(".view.active h2")?.textContent || activeView;
-  const bundle = activeView === "exam"
-    ? bundleDraftPayload(state.exam)
-    : activeView === "sequence"
-      ? bundleDraftPayload(state.sequence)
-      : null;
-  return {
-    key: `${activeView}:${state.activeModule}:${state.activeSingle?.id || bundle?.listeningId || "current"}`,
-    module: activeView === "single" ? state.activeModule : activeView,
-    title: `${activeTitle} · ${state.activeModule || "practice"}`,
-    payload: { values, activeView, activeModule: state.activeModule, activeSingleId: state.activeSingle?.id || "", bundle },
-    updatedAt: new Date().toISOString(),
-  };
-}
-
-async function syncDraft(draft) {
-  if (!state.authToken || !draft) return;
-  await postJson("/api/drafts", draft);
-}
-
-async function syncCurrentDraftNow() {
-  const draft = currentDraftSnapshot();
-  if (!draft) return;
-  upsertLocalDraft(draft);
-  try {
-    await syncDraft(draft);
-  } catch {
-    // The device draft remains available offline.
-  }
-}
-
-function scheduleDraftAutosave() {
-  if (state.draftSaveTimer) window.clearTimeout(state.draftSaveTimer);
-  state.draftSaveTimer = window.setTimeout(syncCurrentDraftNow, 700);
-}
-
-async function syncAllLocalDrafts() {
-  if (!state.authToken) return;
-  const drafts = readLocalDrafts();
-  for (const draft of drafts) {
-    try {
-      await syncDraft(draft);
-    } catch {
-      break;
-    }
-  }
-  await refreshMineData();
-}
-
-function restoreDraft(key) {
-  const draft = [...state.serverDrafts, ...readLocalDrafts()].find((item) => (item.key || item.draft_key) === key);
-  if (!draft?.payload?.values) return;
-  const targetView = draft.payload.activeView || "single";
-  activateView(targetView, true);
-  if (targetView === "exam") {
-    const bundle = restoreBundleFromDraft(draft.payload.bundle);
-    if (bundle) buildExam(bundle);
-  } else if (targetView === "sequence") {
-    const bundle = restoreBundleFromDraft(draft.payload.bundle);
-    if (bundle) buildSequence(bundle);
-  } else if (targetView === "single" && draft.payload.activeModule) {
-    state.activeModule = draft.payload.activeModule;
-    document.querySelectorAll(".module-btn").forEach((item) => item.classList.toggle("active", item.dataset.module === state.activeModule));
-    const item = findItemById(state.activeModule, draft.payload.activeSingleId);
-    if (item) state.activeSingle = item;
-    renderSingle();
-  }
-  for (const [id, value] of Object.entries(draft.payload.values)) {
-    const field = findDraftField(id);
-    if (field) {
-      field.value = value;
-      field.dispatchEvent(new Event("input", { bubbles: true }));
-    }
-  }
-}
-
-async function deleteDraft(key) {
-  writeLocalDrafts(readLocalDrafts().filter((draft) => draft.key !== key));
-  if (state.authToken) {
-    try {
-      await deleteJson(`/api/drafts?key=${encodeURIComponent(key)}`);
-    } catch {
-      // Ignore server delete failures; local cleanup still applies.
-    }
-  }
-  await refreshMineData();
-}
-
-async function saveHelpVocabulary() {
-  const selection = String(window.getSelection?.() || "").trim();
-  const typed = $("helpChatInput")?.value?.trim() || "";
-  const context = state.help.contextText || typed || selection;
-  const fallback = selection || typed.split(/\s+/).slice(0, 3).join(" ") || context.split(/\s+/).slice(0, 3).join(" ");
-  const term = window.prompt("Save which word, sentence, or paragraph?", fallback);
-  if (!term) return;
-  const kind = classifyVocabularyText(term);
-  const explanation = compactText(state.help.history.at(-1)?.content || context, kind === "paragraph" ? 260 : 180);
-  if (!state.authToken) {
-    alert("Please log in first, then save vocabulary to Mine.");
-    activateView("mine", true);
-    return;
-  }
-  await postJson("/api/vocabulary", { term: cleanReviewText(term), context: cleanReviewText(context), explanation, source: `Help:${kind}` });
-  await refreshMineData();
-}
-
-async function deleteVocabulary(id) {
-  if (!state.authToken) return;
-  await deleteJson(`/api/vocabulary?id=${encodeURIComponent(id)}`);
-  await refreshMineData();
 }
 
 function escapeHtml(value) {
@@ -627,10 +156,12 @@ function filterValue(id) {
 function applySingleFilters(items, moduleName) {
   const book = filterValue("singleBookFilter");
   const test = filterValue("singleTestFilter");
+  const task = filterValue("singleTaskFilter");
   return items.filter((item) => {
     const bookOk = book === "all" || String(itemBook(item)) === book;
     const testOk = test === "all" || String(itemTest(item)) === test;
-    return bookOk && testOk;
+    const taskOk = moduleName !== "writing" || task === "all" || String(itemTask(item)) === task;
+    return bookOk && testOk && taskOk;
   });
 }
 
@@ -653,87 +184,25 @@ function renderSingleFilters(items, moduleName) {
   const selectedBook = filterValue("singleBookFilter");
   const testItems = selectedBook === "all" ? items : items.filter((item) => String(itemBook(item)) === selectedBook);
   renderFilterOptions("singleTestFilter", testItems.map(itemTest), "All tests");
-  renderFilterOptions("singleTaskFilter", [], "All tasks");
-  $("singleTaskFilter").style.display = "none";
-}
-
-function singleWritingSetTitle(tasks) {
-  const first = normalizeItem(tasks?.[0] || {});
-  const book = itemBook(first);
-  const test = itemTest(first);
-  const source = first.source || "Writing";
-  return [book ? `Cambridge ${book}` : source, test ? `Test ${test}` : "", "Writing Task 1 + Task 2"]
-    .filter(Boolean)
-    .join(" · ");
-}
-
-function singleWritingSetFromPair(pair) {
-  const tasks = pair.map(normalizeItem);
-  const first = tasks[0];
-  return {
-    id: `writing-set:${writingPairKey(first)}`,
-    module: "writing",
-    type: "Task 1 + Task 2",
-    title: singleWritingSetTitle(tasks),
-    source: first.source || "",
-    period: first.period || "",
-    writingTasks: tasks,
-  };
-}
-
-function singleOptions(moduleName) {
-  const allOptions = mergedItems(moduleName).map(normalizeItem);
-  const filtered = applySingleFilters(allOptions, moduleName);
-  if (moduleName !== "writing") return filtered;
-  return pairedWritingSets(filtered).map(singleWritingSetFromPair);
+  const selectedTest = filterValue("singleTestFilter");
+  const taskItems = testItems.filter((item) => selectedTest === "all" || String(itemTest(item)) === selectedTest);
+  renderFilterOptions("singleTaskFilter", moduleName === "writing" ? taskItems.map(itemTask) : [], "All tasks");
+  $("singleTaskFilter").style.display = moduleName === "writing" ? "" : "none";
 }
 
 function mergedItems(moduleName) {
   const user = getBank(moduleName);
-  const data = state.data || {};
   const builtIn =
     moduleName === "listening"
-      ? data.listeningTests
+      ? state.data.listeningTests
       : moduleName === "reading"
-        ? data.readingTests
+        ? state.data.readingTests
       : moduleName === "writing"
-        ? data.writingTasks
+        ? state.data.writingTasks
           : moduleName === "speaking"
-            ? data.speakingSets
+            ? state.data.speakingSets
             : [];
-  return [...user, ...(Array.isArray(builtIn) ? builtIn : [])];
-}
-
-function findItemById(moduleName, id) {
-  if (!id) return null;
-  return mergedItems(moduleName).map(normalizeItem).find((item) => item.id === id) || null;
-}
-
-function bundleDraftPayload(bundle) {
-  if (!bundle) return null;
-  return {
-    listeningId: bundle.listening?.id || "",
-    readingId: bundle.reading?.id || "",
-    writingTaskIds: (bundle.writingTasks || [bundle.writing]).filter(Boolean).map((item) => item.id || ""),
-    speakingId: bundle.speaking?.id || "",
-  };
-}
-
-function restoreBundleFromDraft(payload) {
-  if (!payload) return null;
-  const writingTasks = (payload.writingTaskIds || []).map((id) => findItemById("writing", id)).filter(Boolean);
-  const bundle = {
-    listening: findItemById("listening", payload.listeningId),
-    reading: findItemById("reading", payload.readingId),
-    writingTasks,
-    writing: writingTasks[0],
-    speaking: findItemById("speaking", payload.speakingId),
-  };
-  return bundle.listening && bundle.reading && bundle.writingTasks.length && bundle.speaking ? bundle : null;
-}
-
-function isExamBundle(value) {
-  return Boolean(value && typeof value === "object" && value.listening && value.reading && (value.writingTasks || value.writing) && value.speaking);
+  return [...user, ...builtIn];
 }
 
 function formatTime(total) {
@@ -768,38 +237,6 @@ function startExamTimer() {
     if (state.examSeconds === 0) stopExamTimer();
   }, 1000);
   renderExamTimer();
-}
-
-function renderSequenceTimer() {
-  ["sequenceTimer", "sequenceStickyTimer"].forEach((id) => {
-    const node = $(id);
-    if (node) node.textContent = formatTime(state.sequenceSeconds);
-  });
-  ["sequenceTimerToggle", "sequenceStickyTimerToggle"].forEach((id) => {
-    const node = $(id);
-    if (node) node.textContent = state.sequenceTimerId ? "Pause" : "Start";
-  });
-}
-
-function stopSequenceTimer() {
-  if (state.sequenceTimerId) clearInterval(state.sequenceTimerId);
-  state.sequenceTimerId = null;
-  renderSequenceTimer();
-}
-
-function startSequenceTimer() {
-  if (state.sequenceTimerId) return;
-  state.sequenceTimerId = setInterval(() => {
-    state.sequenceSeconds = Math.max(0, state.sequenceSeconds - 1);
-    renderSequenceTimer();
-    if (state.sequenceSeconds === 0) stopSequenceTimer();
-  }, 1000);
-  renderSequenceTimer();
-}
-
-function resetSequenceTimer() {
-  state.sequenceSeconds = state.sequenceTotal;
-  stopSequenceTimer();
 }
 
 function singleModuleTotal(moduleName = state.activeModule) {
@@ -840,598 +277,25 @@ function startSingleTimer() {
   renderSingleTimer();
 }
 
-function sleep(ms) {
-  return new Promise((resolve) => window.setTimeout(resolve, ms));
-}
-
-async function parseJsonResponse(response) {
-  const contentType = response.headers.get("content-type") || "";
-  const text = await response.text();
-  let json = null;
-  if (text) {
-    try {
-      json = JSON.parse(text);
-    } catch {
-      const preview = text.replace(/\s+/g, " ").slice(0, 160);
-      throw new Error(`Server returned non-JSON content (${response.status}, ${contentType || "unknown type"}): ${preview}`);
-    }
-  }
-  if (!response.ok) throw new Error(json?.error || `Request failed (${response.status})`);
-  return json || {};
-}
-
-async function getJson(url) {
-  const headers = state.authToken ? { authorization: `Bearer ${state.authToken}` } : {};
-  const response = await fetch(url, { cache: "no-store", headers });
-  return parseJsonResponse(response);
-}
-
 async function postJson(url, payload) {
-  const headers = { "content-type": "application/json" };
-  if (state.authToken) headers.authorization = `Bearer ${state.authToken}`;
   const response = await fetch(url, {
     method: "POST",
-    headers,
+    headers: { "content-type": "application/json" },
     body: JSON.stringify(payload),
   });
-  return parseJsonResponse(response);
-}
-
-async function deleteJson(url) {
-  const headers = state.authToken ? { authorization: `Bearer ${state.authToken}` } : {};
-  const response = await fetch(url, { method: "DELETE", headers });
-  return parseJsonResponse(response);
-}
-
-function setHelpStatus(text) {
-  const node = $("helpChatStatus");
-  if (node) node.textContent = text || "";
-}
-
-function openHelpPanel() {
-  const panel = $("helpChatPanel");
-  if (panel) panel.hidden = false;
-}
-
-function updateHelpAttachmentPreview() {
-  const preview = $("helpAttachmentPreview");
-  if (!preview) return;
-  preview.hidden = !state.help.pendingImageDataUrl;
-}
-
-function closeHelpPanel() {
-  state.help.captureRequestId += 1;
-  hideHelpCaptureOverlay();
-  stopHelpCaptureStream();
-  const panel = $("helpChatPanel");
-  if (panel) panel.hidden = true;
-}
-
-function renderHelpInline(text) {
-  return escapeHtml(text)
-    .replace(/\*\*\s*(.+?)\s*\*\*/g, "<strong>$1</strong>")
-    .replace(/`([^`]+)`/g, "<code>$1</code>");
-}
-
-function renderHelpRichText(text) {
-  const lines = String(text || "")
-    .replace(/\r\n?/g, "\n")
-    .replace(/\n{3,}/g, "\n\n")
-    .split("\n");
-  const html = [];
-  let listOpen = false;
-  const closeList = () => {
-    if (listOpen) {
-      html.push("</ul>");
-      listOpen = false;
-    }
-  };
-  for (const rawLine of lines) {
-    const line = rawLine.trim();
-    if (!line) {
-      closeList();
-      continue;
-    }
-    const heading = line.match(/^#{1,4}\s+(.+)$/);
-    if (heading) {
-      closeList();
-      html.push(`<h4>${renderHelpInline(heading[1])}</h4>`);
-      continue;
-    }
-    const bullet = line.match(/^[-*]\s+(.+)$/);
-    if (bullet) {
-      if (!listOpen) {
-        html.push("<ul>");
-        listOpen = true;
-      }
-      html.push(`<li>${renderHelpInline(bullet[1])}</li>`);
-      continue;
-    }
-    closeList();
-    html.push(`<p>${renderHelpInline(line)}</p>`);
-  }
-  closeList();
-  return html.join("");
-}
-
-function setHelpMessageContent(item, role, text) {
-  if (!item) return;
-  if (role === "user") {
-    item.textContent = text || "";
-    return;
-  }
-  item.innerHTML = `<div class="help-rich">${renderHelpRichText(text || "")}</div>`;
-}
-
-function addHelpMessage(role, text) {
-  const log = $("helpChatLog");
-  if (!log) return;
-  const item = document.createElement("div");
-  item.className = `help-message ${role === "user" ? "user" : "assistant"}`;
-  setHelpMessageContent(item, role, text);
-  log.appendChild(item);
-  log.scrollTop = log.scrollHeight;
-}
-
-function stopHelpCaptureStream() {
-  if (state.help.stream) {
-    state.help.stream.getTracks().forEach((track) => track.stop());
-    state.help.stream = null;
-  }
-  state.help.video = null;
-}
-
-function hideHelpCaptureOverlay() {
-  const overlay = $("helpCaptureOverlay");
-  const selection = $("helpCaptureSelection");
-  const toolbar = $("helpCaptureToolbar");
-  if (overlay) overlay.hidden = true;
-  if (selection) selection.style.cssText = "";
-  if (toolbar) toolbar.hidden = true;
-  state.help.selecting = false;
-  state.help.selectionRect = null;
-  state.help.dragMode = "";
-  state.help.activeHandle = "";
-  state.help.originRect = null;
-}
-
-function clampHelpRect(rect) {
-  const minSize = 28;
-  const normalized = {
-    left: rect.width < 0 ? rect.left + rect.width : rect.left,
-    top: rect.height < 0 ? rect.top + rect.height : rect.top,
-    width: Math.abs(rect.width),
-    height: Math.abs(rect.height),
-  };
-  const left = Math.max(0, Math.min(window.innerWidth - minSize, normalized.left));
-  const top = Math.max(0, Math.min(window.innerHeight - minSize, normalized.top));
-  const width = Math.max(minSize, Math.min(window.innerWidth - left, normalized.width));
-  const height = Math.max(minSize, Math.min(window.innerHeight - top, normalized.height));
-  return { left, top, width, height };
-}
-
-function positionHelpToolbar(rect) {
-  const toolbar = $("helpCaptureToolbar");
-  if (!toolbar || !rect) return;
-  toolbar.hidden = false;
-  const width = toolbar.offsetWidth || 260;
-  const height = toolbar.offsetHeight || 42;
-  const left = Math.max(8, Math.min(window.innerWidth - width - 8, rect.left + rect.width - width));
-  const below = rect.top + rect.height + 10;
-  const top = below + height < window.innerHeight ? below : Math.max(8, rect.top - height - 10);
-  toolbar.style.left = `${left}px`;
-  toolbar.style.top = `${top}px`;
-}
-
-function setHelpSelectionRect(rect, showToolbar = false) {
-  const selection = $("helpCaptureSelection");
-  if (!selection) return;
-  const next = clampHelpRect(rect);
-  state.help.selectionRect = next;
-  const { left, top, width, height } = next;
-  selection.style.left = `${left}px`;
-  selection.style.top = `${top}px`;
-  selection.style.width = `${width}px`;
-  selection.style.height = `${height}px`;
-  selection.style.display = "block";
-  if (showToolbar) positionHelpToolbar(next);
-  else if ($("helpCaptureToolbar")) $("helpCaptureToolbar").hidden = true;
-}
-
-function updateHelpSelection(x, y) {
-  setHelpSelectionRect({
-    left: Math.min(state.help.startX, x),
-    top: Math.min(state.help.startY, y),
-    width: Math.abs(x - state.help.startX),
-    height: Math.abs(y - state.help.startY),
-  }, false);
-}
-
-function helpEventPoint(event) {
-  const touch = event.changedTouches?.[0] || event.touches?.[0];
-  return {
-    x: Math.max(0, Math.min(window.innerWidth, touch ? touch.clientX : event.clientX)),
-    y: Math.max(0, Math.min(window.innerHeight, touch ? touch.clientY : event.clientY)),
-  };
-}
-
-function beginHelpSelection(event) {
-  if (event.target?.closest?.("#helpCaptureToolbar")) return;
-  event.preventDefault?.();
-  const point = helpEventPoint(event);
-  state.help.selecting = true;
-  state.help.originRect = state.help.selectionRect ? { ...state.help.selectionRect } : null;
-  const handle = event.target?.dataset?.helpHandle || "";
-  state.help.activeHandle = handle;
-  if (handle && state.help.originRect) {
-    state.help.dragMode = "resize";
-  } else if (event.target?.closest?.("#helpCaptureSelection") && state.help.originRect) {
-    state.help.dragMode = "move";
-  } else {
-    state.help.dragMode = "new";
-    state.help.originRect = null;
-  }
-  state.help.startX = point.x;
-  state.help.startY = point.y;
-  if (state.help.dragMode === "new") updateHelpSelection(point.x, point.y);
-  else setHelpSelectionRect(state.help.originRect, false);
-}
-
-function moveHelpSelection(event) {
-  if (!state.help.selecting) return;
-  event.preventDefault?.();
-  const point = helpEventPoint(event);
-  if (state.help.dragMode === "move" && state.help.originRect) {
-    setHelpSelectionRect({
-      ...state.help.originRect,
-      left: state.help.originRect.left + point.x - state.help.startX,
-      top: state.help.originRect.top + point.y - state.help.startY,
-    }, false);
-    return;
-  }
-  if (state.help.dragMode === "resize" && state.help.originRect) {
-    const rect = { ...state.help.originRect };
-    const dx = point.x - state.help.startX;
-    const dy = point.y - state.help.startY;
-    if (state.help.activeHandle.includes("w")) {
-      rect.left += dx;
-      rect.width -= dx;
-    }
-    if (state.help.activeHandle.includes("e")) rect.width += dx;
-    if (state.help.activeHandle.includes("n")) {
-      rect.top += dy;
-      rect.height -= dy;
-    }
-    if (state.help.activeHandle.includes("s")) rect.height += dy;
-    setHelpSelectionRect(rect, false);
-    return;
-  }
-  updateHelpSelection(point.x, point.y);
-}
-
-function cropHelpSelectionToDataUrl(rect) {
-  const video = state.help.video;
-  if (!video || !video.videoWidth || !video.videoHeight) throw new Error("Screen capture is not ready.");
-  const scaleX = video.videoWidth / window.innerWidth;
-  const scaleY = video.videoHeight / window.innerHeight;
-  const sourceX = Math.max(0, Math.round(rect.left * scaleX));
-  const sourceY = Math.max(0, Math.round(rect.top * scaleY));
-  const sourceWidth = Math.max(1, Math.round(rect.width * scaleX));
-  const sourceHeight = Math.max(1, Math.round(rect.height * scaleY));
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.min(sourceWidth, 1800);
-  canvas.height = Math.min(sourceHeight, 1800);
-  const ctx = canvas.getContext("2d");
-  const drawWidth = canvas.width;
-  const drawHeight = canvas.height;
-  ctx.drawImage(video, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, drawWidth, drawHeight);
-  return canvas.toDataURL("image/jpeg", 0.86);
-}
-
-function intersectRects(a, b) {
-  const left = Math.max(a.left, b.left);
-  const top = Math.max(a.top, b.top);
-  const right = Math.min(a.left + a.width, b.left + b.width);
-  const bottom = Math.min(a.top + a.height, b.top + b.height);
-  if (right <= left || bottom <= top) return null;
-  return { left, top, width: right - left, height: bottom - top };
-}
-
-async function ensureImageReady(img) {
-  if (img.complete && img.naturalWidth && img.naturalHeight) return;
-  await new Promise((resolve, reject) => {
-    img.addEventListener("load", resolve, { once: true });
-    img.addEventListener("error", () => reject(new Error("The selected PDF image could not be loaded.")), { once: true });
-  });
-}
-
-async function cropHelpSelectionFromPageImages(rect) {
-  const images = [...document.querySelectorAll(".pdf-page img, .task-visual img")]
-    .filter((img) => {
-      const box = img.getBoundingClientRect();
-      return intersectRects(rect, box);
-    });
-  if (!images.length) throw new Error("No PDF image was selected. Drag over the PDF text area, or type your question on the right.");
-
-  const canvas = document.createElement("canvas");
-  const scale = Math.min(2, window.devicePixelRatio || 1.5);
-  canvas.width = Math.max(1, Math.min(2400, Math.round(rect.width * scale)));
-  canvas.height = Math.max(1, Math.min(2400, Math.round(rect.height * scale)));
-  const ctx = canvas.getContext("2d");
-  ctx.fillStyle = "#fff";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  for (const img of images) {
-    await ensureImageReady(img);
-    const box = img.getBoundingClientRect();
-    const hit = intersectRects(rect, box);
-    if (!hit) continue;
-    const sourceX = ((hit.left - box.left) / box.width) * img.naturalWidth;
-    const sourceY = ((hit.top - box.top) / box.height) * img.naturalHeight;
-    const sourceWidth = (hit.width / box.width) * img.naturalWidth;
-    const sourceHeight = (hit.height / box.height) * img.naturalHeight;
-    const destX = (hit.left - rect.left) * scale;
-    const destY = (hit.top - rect.top) * scale;
-    const destWidth = hit.width * scale;
-    const destHeight = hit.height * scale;
-    ctx.drawImage(img, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight);
-  }
-
-  return canvas.toDataURL("image/jpeg", 0.9);
-}
-
-async function explainHelpImage(imageDataUrl) {
-  openHelpPanel();
-  setHelpStatus("Recognizing");
-  addHelpMessage("assistant", "Recognizing the selected area...");
-  try {
-    const helpContext = buildHelpContext();
-    const json = await postJson("/api/help/explain", { imageDataUrl, helpContext });
-    state.help.contextText = json.ocrText || "";
-    state.help.context = helpContext;
-    state.help.history = [{ role: "assistant", content: json.answer || "" }];
-    const last = $("helpChatLog")?.lastElementChild;
-    setHelpMessageContent(last, "assistant", json.answer || "I could not recognize enough text. Try a tighter screenshot or type your question.");
-    setHelpStatus(json.mode === "ai" ? "AI" : "Local");
-  } catch (error) {
-    const last = $("helpChatLog")?.lastElementChild;
-    setHelpMessageContent(last, "assistant", `Help failed: ${error.message}`);
-    setHelpStatus("Error");
-  }
-}
-
-function attachHelpImage(imageDataUrl) {
-  state.help.pendingImageDataUrl = imageDataUrl || "";
-  updateHelpAttachmentPreview();
-  openHelpPanel();
-  setHelpStatus(state.help.pendingImageDataUrl ? "Image attached" : "Ready");
-}
-
-async function finishHelpSelection(event) {
-  if (!state.help.selecting) return;
-  event.preventDefault?.();
-  state.help.selecting = false;
-  const rect = state.help.selectionRect;
-  state.help.dragMode = "";
-  state.help.activeHandle = "";
-  state.help.originRect = null;
-  if (!rect || rect.width < 28 || rect.height < 28) {
-    setHelpStatus("Drag area");
-    return;
-  }
-  setHelpSelectionRect(rect, true);
-  setHelpStatus("Adjust or Explain");
-}
-
-async function confirmHelpSelection() {
-  const rect = state.help.selectionRect;
-  try {
-    if (!rect || rect.width < 28 || rect.height < 28) throw new Error("Selected area is too small.");
-    const toolbar = $("helpCaptureToolbar");
-    if (toolbar) toolbar.hidden = true;
-    const imageDataUrl = state.help.video
-      ? cropHelpSelectionToDataUrl(rect)
-      : await cropHelpSelectionFromPageImages(rect);
-    hideHelpCaptureOverlay();
-    stopHelpCaptureStream();
-    if (state.help.captureMode === "attach") {
-      attachHelpImage(imageDataUrl);
-      return;
-    }
-    await explainHelpImage(imageDataUrl);
-  } catch (error) {
-    stopHelpCaptureStream();
-    openHelpPanel();
-    setHelpStatus("Ready");
-    addHelpMessage("assistant", error.message || "Could not capture the selected area.");
-  }
-}
-
-function retakeHelpSelection() {
-  state.help.selectionRect = null;
-  state.help.selecting = false;
-  state.help.dragMode = "";
-  state.help.activeHandle = "";
-  state.help.originRect = null;
-  const selection = $("helpCaptureSelection");
-  const toolbar = $("helpCaptureToolbar");
-  if (selection) selection.style.cssText = "";
-  if (toolbar) toolbar.hidden = true;
-  setHelpStatus(state.help.video ? "Drag screen area" : "Drag PDF area");
-}
-
-async function beginHelpCapture(mode = "explain") {
-  const captureMode = typeof mode === "string" ? mode : "explain";
-  state.help.captureMode = captureMode;
-  const requestId = state.help.captureRequestId + 1;
-  state.help.captureRequestId = requestId;
-  openHelpPanel();
-  retakeHelpSelection();
-  setHelpStatus("Capture");
-  if (!navigator.mediaDevices?.getDisplayMedia) {
-    state.help.video = null;
-    stopHelpCaptureStream();
-    const overlay = $("helpCaptureOverlay");
-    if (overlay) overlay.hidden = false;
-    addHelpMessage("assistant", "Drag over the PDF question area. I will crop that part of the page and explain it.");
-    setHelpStatus("Drag PDF area");
-    return;
-  }
-  try {
-    stopHelpCaptureStream();
-    const stream = await navigator.mediaDevices.getDisplayMedia({
-      video: { frameRate: 1 },
-      audio: false,
-    });
-    if (state.help.captureRequestId !== requestId) {
-      stream.getTracks().forEach((track) => track.stop());
-      return;
-    }
-    const video = document.createElement("video");
-    video.muted = true;
-    video.srcObject = stream;
-    await video.play();
-    if (state.help.captureRequestId !== requestId) {
-      stream.getTracks().forEach((track) => track.stop());
-      return;
-    }
-    state.help.stream = stream;
-    state.help.video = video;
-    const overlay = $("helpCaptureOverlay");
-    if (overlay) overlay.hidden = false;
-    setHelpStatus("Drag area");
-  } catch (error) {
-    stopHelpCaptureStream();
-    if (state.help.captureRequestId !== requestId) return;
-    state.help.video = null;
-    const overlay = $("helpCaptureOverlay");
-    if (overlay) overlay.hidden = false;
-    addHelpMessage("assistant", "Screen capture was not started. Drag over the PDF question area instead, or type your question here.");
-    setHelpStatus("Drag PDF area");
-  }
-}
-
-async function sendHelpChatMessage(message) {
-  const clean = String(message || "").trim();
-  const imageDataUrl = state.help.pendingImageDataUrl || "";
-  if (!clean && !imageDataUrl) return;
-  openHelpPanel();
-  addHelpMessage("user", [clean, imageDataUrl ? "[Screenshot attached]" : ""].filter(Boolean).join("\n"));
-  setHelpStatus("Thinking");
-  try {
-    const json = await postJson("/api/help/chat", {
-      contextText: state.help.contextText,
-      helpContext: buildHelpContext(state.help.context || {}),
-      history: state.help.history.slice(-8),
-      imageDataUrl,
-      message: clean || "Please explain this screenshot.",
-    });
-    addHelpMessage("assistant", json.answer || "");
-    if (json.ocrText) state.help.contextText = [state.help.contextText, json.ocrText].filter(Boolean).join("\n\n");
-    state.help.context = buildHelpContext(state.help.context || {});
-    state.help.history.push({ role: "user", content: clean || "[Screenshot attached]" }, { role: "assistant", content: json.answer || "" });
-    state.help.pendingImageDataUrl = "";
-    updateHelpAttachmentPreview();
-    setHelpStatus(json.mode === "ai" ? "AI" : "Local");
-  } catch (error) {
-    addHelpMessage("assistant", `Help failed: ${error.message}`);
-    setHelpStatus("Error");
-  }
-}
-
-function bindHelpControls() {
-  document.querySelectorAll("[data-help-trigger]").forEach((button) => {
-    button.onclick = () => beginHelpCapture("explain");
-  });
-}
-
-async function runWritingFeedbackJob(prompt, essay, onStatus) {
-  const start = await postJson("/api/writing/feedback/start", { prompt, essay });
-  if (!start.jobId) return start;
-  const startedAt = Date.now();
-  let delay = 1200;
-  while (Date.now() - startedAt < 12 * 60 * 1000) {
-    await sleep(delay);
-    const status = await getJson(`/api/writing/feedback/job/${encodeURIComponent(start.jobId)}`);
-    if (status.status === "done") return status.result || status;
-    if (status.status === "error") throw new Error(status.error || "Writing feedback failed");
-    if (onStatus) onStatus(status);
-    delay = Math.min(5000, Math.round(delay * 1.25));
-  }
-  throw new Error("Writing feedback is still running. Please try again in a moment.");
+  const json = await response.json();
+  if (!response.ok) throw new Error(json.error || "Request failed");
+  return json;
 }
 
 function pdfDownloadLink(json, fallbackName) {
-  if (!json?.pdfUrl && !json?.pdfDataUrl) return "";
+  if (!json?.pdfDataUrl) return "";
   const fileName = escapeHtml(json.pdfFileName || fallbackName || "ielts-report.pdf");
-  const href = escapeHtml(json.pdfUrl || json.pdfDataUrl);
-  const openAttrs = json.pdfUrl ? ` target="_blank" rel="noopener"` : "";
-  return `\n\n<a class="report-download" href="${href}" download="${fileName}"${openAttrs}>Open / download PDF report</a>`;
+  return `\n\n<a class="report-download" href="${json.pdfDataUrl}" download="${fileName}">Download PDF report</a>`;
 }
 
 function feedbackWithPdfHtml(text, json, fallbackName) {
   return `${escapeHtml(text).replace(/\n/g, "<br>")}${pdfDownloadLink(json, fallbackName).replace(/\n/g, "<br>")}`;
-}
-
-function normalizeSpeakingBand(value) {
-  const number = Number.parseFloat(value);
-  if (!Number.isFinite(number) || number < 0 || number > 9) return "";
-  return (Math.round(number * 2) / 2).toFixed(1);
-}
-
-function spokenBandNumberFromText(text) {
-  const words = {
-    zero: 0,
-    one: 1,
-    two: 2,
-    three: 3,
-    four: 4,
-    five: 5,
-    six: 6,
-    seven: 7,
-    eight: 8,
-    nine: 9,
-  };
-  const pattern = /(zero|one|two|three|four|five|six|seven|eight|nine)\s*(?:point\s*(zero|five))?/i;
-  const match = String(text || "").toLowerCase().match(pattern);
-  if (!match) return "";
-  const base = words[match[1]];
-  const decimal = match[2] === "five" ? 0.5 : 0;
-  return normalizeSpeakingBand(base + decimal);
-}
-
-function extractSpeakingBandFromText(text) {
-  const clean = String(text || "");
-  const directPatterns = [
-    /overall\s*estimate\s*[:：]?\s*(?:band\s*)?([0-9](?:\.\d)?)/i,
-    /overall\s*(?:speaking\s*)?band\s*(?:score)?\s*(?:is|=|:|：|-)?\s*([0-9](?:\.\d)?)/i,
-    /overall\s*(?:speaking\s*)?(?:score|result)\s*(?:is|=|:|：|-)?\s*(?:band\s*)?([0-9](?:\.\d)?)/i,
-    /final\s*(?:speaking\s*)?(?:band|score)\s*(?:is|=|:|：|-)?\s*([0-9](?:\.\d)?)/i,
-    /(?:speaking\s*)?band\s*score\s*(?:is|=|:|：|-)?\s*([0-9](?:\.\d)?)/i,
-  ];
-  for (const pattern of directPatterns) {
-    const match = clean.match(pattern);
-    const band = normalizeSpeakingBand(match?.[1]);
-    if (band) return band;
-  }
-  const spokenOverall = clean.match(/(?:overall\s*(?:speaking\s*)?band|overall\s*(?:speaking\s*)?(?:score|result)|speaking\s*band\s*score)\D{0,30}((?:zero|one|two|three|four|five|six|seven|eight|nine)\s*(?:point\s*(?:zero|five))?)/i);
-  const spokenBand = spokenBandNumberFromText(spokenOverall?.[1]);
-  if (spokenBand) return spokenBand;
-
-  const criteriaPatterns = [
-    /(?:fluency\s*(?:and|&)\s*coherence|\bfc\b)\s*(?:band|score)?\s*(?:is|=|:|：|-)?\s*([0-9](?:\.\d)?)/i,
-    /(?:lexical\s*resource|\blr\b)\s*(?:band|score)?\s*(?:is|=|:|：|-)?\s*([0-9](?:\.\d)?)/i,
-    /(?:grammatical\s*range\s*(?:and|&)\s*accuracy|\bgra\b)\s*(?:band|score)?\s*(?:is|=|:|：|-)?\s*([0-9](?:\.\d)?)/i,
-    /(?:pronunciation|\bp\b)\s*(?:band|score)?\s*(?:is|=|:|：|-)?\s*([0-9](?:\.\d)?)/i,
-  ];
-  const criteria = criteriaPatterns
-    .map((pattern) => Number.parseFloat(clean.match(pattern)?.[1]))
-    .filter((score) => Number.isFinite(score) && score >= 0 && score <= 9);
-  if (criteria.length === 4) {
-    const avg = criteria.reduce((sum, score) => sum + score, 0) / 4;
-    return normalizeSpeakingBand(avg);
-  }
-  return "";
 }
 
 function parseAnswers(raw) {
@@ -1480,7 +344,6 @@ function bankToTest(item) {
 }
 
 function normalizeItem(item) {
-  if (!item || typeof item !== "object") return {};
   return item.source === "User real-question bank" ? bankToTest(item) : item;
 }
 
@@ -2162,65 +1025,6 @@ function uniqueOrderedImages(images) {
       return true;
     });
 }
-function paperPageTextForImage(pageTexts, image, index) {
-  const page = Number(image?.page || index + 1);
-  return pageTexts.get(page) || "";
-}
-
-function paperPageKindScore(text) {
-  const clean = String(text || "").replace(/\s+/g, " ").trim();
-  if (!clean) return { listening: 0, reading: 0 };
-  let listening = 0;
-  let reading = 0;
-  if (/\bLISTENING\b/i.test(clean)) listening += 5;
-  if (/\b(?:SECTION|PART)\s+[1-4]\b/i.test(clean) || /\bS\s*E\s*C\s*T\s*I\s*O\s*N\s*[1-4]\b/i.test(clean)) listening += 3;
-  if (/\bQuestions?\s+(?:31\s*(?:-|to|and|–|—|\+)\s*40|3\s*1\s*(?:-|to|and|–|—|\+)\s*4\s*0|21\s*(?:-|to|and|–|—|\+)\s*30|11\s*(?:-|to|and|–|—|\+)\s*20|1\s*(?:-|to|and|–|—|\+)\s*10)\b/i.test(clean)) listening += 2;
-  if (/\bREADING PASSAGE\s+\d\b/i.test(clean)) reading += 8;
-  if (/You should spend about 20 minutes on Questions/i.test(clean)) reading += 6;
-  if (/\bREADING\s+(?:PASSAGE|Questions?)\b/i.test(clean)) reading += 4;
-  if (reading > 0 && /\bQuestions?\s+\d{1,2}\s*(?:-|to|and|–|—)\s*\d{1,2}\b/i.test(clean) && /(?:TRUE|FALSE|NOT GIVEN|YES|NO|paragraph|passage|heading|information)/i.test(clean)) reading += 2;
-  if (/Choose (?:the correct letter|NO MORE THAN|TWO WORDS|ONE WORD)/i.test(clean) && /\bREADING PASSAGE\b/i.test(clean)) reading += 2;
-  return { listening, reading };
-}
-
-function isListeningPaperPageText(text) {
-  const score = paperPageKindScore(text);
-  return score.listening > 0 && score.listening >= score.reading + 2;
-}
-
-function isReadingPaperPageText(text) {
-  const score = paperPageKindScore(text);
-  return score.reading > 0 && score.reading >= score.listening;
-}
-
-function filteredPaperImagesForLabel(images, label, paper) {
-  const orderedImages = uniqueOrderedImages(images);
-  if (!orderedImages.length) return orderedImages;
-  const pageTexts = parsePaperPages(paper);
-  if (!pageTexts.size) return orderedImages;
-  if (/Reading/i.test(label)) {
-    const filtered = orderedImages.filter((image, index) => {
-      const text = paperPageTextForImage(pageTexts, image, index);
-      const score = paperPageKindScore(text);
-      if (!text) return true;
-      if (score.reading > 0) return score.reading >= score.listening;
-      return !isListeningPaperPageText(text);
-    });
-    return filtered.length ? filtered : orderedImages;
-  }
-  if (/Listening/i.test(label)) {
-    const filtered = orderedImages.filter((image, index) => {
-      const text = paperPageTextForImage(pageTexts, image, index);
-      const score = paperPageKindScore(text);
-      if (!text) return true;
-      if (score.reading >= score.listening + 4) return false;
-      if (score.listening > 0) return true;
-      return !isReadingPaperPageText(text);
-    });
-    return filtered.length ? filtered : orderedImages;
-  }
-  return orderedImages;
-}
 
 function expectedQuestionNumbers(questions) {
   const numbers = (questions || [])
@@ -2306,20 +1110,13 @@ function audioOverlayPosition(sectionIndex, pageText) {
   return Math.max(5, Math.min(72, 6 + (lineIndex / Math.max(1, rawLines.length - 1)) * 78));
 }
 
-function renderListeningCaptionToggle(prefix, section = "") {
-  return `<button class="secondary small-button listening-caption-toggle" type="button" aria-pressed="false" data-prefix="${escapeHtml(prefix)}" data-section="${escapeHtml(section)}">Captions</button>`;
-}
-
-function renderPageAudioControl(audioUrls, numbers, pageText = "", prefix = "") {
+function renderPageAudioControl(audioUrls, numbers, pageText = "") {
   const sectionIndex = listeningSectionForNumbers(numbers);
   const url = sectionIndex === null ? "" : audioUrls?.[sectionIndex];
   if (!url) return "";
   return `<div class="page-card-audio" title="Section ${sectionIndex + 1} audio">
     <span>S${sectionIndex + 1}</span>
-    <div class="audio-caption-row">
-      <audio class="listening-player" controls preload="none" data-prefix="${escapeHtml(prefix)}" data-section="${sectionIndex + 1}" src="${escapeHtml(url)}"></audio>
-      ${renderListeningCaptionToggle(prefix, sectionIndex + 1)}
-    </div>
+    <audio class="listening-player" controls preload="none" src="${escapeHtml(url)}"></audio>
   </div>`;
 }
 
@@ -2359,15 +1156,12 @@ function paperQuestionEntries(questions) {
   return [...byNumber.entries()].sort((a, b) => a[0] - b[0]);
 }
 
-function renderSectionAudio(url, section, prefix = "") {
+function renderSectionAudio(url, section) {
   if (!url) return "";
-  return `<div class="paper-audio-row">
-    <div class="paper-audio-title-row">
-      <span>Section ${section} audio</span>
-      ${renderListeningCaptionToggle(prefix, section)}
-    </div>
-    <audio class="listening-player" controls preload="none" data-prefix="${escapeHtml(prefix)}" data-section="${escapeHtml(section)}" src="${escapeHtml(url)}"></audio>
-  </div>`;
+  return `<label class="paper-audio-row">
+    <span>Section ${section} audio</span>
+    <audio class="listening-player" controls preload="none" src="${escapeHtml(url)}"></audio>
+  </label>`;
 }
 
 function listeningAnswerGroups(entries, audioUrls = []) {
@@ -2420,7 +1214,7 @@ function pageAnswerGroups(assignments, entries) {
 function renderAnswerGroup(group, prefix) {
   return `<section class="paper-answer-group">
     <div class="paper-answer-group-title">${escapeHtml(group.title)}</div>
-    ${renderSectionAudio(group.audioUrl, group.section, prefix)}
+    ${renderSectionAudio(group.audioUrl, group.section)}
     <div class="paper-answer-grid">${group.entries
       .map(([number, question]) => `<label class="paper-answer-row">
         <span>${number}</span>
@@ -2470,149 +1264,6 @@ function collectAnswers(prefix) {
     answers[input.dataset.qid] = input.value;
   });
   return answers;
-}
-
-function activeViewId() {
-  return document.querySelector(".view.active")?.id || "";
-}
-
-function currentHelpModule() {
-  const view = activeViewId();
-  if (view === "single") return state.activeModule || "";
-  const immersive = document.body.dataset.immersiveModule || "";
-  if (immersive) return immersive;
-  const focused = document.querySelector(".view.active .exam-section.focused-section[data-module]");
-  if (focused?.dataset.module) return focused.dataset.module;
-  const sections = [...document.querySelectorAll(".view.active .exam-section[data-module]")];
-  let best = null;
-  let bestScore = -Infinity;
-  const targetY = Math.max(100, Math.min(window.innerHeight * 0.45, window.innerHeight - 80));
-  sections.forEach((section) => {
-    const rect = section.getBoundingClientRect();
-    if (rect.bottom < 0 || rect.top > window.innerHeight) return;
-    const visible = Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0);
-    const distance = Math.abs(rect.top - targetY);
-    const score = visible - distance * 0.2;
-    if (score > bestScore) {
-      bestScore = score;
-      best = section;
-    }
-  });
-  return best?.dataset.module || "";
-}
-
-function currentReadingContext() {
-  const view = activeViewId();
-  const helpModule = currentHelpModule();
-  let item = null;
-  let prefix = "";
-  if (view === "single" && state.activeModule === "reading") {
-    item = state.activeSingle;
-    prefix = "single";
-  } else if (view === "exam" && helpModule === "reading" && state.exam?.reading) {
-    item = state.exam.reading;
-    prefix = "exam-reading";
-  } else if (view === "sequence" && helpModule === "reading" && state.sequence?.reading) {
-    item = state.sequence.reading;
-    prefix = "sequence-reading";
-  }
-  if (!item) return null;
-  const reading = normalizeItem(item);
-  const answers = collectAnswers(prefix);
-  const questions = (reading.questions || []).map((question, index) => {
-    const number = questionNumber(question, index);
-    return {
-      number,
-      id: question.id || `q${number}`,
-      question: String(question.text || `Question ${number}`).slice(0, 260),
-      expectedAnswer: String(question.answer || "").slice(0, 120),
-      studentAnswer: String(answers[question.id] || "").slice(0, 120),
-    };
-  });
-  const paperText = [
-    reading.readingPaper,
-    reading.passage,
-    reading.prompt,
-  ].filter(Boolean).join("\n\n");
-  return {
-    module: "reading",
-    mode: view || "unknown",
-    answerPrefix: prefix,
-    id: reading.id || "",
-    title: reading.title || "",
-    source: reading.source || "",
-    period: reading.period || "",
-    questions,
-    paperText: compactText(paperText, 18000),
-  };
-}
-
-function currentListeningContext() {
-  const view = activeViewId();
-  const helpModule = currentHelpModule();
-  let item = null;
-  let prefix = "";
-  if (view === "single" && state.activeModule === "listening") {
-    item = state.activeSingle;
-    prefix = "single";
-  } else if (view === "exam" && helpModule === "listening" && state.exam?.listening) {
-    item = state.exam.listening;
-    prefix = "exam-listening";
-  } else if (view === "sequence" && helpModule === "listening" && state.sequence?.listening) {
-    item = state.sequence.listening;
-    prefix = "sequence-listening";
-  }
-  if (!item) return null;
-  const listening = normalizeItem(item);
-  const answers = collectAnswers(prefix);
-  const activeSection = state.listeningCaptionState[prefix]?.section || "";
-  const scriptPayload = listeningCaptionPayload(prefix);
-  const selectedScript = scriptPayload ? listeningCaptionSection(scriptPayload, activeSection) : null;
-  const activeAudio = activeSection
-    ? document.querySelector(`.listening-player[data-prefix="${prefix}"][data-section="${activeSection}"]`)
-    : document.querySelector(`.listening-player[data-prefix="${prefix}"]`);
-  const questions = (listening.questions || []).map((question, index) => {
-    const number = questionNumber(question, index);
-    return {
-      number,
-      id: question.id || `q${number}`,
-      question: String(question.text || `Question ${number}`).slice(0, 260),
-      expectedAnswer: String(question.answer || "").slice(0, 120),
-      studentAnswer: String(answers[question.id] || "").slice(0, 120),
-    };
-  });
-  return {
-    module: "listening",
-    mode: view || "unknown",
-    answerPrefix: prefix,
-    id: listening.id || "",
-    title: listening.title || "",
-    source: listening.source || "",
-    period: listening.period || "",
-    activeSection: String(activeSection || ""),
-    audioTime: Number.isFinite(Number(activeAudio?.currentTime)) ? Math.round(Number(activeAudio.currentTime) * 10) / 10 : null,
-    questions,
-    questionPaper: compactText([listening.questionPaper, listening.transcript, listening.prompt].filter(Boolean).join("\n\n"), 16000),
-    audioScript: compactText(selectedScript?.text || scriptPayload?.text || "", 16000),
-  };
-}
-
-function buildHelpContext(extra = {}) {
-  const view = activeViewId();
-  const helpModule = currentHelpModule();
-  const currentReading = currentReadingContext();
-  const currentListening = currentListeningContext();
-  const context = {
-    ...(extra || {}),
-    activeView: view,
-    activeModule: helpModule,
-    reading: currentReading || extra?.reading || null,
-    listening: currentListening || extra?.listening || null,
-  };
-  return JSON.parse(JSON.stringify(context, (_key, value) => {
-    if (typeof value === "string") return value.slice(0, 20000);
-    return value;
-  }));
 }
 
 function resolveAudioUrl(raw) {
@@ -2756,14 +1407,6 @@ function renderCampusMap(visual) {
   </div></figure>`;
 }
 
-function annotationKeyForImage(image, page, index) {
-  return `${image.url || ""}|${page || index + 1}`;
-}
-
-function renderAnnotationCanvas(image, page, index) {
-  return `<canvas class="pdf-annotation-canvas" data-annotation-key="${escapeHtml(annotationKeyForImage(image, page, index))}" aria-hidden="true"></canvas>`;
-}
-
 function renderPageImages(images, label) {
   if (!Array.isArray(images) || !images.length) return "";
   const orderedImages = uniqueOrderedImages(images);
@@ -2774,10 +1417,7 @@ function renderPageImages(images, label) {
       if (!url) return "";
       return `<figure class="pdf-page">
         <figcaption>Page ${escapeHtml(page)} (${index + 1}/${orderedImages.length})</figcaption>
-        <div class="pdf-page-body pdf-page-image-wrap">
-          <img src="${url}" alt="${escapeHtml(label)} page ${escapeHtml(page)}" loading="${index === 0 ? "eager" : "lazy"}" />
-          ${renderAnnotationCanvas(image, page, index)}
-        </div>
+        <img src="${url}" alt="${escapeHtml(label)} page ${escapeHtml(page)}" loading="${index === 0 ? "eager" : "lazy"}" />
       </figure>`;
     })
     .join("")}</div></div>`;
@@ -2785,8 +1425,7 @@ function renderPageImages(images, label) {
 
 function renderPageImagesWithAnswers(images, label, prefix, questions, paper, options = {}) {
   if (!Array.isArray(images) || !images.length) return "";
-  const orderedImages = filteredPaperImagesForLabel(uniqueOrderedImages(images), label, paper);
-  if (!orderedImages.length) return "";
+  const orderedImages = uniqueOrderedImages(images);
   const assignments = assignQuestionsToPages(orderedImages, questions, paper);
   const audioUrls = options.audioUrls || [];
   const answerPanel = renderPaperAnswerPanel(prefix, questions, assignments, label, audioUrls);
@@ -2802,7 +1441,6 @@ function renderPageImagesWithAnswers(images, label, prefix, questions, paper, op
               <figcaption>Page ${escapeHtml(page)} (${index + 1}/${orderedImages.length})</figcaption>
               <div class="pdf-page-body">
                 <img src="${url}" alt="${escapeHtml(label)} page ${escapeHtml(page)}" loading="${index === 0 ? "eager" : "lazy"}" />
-                ${renderAnnotationCanvas(image, page, index)}
               </div>
             </figure>`;
           })
@@ -2811,204 +1449,6 @@ function renderPageImagesWithAnswers(images, label, prefix, questions, paper, op
       ${answerPanel}
     </div>
   </div>`;
-}
-
-function readAnnotations() {
-  try {
-    return JSON.parse(localStorage.getItem(annotationStoreKey) || "{}");
-  } catch {
-    return {};
-  }
-}
-
-function writeAnnotations(value) {
-  localStorage.setItem(annotationStoreKey, JSON.stringify(value));
-}
-
-function setAnnotationMode(enabled, erasing = false) {
-  state.annotation.enabled = enabled;
-  state.annotation.erasing = enabled && erasing;
-  state.annotation.drawing = false;
-  state.annotation.activeCanvas = null;
-  state.annotation.pointers.clear();
-  state.annotation.pointerPositions.clear();
-  state.annotation.scrollTarget = null;
-  document.body.classList.toggle("annotation-enabled", state.annotation.enabled);
-  document.body.classList.toggle("annotation-erasing", state.annotation.erasing);
-  const draw = $("toggleAnnotation");
-  const erase = $("toggleEraser");
-  if (draw) draw.classList.toggle("active", state.annotation.enabled && !state.annotation.erasing);
-  if (erase) erase.classList.toggle("active", state.annotation.erasing);
-}
-
-function canvasPoint(event, canvas) {
-  const rect = canvas.getBoundingClientRect();
-  return {
-    x: ((event.clientX - rect.left) / rect.width) * canvas.width,
-    y: ((event.clientY - rect.top) / rect.height) * canvas.height,
-  };
-}
-
-function nearestPdfScrollTarget(canvas) {
-  return canvas.closest(".pdf-scroll-box, .exam-left-pane, #singleContent, main") || document.scrollingElement || document.documentElement;
-}
-
-function averagePointerY() {
-  const points = [...state.annotation.pointerPositions.values()];
-  if (!points.length) return 0;
-  return points.reduce((sum, point) => sum + point.y, 0) / points.length;
-}
-
-function beginAnnotationMultiTouch(canvas) {
-  state.annotation.drawing = false;
-  state.annotation.activeCanvas = null;
-  state.annotation.pointers.forEach((pointerId) => {
-    try {
-      if (canvas.hasPointerCapture?.(pointerId)) canvas.releasePointerCapture(pointerId);
-    } catch {
-      // Ignore release failures from browsers that already released the pointer.
-    }
-  });
-  state.annotation.scrollTarget = nearestPdfScrollTarget(canvas);
-  state.annotation.lastMultiTouchY = averagePointerY();
-}
-
-function scrollAnnotationMultiTouch() {
-  if (state.annotation.pointerPositions.size < 2) return;
-  const target = state.annotation.scrollTarget || document.scrollingElement || document.documentElement;
-  const nextY = averagePointerY();
-  const dy = state.annotation.lastMultiTouchY - nextY;
-  if (Number.isFinite(dy) && Math.abs(dy) > 1.5) target.scrollTop += dy;
-  state.annotation.lastMultiTouchY = nextY;
-}
-
-function saveAnnotationCanvas(canvas) {
-  const key = canvas.dataset.annotationKey;
-  if (!key) return;
-  const map = readAnnotations();
-  map[key] = canvas.toDataURL("image/png");
-  writeAnnotations(map);
-}
-
-function restoreAnnotationCanvas(canvas) {
-  const key = canvas.dataset.annotationKey;
-  const dataUrl = key ? readAnnotations()[key] : "";
-  if (!dataUrl) return;
-  const image = new Image();
-  image.onload = () => {
-    const ctx = canvas.getContext("2d");
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
-  };
-  image.src = dataUrl;
-}
-
-function resizeAnnotationCanvas(canvas, img) {
-  const width = Math.max(1, Math.round(img.clientWidth * (window.devicePixelRatio || 1)));
-  const height = Math.max(1, Math.round(img.clientHeight * (window.devicePixelRatio || 1)));
-  if (canvas.width === width && canvas.height === height) return;
-  canvas.width = width;
-  canvas.height = height;
-  restoreAnnotationCanvas(canvas);
-}
-
-function bindPdfAnnotations() {
-  const canvases = [...document.querySelectorAll(".pdf-annotation-canvas")];
-  canvases.forEach((canvas) => {
-    const img = canvas.parentElement?.querySelector("img");
-    if (!img || canvas.dataset.bound === "1") return;
-    canvas.dataset.bound = "1";
-    const sync = () => resizeAnnotationCanvas(canvas, img);
-    if (img.complete) sync();
-    else img.addEventListener("load", sync, { once: true });
-    window.setTimeout(sync, 50);
-    canvas.addEventListener("pointerdown", (event) => {
-      if (!state.annotation.enabled) return;
-      state.annotation.pointers.add(event.pointerId);
-      state.annotation.pointerPositions.set(event.pointerId, { x: event.clientX, y: event.clientY });
-      if (state.annotation.pointers.size > 1) {
-        beginAnnotationMultiTouch(canvas);
-        return;
-      }
-      event.preventDefault();
-      canvas.setPointerCapture?.(event.pointerId);
-      resizeAnnotationCanvas(canvas, img);
-      state.annotation.activeCanvas = canvas;
-      state.annotation.drawing = true;
-      const point = canvasPoint(event, canvas);
-      state.annotation.lastX = point.x;
-      state.annotation.lastY = point.y;
-    });
-    canvas.addEventListener("pointermove", (event) => {
-      if (!state.annotation.enabled) return;
-      if (state.annotation.pointers.has(event.pointerId)) {
-        state.annotation.pointerPositions.set(event.pointerId, { x: event.clientX, y: event.clientY });
-      }
-      if (state.annotation.pointers.size > 1) {
-        scrollAnnotationMultiTouch();
-        return;
-      }
-      if (!state.annotation.drawing || state.annotation.activeCanvas !== canvas) return;
-      event.preventDefault();
-      const point = canvasPoint(event, canvas);
-      const ctx = canvas.getContext("2d");
-      ctx.save();
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-      if (state.annotation.erasing) {
-        ctx.globalCompositeOperation = "destination-out";
-        ctx.lineWidth = 28 * (window.devicePixelRatio || 1);
-      } else {
-        ctx.globalCompositeOperation = "source-over";
-        ctx.strokeStyle = "#e4482e";
-        ctx.lineWidth = Math.max(2, 3 + Number(event.pressure || 0.35) * 5) * (window.devicePixelRatio || 1);
-      }
-      ctx.beginPath();
-      ctx.moveTo(state.annotation.lastX, state.annotation.lastY);
-      ctx.lineTo(point.x, point.y);
-      ctx.stroke();
-      ctx.restore();
-      state.annotation.lastX = point.x;
-      state.annotation.lastY = point.y;
-    });
-    const endDrawing = (event) => {
-      state.annotation.pointers.delete(event.pointerId);
-      state.annotation.pointerPositions.delete(event.pointerId);
-      if (state.annotation.pointers.size >= 2) {
-        state.annotation.lastMultiTouchY = averagePointerY();
-        return;
-      }
-      if (state.annotation.pointers.size === 1) {
-        state.annotation.drawing = false;
-        state.annotation.activeCanvas = null;
-        state.annotation.scrollTarget = null;
-        return;
-      }
-      const shouldSave = state.annotation.drawing && state.annotation.activeCanvas === canvas;
-      state.annotation.drawing = false;
-      state.annotation.activeCanvas = null;
-      state.annotation.scrollTarget = null;
-      if (shouldSave) saveAnnotationCanvas(canvas);
-    };
-    canvas.addEventListener("pointerup", endDrawing);
-    canvas.addEventListener("pointercancel", endDrawing);
-    canvas.addEventListener("pointerleave", endDrawing);
-  });
-  document.body.classList.toggle("has-pdf-pages", canvases.length > 0);
-}
-
-function clearVisibleAnnotationPage() {
-  const canvases = [...document.querySelectorAll(".pdf-annotation-canvas")];
-  const visible = canvases.find((canvas) => {
-    const rect = canvas.getBoundingClientRect();
-    return rect.width > 0 && rect.height > 0 && rect.bottom > 72 && rect.top < window.innerHeight - 24;
-  }) || canvases[0];
-  if (!visible) return;
-  visible.getContext("2d").clearRect(0, 0, visible.width, visible.height);
-  const key = visible.dataset.annotationKey;
-  const map = readAnnotations();
-  delete map[key];
-  writeAnnotations(map);
 }
 
 function readingQuestionStartLine(text) {
@@ -3029,7 +1469,7 @@ function hasPassageTextBeforeQuestion(text, questionLineIndex) {
 }
 
 function splitReadingPageImages(images, paper) {
-  const orderedImages = filteredPaperImagesForLabel(uniqueOrderedImages(images), "Reading", paper);
+  const orderedImages = uniqueOrderedImages(images);
   const pages = parsePaperPages(paper);
   const passageImages = [];
   const questionImages = [];
@@ -3071,14 +1511,13 @@ function renderListening(test, prefix = "single") {
   const audioUrls = Array.isArray(item.audioUrls) ? item.audioUrls.map(resolveAudioUrl).filter(Boolean) : [];
   const transcript = item.transcript || item.prompt || "";
   const sourceLink = item.sourceUrl ? `<a class="source-inline" href="${item.sourceUrl}" target="_blank" rel="noreferrer">Open source page</a>` : "";
-  const pageImageUrls = Array.isArray(item.questionPageImages) ? item.questionPageImages.map((image) => image?.url).filter(Boolean) : [];
   const hasPdfImages = Boolean(item.questionPageImages?.length);
   const playbackActions = hasPdfImages && audioUrls.length
     ? ""
     : audioUrls.length
-      ? audioUrls.map((url, index) => `<button class="secondary play-source-audio" data-prefix="${escapeHtml(prefix)}" data-section="${index + 1}" data-url="${url}">Play Section ${index + 1}</button>`).join("")
+      ? audioUrls.map((url, index) => `<button class="secondary play-source-audio" data-url="${url}">Play Section ${index + 1}</button>`).join("")
       : audioUrl
-        ? `<button class="secondary play-source-audio" data-prefix="${escapeHtml(prefix)}" data-url="${audioUrl}">Play audio</button>`
+        ? `<button class="secondary play-source-audio" data-url="${audioUrl}">Play audio</button>`
         : `<button class="secondary play-audio" data-text="${encodeURIComponent(transcript)}">Play listening</button>`;
   const questionPaper = hasPdfImages
     ? renderPageImagesWithAnswers(item.questionPageImages, "Listening question PDF", prefix, item.questions, item.questionPaper, { audioUrls })
@@ -3086,1361 +1525,23 @@ function renderListening(test, prefix = "single") {
       ? `<details class="question-paper" open><summary>Listening OCR text</summary><pre>${escapeHtml(item.questionPaper)}</pre></details>`
       : `<div class="notice">This listening set has not been extracted from the PDF yet. Open the local PDF and answer directly.</div>`;
   return `
-    <div class="listening-study" id="${escapeHtml(prefix)}-listening-studio" data-listening-prefix="${escapeHtml(prefix)}" data-listening-id="${escapeHtml(item.id || "")}" data-page-images="${escapeHtml(encodeURIComponent(JSON.stringify(pageImageUrls)))}">
-      <div class="listening-main">
-        <div class="listening-head-row">
-          <div class="module-meta">${[item.source, item.period || "", `${item.minutes || 30} min`].filter(Boolean).join(" · ")} ${sourceLink}</div>
-        </div>
-        ${
-          hasPdfImages && audioUrls.length
-            ? ""
-            : audioUrls.length
-              ? `<div class="audio-list">${audioUrls
-                  .map((url, index) => `<label>Section ${index + 1}<audio class="listening-player" controls preload="none" data-prefix="${escapeHtml(prefix)}" data-section="${index + 1}" src="${url}"></audio></label>`)
-                .join("")}</div>`
-              : audioUrl
-                ? `<audio class="listening-player" controls preload="none" data-prefix="${escapeHtml(prefix)}" src="${audioUrl}"></audio>`
-                : ""
-        }
-        ${playbackActions ? `<div class="actions">${playbackActions}</div>` : ""}
-        ${questionPaper}
-        ${item.questionPageImages?.length ? "" : renderQuestionInputs(prefix, item.questions)}
-      </div>
-    </div>
+    <div class="module-meta">${[item.source, item.period || "", `${item.minutes || 30} min`].filter(Boolean).join(" · ")} ${sourceLink}</div>
+    <h3>${item.title}</h3>
+    ${
+      hasPdfImages && audioUrls.length
+        ? `<div class="notice compact-notice">The answer sheet is grouped by section on the right. Each section has its matching audio on top, and the PDF scrolls independently on the left.</div>`
+        : audioUrls.length
+          ? `<div class="audio-list">${audioUrls
+              .map((url, index) => `<label>Section ${index + 1}<audio class="listening-player" controls preload="none" src="${url}"></audio></label>`)
+            .join("")}</div>`
+        : audioUrl
+          ? `<audio class="listening-player" controls preload="none" src="${audioUrl}"></audio>`
+          : ""
+    }
+    ${playbackActions ? `<div class="actions">${playbackActions}</div>` : ""}
+    ${questionPaper}
+    ${item.questionPageImages?.length ? "" : renderQuestionInputs(prefix, item.questions)}
   `;
-}
-
-function listeningScriptsCacheKey(prefix, id) {
-  return `${prefix}:${id || ""}`;
-}
-
-function renderListeningScriptsPayload(payload) {
-  if (!payload || !payload.available || !payload.text) {
-    return "";
-  }
-  return escapeHtml(payload.text || "");
-}
-
-function listeningCaptionPayloadMode(payload) {
-  return String(payload?.mode || "").trim().toLowerCase();
-}
-
-function listeningCaptionTurns(text) {
-  const clean = normalizeListeningCaptionText(text);
-  if (!clean) return [];
-  const pattern = new RegExp(`\\b(${listeningSpeakerTurnPattern()})\\s*:\\s*`, "g");
-  const matches = [...clean.matchAll(pattern)];
-  if (!matches.length) return [{ speaker: "", body: clean }];
-  return matches
-    .map((match, index) => {
-      const next = matches[index + 1];
-      return {
-        speaker: String(match[1] || "").trim(),
-        body: clean.slice(match.index + match[0].length, next ? next.index : clean.length).trim(),
-      };
-    })
-    .filter((turn) => turn.body);
-}
-
-function listeningCaptionSentences(text) {
-  const maxLineLength = 156;
-  const wordWrapLength = 124;
-  const turns = listeningCaptionTurns(text);
-  if (!turns.length) return [];
-
-  const lines = [];
-
-  turns.forEach(({ speaker, body }) => {
-    const naturalSentences = body
-      .split(/(?<=[.!?])\s+(?=(?:[A-Z][a-z]|\d|\u201c|"))/g)
-      .map((sentence) => normalizeListeningCaptionText(sentence))
-      .filter((sentence) => sentence.length > 2);
-    const sentenceCandidates = naturalSentences.length ? naturalSentences : naturalCaptionChunks(body);
-    sentenceCandidates.forEach((sentence) => {
-      addListeningCaptionLine(lines, sentence, speaker, maxLineLength, wordWrapLength);
-    });
-  });
-
-  return lines.filter(Boolean);
-}
-
-function listeningSpeakerLabelsPattern() {
-  return "Speaker\\s*\\d+|Voice\\s*\\d+|Receptionist|Student|Tutor|Lecturer|Speaker|Man|Woman|Male|Female|Customer|Assistant|Advisor|Adviser|Guide|Professor|Librarian|Interviewer|Interviewee|Manager|Employee|Coordinator|Host|Presenter|Narrator|Doctor|Patient|Teacher|Candidate|Examiner|Staff|Clerk|Agent";
-}
-
-function listeningSpeakerTurnPattern() {
-  return `${listeningSpeakerLabelsPattern()}|[A-Z][A-Z]{1,24}|[A-Z][a-zA-Z'-]{1,24}`;
-}
-
-function markListeningCaptionSpeakers(text) {
-  const pattern = new RegExp(`\\b(${listeningSpeakerTurnPattern()})\\s*:\\s*`, "g");
-  return String(text || "").replace(pattern, (_match, speaker) => `\n${speaker}: `);
-}
-
-function normalizeListeningCaptionText(text) {
-  const clean = String(text || "")
-    .replace(/\s+/g, " ")
-    .replace(/\s+([,.!?;:])/g, "$1")
-    .replace(/([,.!?;:])(?=[A-Za-z0-9])/g, "$1 ")
-    .replace(/\s+'/g, "'")
-    .replace(/'\s+/g, "'")
-    .replace(/\bi\s/g, "I ")
-    .trim();
-  if (!clean) return "";
-  if (/[.!?]$/.test(clean) || /[:;,]$/.test(clean) || /\b(?:Mr|Mrs|Ms|Dr|St)\.$/i.test(clean)) return clean;
-  return clean;
-}
-
-function naturalCaptionChunks(text) {
-  const clean = normalizeListeningCaptionText(text);
-  if (!clean) return [];
-  if (/[.!?]/.test(clean)) return [clean];
-  const chunks = [];
-  const words = clean.replace(/[.]$/, "").split(/\s+/).filter(Boolean);
-  let line = "";
-  const softBreakWords = new Set(["and", "but", "because", "so", "then", "while", "although", "however", "therefore", "which", "where"]);
-  for (const word of words) {
-    const lower = word.toLowerCase().replace(/[^a-z]/g, "");
-    const candidate = (line + " " + word).trim();
-    const shouldBreakBefore = line.length >= 58 && softBreakWords.has(lower);
-    const shouldBreakByLength = candidate.length > 104;
-    if (line && (shouldBreakBefore || shouldBreakByLength)) {
-      chunks.push(normalizeListeningCaptionText(line));
-      line = word;
-    } else {
-      line = candidate;
-    }
-  }
-  if (line) chunks.push(normalizeListeningCaptionText(line));
-  return chunks.length ? chunks : [clean];
-}
-
-function captionLineWithSpeaker(speaker, line) {
-  const text = punctuateCaptionLine(line);
-  return speaker ? `${speaker}: ${text}` : text;
-}
-
-function punctuateCaptionLine(line) {
-  const clean = normalizeListeningCaptionText(line);
-  if (!clean) return "";
-  if (/[.!?]$/.test(clean) || /[:;,]$/.test(clean) || /\b(?:Mr|Mrs|Ms|Dr|St)\.$/i.test(clean)) return clean;
-  if (clean.length >= 18 && /[A-Za-z]$/.test(clean)) return `${clean}.`;
-  return clean;
-}
-
-function addListeningCaptionLine(lines, sentence, speaker, maxLineLength, wordWrapLength) {
-  const cleanSentence = normalizeListeningCaptionText(sentence);
-  const lineLimit = speaker ? Math.max(70, maxLineLength - speaker.length - 2) : maxLineLength;
-  if (cleanSentence.length <= lineLimit) {
-    lines.push(captionLineWithSpeaker(speaker, cleanSentence));
-    return;
-  }
-
-  const chunks = cleanSentence
-    .split(/(?<=[,;:])\s+|(?=\b(?:and|but|because|while|although|however|therefore|so|then)\b)/i)
-    .map((chunk) => normalizeListeningCaptionText(chunk))
-    .filter(Boolean);
-  let line = "";
-  for (const chunk of chunks.length ? chunks : [cleanSentence]) {
-    const candidate = (line + " " + chunk).trim();
-    if (candidate.length <= lineLimit) {
-      line = candidate;
-    } else {
-      if (line) lines.push(captionLineWithSpeaker(speaker, normalizeListeningCaptionText(line)));
-      if (chunk.length <= lineLimit) {
-        line = chunk;
-      } else {
-        const words = chunk.split(/\s+/);
-        line = "";
-        for (const word of words) {
-          if ((line + " " + word).trim().length > wordWrapLength) {
-            if (line) lines.push(captionLineWithSpeaker(speaker, normalizeListeningCaptionText(line)));
-            line = word;
-          } else {
-            line = (line + " " + word).trim();
-          }
-        }
-      }
-    }
-  }
-  if (line) lines.push(captionLineWithSpeaker(speaker, normalizeListeningCaptionText(line)));
-}
-
-function listeningCaptionSpeaker(sentence) {
-  const match = String(sentence || "").match(/^([^:]{2,32}):\s*(.+)$/);
-  if (match && !new RegExp(`^(?:${listeningSpeakerTurnPattern()})$`).test(match[1].trim())) {
-    return { speaker: "", text: String(sentence || "").trim() };
-  }
-  return match
-    ? { speaker: match[1].trim(), text: match[2].trim() }
-    : { speaker: "", text: String(sentence || "").trim() };
-}
-
-function listeningCaptionVoiceScope(prefix, section = "") {
-  const itemId = listeningRootItemId(prefix);
-  const activeSection = section || state.listeningCaptionState[prefix]?.section || "";
-  return `${prefix || "single"}::${itemId || "unknown"}::${activeSection || "all"}`;
-}
-
-function listeningCaptionSpeakerOrder(prefix, section = "") {
-  const payload = listeningCaptionPayload(prefix);
-  const selected = listeningCaptionSection(payload, section);
-  const candidates = [
-    ...(Array.isArray(selected?.speakers) ? selected.speakers : []),
-    ...(Array.isArray(payload?.speakers) ? payload.speakers : []),
-    ...(Array.isArray(selected?.sentences) ? selected.sentences.map((item) => item?.speaker) : []),
-    ...(Array.isArray(selected?.timedWords) ? selected.timedWords.map((item) => item?.speaker) : []),
-  ];
-  const seen = new Set();
-  return candidates
-    .map((speaker) => String(speaker || "").trim())
-    .filter((speaker) => {
-      const key = speaker.toLowerCase();
-      if (!key || seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-}
-
-function assignListeningCaptionVoice(map, speaker) {
-  const key = String(speaker || "").trim().toLowerCase();
-  if (!key) return null;
-  if (!map[key]) {
-    const index = Object.keys(map).length + 1;
-    map[key] = { label: String(speaker || `Voice ${index}`).trim(), className: `caption-voice-${((index - 1) % 6) + 1}`, side: index % 2 === 0 ? "right" : "left" };
-  }
-  return map[key];
-}
-
-function seedListeningCaptionVoices(prefix, section = "") {
-  const scope = listeningCaptionVoiceScope(prefix, section);
-  state.listeningCaptionVoices[scope] ||= {};
-  const map = state.listeningCaptionVoices[scope];
-  listeningCaptionSpeakerOrder(prefix, section).forEach((speaker) => assignListeningCaptionVoice(map, speaker));
-  return map;
-}
-
-function resetListeningCaptionVoices(prefix, section = "") {
-  const scopePrefix = section
-    ? listeningCaptionVoiceScope(prefix, section)
-    : `${prefix || "single"}::`;
-  Object.keys(state.listeningCaptionVoices).forEach((scope) => {
-    if (section ? scope === scopePrefix : scope.startsWith(scopePrefix)) delete state.listeningCaptionVoices[scope];
-  });
-}
-
-function listeningCaptionVoice(prefix, speaker, section = "") {
-  const key = String(speaker || "").trim().toLowerCase();
-  if (!key) return { label: "", className: "" };
-  const map = seedListeningCaptionVoices(prefix, section);
-  if (!map[key]) {
-    assignListeningCaptionVoice(map, speaker);
-  }
-  return map[key];
-}
-
-function listeningCaptionDisplayLines(prefix, sentence, section = "") {
-  return String(sentence || "")
-    .split(/\n+/)
-    .map((line) => listeningCaptionSpeaker(line.trim()))
-    .filter((line) => line.text)
-    .map((line) => ({ ...line, voice: listeningCaptionVoice(prefix, line.speaker, section) }));
-}
-
-function captionDisplayLineHtml(line) {
-  const voice = line.voice || { className: "", label: "", side: "left" };
-  const side = voice.side === "right" ? "right" : "left";
-  return `<span class="caption-display-line caption-side-${side} ${escapeHtml(voice.className || "")}">${voice.className ? `<em aria-label="${escapeHtml(voice.label)}"></em>` : ""}<span>${escapeHtml(line.text)}</span></span>`;
-}
-
-function listeningCaptionPayload(prefix) {
-  const root = $(`${prefix}-listening-studio`);
-  const itemId = root?.dataset.listeningId || "";
-  return state.listeningScripts[listeningScriptsCacheKey(prefix, itemId)] || null;
-}
-
-function listeningRootItemId(prefix) {
-  return $(`${prefix}-listening-studio`)?.dataset.listeningId || "";
-}
-
-function listeningCaptionSection(payload, section) {
-  const sections = Array.isArray(payload?.sections) && payload.sections.length
-    ? payload.sections
-    : [{ part: null, title: payload?.mode === "audioscript" ? "Audioscript" : "OCR text", text: payload?.text || "" }];
-  return sections.find((item) => String(item.part || "") === String(section || "")) || sections[0] || null;
-}
-
-function isReliableListeningCaptionPayload(payload, section = "") {
-  if (!payload?.available) return false;
-  const mode = listeningCaptionPayloadMode(payload);
-  if (!["audioscript", "asr-cache", "transcript", "live-vad"].includes(mode)) return false;
-  const selected = listeningCaptionSection(payload, section);
-  return isUsableListeningCaptionSource(selected?.text || payload.text || "");
-}
-
-function listeningCaptionHeaderRoot(prefix) {
-  if (String(prefix || "").startsWith("exam-listening")) return "exam";
-  if (String(prefix || "").startsWith("sequence-listening")) return "sequence";
-  return "single";
-}
-
-function listeningCaptionHeader(prefix) {
-  const root = listeningCaptionHeaderRoot(prefix);
-  return {
-    bar: $(`${root}CaptionBar`),
-    kicker: $(`${root}CaptionKicker`),
-    line: $(`${root}CaptionLine`),
-  };
-}
-
-function setListeningCaption(prefix, section, sentence, kicker = "") {
-  const header = listeningCaptionHeader(prefix);
-  const lines = listeningCaptionDisplayLines(prefix, sentence, section);
-  if (header.bar) header.bar.hidden = false;
-  if (header.bar) {
-    header.bar.dataset.prefix = prefix || "";
-    header.bar.dataset.section = section || "";
-    header.bar.title = "Click to view the full transcript";
-  }
-  if (header.line) {
-    if (!lines.length) {
-      header.line.textContent = "Play audio to show captions.";
-    } else {
-      header.line.innerHTML = lines
-        .slice(0, 1)
-        .map(captionDisplayLineHtml)
-        .join("");
-    }
-  }
-  if (header.kicker) {
-    const base = kicker || (section ? `Section ${section}` : "Auto captions");
-    header.kicker.textContent = base;
-  }
-}
-
-function clearListeningCaption(prefix) {
-  const header = listeningCaptionHeader(prefix);
-  if (header.bar) header.bar.hidden = true;
-  if (header.line) header.line.textContent = "Play audio to show captions.";
-  if (header.kicker) header.kicker.textContent = "Captions";
-  document.body.classList.remove("listening-caption-rail-active");
-  restoreListeningCaptionRail(prefix);
-}
-
-function resetListeningCaptionSession(prefix) {
-  persistListeningAsr(prefix);
-  stopListeningAsr(prefix);
-  stopTimedListeningCaptionLoop(prefix);
-  delete state.listeningCaptionState[prefix];
-  resetListeningCaptionVoices(prefix);
-  setListeningScriptsVisible(prefix, false);
-}
-
-function listeningCaptionTranscriptText(prefix, section = "") {
-  const payload = listeningCaptionPayload(prefix);
-  if (!isReliableListeningCaptionPayload(payload, section)) return "";
-  const selected = listeningCaptionSection(payload, section);
-  return selected?.text || payload.text || "";
-}
-
-function renderCaptionTranscript(prefix, text, section = "") {
-  const lines = listeningCaptionSentences(text);
-  if (!lines.length) return `<p class="caption-transcript-empty">No saved transcript yet.</p>`;
-  return lines
-    .map((line) => {
-      const parsed = listeningCaptionSpeaker(line);
-      const voice = listeningCaptionVoice(prefix, parsed.speaker, section);
-      return captionDisplayLineHtml({ ...parsed, voice });
-    })
-    .join("");
-}
-
-function openListeningCaptionTranscript(prefix, section = "") {
-  const text = listeningCaptionTranscriptText(prefix, section);
-  let overlay = $("captionTranscriptOverlay");
-  if (!overlay) {
-    overlay = document.createElement("div");
-    overlay.id = "captionTranscriptOverlay";
-    overlay.className = "caption-transcript-overlay";
-    document.body.appendChild(overlay);
-  }
-  overlay.innerHTML = `
-    <div class="caption-transcript-panel" role="dialog" aria-modal="true" aria-label="Listening transcript">
-      <div class="caption-transcript-head">
-        <strong>${escapeHtml(section ? `Section ${section} transcript` : "Listening transcript")}</strong>
-        <button id="captionTranscriptClose" class="icon-btn" type="button" aria-label="Close transcript">Close</button>
-      </div>
-      <div class="caption-transcript-body">${renderCaptionTranscript(prefix, text, section)}</div>
-    </div>
-  `;
-  overlay.hidden = false;
-  $("captionTranscriptClose")?.focus();
-}
-
-function closeListeningCaptionTranscript() {
-  const overlay = $("captionTranscriptOverlay");
-  if (overlay) overlay.hidden = true;
-}
-
-function updateListeningCaptionFromAudio(audio) {
-  const prefix = audio.dataset.prefix || "single";
-  const section = audio.dataset.section || "";
-  const captionState = state.listeningCaptionState[prefix];
-  if (!captionState?.enabled || (captionState.section && String(captionState.section) !== String(section))) return;
-  if (captionState.source === "asr") return;
-  const payload = listeningCaptionPayload(prefix);
-  if (!payload?.available) return;
-  const selected = listeningCaptionSection(payload, section);
-  if (captionState.source === "timed-cache") {
-    updateTimedListeningCaption(prefix, section, selected, audio);
-    return;
-  }
-  const sentences = listeningCaptionSentences(selected?.text || payload.text || "");
-  if (!sentences.length) return;
-  const duration = Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : sentences.length * 4;
-  const ratio = Math.max(0, Math.min(0.999, (audio.currentTime || 0) / duration));
-  const index = Math.max(0, Math.min(sentences.length - 1, Math.floor(ratio * sentences.length)));
-  const title = selected?.title || (section ? `Section ${section}` : "Auto captions");
-  setListeningCaption(prefix, section, sentences[index], `${title} · ${index + 1}/${sentences.length}`);
-}
-
-function listeningTimedWords(section, payload) {
-  const words = Array.isArray(section?.timedWords) && section.timedWords.length
-    ? section.timedWords
-    : Array.isArray(payload?.timedWords)
-      ? payload.timedWords
-      : [];
-  return words
-    .map((item, index) => ({
-      word: String(item?.word || "").trim(),
-      progress: Number.isFinite(Number(item?.progress)) ? Number(item.progress) : index / Math.max(1, words.length - 1),
-      start: Number.isFinite(Number(item?.start)) ? Number(item.start) : null,
-      end: Number.isFinite(Number(item?.end)) ? Number(item.end) : null,
-      speaker: String(item?.speaker || "").trim(),
-      sentenceIndex: Number.isFinite(Number(item?.sentenceIndex)) ? Number(item.sentenceIndex) : null,
-    }))
-    .filter((item) => item.word);
-}
-
-function listeningTimedSentences(section, payload) {
-  const sentences = Array.isArray(section?.sentences) && section.sentences.length
-    ? section.sentences
-    : Array.isArray(payload?.sentences)
-      ? payload.sentences
-      : [];
-  return sentences
-    .map((item, index) => ({
-      text: normalizeListeningCaptionText(item?.text || item?.sentence || ""),
-      speaker: String(item?.speaker || item?.speaker_id || item?.speakerId || "").trim(),
-      start: Number.isFinite(Number(item?.start)) ? Number(item.start) : null,
-      end: Number.isFinite(Number(item?.end)) ? Number(item.end) : null,
-      wordStart: Number.isFinite(Number(item?.wordStart)) ? Number(item.wordStart) : null,
-      wordEnd: Number.isFinite(Number(item?.wordEnd)) ? Number(item.wordEnd) : null,
-      index,
-    }))
-    .filter((item) => item.text);
-}
-
-function shouldInheritPreviousListeningSpeaker(previous, current) {
-  if (!previous || !current) return false;
-  const previousSpeaker = String(previous.speaker || "").trim();
-  const currentSpeaker = String(current.speaker || "").trim();
-  if (!previousSpeaker || !currentSpeaker || previousSpeaker === currentSpeaker) return false;
-  const previousText = normalizeListeningCaptionText(previous.text || "");
-  const currentText = normalizeListeningCaptionText(current.text || "");
-  if (!previousText || !currentText || isListeningNarratorCaption(currentText)) return false;
-  const gap = Number(current.start) - Number(previous.end);
-  const duration = Number(current.end) - Number(current.start);
-  if (Number.isFinite(gap) && (gap < -0.12 || gap > 0.35)) return false;
-  const wordCount = listeningCaptionWordList(currentText).length;
-  const startsAsContinuation = /^[a-z]/.test(currentText) || /^[,;:)-]/.test(currentText);
-  const previousLooksOpen = !/[.!?]$/.test(previousText);
-  const shortTail = Number.isFinite(duration) && duration > 0 && duration <= 1.8 && wordCount <= 6;
-  return startsAsContinuation || (previousLooksOpen && shortTail);
-}
-
-function repairListeningCaptionSpeakerTurns(sentences, timedWords) {
-  if (!Array.isArray(sentences) || sentences.length < 2) return sentences;
-  const repaired = sentences.map((sentence) => ({ ...sentence }));
-  const wordUpdates = [];
-  for (let index = 1; index < repaired.length; index += 1) {
-    const previous = repaired[index - 1];
-    const current = repaired[index];
-    if (!shouldInheritPreviousListeningSpeaker(previous, current)) continue;
-    current.speaker = previous.speaker;
-    wordUpdates.push({ sentenceIndex: current.index ?? index, speaker: previous.speaker });
-  }
-  if (Array.isArray(timedWords) && wordUpdates.length) {
-    wordUpdates.forEach(({ sentenceIndex, speaker }) => {
-      timedWords.forEach((word) => {
-        if (Number(word.sentenceIndex) === Number(sentenceIndex)) word.speaker = speaker;
-      });
-    });
-  }
-  return repaired;
-}
-
-function timedCaptionWindow(words, visibleCount) {
-  const start = Math.max(0, visibleCount - 16);
-  return words.slice(start, visibleCount).map((item) => item.word).join(" ");
-}
-
-function listeningCaptionWordList(text) {
-  return String(text || "")
-    .replace(/\s+/g, " ")
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean);
-}
-
-function listeningTimedCaptionModel(selected, payload) {
-  const text = selected?.text || payload?.text || "";
-  const timedWords = listeningTimedWords(selected, payload);
-  const timedSentences = repairListeningCaptionSpeakerTurns(listeningTimedSentences(selected, payload), timedWords);
-  if (timedSentences.length) {
-    const segments = [];
-    let cursor = 0;
-    timedSentences.forEach((sentence, index) => {
-      let segmentWords = timedWords.filter((word) => Number(word.sentenceIndex) === index);
-      if (!segmentWords.length && Number.isFinite(sentence.wordStart) && Number.isFinite(sentence.wordEnd)) {
-        segmentWords = timedWords.slice(sentence.wordStart, sentence.wordEnd);
-      }
-      if (!segmentWords.length) {
-        const roughWords = listeningCaptionWordList(sentence.text);
-        const duration = Math.max(0.4, (Number(sentence.end) || 0) - (Number(sentence.start) || 0));
-        segmentWords = roughWords.map((word, offset) => {
-          const ratio = roughWords.length > 1 ? offset / (roughWords.length - 1) : 0;
-          const start = Number.isFinite(Number(sentence.start)) ? Number(sentence.start) + ratio * duration : null;
-          return {
-            word,
-            start: Number.isFinite(start) ? Math.round(start * 1000) / 1000 : null,
-            end: Number.isFinite(start) ? Math.round((start + duration / Math.max(1, roughWords.length)) * 1000) / 1000 : null,
-            speaker: sentence.speaker,
-            sentenceIndex: index,
-          };
-        });
-      }
-      const words = segmentWords.map((word) => ({
-        ...word,
-        speaker: word.speaker || sentence.speaker,
-      }));
-      const speaker = sentence.speaker || words.find((word) => word.speaker)?.speaker || inferListeningCaptionSpeaker(sentence.text, segments.length);
-      segments.push({
-        speaker,
-        text: sentence.text,
-        words,
-        sentenceStart: sentence.start,
-        sentenceEnd: sentence.end,
-        start: cursor,
-        end: cursor + words.length,
-      });
-      cursor += words.length;
-    });
-    return {
-      words: segments.flatMap((segment) => segment.words),
-      segments,
-      source: "asr-timed",
-    };
-  }
-  const plainTimedWords = timedWords.map((item) => item.word);
-  const sentenceLines = listeningCaptionSentences(text);
-  const segments = [];
-  let cursor = 0;
-  sentenceLines.forEach((line) => {
-    const parsed = listeningCaptionSpeaker(line);
-    const words = listeningCaptionWordList(parsed.text);
-    if (!words.length) return;
-    const segmentWords = words.map((word, offset) => {
-      const timed = timedWords[cursor + offset];
-      return {
-        word,
-        start: Number.isFinite(Number(timed?.start)) ? Number(timed.start) : null,
-        end: Number.isFinite(Number(timed?.end)) ? Number(timed.end) : null,
-        speaker: timed?.speaker || parsed.speaker || "",
-        sentenceIndex: Number.isFinite(Number(timed?.sentenceIndex)) ? Number(timed.sentenceIndex) : null,
-      };
-    });
-    const timedSpeaker = segmentWords.find((word) => word.speaker)?.speaker || "";
-    const speaker = parsed.speaker || timedSpeaker || inferListeningCaptionSpeaker(parsed.text, segments.length);
-    segmentWords.forEach((word) => {
-      if (!word.speaker) word.speaker = speaker;
-    });
-    const segment = {
-      speaker,
-      text: parsed.text,
-      words: segmentWords,
-      start: cursor,
-      end: cursor + words.length,
-    };
-    cursor += words.length;
-    segments.push(segment);
-  });
-  if (segments.length) {
-    return {
-      words: segments.flatMap((segment) => segment.words),
-      segments,
-    };
-  }
-  const fallbackWords = plainTimedWords;
-  return {
-    words: timedWords,
-    segments: fallbackWords.length ? [{ speaker: "Voice 1", text: fallbackWords.join(" "), words: timedWords, start: 0, end: fallbackWords.length }] : [],
-  };
-}
-
-function inferListeningCaptionSpeaker(text, index = 0) {
-  const clean = normalizeListeningCaptionText(text);
-  if (!clean) return "";
-  if (isListeningNarratorCaption(clean)) return "Voice 3";
-  return `Voice ${(index % 2) + 1}`;
-}
-
-function isListeningNarratorCaption(text) {
-  return /^(?:test\s+\w+|part\s+[1-4]|section\s+[1-4]|published by|this recording is|you will hear|you will have to answer|there will now be|first you have some time|now listen carefully|that is the end of|you now have|turn to section|now turn to section|cambridge assessment english)\b/i.test(String(text || "").trim());
-}
-
-function timedCaptionSegmentEntry(model, visibleCount) {
-  if (!visibleCount || visibleCount < 1) return null;
-  const safeCount = Math.max(1, visibleCount);
-  const segmentIndex = model.segments.findIndex((item) => safeCount > item.start && safeCount <= item.end);
-  const segment = segmentIndex >= 0 ? model.segments[segmentIndex] : model.segments.at(-1);
-  if (!segment) return null;
-  const shownInSegment = Math.max(1, Math.min(segment.words.length, safeCount - segment.start));
-  const text = segment.words.slice(0, shownInSegment).map((item) => item.word || item).join(" ");
-  return { speaker: segment.speaker, text, segmentIndex: segmentIndex >= 0 ? segmentIndex : model.segments.length - 1 };
-}
-
-function timedCaptionConversationEntries(model, visibleCount) {
-  const current = timedCaptionSegmentEntry(model, visibleCount);
-  if (!current) return [];
-  const previous = model.segments
-    .slice(Math.max(0, current.segmentIndex - 5), current.segmentIndex)
-    .map((segment) => ({ speaker: segment.speaker, text: segment.text }));
-  return [...previous, { speaker: current.speaker, text: current.text }];
-}
-
-function setListeningCaptionConversation(prefix, section, entries, kicker = "") {
-  const header = listeningCaptionHeader(prefix);
-  if (header.bar) {
-    header.bar.hidden = false;
-    header.bar.dataset.prefix = prefix || "";
-    header.bar.dataset.section = section || "";
-    header.bar.title = "Click to view the full transcript";
-  }
-  if (header.line) {
-    const lines = entries
-      .filter((entry) => entry?.text)
-      .slice(-1)
-      .map((entry) => {
-        const voice = listeningCaptionVoice(prefix, entry.speaker || "Voice 1", section);
-        return captionDisplayLineHtml({ speaker: entry.speaker || "", text: entry.text, voice });
-      });
-    header.line.innerHTML = lines.length ? lines.join("") : "Play audio to show captions.";
-    header.line.scrollTop = header.line.scrollHeight;
-  }
-  if (header.kicker) {
-    const base = kicker || (section ? `Section ${section}` : "Auto captions");
-    header.kicker.textContent = base;
-  }
-}
-
-function timedCaptionLoopKey(prefix, section) {
-  return `${prefix || "single"}::${section || ""}`;
-}
-
-function stopTimedListeningCaptionLoop(prefix, section = "") {
-  const keyPrefix = section ? timedCaptionLoopKey(prefix, section) : `${prefix || "single"}::`;
-  Object.entries(state.listeningTimedCaptionLoops).forEach(([key, frameId]) => {
-    if (section ? key === keyPrefix : key.startsWith(keyPrefix)) {
-      cancelAnimationFrame(frameId);
-      clearTimeout(frameId);
-      delete state.listeningTimedCaptionLoops[key];
-    }
-  });
-}
-
-function timedCaptionIntroOffsetSeconds(payload, section, audio) {
-  if (listeningCaptionPayloadMode(payload) !== "audioscript") return 0;
-  const duration = listeningAudioDurationSeconds(audio);
-  const part = Number(section) || 1;
-  if (!duration) return part === 1 ? 38 : 16;
-  if (part === 1) return Math.max(30, Math.min(48, duration * 0.09));
-  return Math.max(10, Math.min(24, duration * 0.045));
-}
-
-function timedCaptionWordsPerSecond(words, audio, startOffset = 0) {
-  const duration = listeningAudioDurationSeconds(audio);
-  const effectiveDuration = Math.max(1, duration - Math.max(0, startOffset));
-  const audioWordsPerSecond = duration ? words.length / effectiveDuration : 0;
-  if (audioWordsPerSecond >= 0.45 && audioWordsPerSecond <= 2.25) return Math.max(0.55, Math.min(2.35, audioWordsPerSecond * 1.03));
-  if (audioWordsPerSecond > 2.25 && audioWordsPerSecond <= 4.6) return Math.max(1.6, Math.min(3.2, audioWordsPerSecond));
-  return listeningCaptionDefaultWordsPerSecond;
-}
-
-function listeningAudioDurationSeconds(audio) {
-  if (Number.isFinite(audio?.duration) && audio.duration > 0) return audio.duration;
-  try {
-    if (audio?.seekable?.length) {
-      const end = audio.seekable.end(audio.seekable.length - 1);
-      if (Number.isFinite(end) && end > 0) return end;
-    }
-  } catch {
-    // Some browsers throw while metadata is still loading.
-  }
-  return 0;
-}
-
-function resetTimedListeningCaptionAnchor(prefix, audio) {
-  const captionState = state.listeningCaptionState[prefix];
-  if (captionState?.timed) delete captionState.timed;
-  if (audio) updateListeningCaptionFromAudio(audio);
-}
-
-function ensureTimedListeningCaptionAnchor(prefix, section, audio, words, payload) {
-  const captionState = state.listeningCaptionState[prefix];
-  if (!captionState) return null;
-  const currentTime = Math.max(0, Number(audio?.currentTime) || 0);
-  const key = `${section || ""}::${audio?.currentSrc || audio?.src || ""}`;
-  const startOffset = timedCaptionIntroOffsetSeconds(payload, section, audio);
-  const wordsPerSecond = timedCaptionWordsPerSecond(words, audio, startOffset);
-  if (!captionState.timed || captionState.timed.key !== key) {
-    captionState.timed = {
-      key,
-      section: String(section || ""),
-      mediaTime: currentTime,
-      visibleBase: Math.max(0, Math.min(words.length - 1, Math.floor(Math.max(0, currentTime - startOffset) * wordsPerSecond))),
-      startOffset,
-      wordsPerSecond,
-      lastVisibleCount: -1,
-    };
-  } else {
-    captionState.timed.startOffset = startOffset;
-    captionState.timed.wordsPerSecond = wordsPerSecond;
-  }
-  return captionState.timed;
-}
-
-function startTimedListeningCaptionLoop(prefix, audio) {
-  const section = audio?.dataset?.section || "";
-  const key = timedCaptionLoopKey(prefix, section);
-  if (state.listeningTimedCaptionLoops[key]) return;
-  const startedAt = Date.now();
-  const run = () => {
-    const captionState = state.listeningCaptionState[prefix];
-    if (!captionState?.enabled || captionState.source !== "timed-cache" || String(captionState.section || "") !== String(section || "")) {
-      delete state.listeningTimedCaptionLoops[key];
-      return;
-    }
-    updateListeningCaptionFromAudio(audio);
-    const warmingUp = Date.now() - startedAt < listeningCaptionLoopWarmupMs;
-    if ((!audio.paused && !audio.ended) || warmingUp) {
-      state.listeningTimedCaptionLoops[key] = setTimeout(run, 120);
-    } else {
-      delete state.listeningTimedCaptionLoops[key];
-    }
-  };
-  state.listeningTimedCaptionLoops[key] = setTimeout(run, 60);
-}
-
-function updateTimedListeningCaption(prefix, section, selected, audio) {
-  const payload = listeningCaptionPayload(prefix);
-  const model = listeningTimedCaptionModel(selected, payload);
-  const words = model.words;
-  if (!words.length) return;
-  const timed = ensureTimedListeningCaptionAnchor(prefix, section, audio, words, payload);
-  if (!timed) return;
-  const currentTime = Math.max(0, Number(audio?.currentTime) || 0);
-  const title = selected?.title || (section ? `Section ${section}` : "Captions");
-  if (currentTime < timed.startOffset) {
-    const remaining = Math.max(1, Math.ceil(timed.startOffset - currentTime));
-    if (timed.lastVisibleCount !== 0) {
-      timed.lastVisibleCount = 0;
-      setListeningCaption(prefix, section, `Intro is playing. Transcript starts in about ${remaining}s.`, `${title} · intro`);
-    }
-    return;
-  }
-  const hasWordTimes = words.some((item) => Number.isFinite(Number(item.start)));
-  const captionTime = Math.max(0, currentTime - timed.startOffset);
-  const visibleCount = hasWordTimes
-    ? timedCaptionVisibleCountForTime(words, currentTime)
-    : Math.max(1, Math.min(words.length, Math.floor(captionTime * timed.wordsPerSecond) + 1));
-  if (timed.lastVisibleCount === visibleCount) return;
-  timed.lastVisibleCount = visibleCount;
-  if (!visibleCount) {
-    setListeningCaption(prefix, section, "Audio is playing. Captions will appear with speech.", `${title} · 0/${words.length}`);
-    return;
-  }
-  const entries = timedCaptionConversationEntries(model, visibleCount);
-  setListeningCaptionConversation(prefix, section, entries, `${title} · ${visibleCount}/${words.length}`);
-}
-
-function timedCaptionVisibleCountForTime(words, currentTime) {
-  const time = Math.max(0, Number(currentTime) || 0);
-  let count = 0;
-  for (let index = 0; index < words.length; index += 1) {
-    const start = Number(words[index]?.start);
-    const end = Number(words[index]?.end);
-    if (Number.isFinite(start) && start <= time + 0.08) {
-      count = index + 1;
-      continue;
-    }
-    if (!Number.isFinite(start) && Number.isFinite(end) && end <= time + 0.08) {
-      count = index + 1;
-      continue;
-    }
-    break;
-  }
-  return Math.max(0, Math.min(words.length, count));
-}
-
-function qwenAsrTextFromPayload(payload = {}) {
-  const candidates = [
-    payload.text,
-    payload.transcript,
-    payload.delta,
-    payload.output_text,
-    payload.audio_transcript,
-    payload.transcription,
-    payload.transcription?.text,
-    payload.transcript?.text,
-    payload.output?.text,
-    payload.output?.transcript,
-    payload.delta?.text,
-    payload.delta?.transcript,
-    payload.item?.content?.map?.((part) => part?.text || part?.transcript || "").join(" "),
-    payload.content?.map?.((part) => part?.text || part?.transcript || "").join(" "),
-    payload.response?.output_text,
-    payload.response?.text,
-    payload.response?.output?.map?.((item) => item?.content?.map?.((part) => part?.text || part?.transcript || "").join(" ")).join(" "),
-  ];
-  for (const value of candidates) {
-    if (value === null || value === undefined || typeof value === "object") continue;
-    const text = String(value || "").replace(/\s+/g, " ").trim();
-    if (text) return text;
-  }
-  return "";
-}
-
-function qwenAsrCaptionLine(text) {
-  const sentences = listeningCaptionSentences(text);
-  const last = sentences[sentences.length - 1] || "";
-  const previous = sentences[sentences.length - 2] || "";
-  if (previous && `${previous}\n${last}`.length <= 220) return `${previous}\n${last}`;
-  return last || String(text || "").replace(/\s+/g, " ").trim().slice(-156);
-}
-
-async function loadListeningAsrCache(prefix, section) {
-  const id = listeningRootItemId(prefix);
-  if (!id || !section) return null;
-  try {
-    const json = await getJson(`/api/listening/asr-cache?id=${encodeURIComponent(id)}&section=${encodeURIComponent(section)}`);
-    return json.available && isUsableListeningCaptionSource(json.text) ? json : null;
-  } catch {
-    return null;
-  }
-}
-
-function isUsableListeningCaptionSource(text) {
-  const clean = String(text || "").replace(/\s+/g, " ").trim();
-  const words = clean.split(/\s+/).filter(Boolean);
-  if (words.length < 80) return false;
-  if (/published by cambridge|this recording is copyright|cambridge assessment english/i.test(clean) && words.length < 180) return false;
-  return true;
-}
-
-async function saveListeningAsrCache(prefix, section, text) {
-  const id = listeningRootItemId(prefix);
-  const clean = String(text || "").replace(/\s+/g, " ").trim();
-  if (!id || !section || !isUsableListeningCaptionSource(clean)) return;
-  try {
-    await postJson("/api/listening/asr-cache", { id, section, text: clean, source: listeningAsrCacheSource });
-  } catch {
-    // Captions remain usable even if cache persistence fails.
-  }
-}
-
-function listeningAsrSession(prefix) {
-  state.listeningAsr[prefix] ||= {
-    ws: null,
-    connected: false,
-    audio: null,
-    audioContext: null,
-    sourceNode: null,
-    processor: null,
-    gainNode: null,
-    pcmBuffer: [],
-    pcmPosition: 0,
-    currentText: "",
-    lastIncomingText: "",
-    liveItems: {},
-    statusTimer: null,
-    lastCommitAt: 0,
-    lastVoiceAt: 0,
-    segmentStartedAt: 0,
-    segmentHadVoice: false,
-    noiseFloor: 0.006,
-    section: "",
-  };
-  return state.listeningAsr[prefix];
-}
-
-function stopListeningAsr(prefix) {
-  const session = state.listeningAsr[prefix];
-  if (!session) return;
-  try {
-    if (session.sourceNode && session.processor) session.sourceNode.disconnect(session.processor);
-  } catch {}
-  try {
-    session.processor?.disconnect();
-  } catch {}
-  try {
-    if (session.ws?.readyState === WebSocket.OPEN) session.ws.send(JSON.stringify({ type: "disconnect" }));
-    session.ws?.close();
-  } catch {}
-  if (session.statusTimer) clearTimeout(session.statusTimer);
-  session.ws = null;
-  session.connected = false;
-  session.audio = null;
-  session.audioContext = null;
-  session.sourceNode = null;
-  session.processor = null;
-  session.gainNode = null;
-  session.pcmBuffer = [];
-  session.pcmPosition = 0;
-  session.currentText = "";
-  session.lastIncomingText = "";
-  session.liveItems = {};
-  session.statusTimer = null;
-  session.lastCommitAt = 0;
-  session.lastVoiceAt = 0;
-  session.segmentStartedAt = 0;
-  session.segmentHadVoice = false;
-  session.noiseFloor = 0.006;
-  session.section = "";
-}
-
-function listeningAudioGraph(audio) {
-  if (!audio) return null;
-  const existing = listeningAudioGraphs.get(audio);
-  if (existing) return existing;
-  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContextClass) return null;
-  const context = new AudioContextClass({ latencyHint: "interactive" });
-  const sourceNode = context.createMediaElementSource(audio);
-  const gainNode = context.createGain();
-  gainNode.gain.value = 1;
-  sourceNode.connect(gainNode);
-  gainNode.connect(context.destination);
-  const graph = { context, sourceNode, gainNode };
-  listeningAudioGraphs.set(audio, graph);
-  return graph;
-}
-
-function persistListeningAsr(prefix) {
-  const session = state.listeningAsr[prefix];
-  if (!session?.currentText || !session.section) return;
-  saveListeningAsrCache(prefix, session.section, session.currentText);
-}
-
-function appendListeningAsrText(prefix, section, text, final = false) {
-  const clean = normalizeListeningCaptionText(text);
-  if (!clean) return;
-  const session = listeningAsrSession(prefix);
-  if (session.statusTimer) {
-    clearTimeout(session.statusTimer);
-    session.statusTimer = null;
-  }
-  session.currentText = mergeAsrTranscript(session.currentText, clean, session.lastIncomingText);
-  session.lastIncomingText = clean;
-  state.listeningCaptionState[prefix] = { enabled: true, section, source: "asr" };
-  setListeningCaption(prefix, section, qwenAsrCaptionLine(session.currentText), `Qwen ASR · Section ${section}`);
-  if (final || session.currentText.length >= 120) {
-    saveListeningAsrCache(prefix, section, session.currentText);
-  }
-}
-
-function listeningAsrItemId(payload = {}) {
-  return String(payload.item_id || payload.itemId || payload.item?.id || payload.id || "live").trim() || "live";
-}
-
-function qwenAsrLiveTextFromPayload(payload = {}) {
-  const text = [
-    payload.text,
-    payload.stash,
-    payload.delta,
-    payload.transcript,
-  ]
-    .filter((value) => typeof value === "string" && value.trim())
-    .join(" ");
-  return normalizeListeningCaptionText(text);
-}
-
-function renderListeningAsrPreview(prefix, section) {
-  const session = listeningAsrSession(prefix);
-  if (session.statusTimer) {
-    clearTimeout(session.statusTimer);
-    session.statusTimer = null;
-  }
-  const liveText = Object.values(session.liveItems || {})
-    .filter(Boolean)
-    .join(" ");
-  const previewText = normalizeListeningCaptionText(`${session.currentText || ""} ${liveText}`.trim());
-  if (!previewText) return;
-  state.listeningCaptionState[prefix] = { enabled: true, section, source: "asr" };
-  setListeningCaption(prefix, section, qwenAsrCaptionLine(previewText), `Live captions · Section ${section}`);
-}
-
-function mergeAsrTranscript(existing, incoming, previousIncoming = "") {
-  const base = normalizeListeningCaptionText(existing);
-  const next = normalizeListeningCaptionText(incoming);
-  const previous = normalizeListeningCaptionText(previousIncoming);
-  if (!base) return next;
-  if (!next) return base;
-  if (next.toLowerCase().startsWith(base.toLowerCase())) return next;
-  if (base.toLowerCase().endsWith(next.toLowerCase())) return base;
-  if (previous && next.toLowerCase().startsWith(previous.toLowerCase())) {
-    const delta = normalizeListeningCaptionText(next.slice(previous.length));
-    return delta ? mergeAsrTranscript(base, delta, "") : base;
-  }
-
-  const baseLower = base.toLowerCase();
-  const nextLower = next.toLowerCase();
-  const maxOverlap = Math.min(base.length, next.length, 120);
-  for (let length = maxOverlap; length >= 6; length -= 1) {
-    if (baseLower.slice(-length) === nextLower.slice(0, length)) {
-      return normalizeListeningCaptionText(`${base}${next.slice(length)}`);
-    }
-  }
-  return normalizeListeningCaptionText(`${base} ${next}`);
-}
-
-function handleListeningAsrMessage(prefix, section, message) {
-  if (message?.type === "status") {
-    if (message.status === "qwen-asr-open") {
-      const session = listeningAsrSession(prefix);
-      session.connected = true;
-      setListeningCaption(prefix, section, "Live captions are listening. Play audio if no words appear.", `Qwen ASR · Section ${section}`);
-      if (session.audio) attachListeningAsrAudio(prefix, session.audio);
-    }
-    if (message.status === "qwen-asr-closed" || message.status === "disconnected") {
-      listeningAsrSession(prefix).connected = false;
-    }
-    return;
-  }
-  if (message?.type === "error") {
-    setListeningCaption(prefix, section, message.message || "Qwen ASR failed.", "Qwen ASR");
-    return;
-  }
-  const payload = message?.payload || message || {};
-  const eventType = message?.eventType || payload.type || "";
-  if (/input_audio_transcription\.text$/i.test(eventType)) {
-    const liveText = qwenAsrLiveTextFromPayload(payload);
-    if (liveText) {
-      const itemId = listeningAsrItemId(payload);
-      const session = listeningAsrSession(prefix);
-      session.liveItems[itemId] = liveText;
-      renderListeningAsrPreview(prefix, section);
-    }
-    return;
-  }
-  if (/input_audio_transcription\.completed$/i.test(eventType)) {
-    const itemId = listeningAsrItemId(payload);
-    const text = qwenAsrTextFromPayload(payload) || qwenAsrLiveTextFromPayload(payload);
-    if (text) appendListeningAsrText(prefix, section, text, true);
-    delete listeningAsrSession(prefix).liveItems[itemId];
-    return;
-  }
-  const text = qwenAsrTextFromPayload(payload);
-  if (text) appendListeningAsrText(prefix, section, text, /completed|done|final/i.test(eventType));
-}
-
-function connectListeningAsr(prefix, section, audio) {
-  persistListeningAsr(prefix);
-  stopListeningAsr(prefix);
-  const session = listeningAsrSession(prefix);
-  session.section = String(section || "");
-  session.audio = audio || null;
-  session.currentText = "";
-  if (!audio) {
-    setListeningCaption(prefix, section, "Play this section's audio to generate live captions.", `Qwen ASR · Section ${section}`);
-    return;
-  }
-  const wsUrl = `${location.origin.replace(/^http/, "ws")}/qwen-asr-client`;
-  const ws = new WebSocket(wsUrl);
-  session.ws = ws;
-  ws.binaryType = "arraybuffer";
-  session.statusTimer = window.setTimeout(() => {
-    const current = state.listeningAsr[prefix];
-    if (current?.ws !== ws || current.currentText || state.listeningCaptionState[prefix]?.source !== "asr") return;
-    const message = audio.paused
-      ? "Play this section's audio to start live captions."
-      : "Connecting to Qwen ASR. If this stays here, tap Captions off and on once.";
-    setListeningCaption(prefix, section, message, `Qwen ASR · Section ${section}`);
-  }, 6500);
-  ws.onopen = () => {
-    ws.send(JSON.stringify({
-      type: "connect",
-      model: "qwen3-asr-flash-realtime",
-      instructions: "Transcribe IELTS listening audio with natural punctuation and original casing. Do not force uppercase. If speakers can be distinguished, prefix turns as Speaker 1: and Speaker 2:. Return transcript text only.",
-      turnDetection: "server_vad",
-      language: "en",
-      silenceDurationMs: 500,
-    }));
-  };
-  ws.onmessage = (event) => {
-    try {
-      handleListeningAsrMessage(prefix, section, JSON.parse(event.data));
-    } catch {
-      // Ignore non-JSON ASR messages.
-    }
-  };
-  ws.onerror = () => setListeningCaption(prefix, section, "Qwen ASR connection error.", "Qwen ASR");
-  ws.onclose = () => {
-    const current = state.listeningAsr[prefix];
-    if (current?.ws === ws) {
-      current.connected = false;
-      if (state.listeningCaptionState[prefix]?.enabled && state.listeningCaptionState[prefix]?.source === "asr") {
-        setListeningCaption(prefix, section, "ASR connection closed. Reopen captions if it does not reconnect.", "Qwen ASR");
-      }
-    }
-  };
-}
-
-function sendListeningAsrPcm(prefix, pcmBuffer) {
-  const session = listeningAsrSession(prefix);
-  if (!session.connected || session.ws?.readyState !== WebSocket.OPEN || !pcmBuffer?.byteLength) return;
-  session.ws.send(pcmBuffer);
-}
-
-function maybeCommitListeningAsr(prefix, force = false) {
-  const session = listeningAsrSession(prefix);
-  if (!session.connected || session.ws?.readyState !== WebSocket.OPEN) return;
-  if (!force) return;
-  try {
-    session.ws.send(JSON.stringify({ type: "session.finish" }));
-  } catch {}
-}
-
-function attachListeningAsrAudio(prefix, audio) {
-  const session = listeningAsrSession(prefix);
-  if (!audio || session.processor) return;
-  const graph = listeningAudioGraph(audio);
-  if (!graph) {
-    setListeningCaption(prefix, session.section, "This browser cannot capture audio for ASR.", "Qwen ASR");
-    return;
-  }
-  try {
-    const context = graph.context;
-    session.audioContext = context;
-    session.sourceNode = graph.sourceNode;
-    session.gainNode = graph.gainNode;
-    session.processor = context.createScriptProcessor(2048, 1, 1);
-    session.sourceNode.connect(session.processor);
-    session.processor.connect(context.destination);
-    session.processor.onaudioprocess = (event) => {
-      if (!state.listeningCaptionState[prefix]?.enabled || !session.connected) return;
-      const input = event.inputBuffer.getChannelData(0);
-      let sumSquares = 0;
-      for (let i = 0; i < input.length; i += 16) sumSquares += input[i] * input[i];
-      const rms = Math.sqrt(sumSquares / Math.max(1, Math.ceil(input.length / 16)));
-      const now = Date.now();
-      const voiceThreshold = Math.max(0.012, session.noiseFloor * 3.2);
-      const hasVoice = rms > voiceThreshold;
-      if (hasVoice) {
-        session.lastVoiceAt = now;
-        if (!session.segmentHadVoice) session.segmentStartedAt = now;
-        session.segmentHadVoice = true;
-      } else {
-        session.noiseFloor = Math.max(0.003, Math.min(0.03, session.noiseFloor * 0.96 + rms * 0.04));
-      }
-      const ratio = context.sampleRate / QWEN_PCM_TARGET_SAMPLE_RATE;
-      const pcmChunkSamples = Math.max(800, Math.round((QWEN_PCM_TARGET_SAMPLE_RATE * 100) / 1000));
-      while (session.pcmPosition < input.length) {
-        const index = Math.floor(session.pcmPosition);
-        const sample = Math.max(-1, Math.min(1, input[index] || 0));
-        session.pcmBuffer.push(sample < 0 ? sample * 0x8000 : sample * 0x7fff);
-        session.pcmPosition += ratio;
-      }
-      session.pcmPosition -= input.length;
-      while (session.pcmBuffer.length >= pcmChunkSamples) {
-        const chunk = new Int16Array(pcmChunkSamples);
-        for (let i = 0; i < chunk.length; i += 1) chunk[i] = session.pcmBuffer.shift();
-        sendListeningAsrPcm(prefix, chunk.buffer);
-      }
-      maybeCommitListeningAsr(prefix);
-    };
-    if (context.state === "suspended") context.resume().catch(() => {});
-  } catch (error) {
-    setListeningCaption(prefix, session.section, `Qwen ASR audio capture failed: ${error.message}`, "Qwen ASR");
-  }
-}
-
-function setListeningScriptsVisible(prefix, visible) {
-  const root = $(`${prefix}-listening-studio`);
-  if (root) root.classList.toggle("show-scripts", visible);
-  document.body.classList.toggle("listening-caption-rail-active", visible);
-  mountListeningCaptionRail(prefix, visible);
-  document.querySelectorAll(`.listening-caption-toggle[data-prefix="${prefix}"]`).forEach((button) => {
-    button.classList.toggle("active", visible && (!state.listeningCaptionState[prefix]?.section || String(button.dataset.section || "") === String(state.listeningCaptionState[prefix].section || "")));
-    button.setAttribute("aria-pressed", button.classList.contains("active") ? "true" : "false");
-  });
-  if (!visible) clearListeningCaption(prefix);
-}
-
-function shouldMountListeningCaptionRail(prefix) {
-  if (!document.body.classList.contains("immersive-mode")) return false;
-  if (document.body.dataset.immersiveModule !== "listening") return false;
-  if (document.body.classList.contains("single-immersive-mode")) return prefix === "single";
-  const focused = document.querySelector(".exam-section.focused-section");
-  const studio = $(`${prefix}-listening-studio`);
-  return Boolean(focused && studio && focused.contains(studio));
-}
-
-function rememberListeningCaptionHome(bar) {
-  if (!bar?.id || state.listeningCaptionHomes[bar.id]) return;
-  state.listeningCaptionHomes[bar.id] = {
-    parent: bar.parentNode,
-    nextSibling: bar.nextSibling,
-  };
-}
-
-function restoreListeningCaptionRail(prefix = "") {
-  const bar = prefix ? listeningCaptionHeader(prefix).bar : null;
-  const bars = bar ? [bar] : Object.keys(state.listeningCaptionHomes).map((id) => $(id)).filter(Boolean);
-  bars.forEach((item) => {
-    const home = state.listeningCaptionHomes[item.id];
-    item.closest?.(".pdf-study-layout")?.classList.remove("caption-rail-mounted");
-    if (home?.parent && item.parentNode !== home.parent) {
-      home.parent.insertBefore(item, home.nextSibling || null);
-    }
-  });
-}
-
-function mountListeningCaptionRail(prefix, visible) {
-  const bar = listeningCaptionHeader(prefix).bar;
-  if (!bar) return;
-  rememberListeningCaptionHome(bar);
-  bar.closest?.(".pdf-study-layout")?.classList.remove("caption-rail-mounted");
-  if (!visible || !shouldMountListeningCaptionRail(prefix)) {
-    restoreListeningCaptionRail(prefix);
-    return;
-  }
-  const studio = $(`${prefix}-listening-studio`);
-  const layout = studio?.querySelector(".pdf-study-layout");
-  const pdfPanel = layout?.querySelector(".pdf-scroll-box");
-  if (!layout || !pdfPanel) {
-    restoreListeningCaptionRail(prefix);
-    return;
-  }
-  layout.insertBefore(bar, pdfPanel);
-  layout.classList.add("caption-rail-mounted");
-}
-
-function highlightListeningScriptPart(prefix, part) {
-  const payload = listeningCaptionPayload(prefix);
-  if (!isReliableListeningCaptionPayload(payload, part)) {
-    setListeningCaption(prefix, part, "Play this section's audio to generate live captions.", part ? `Section ${part}` : "Auto captions");
-    return;
-  }
-  const section = listeningCaptionSection(payload, part);
-  const firstSentence = listeningCaptionSentences(section?.text || payload?.text || "")[0] || "";
-  setListeningCaption(prefix, part, firstSentence, section?.title || (part ? `Section ${part}` : "Live caption"));
-}
-
-async function loadListeningScripts(prefix, itemId, pageImageUrls = []) {
-  const cacheKey = listeningScriptsCacheKey(prefix, itemId);
-  if (state.listeningScripts[cacheKey]) {
-    return state.listeningScripts[cacheKey];
-  }
-  setListeningCaption(prefix, "", "Loading captions...", "Auto captions");
-  const controller = new AbortController();
-  const timeoutId = window.setTimeout(() => controller.abort(), 4500);
-  try {
-    const headers = { "content-type": "application/json" };
-    if (state.authToken) headers.authorization = `Bearer ${state.authToken}`;
-    const response = await fetch("/api/listening/scripts", {
-      method: "POST",
-      headers,
-      body: JSON.stringify({ id: itemId, pageImageUrls, allowOcr: false }),
-      signal: controller.signal,
-    });
-    const json = await parseJsonResponse(response);
-    state.listeningScripts[cacheKey] = json;
-    return json;
-  } catch (error) {
-    const message = error?.name === "AbortError"
-      ? "No saved transcript yet. Play audio to generate ASR captions."
-      : `Captions failed: ${error.message}`;
-    setListeningCaption(prefix, "", message, "Auto captions");
-    return null;
-  } finally {
-    clearTimeout(timeoutId);
-  }
-}
-
-async function toggleListeningCaptions(button) {
-  const prefix = button.dataset.prefix || "single";
-  const section = button.dataset.section || "";
-  const wasEnabled = state.listeningCaptionState[prefix]?.enabled && String(state.listeningCaptionState[prefix]?.section || "") === String(section || "");
-  const visible = !wasEnabled;
-  if (!visible) {
-    persistListeningAsr(prefix);
-    stopListeningAsr(prefix);
-    stopTimedListeningCaptionLoop(prefix, section);
-    resetListeningCaptionVoices(prefix, section);
-  }
-  state.listeningCaptionState[prefix] = { enabled: visible, section, source: "" };
-  setListeningScriptsVisible(prefix, visible);
-  document.querySelectorAll(`.listening-caption-toggle[data-prefix="${prefix}"]`).forEach((item) => {
-    const active = visible && String(item.dataset.section || "") === String(section || "");
-    item.classList.toggle("active", active);
-    item.textContent = active ? "Captions on" : "Captions";
-    item.setAttribute("aria-pressed", active ? "true" : "false");
-  });
-  if (visible) {
-    const activeAudio = [...document.querySelectorAll(`.listening-player[data-prefix="${prefix}"][data-section="${section}"]`)]
-      .find((audio) => !audio.paused && !audio.ended) || document.querySelector(`.listening-player[data-prefix="${prefix}"][data-section="${section}"]`);
-    setListeningCaption(prefix, section, "Checking ASR cache...", `Section ${section}`);
-    const cached = await loadListeningAsrCache(prefix, section);
-    if (cached?.text) {
-      const payload = {
-        available: true,
-        mode: "asr-cache",
-        text: cached.text,
-        timedWords: cached.timedWords || [],
-        sentences: cached.sentences || [],
-        speakers: cached.speakers || [],
-        timing: cached.timing || null,
-        duration: cached.duration || 0,
-        sections: [{
-          part: section,
-          title: `ASR cache · Section ${section}`,
-          text: cached.text,
-          timedWords: cached.timedWords || [],
-          sentences: cached.sentences || [],
-          speakers: cached.speakers || [],
-          timing: cached.timing || null,
-          duration: cached.duration || 0,
-        }],
-      };
-      state.listeningScripts[listeningScriptsCacheKey(prefix, listeningRootItemId(prefix))] = payload;
-      state.listeningCaptionState[prefix] = { enabled: true, section, source: "timed-cache" };
-      resetListeningCaptionVoices(prefix, section);
-      seedListeningCaptionVoices(prefix, section);
-      if (activeAudio) {
-        resetTimedListeningCaptionAnchor(prefix, activeAudio);
-        updateListeningCaptionFromAudio(activeAudio);
-        if (!activeAudio.paused && !activeAudio.ended) startTimedListeningCaptionLoop(prefix, activeAudio);
-      } else {
-        highlightListeningScriptPart(prefix, section);
-      }
-      return;
-    }
-    state.listeningCaptionState[prefix] = { enabled: true, section, source: "asr" };
-    const shouldStartAsr = activeAudio && !activeAudio.paused && !activeAudio.ended;
-    setListeningCaption(prefix, section, shouldStartAsr ? "Starting Qwen ASR captions..." : "Play this section's audio to generate live captions.", `Qwen ASR · Section ${section}`);
-    if (shouldStartAsr) connectListeningAsr(prefix, section, activeAudio);
-  }
 }
 
 function renderReading(test, prefix = "single", options = {}) {
@@ -4448,11 +1549,10 @@ function renderReading(test, prefix = "single", options = {}) {
   const sourceLink = item.sourceUrl ? `<a class="source-inline" href="${item.sourceUrl}" target="_blank" rel="noreferrer">Open local PDF</a>` : "";
   const analysisLink = item.analysisUrl ? `<a class="source-inline" href="${item.analysisUrl}" target="_blank" rel="noreferrer">Open local analysis</a>` : "";
   const useSplitLayout = options.splitLayout === true;
-  const readingPageImages = filteredPaperImagesForLabel(item.readingPageImages || [], "Reading", item.readingPaper);
-  const readingPaper = readingPageImages.length
+  const readingPaper = item.readingPageImages?.length
     ? (useSplitLayout
-        ? renderReadingSplitPages(readingPageImages, prefix, item.questions, item.readingPaper)
-        : renderPageImagesWithAnswers(readingPageImages, "Reading question PDF", prefix, item.questions, item.readingPaper))
+        ? renderReadingSplitPages(item.readingPageImages, prefix, item.questions, item.readingPaper)
+        : renderPageImagesWithAnswers(item.readingPageImages, "Reading question PDF", prefix, item.questions, item.readingPaper))
     : item.readingPaper
       ? `<details class="question-paper" open><summary>Reading OCR text</summary><pre>${escapeHtml(item.readingPaper)}</pre></details>`
       : `<article class="passage">${escapeHtml(item.passage || item.prompt || "")}</article>`;
@@ -4460,7 +1560,7 @@ function renderReading(test, prefix = "single", options = {}) {
     <div class="module-meta">${[item.source, item.period || "", `${item.minutes || 60} min`].filter(Boolean).join(" · ")} ${sourceLink} ${analysisLink}</div>
     <h3>${item.title}</h3>
     ${readingPaper}
-    ${readingPageImages.length ? "" : renderQuestionInputs(prefix, item.questions)}
+    ${item.readingPageImages?.length ? "" : renderQuestionInputs(prefix, item.questions)}
   `;
 }
 
@@ -4497,11 +1597,7 @@ function renderWriting(task, prefix = "single") {
 }
 
 function renderWritingExamTwoColumn(tasks = [], prefixRoot = "exam") {
-  const validTasks = tasks.filter((task) => task && typeof task === "object");
-  if (validTasks.length < 2) {
-    return `<section class="panel notice">Writing Task 1 and Task 2 are not both available for this paper. Generate another paper or check the writing bank.</section>`;
-  }
-  const prompts = validTasks.map((task, index) => {
+  const prompts = tasks.filter(Boolean).map((task, index) => {
     const item = normalizeItem(task);
     const sourceLink = item.sourceUrl ? `<a class="source-inline" href="${item.sourceUrl}" target="_blank" rel="noreferrer">Open local PDF</a>` : "";
     const writingPrompt = item.writingPageImages?.length
@@ -4513,7 +1609,7 @@ function renderWritingExamTwoColumn(tasks = [], prefixRoot = "exam") {
       ${writingPrompt}
     </section>`;
   }).join("");
-  const answers = validTasks.map((task, index) => {
+  const answers = tasks.filter(Boolean).map((task, index) => {
     const item = normalizeItem(task);
     const answerPrefix = `${prefixRoot}-task${index + 1}`;
     return `<label class="writing-answer-block" for="${answerPrefix}-writing">
@@ -4530,29 +1626,19 @@ function renderWritingExamTwoColumn(tasks = [], prefixRoot = "exam") {
 
 function renderSpeaking(set, prefix = "single") {
   const item = normalizeItem(set);
-  const pdfHtml = item.speakingPageImages?.length
-    ? prefix === "exam"
-      ? ""
-      : renderPageImages(item.speakingPageImages, "Speaking prompt PDF")
-    : "";
   return `
     <div class="module-meta">${[item.source, item.period || ""].filter(Boolean).join(" · ")}</div>
     <h3>${item.title}</h3>
-    ${pdfHtml}
-    ${renderRealtimeSpeakingPanel(item, prefix, { showTranscript: prefix !== "exam" })}
+    ${renderRealtimeSpeakingPanel(item, prefix, { showTranscript: true })}
   `;
 }
 
 function renderSpeakingExamTwoColumn(set, prefix = "exam") {
   const item = normalizeItem(set);
-  const pdfHtml = prefix === "exam" || !item.speakingPageImages?.length
-    ? ""
-    : renderPageImages(item.speakingPageImages, "Speaking prompt PDF");
   return `<div class="exam-two-column speaking-two-column">
     <section class="exam-left-pane">
       <div class="module-meta">${[item.source, item.period || ""].filter(Boolean).join(" · ")}</div>
       <h3>${item.title}</h3>
-      ${pdfHtml}
     </section>
     <aside class="exam-right-pane speaking-answer-pane">
       ${renderRealtimeSpeakingPanel(item, prefix, { showTranscript: prefix !== "exam" })}
@@ -4562,34 +1648,27 @@ function renderSpeakingExamTwoColumn(set, prefix = "exam") {
 
 function renderRealtimeSpeakingPanel(item, prefix, options = {}) {
   const showTranscript = options.showTranscript !== false;
-  const speakingTopicPayload = JSON.stringify({
-    title: item.title || "",
-    source: item.source || "",
-    period: item.period || "",
-    part1: item.part1 || [],
-    part2: item.part2 || "",
-    part3: item.part3 || [],
-  });
   const transcriptHtml = showTranscript
     ? `<div id="${prefix}-speaking-log" class="dialogue-log"></div>`
     : "";
   return `<div class="qwen-speaking" data-prefix="${prefix}" data-topic="${escapeHtml(item.title)}">
     <textarea id="${prefix}-qwen-prompt" hidden>${escapeHtml(buildIeltsSpeakingPrompt(item))}</textarea>
-    <textarea id="${prefix}-qwen-topic-json" hidden>${escapeHtml(speakingTopicPayload)}</textarea>
-    <div class="speaking-environment-tip">Please practise in a quiet environment. Keep your microphone close and avoid background noise so the examiner can hear you clearly.</div>
     <div id="${prefix}-qwen-status" class="voice-state">Not started</div>
     <div class="qwen-meter">
       <span id="${prefix}-qwen-level"></span>
       <strong id="${prefix}-qwen-meter">0.00</strong>
     </div>
-    <label class="field-label speaking-band-field" for="${prefix}-speaking-score">
-      <span>Speaking band</span>
-      <input id="${prefix}-speaking-score" class="text-input band-input" inputmode="decimal" placeholder="Enter band score" />
-    </label>
+    <label class="field-label" for="${prefix}-speaking-score">Speaking band</label>
+    <input id="${prefix}-speaking-score" class="text-input band-input" inputmode="decimal" placeholder="Enter band score" />
+    <label class="field-label" for="${prefix}-speaking">Speaking notes</label>
+    <textarea id="${prefix}-speaking" placeholder="Type or paste your speaking answer here..."></textarea>
     ${transcriptHtml}
     <div id="${prefix}-recording-download" class="recording-download"></div>
     <div class="actions">
       <button class="primary start-qwen-speaking" data-prefix="${prefix}" data-topic="${escapeHtml(item.title)}">Start speaking test</button>
+      <button class="secondary qwen-mic-toggle" data-prefix="${prefix}" disabled>Toggle mic</button>
+      <button class="secondary qwen-commit-answer" data-prefix="${prefix}" disabled>Submit current answer</button>
+      <button class="secondary qwen-finish-score" data-prefix="${prefix}" disabled>End and score</button>
       <button class="secondary qwen-disconnect" data-prefix="${prefix}" disabled>Disconnect</button>
     </div>
   </div>`;
@@ -4608,26 +1687,12 @@ function buildIeltsSpeakingPrompt(set) {
     "Critical opening rule: your first response must be no more than two short sentences. Sentence 1 must be a brief greeting statement, not a question. Sentence 2 must ask exactly one Part 1 question. Then stop and wait for the student's spoken answer.",
     "Do not ask greeting/check-in questions such as 'How are you?' or 'Are you ready?' because they count as extra questions.",
     "Behave like a real human examiner, not a script reader. The topic set is only a reference; do not mechanically repeat every prompt.",
-    "Human examiner priority: understand what the candidate is trying to do before choosing your next move. They may be answering, asking for clarification, asking a technical question, correcting themselves, or continuing an unfinished answer.",
-    "Use the immediate conversation context first, especially the last examiner question and the candidate's latest words. Do not interpret short candidate questions in isolation.",
-    "When the candidate genuinely asks you something, answer it briefly like a person, then guide them back to the speaking test. Do not ignore the question just because a scheduled item exists.",
-    "When the candidate answers off-topic or seems to have misunderstood, do not punish them during the live turn. Briefly clarify the question and invite them to answer it again.",
-    "When the candidate gives a real answer, react only if it sounds natural. Vary short bridges; avoid repeating canned phrases such as 'That's interesting' or 'That's a good strategy'.",
-    "Understand the candidate's intent before responding. If the candidate asks a direct question about the AI examiner, scoring, the current question, clarification, repetition, microphone/audio, or how the speaking test works, answer that question briefly and helpfully first; then continue the test naturally.",
-    "Candidate questions are usually about the previous examiner question. Interpret their question from the immediate context, not as a standalone dictionary question.",
-    "If the candidate asks for a repeat or clarification, explain the confusing word or phrase in the context of the last examiner question, then repeat or paraphrase that question instead of moving on.",
-    "The app may provide a scheduled IELTS item, but after the candidate speaks it is a reference, not a command. Use it only if it is the most natural next move.",
     "Throughout the test, ask exactly one question at a time and wait. Never read the whole topic set aloud.",
     "Wait patiently after the student pauses. Do not interrupt unfinished answers, false starts, or thinking pauses. Give the candidate roughly 1 to 1.5 seconds of silence before deciding the answer has ended.",
-    "Maintain a private ledger of every question you have asked and every topic the student has answered.",
     "Do not repeat questions or topics the student has already answered. Track what the student said, then extend naturally with a relevant follow-up or move to a new angle.",
-    "Never ask the same question twice. Before asking, compare it with your private ledger and the Already asked list; if it is similar, ask a different follow-up or move to a fresh IELTS-style angle instead.",
-    "You may follow up on concrete details from what the student just said, such as people, places, reasons, examples, problems, feelings, or comparisons, when that feels natural.",
-    "You may also move to a fresh IELTS-style angle from the topic bank, but only if it is not similar to anything already asked.",
-    "If you notice you are about to ask the same question again, switch immediately to a different IELTS-style angle.",
     "If the student's answer is short, ask one gentle follow-up such as 'Could you tell me a little more about that?' instead of switching topics too quickly.",
     "Run the IELTS format naturally: Part 1 interview, Part 2 cue card with 1 minute preparation and 1-2 minutes speaking, then Part 3 discussion. Timing is guidance, not a reason to cut the student off.",
-    "After the student ends the test, score Fluency and Coherence, Lexical Resource, Grammatical Range and Accuracy, and Pronunciation from 0 to 9. The first scoring line must be exactly like: Overall Band: 6.5.",
+    "After the student ends the test, score Fluency and Coherence, Lexical Resource, Grammatical Range and Accuracy, and Pronunciation from 0 to 9. Include a clear line exactly like: Overall Band: 6.5.",
     "After scoring, give concise English feedback with 3 specific weaknesses and 3 drills.",
     "",
     `Topic set title: ${item.title}`,
@@ -4852,72 +1917,27 @@ async function finishSpeakingScore(prefix, setTitle, feedbackId = "singleFeedbac
     const transcript = getSpeakingTranscript(prefix);
     const json = await postJson("/api/speaking/feedback", { set: setTitle, transcript });
     setFeedback(feedbackId, json.feedback, modeId, json.mode);
-    const band = normalizeSpeakingBand(json.band) || extractSpeakingBandFromText(json.feedback);
-    if (band) fillSpeakingBandFromText(prefix, band);
   } catch (error) {
     setFeedback(feedbackId, `Submission failed: ${error.message}`, modeId, "error");
   }
-}
-
-function speakingFeedbackTargets(prefix) {
-  if (prefix === "exam") return { feedbackId: "examFeedback", modeId: "examMode" };
-  if (prefix === "sequence") return { feedbackId: "sequenceFeedback", modeId: "sequenceMode" };
-  return { feedbackId: "singleFeedback", modeId: "singleMode" };
-}
-
-async function scoreSpeakingText(prefix, setTitle, feedbackId, modeId) {
-  const targets = {
-    ...speakingFeedbackTargets(prefix),
-    ...(feedbackId ? { feedbackId } : {}),
-    ...(modeId ? { modeId } : {}),
-  };
-  const transcript = ($(`${prefix}-speaking`)?.value || getSpeakingTranscript(prefix) || "").trim();
-  if (!transcript) {
-    setFeedback(targets.feedbackId, "Type or paste a speaking answer first, or complete a live speaking test and then score it.", targets.modeId, "error");
-    return null;
-  }
-  setFeedback(targets.feedbackId, "Scoring speaking text...", targets.modeId, "");
-  const json = await postJson("/api/speaking/feedback", { set: setTitle || "", transcript });
-  setFeedback(targets.feedbackId, json.feedback, targets.modeId, json.mode);
-  const band = normalizeSpeakingBand(json.band) || extractSpeakingBandFromText(json.feedback);
-  if (band) fillSpeakingBandFromText(prefix, band);
-  return json;
 }
 
 function qwenSession(prefix) {
   if (!state.qwenSpeaking[prefix]) {
     state.qwenSpeaking[prefix] = {
       ws: null,
-      pc: null,
-      dataChannel: null,
-      remoteAudio: null,
-      remoteStream: null,
-      webrtcControlTimer: null,
-      webrtcSessionTimer: null,
-      webRtcSubmitWatchdogTimer: null,
-      webrtcAudioSender: null,
-      webrtcAudioTrack: null,
-      webrtcAudioSending: false,
-      webrtcMediaUngated: false,
       transport: "",
       httpSessionId: "",
       pollTimer: null,
-      heartbeatTimer: null,
       micAudioQueue: [],
       micAudioFlushTimer: null,
       inputContext: null,
       outputContext: null,
-      playbackSources: new Set(),
-      recordingContext: null,
       micStream: null,
       sourceNode: null,
       workletNode: null,
       scriptNode: null,
       silentGain: null,
-      recordingDestination: null,
-      recordingMicSource: null,
-      recordingRemoteSource: null,
-      recordingPlaybackCursor: 0,
       micActive: false,
       outputUnlocked: false,
       pcmBuffer: [],
@@ -4927,144 +1947,28 @@ function qwenSession(prefix) {
       recordingMime: "",
       recordingReady: null,
       connected: false,
-      userDisconnected: false,
       openingRequested: false,
       turnCommitted: false,
-      inputPaused: false,
-      waitingForResponse: false,
-      responseRetryCount: 0,
       autoCommitTimer: null,
-      autoCommitInterval: null,
-      commitWatchdogTimer: null,
-      webRtcTurnTimer: null,
-      webRtcFallbackTimer: null,
-      autoScoreTimer: null,
-      autoScoreInFlight: false,
-      lastAutoScoreKey: "",
-      webRtcResponseRequested: false,
-      serverTurnCommitted: false,
-      webRtcLastCompletedAt: 0,
-      nextQuestionPrepared: false,
-      webRtcTurnPreparedForAnswer: false,
-      askedQuestions: [],
-      candidateAnswers: [],
-      candidateQuestions: [],
-      adaptiveFollowUpCount: 0,
-      lastAdaptiveAnswerFp: "",
-      lastCandidateQuestionFp: "",
-      lastCandidateTurnText: "",
-      lastCandidateTurnKind: "",
-      lastActionKind: "",
-      speakingPlan: null,
-      scheduledAction: null,
-      part1Index: 0,
-      part3Index: 0,
-      part2Delivered: false,
-      fallbackQuestionIndex: 0,
-      autoFinishPending: false,
-      autoFinishStarted: false,
-      finalScoreInFlight: false,
       voiceStarted: false,
       voiceStartAt: 0,
       voicedMs: 0,
-      lastVoiceFrameAt: 0,
       lastVoiceAt: 0,
-      lastHumanVoiceAt: 0,
       silenceSince: 0,
-      noiseFloor: 0,
-      speechFrameCount: 0,
-      quietFrameCount: 0,
-      lastMicPacketAt: 0,
-      currentTurnBytes: 0,
       awaitingScore: false,
       scoreFilled: false,
-      scoringText: "",
       currentAssistantText: "",
       pendingAssistantText: "",
-      assistantTextSource: "",
-      scheduleAdvancedForResponse: false,
-      lastFinalAssistantText: "",
-      lastFinalAssistantAt: 0,
-      candidateNode: null,
-      currentCandidateText: "",
-      lastCandidateText: "",
-      lastCandidateAt: 0,
       assistantRenderId: null,
       pendingAudioChunks: [],
-      realtimeEventTypes: [],
       audioRenderId: null,
-      audioJitterStarted: false,
       responseActive: false,
       playbackTailTimer: null,
       playbackCursor: 0,
-      playbackBlockedUntil: 0,
       assistantNode: null,
     };
   }
   return state.qwenSpeaking[prefix];
-}
-
-const QWEN_WS_AUDIO_BATCH_MS = 100;
-const QWEN_HTTP_AUDIO_BATCH_MS = 80;
-const QWEN_WS_AUDIO_BATCH_CHUNKS = 6;
-const QWEN_HTTP_AUDIO_BATCH_CHUNKS = 12;
-const QWEN_WEBRTC_SILENCE_MS = 1700;
-const QWEN_WEBRTC_LOCAL_SILENCE_MS = 2600;
-const QWEN_WEBRTC_SUBMIT_GRACE_MS = 2300;
-const QWEN_WEBRTC_MIN_VOICED_MS = 500;
-const QWEN_WEBRTC_MIN_TURN_BYTES = 14000;
-const QWEN_WEBRTC_CAPTURE_SAMPLE_RATE = 16000;
-const QWEN_WEBRTC_AUDIO_TAIL_MS = 420;
-const QWEN_OPUS_MAX_AVERAGE_BITRATE = 16000;
-const QWEN_PCM_TARGET_SAMPLE_RATE = 16000;
-const QWEN_PCM_CHUNK_MS = 20;
-const QWEN_WS_SILENCE_COMMIT_MS = 2800;
-const QWEN_WS_ASR_STABLE_COMMIT_MS = 2200;
-const QWEN_WS_MIN_VOICED_MS = 450;
-const QWEN_WS_MIN_TURN_BYTES = 14000;
-const QWEN_PLAYBACK_SAMPLE_RATE = 24000;
-const QWEN_PLAYBACK_LEAD_SECONDS = 0.24;
-const QWEN_PLAYBACK_BATCH_CHUNKS = 28;
-const QWEN_PLAYBACK_INITIAL_JITTER_MS = 120;
-
-function qwenMicConstraints() {
-  return {
-    audio: {
-      channelCount: { ideal: 1 },
-      sampleRate: { ideal: QWEN_WEBRTC_CAPTURE_SAMPLE_RATE },
-      sampleSize: { ideal: 16 },
-      echoCancellation: true,
-      noiseSuppression: true,
-      autoGainControl: true,
-    },
-  };
-}
-
-function qwenSetWebRtcAudioSending(prefix, shouldSend) {
-  const session = qwenSession(prefix);
-  const canSend = !!shouldSend
-    && session.transport === "webrtc"
-    && session.connected
-    && session.micActive
-    && !session.inputPaused
-    && !session.turnCommitted
-    && !session.responseActive
-    && !qwenOutputBusy(prefix);
-  if (!session.webrtcAudioSender || !session.webrtcAudioTrack) return false;
-  if (session.webrtcAudioSending === canSend) return true;
-  session.webrtcAudioSending = canSend;
-  // Keep the local mic track enabled so the browser-side VAD can still hear the student.
-  // Token saving is done by detaching the WebRTC sender track, not by disabling capture.
-  session.webrtcAudioTrack.enabled = true;
-  session.webrtcAudioSender.replaceTrack(canSend ? session.webrtcAudioTrack : null).catch(() => {
-    session.webrtcAudioSending = false;
-    if (session.webrtcAudioTrack) session.webrtcAudioTrack.enabled = true;
-  });
-  return true;
-}
-
-function qwenApplyLowBandwidthAudioSdp(sdp) {
-  return String(sdp || "");
 }
 
 function qwenSetStatus(prefix, text, active = false) {
@@ -5074,381 +1978,22 @@ function qwenSetStatus(prefix, text, active = false) {
   node.classList.toggle("active", active);
 }
 
-function qwenHasMinimumWsTurn(session) {
-  if (!session?.voiceStarted) return false;
-  const bytes = session.currentTurnBytes || 0;
-  return bytes >= QWEN_WS_MIN_TURN_BYTES && ((session.voicedMs || 0) >= QWEN_WS_MIN_VOICED_MS || bytes >= 64_000);
-}
-
-function qwenVoiceThresholds(session) {
-  const noiseFloor = Number(session?.noiseFloor || 0);
-  return {
-    start: Math.max(0.008, Math.min(0.024, noiseFloor * 1.75 || 0.008)),
-    continue: Math.max(0.005, Math.min(0.016, noiseFloor * 1.15 || 0.005)),
-  };
-}
-
-function qwenUpdateWsHumanVoice(prefix, level) {
-  const session = qwenSession(prefix);
-  const now = Date.now();
-  const speechLevel = Number(level || 0);
-  if (!session.noiseFloor) session.noiseFloor = Math.max(0.0015, Math.min(0.012, speechLevel || 0.003));
-  const thresholds = qwenVoiceThresholds(session);
-  const clearSpeech = speechLevel >= thresholds.start;
-  const possibleSpeech = speechLevel >= thresholds.continue;
-  if (!session.voiceStarted || !possibleSpeech) {
-    const alpha = clearSpeech ? 0.995 : 0.965;
-    session.noiseFloor = (session.noiseFloor * alpha) + (speechLevel * (1 - alpha));
-  }
-  if (clearSpeech) {
-    session.speechFrameCount += 1;
-    session.quietFrameCount = 0;
-    if (session.speechFrameCount >= 3 && speechLevel >= Math.max(0.010, thresholds.start * 1.15)) session.lastHumanVoiceAt = now;
-    return { active: session.speechFrameCount >= 3, clearSpeech: true, thresholds };
-  }
-  if (session.voiceStarted && possibleSpeech && session.speechFrameCount >= 3) {
-    session.quietFrameCount = 0;
-    if (speechLevel >= Math.max(0.010, thresholds.start * 1.05)) session.lastHumanVoiceAt = now;
-    return { active: true, clearSpeech: false, thresholds };
-  }
-  session.quietFrameCount += 1;
-  if (session.quietFrameCount >= 4) session.speechFrameCount = 0;
-  return { active: false, clearSpeech: false, thresholds };
-}
-
-function qwenWsHumanVoiceStopped(session, now = Date.now()) {
-  const lastTranscriptAt = Number(session.lastCandidateAt || 0);
-  const lastHumanVoiceAt = Number(session.lastHumanVoiceAt || session.lastVoiceAt || 0);
-  const lastRealVoiceActivityAt = Math.max(lastHumanVoiceAt, lastTranscriptAt);
-  const localQuiet = lastRealVoiceActivityAt ? now - lastRealVoiceActivityAt >= QWEN_WS_SILENCE_COMMIT_MS : false;
-  const transcriptStable = lastTranscriptAt ? now - lastTranscriptAt >= QWEN_WS_ASR_STABLE_COMMIT_MS : true;
-  return localQuiet && transcriptStable;
-}
-
-function qwenMaybeCommitWsAnswer(prefix) {
-  const session = qwenSession(prefix);
-  if (session.transport === "webrtc" || !session.micActive || !session.connected || session.awaitingScore || session.turnCommitted) return false;
-  if (qwenOutputBusy(prefix)) return false;
-  if (!qwenHasMinimumWsTurn(session)) return false;
-  if (qwenWsHumanVoiceStopped(session)) {
-    commitQwenAnswer(prefix);
-    return true;
-  }
-  return false;
-}
-
-function startQwenAutoCommitLoop(prefix) {
-  const session = qwenSession(prefix);
-  if (session.autoCommitInterval || session.transport === "webrtc") return;
-  session.autoCommitInterval = setInterval(() => {
-    const current = qwenSession(prefix);
-    if (!current.micActive || !current.connected || current.transport === "webrtc") {
-      stopQwenAutoCommitLoop(prefix);
-      return;
-    }
-    qwenMaybeCommitWsAnswer(prefix);
-  }, 750);
-}
-
-function stopQwenAutoCommitLoop(prefix) {
-  const session = qwenSession(prefix);
-  if (session.autoCommitInterval) clearInterval(session.autoCommitInterval);
-  session.autoCommitInterval = null;
-}
-
-async function qwenRuntimeConfig() {
-  if (state.qwenRuntime && Date.now() - state.qwenRuntimeLoadedAt < 60_000) return state.qwenRuntime;
-  try {
-    const config = await getJson("/api/qwen-runtime");
-    state.qwenRuntime = config;
-    state.qwenRuntimeLoadedAt = Date.now();
-    return config;
-  } catch {
-    return { webrtcEnabled: true, webrtcMode: "auto" };
-  }
-}
-
-async function qwenShouldTryWebRtc(prefix = "") {
-  // Single-module practice needs visible transcript and reliable turn-taking.
-  // Use the Singapore WebSocket realtime path there; full exams can still prefer WebRTC.
-  if (prefix === "single") return false;
-  const config = await qwenRuntimeConfig();
-  return config.webrtcEnabled !== false && config.webrtcMode !== "off";
-}
-
 function qwenSetControls(prefix, connected) {
   document.querySelectorAll(`.qwen-speaking [data-prefix="${prefix}"]`).forEach((button) => {
-    const currentSession = qwenSession(prefix);
-    const transport = currentSession.transport;
-    const usingWebRtc = transport === "webrtc" || !!currentSession.pc;
     if (button.classList.contains("start-qwen-speaking")) button.disabled = connected;
     if (button.classList.contains("qwen-mic-toggle")) button.disabled = !connected;
-    if (button.classList.contains("qwen-commit-answer")) {
-      button.disabled = !connected || usingWebRtc;
-      button.setAttribute("aria-disabled", button.disabled ? "true" : "false");
-    }
+    if (button.classList.contains("qwen-commit-answer")) button.disabled = !connected;
     if (button.classList.contains("qwen-finish-score")) button.disabled = !connected;
     if (button.classList.contains("qwen-disconnect")) button.disabled = !connected;
   });
-}
-
-function stopQwenHeartbeat(prefix) {
-  const session = qwenSession(prefix);
-  if (session.heartbeatTimer) clearInterval(session.heartbeatTimer);
-  session.heartbeatTimer = null;
-}
-
-function startQwenHeartbeat(prefix) {
-  const session = qwenSession(prefix);
-  stopQwenHeartbeat(prefix);
-  session.heartbeatTimer = setInterval(() => {
-    const current = qwenSession(prefix);
-    if (!current.connected) return;
-    if (current.transport === "ws" && current.ws?.readyState === WebSocket.OPEN) {
-      qwenSendNow(prefix, { type: "ping", at: Date.now() });
-    } else if (current.transport === "http" && current.httpSessionId) {
-      fetch(`/api/qwen-session/${current.httpSessionId}/send`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ type: "ping", at: Date.now() }),
-      }).catch(() => {});
-    }
-  }, 10_000);
-}
-
-function clearQwenCommitWatchdog(prefix) {
-  const session = qwenSession(prefix);
-  if (session.commitWatchdogTimer) clearTimeout(session.commitWatchdogTimer);
-  session.commitWatchdogTimer = null;
-}
-
-function clearQwenWebRtcTurnTimer(prefix) {
-  const session = qwenSession(prefix);
-  if (session.webRtcTurnTimer) clearTimeout(session.webRtcTurnTimer);
-  session.webRtcTurnTimer = null;
-}
-
-function clearQwenWebRtcFallbackTimer(prefix) {
-  const session = qwenSession(prefix);
-  if (session.webRtcFallbackTimer) clearTimeout(session.webRtcFallbackTimer);
-  session.webRtcFallbackTimer = null;
-}
-
-function clearQwenWebRtcSubmitWatchdog(prefix) {
-  const session = qwenSession(prefix);
-  if (session.webRtcSubmitWatchdogTimer) clearInterval(session.webRtcSubmitWatchdogTimer);
-  session.webRtcSubmitWatchdogTimer = null;
-}
-
-function qwenShouldSubmitCompletedWebRtcTurn(prefix) {
-  const session = qwenSession(prefix);
-  if (session.transport !== "webrtc" || !session.connected || session.awaitingScore) return false;
-  if (!session.serverTurnCommitted || session.turnCommitted || session.waitingForResponse || session.responseActive) return false;
-  if (!qwenLatestTurnCandidateText(session) && !session.voiceStarted && (session.currentTurnBytes || 0) < QWEN_WEBRTC_MIN_TURN_BYTES) return false;
-  const latestActivityAt = Math.max(
-    Number(session.lastCandidateAt || 0),
-    Number(session.lastVoiceAt || 0),
-    Number(session.webRtcLastCompletedAt || 0),
-  );
-  return !latestActivityAt || Date.now() - latestActivityAt >= QWEN_WEBRTC_SUBMIT_GRACE_MS;
-}
-
-function startQwenWebRtcSubmitWatchdog(prefix) {
-  const session = qwenSession(prefix);
-  if (session.webRtcSubmitWatchdogTimer) return;
-  session.webRtcSubmitWatchdogTimer = setInterval(() => {
-    if (!session.connected || session.transport !== "webrtc" || session.awaitingScore || session.turnCommitted || session.waitingForResponse || session.responseActive) {
-      clearQwenWebRtcSubmitWatchdog(prefix);
-      return;
-    }
-    if (qwenShouldSubmitCompletedWebRtcTurn(prefix)) {
-      clearQwenWebRtcSubmitWatchdog(prefix);
-      qwenRequestWebRtcResponse(prefix, "completed-turn-grace");
-    }
-  }, 250);
-}
-
-function scheduleQwenCommitWatchdog(prefix) {
-  const session = qwenSession(prefix);
-  clearQwenCommitWatchdog(prefix);
-  session.commitWatchdogTimer = setTimeout(() => {
-    if (!session.connected || session.awaitingScore || !session.waitingForResponse) return;
-    if (session.responseActive) {
-      clearQwenCommitWatchdog(prefix);
-      return;
-    }
-    qwenSetStatus(prefix, "Still waiting for the examiner...", true);
-    scheduleQwenCommitWatchdog(prefix);
-  }, 12000);
-}
-
-function qwenHasEnoughWebRtcAnswer(session) {
-  const answerText = qwenLatestTurnCandidateText(session);
-  return qwenWordCount(answerText) >= 2
-    || (session.voicedMs || 0) >= QWEN_WEBRTC_MIN_VOICED_MS
-    || (session.currentTurnBytes || 0) >= QWEN_WEBRTC_MIN_TURN_BYTES;
-}
-
-function qwenRequestWebRtcResponse(prefix, reason = "silence") {
-  const session = qwenSession(prefix);
-  if (session.transport !== "webrtc" || session.dataChannel?.readyState !== "open") return false;
-  if (!session.connected || session.awaitingScore || session.turnCommitted || session.waitingForResponse) return false;
-  if (session.responseActive || qwenOutputBusy(prefix)) return false;
-  if (!session.voiceStarted && !session.currentCandidateText && !session.lastCandidateText) return false;
-  if (!qwenHasEnoughWebRtcAnswer(session)) return false;
-
-  const needsManualCommit = !session.serverTurnCommitted;
-  qwenSetWebRtcAudioSending(prefix, false);
-  session.turnCommitted = true;
-  session.inputPaused = true;
-  session.waitingForResponse = true;
-  session.webRtcResponseRequested = true;
-  session.responseRetryCount = 0;
-  clearQwenWebRtcTurnTimer(prefix);
-  clearQwenWebRtcFallbackTimer(prefix);
-  clearQwenWebRtcSubmitWatchdog(prefix);
-  clearQwenCommitWatchdog(prefix);
-  const latestAnswer = qwenLatestTurnCandidateText(session);
-  if (latestAnswer) qwenRememberCandidateAnswer(prefix, latestAnswer);
-  const turnInstructions = qwenPrepareWebRtcTurnInstructions(prefix, { force: true, useLatestAnswer: !!latestAnswer });
-  if (needsManualCommit) qwenSend(prefix, { type: "audio.commit" });
-  qwenSetStatus(prefix, "Processing your answer...", true);
-  window.setTimeout(() => {
-    if (!session.connected || session.transport !== "webrtc" || !session.waitingForResponse || session.responseActive) return;
-    qwenSend(prefix, { type: "response.create", instructions: turnInstructions || qwenTurnControlInstructions(prefix, "next-question") });
-  }, turnInstructions ? 180 : 0);
-  session.webRtcFallbackTimer = setTimeout(() => {
-    if (!session.connected || session.transport !== "webrtc" || !session.waitingForResponse || session.responseActive) return;
-    qwenSetStatus(prefix, "Still processing your answer...", true);
-    qwenSend(prefix, { type: "response.create", instructions: turnInstructions || qwenTurnControlInstructions(prefix, "next-question") });
-  }, 4500);
-  scheduleQwenCommitWatchdog(prefix);
-  return true;
-}
-
-function scheduleQwenWebRtcResponse(prefix, delayMs = QWEN_WEBRTC_LOCAL_SILENCE_MS) {
-  const session = qwenSession(prefix);
-  if (session.transport !== "webrtc" || session.turnCommitted || session.waitingForResponse || session.responseActive) return;
-  clearQwenWebRtcTurnTimer(prefix);
-  session.webRtcTurnTimer = setTimeout(() => {
-    session.webRtcTurnTimer = null;
-    const submitted = qwenRequestWebRtcResponse(prefix, "local-silence");
-    const hasTurnContent = qwenLatestTurnCandidateText(session)
-      || session.voiceStarted
-      || (session.currentTurnBytes || 0) >= QWEN_WEBRTC_MIN_TURN_BYTES;
-    if (!submitted
-      && hasTurnContent
-      && session.connected
-      && session.transport === "webrtc"
-      && !session.awaitingScore
-      && !session.turnCommitted
-      && !session.waitingForResponse
-      && !session.responseActive
-      && session.responseRetryCount < 8) {
-      session.responseRetryCount += 1;
-      scheduleQwenWebRtcResponse(prefix, 650);
-    }
-  }, delayMs);
-}
-
-function qwenPrepareWebRtcTurnInstructions(prefix, options = {}) {
-  const session = qwenSession(prefix);
-  if (session.transport !== "webrtc" || session.awaitingScore) return "";
-  if (!options.force && session.webRtcTurnPreparedForAnswer) return "";
-  if (options.useLatestAnswer) {
-    session.scheduledAction = null;
-    session.nextQuestionPrepared = false;
-  }
-  if (!session.nextQuestionPrepared || options.force) {
-    qwenAdvanceScheduledAction(prefix, { allowAdaptive: options.useLatestAnswer !== false });
-    session.nextQuestionPrepared = true;
-  }
-  session.webRtcTurnPreparedForAnswer = true;
-  const instructions = qwenTurnControlInstructions(prefix, "next-question");
-  qwenSend(prefix, {
-    type: "session.update",
-    instructions,
-    voice: "Ethan",
-    turnDetection: "server_vad",
-    silenceDurationMs: QWEN_WEBRTC_SILENCE_MS,
-    createResponse: false,
-  });
-  return instructions;
-}
-
-function qwenAutoScoreSetTitle(prefix) {
-  const topic = qwenTopicPayload(prefix);
-  return [topic.source, topic.title].filter(Boolean).join(" - ") || "IELTS Speaking";
-}
-
-function qwenBuildAutoScoreTranscript(prefix) {
-  const session = qwenSession(prefix);
-  const answers = [...(session.candidateAnswers || [])];
-  const currentAnswer = compactDialogueText(session.currentCandidateText || session.lastCandidateText || "");
-  if (currentAnswer
-    && !qwenCandidateQuestionKind(currentAnswer)
-    && !answers.some((item) => dialogueFingerprint(item) === dialogueFingerprint(currentAnswer))) {
-    answers.push(currentAnswer);
-  }
-  const questions = session.askedQuestions || [];
-  const lines = [];
-  const max = Math.max(questions.length, answers.length);
-  for (let index = 0; index < max; index += 1) {
-    if (questions[index]) lines.push(`Examiner: ${questions[index]}`);
-    if (answers[index]) lines.push(`Candidate: ${answers[index]}`);
-  }
-  return lines.join("\n").trim();
-}
-
-function qwenAutoScoreKey(prefix) {
-  const transcript = qwenBuildAutoScoreTranscript(prefix);
-  return dialogueFingerprint(transcript).slice(-240);
-}
-
-function scheduleQwenAutoScore(prefix, delayMs = 1800) {
-  const session = qwenSession(prefix);
-  if (session.autoScoreTimer) clearTimeout(session.autoScoreTimer);
-  session.autoScoreTimer = null;
-}
-
-async function qwenRunAutoScore(prefix, options = {}) {
-  const session = qwenSession(prefix);
-  const transcript = qwenBuildAutoScoreTranscript(prefix);
-  if (qwenWordCount(transcript) < 12) return null;
-  const key = qwenAutoScoreKey(prefix);
-  if (!options.force && (session.autoScoreInFlight || key === session.lastAutoScoreKey)) return null;
-  session.autoScoreInFlight = true;
-  session.lastAutoScoreKey = key;
-  if (options.showStatus) qwenSetStatus(prefix, "Scoring speaking band...", true);
-  try {
-    const json = await postJson("/api/speaking/feedback", {
-      set: qwenAutoScoreSetTitle(prefix),
-      transcript,
-    });
-    const band = normalizeSpeakingBand(json.band) || extractSpeakingBandFromText(json.feedback);
-    if (band && options.fillScore) fillSpeakingBandFromText(prefix, band);
-    if (options.showFeedback) {
-      const targets = speakingFeedbackTargets(prefix);
-      const finalLine = band ? `Final Speaking Band: ${band}` : "Final Speaking Band: unavailable";
-      const feedbackText = [finalLine, json.feedback || ""].filter(Boolean).join("\n\n");
-      setFeedback(targets.feedbackId, feedbackText || `Speaking band: ${band || ""}`, targets.modeId, json.mode || "");
-    }
-    if (options.showStatus) qwenSetStatus(prefix, band ? `Final Speaking Band: ${band}` : "Scoring complete", true);
-    return json;
-  } catch (error) {
-    if (options.showStatus) qwenSetStatus(prefix, `Scoring failed: ${error.message}`, false);
-    return null;
-  } finally {
-    session.autoScoreInFlight = false;
-  }
 }
 
 function qwenTranscriptVisible(prefix) {
   return prefix !== "exam";
 }
 
-function qwenAssistantTranscriptVisible(prefix) {
-  return prefix !== "exam";
+function qwenAssistantTranscriptVisible() {
+  return false;
 }
 
 function qwenAddBubble(prefix, role, text) {
@@ -5465,494 +2010,6 @@ function qwenAddBubble(prefix, role, text) {
   return node;
 }
 
-function compactDialogueText(text) {
-  return String(text || "").replace(/\s+/g, " ").trim();
-}
-
-function normalizeRealtimeDialogueText(text, options = {}) {
-  const value = String(text || "")
-    .replace(/\r\n/g, "\n")
-    .replace(/\r/g, "\n")
-    .replace(/[ \t]+/g, " ");
-  return options.trim ? value.trim() : value;
-}
-
-function normalizeAssistantDisplayText(text) {
-  return normalizeRealtimeDialogueText(text, { trim: true })
-    .replace(/\s+([,.;:!?])/g, "$1")
-    .replace(/([,.;:!?])(?=[A-Za-z])/g, "$1 ")
-    .replace(/\*\*(?=[A-Za-z])/g, "\n**")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
-}
-
-function dialogueFingerprint(text) {
-  return compactDialogueText(text).toLowerCase().replace(/[^a-z0-9]+/gi, "");
-}
-
-function qwenWordCount(text) {
-  return compactDialogueText(text).split(/\s+/).filter(Boolean).length;
-}
-
-function qwenTopicPayload(prefix) {
-  const raw = $(`${prefix}-qwen-topic-json`)?.value || "{}";
-  try {
-    const json = JSON.parse(raw);
-    return json && typeof json === "object" ? json : {};
-  } catch {
-    return {};
-  }
-}
-
-function qwenCleanSpeakingLine(text) {
-  return compactDialogueText(text)
-    .replace(/\[[^\]]*why[^\]]*\]/ig, "Why?")
-    .replace(/\[[^\]]*\]/g, "")
-    .replace(/\s+([?.!,])/g, "$1")
-    .replace(/\?+\s*Why\?/i, "? Why?")
-    .trim();
-}
-
-function qwenCleanCueCard(text) {
-  const lines = String(text || "")
-    .split(/\r?\n/)
-    .map((line) => qwenCleanSpeakingLine(line))
-    .filter((line) => line && !/^minutes?\.?$/i.test(line));
-  return lines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
-}
-
-function qwenUniqueLines(lines, limit = 12) {
-  const seen = new Set();
-  const out = [];
-  for (const line of lines || []) {
-    const clean = qwenCleanSpeakingLine(line);
-    const fp = dialogueFingerprint(clean);
-    if (!clean || clean.length < 5 || seen.has(fp)) continue;
-    seen.add(fp);
-    out.push(clean);
-    if (out.length >= limit) break;
-  }
-  return out;
-}
-
-function qwenBuildSpeakingPlan(prefix) {
-  const topic = qwenTopicPayload(prefix);
-  const part1 = qwenUniqueLines(topic.part1, 5);
-  const part3 = qwenUniqueLines(topic.part3, 7);
-  const part2 = qwenCleanCueCard(topic.part2);
-  const fallbackTitle = qwenCleanSpeakingLine(topic.title || "your studies and daily life");
-  return {
-    title: topic.title || "IELTS Speaking",
-    source: topic.source || "",
-    part1: part1.length ? part1 : [
-      "What do you usually do on weekdays?",
-      "Do you prefer spending time alone or with other people? Why?",
-      "What kind of place do you like visiting in your free time?",
-    ],
-    part2: part2 || `Describe ${fallbackTitle}.\nYou should say what it is, when you first became interested in it, what you do about it, and explain why it is important to you.`,
-    part3: part3.length ? part3 : [
-      `Why do people find ${fallbackTitle} interesting?`,
-      `How might ${fallbackTitle} change in the future?`,
-      `Do older and younger people think differently about ${fallbackTitle}?`,
-    ],
-  };
-}
-
-function qwenResetExaminerSchedule(prefix) {
-  const session = qwenSession(prefix);
-  session.speakingPlan = qwenBuildSpeakingPlan(prefix);
-  session.scheduledAction = null;
-  session.part1Index = 0;
-  session.part3Index = 0;
-  session.part2Delivered = false;
-  session.fallbackQuestionIndex = 0;
-  session.adaptiveFollowUpCount = 0;
-  session.lastAdaptiveAnswerFp = "";
-  session.lastCandidateQuestionFp = "";
-  session.lastCandidateTurnText = "";
-  session.lastCandidateTurnKind = "";
-  session.lastActionKind = "";
-  session.autoFinishPending = false;
-  session.autoFinishStarted = false;
-  session.finalScoreInFlight = false;
-}
-
-function qwenAdvanceScheduledAction(prefix, options = {}) {
-  const session = qwenSession(prefix);
-  const plan = session.speakingPlan || qwenBuildSpeakingPlan(prefix);
-  session.speakingPlan = plan;
-  const allowAdaptive = options.allowAdaptive !== false;
-  const lastTurn = session.lastCandidateTurnText || "";
-  const lastTurnFp = dialogueFingerprint(lastTurn);
-  if (allowAdaptive
-    && lastTurn
-    && lastTurnFp
-    && lastTurnFp !== session.lastAdaptiveAnswerFp) {
-    const previousQuestion = qwenLastExaminerQuestion(session);
-    const suggestedNext = qwenTakeNextScheduledAction(prefix, plan);
-    if (suggestedNext.kind === "auto-finish") return suggestedNext;
-    session.lastAdaptiveAnswerFp = lastTurnFp;
-    session.lastActionKind = "ai-context-turn";
-    session.scheduledAction = {
-      part: suggestedNext.part || (session.part2Delivered ? "Part 3" : "Part 1"),
-      kind: "ai-context-turn",
-      label: "AI-first context response",
-      previousQuestion,
-      text: [
-        "AI-first examiner response. Do not use a fixed front-end classification to decide the next move.",
-        "",
-        "Previous examiner question:",
-        previousQuestion || "(not available)",
-        "",
-        "Candidate's latest turn:",
-        lastTurn.slice(0, 360),
-        "",
-        "Suggested next IELTS item, if useful:",
-        suggestedNext.text || "(none)",
-        "",
-        "Choose the most human next move from context: answer a candidate question, clarify the previous question, ask a natural follow-up, gently redirect an off-topic answer, or use the suggested next IELTS item.",
-        "The suggested item is optional after a candidate turn. Use it only if it fits the conversation.",
-        "Keep IELTS examiner discipline: one clear question at the end unless you are only repeating/clarifying the same question.",
-      ].join("\n"),
-    };
-    return session.scheduledAction;
-  }
-  return qwenTakeNextScheduledAction(prefix, plan);
-}
-
-function qwenTakeNextScheduledAction(prefix, plan) {
-  const session = qwenSession(prefix);
-  if (session.part1Index < Math.min(4, plan.part1.length)) {
-    const text = plan.part1[session.part1Index];
-    session.part1Index += 1;
-    session.lastActionKind = "question";
-    session.scheduledAction = { part: "Part 1", kind: "question", label: `Part 1 question ${session.part1Index}`, text };
-    return session.scheduledAction;
-  }
-  if (!session.part2Delivered) {
-    session.part2Delivered = true;
-    session.lastActionKind = "cue-card";
-    session.scheduledAction = { part: "Part 2", kind: "cue-card", label: "Part 2 cue card", text: plan.part2 };
-    return session.scheduledAction;
-  }
-  if (session.part3Index < Math.min(6, plan.part3.length)) {
-    const text = plan.part3[session.part3Index];
-    session.part3Index += 1;
-    session.lastActionKind = "question";
-    session.scheduledAction = { part: "Part 3", kind: "question", label: `Part 3 question ${session.part3Index}`, text };
-    return session.scheduledAction;
-  }
-  session.autoFinishPending = true;
-  session.lastActionKind = "auto-finish";
-  session.scheduledAction = {
-    part: "End",
-    kind: "auto-finish",
-    label: "End speaking test",
-    text: "That is the end of the speaking test. Thank you.",
-  };
-  return session.scheduledAction;
-}
-
-function qwenCurrentScheduledAction(prefix) {
-  const session = qwenSession(prefix);
-  return session.scheduledAction || qwenAdvanceScheduledAction(prefix);
-}
-
-function qwenExtractQuestion(text) {
-  const clean = compactDialogueText(text);
-  if (!clean) return "";
-  const matches = clean.match(/[^.!?]*\?/g) || [];
-  const questions = matches.map((item) => compactDialogueText(item)).filter((item) => item.length > 8);
-  const meaningful = questions.filter((item) => !/^(?:hello[, ]*)?(?:how are you|are you ready|shall we start)\?/i.test(item));
-  const question = meaningful[meaningful.length - 1] || questions[questions.length - 1] || "";
-  return (question || clean).slice(0, 220);
-}
-
-function qwenRememberUnique(list, text, limit = 10) {
-  const clean = compactDialogueText(text);
-  if (!clean) return false;
-  const fp = dialogueFingerprint(clean);
-  if (!fp || list.some((item) => dialogueFingerprint(item) === fp)) return false;
-  list.push(clean);
-  while (list.length > limit) list.shift();
-  return true;
-}
-
-function qwenLastExaminerQuestion(session) {
-  const asked = session?.askedQuestions?.[session.askedQuestions.length - 1] || "";
-  if (asked) return asked;
-  const actionQuestion = session?.scheduledAction?.previousQuestion || "";
-  if (actionQuestion) return actionQuestion;
-  const finalQuestion = qwenExtractQuestion(session?.lastFinalAssistantText || "");
-  if (finalQuestion) return finalQuestion;
-  const currentQuestion = qwenExtractQuestion(session?.currentAssistantText || session?.pendingAssistantText || "");
-  if (currentQuestion) return currentQuestion;
-  const scheduledText = session?.scheduledAction?.text || "";
-  return qwenExtractQuestion(scheduledText);
-}
-
-function qwenLatestTurnCandidateText(session) {
-  return compactDialogueText(session?.currentCandidateText || "");
-}
-
-function qwenCandidateQuestionKind(text) {
-  const clean = compactDialogueText(text).toLowerCase();
-  if (!clean) return "";
-  const hasQuestionSignal = /\?/.test(clean)
-    || /\b(?:what|why|how|when|where|which|who|can|could|would|should|do|does|did|is|are|am)\b/.test(clean);
-  const asksForClarification = /\b(?:what\s+(?:kind|type|sort)\s+of|what\s+do\s+you\s+mean|what\s+does\s+.+\s+mean|can\s+you\s+(?:give|explain|clarify|repeat|say)|could\s+you\s+(?:give|explain|clarify|repeat|say)|give\s+me\s+(?:some\s+)?(?:details|examples)|more\s+details|for\s+example|examples?|details?|clarify|explain|meaning|mean|issue|issues)\b/.test(clean);
-  const asksForRepeat = /\b(?:sorry|pardon|again|repeat|say\s+that\s+again|one\s+more\s+time|didn't\s+hear|cannot\s+hear|can't\s+hear)\b/.test(clean);
-  const asksAboutExaminer = /\b(?:are\s+you\s+ai|ai\s+examiner|scoring|score|band|test\s+work|microphone|mic|audio|voice|can\s+you\s+hear\s+me)\b/.test(clean);
-  if (asksForRepeat) return "repeat";
-  if (asksAboutExaminer) return "technical-or-scoring";
-  if (hasQuestionSignal && asksForClarification) return "clarification";
-  if (/\?$/.test(clean) && clean.split(/\s+/).length <= 12) return "candidate-question";
-  return "";
-}
-
-function qwenMergeCandidateTurnText(current, nextText) {
-  const currentClean = compactDialogueText(current);
-  const nextClean = compactDialogueText(nextText);
-  if (!currentClean) return nextClean;
-  if (!nextClean) return currentClean;
-  const currentFp = dialogueFingerprint(currentClean);
-  const nextFp = dialogueFingerprint(nextClean);
-  if (!nextFp || nextFp === currentFp || currentFp.includes(nextFp)) return currentClean;
-  if (nextFp.includes(currentFp)) return nextClean;
-  const currentWords = currentClean.split(/\s+/);
-  const nextWords = nextClean.split(/\s+/);
-  const maxOverlap = Math.min(14, currentWords.length, nextWords.length);
-  for (let length = maxOverlap; length > 0; length -= 1) {
-    const currentTail = dialogueFingerprint(currentWords.slice(-length).join(" "));
-    const nextHead = dialogueFingerprint(nextWords.slice(0, length).join(" "));
-    if (currentTail && currentTail === nextHead) {
-      return compactDialogueText([...currentWords, ...nextWords.slice(length)].join(" "));
-    }
-  }
-  return compactDialogueText(`${currentClean} ${nextClean}`);
-}
-
-function qwenClearActiveCandidateTurn(prefix) {
-  const session = qwenSession(prefix);
-  session.candidateNode = null;
-  session.currentCandidateText = "";
-}
-
-function qwenRememberCandidateAnswer(prefix, text) {
-  const session = qwenSession(prefix);
-  const clean = compactDialogueText(text || qwenLatestTurnCandidateText(session));
-  if (!clean) return false;
-  const questionKind = qwenCandidateQuestionKind(clean);
-  session.lastCandidateTurnText = clean;
-  session.lastCandidateTurnKind = questionKind ? "possible candidate question" : "candidate turn";
-  if (questionKind) {
-    qwenRememberUnique(session.candidateQuestions, clean, 6);
-    return true;
-  }
-  const added = qwenRememberUnique(session.candidateAnswers, clean, 8);
-  return added;
-}
-
-function qwenRememberExaminerQuestion(prefix, text) {
-  const session = qwenSession(prefix);
-  if (session.awaitingScore) return;
-  qwenRememberUnique(session.askedQuestions, qwenExtractQuestion(text), 12);
-}
-
-function qwenTurnControlInstructions(prefix, mode = "next-question") {
-  const prompt = $(`${prefix}-qwen-prompt`)?.value || "";
-  const session = qwenSession(prefix);
-  const action = mode === "score" ? null : qwenCurrentScheduledAction(prefix);
-  const asked = session.askedQuestions.length
-    ? session.askedQuestions.map((item, index) => `${index + 1}. ${item}`).join("\n")
-    : "None yet.";
-  const answered = session.candidateAnswers.length
-    ? session.candidateAnswers.map((item, index) => `${index + 1}. ${item.slice(0, 180)}`).join("\n")
-    : "None yet.";
-  const candidateQuestions = session.candidateQuestions?.length
-    ? session.candidateQuestions.map((item, index) => `${index + 1}. ${item.slice(0, 180)}`).join("\n")
-    : "None yet.";
-  const latestAnswer = qwenLatestTurnCandidateText(session);
-  const lastExaminerQuestion = qwenLastExaminerQuestion(session);
-  const lastCandidateTurn = session.lastCandidateTurnText || latestAnswer || "";
-  const lastCandidateTurnKind = session.lastCandidateTurnKind || (lastCandidateTurn ? "answer" : "none");
-  if (mode === "score") {
-    return [
-      prompt,
-      "",
-      "End the speaking test now. Do not ask another question.",
-      "First line must be exactly: Overall Band: X.X",
-      "Then give FC, LR, GRA and Pronunciation scores, each from 0 to 9.",
-      "Round the overall band to the nearest 0.5.",
-      "Use IELTS Speaking criteria: Fluency and Coherence, Lexical Resource, Grammatical Range and Accuracy, and Pronunciation.",
-      "Judge fluency by sustained speech, hesitation, repetition and coherence; judge vocabulary by range, precision and paraphrase; judge grammar by range and accuracy; judge pronunciation by intelligibility, stress and intonation.",
-      "Keep the spoken feedback brief: no more than 3 weaknesses and 3 drills.",
-      "Use the full conversation so far; if pronunciation evidence is limited, still provide the best audio-based estimate.",
-    ].join("\n");
-  }
-  const scheduledBlock = action
-    ? [
-      `Scheduled IELTS section: ${action.part}`,
-      `Scheduled item: ${action.label}`,
-      "Scheduled text:",
-      action.text,
-    ].join("\n")
-    : "No scheduled item is available.";
-  let deliveryRules;
-  if (action?.kind === "cue-card") {
-    deliveryRules = [
-      "The opening has already finished. Do not greet again and do not ask any Part 1 question now.",
-      "Deliver the scheduled Part 2 cue card now.",
-      "Start with: Now I am going to give you a topic and I would like you to talk about it for one to two minutes.",
-      "Read the cue card naturally, silently repairing obvious OCR errors if needed.",
-      "End with: You have one minute to think about what you are going to say.",
-      "Then stop. Do not ask any Part 3 question yet.",
-    ];
-  } else if (action?.kind === "auto-finish") {
-    deliveryRules = [
-      "End the speaking test now.",
-      "Say only this short closing message in natural spoken English: That is the end of the speaking test. Thank you.",
-      "Do not ask another question.",
-      "Do not give a score in the live response. The app will score after the realtime connection closes.",
-    ];
-  } else if (action?.kind === "ai-context-turn") {
-    deliveryRules = [
-      "AI-first turn: use the immediate conversation context and the candidate's latest words to choose the next examiner move.",
-      "Do not rely on a fixed front-end classification. Decide naturally whether the candidate answered, asked for help, misunderstood, corrected themselves, or continued an earlier answer.",
-      "If the candidate asked something, answer briefly in context, then return to the speaking task.",
-      "If the candidate answered, choose either a natural follow-up based on their answer or a fresh IELTS-style angle. The hard rule is: do not repeat.",
-      "If the candidate misunderstood or drifted off topic, briefly clarify and invite a relevant answer.",
-      "The suggested IELTS item is optional after a candidate turn; do not force it if it would sound robotic.",
-      "Do not repeat the previous question or any question in the Already asked list. If your next sentence sounds similar to an old question, change angle immediately.",
-      "End with at most one clear question and wait.",
-    ];
-  } else if (action?.kind === "candidate-question") {
-    deliveryRules = [
-      "The candidate has asked you a question or asked for clarification. Do not treat it as an IELTS answer.",
-      "Use the previous examiner question and current topic as the main context, but keep enough flexibility to answer the candidate's actual question naturally.",
-      "Answer directly in one or two short sentences. Give simple examples when helpful.",
-      "Avoid generic dictionary definitions when context is available, but do not sound scripted.",
-      "Then return to the same IELTS question by repeating, narrowing, or paraphrasing it more clearly.",
-      "Do not score, lecture, change topic, or move to a new bank question.",
-      "Stop after the clarified IELTS question and wait.",
-    ];
-  } else if (action?.kind === "adaptive-follow-up") {
-    deliveryRules = [
-      "The opening has already finished. Do not say hello, do not ask how the candidate is, and do not repeat the first question.",
-      "This is an answer-based follow-up, so listen to the candidate's just-finished answer and use the transcript only as support.",
-      "Decide whether the candidate answered, asked indirectly for help, misunderstood the question, or drifted off topic. Respond accordingly.",
-      "If they answered, ask exactly one natural IELTS-style follow-up question about a concrete detail.",
-      "A follow-up can connect to what they just said, or you can move to a fresh IELTS-style angle. The hard rule is: do not repeat.",
-      "If they misunderstood or drifted, briefly clarify the original question and invite a relevant answer.",
-      "Use a short bridge only when it helps the response sound human. Avoid generic praise and repeated stock phrases.",
-      "Do not ask a generic next-bank question. Do not repeat the previous examiner question.",
-      "Do not praise at length, summarize the whole answer, score, or explain your reasoning.",
-      "Stop immediately after one clear question and wait.",
-    ];
-  } else {
-    deliveryRules = [
-      mode === "opening"
-        ? "Say one brief greeting sentence with no question mark; never say 'How are you?'. Then ask only the scheduled question."
-        : latestAnswer
-          ? "The opening has already finished. If it sounds natural, briefly acknowledge the candidate's last answer before the question."
-          : "The opening has already finished. Ask only the scheduled question.",
-      "Then ask exactly one scheduled IELTS question. You may lightly paraphrase for natural spoken English, but keep the IELTS section and topic.",
-      "If the scheduled question would repeat something already asked, ask a deeper why/how angle connected to the same topic instead.",
-      "Stop after the question and wait for the candidate.",
-    ];
-  }
-  return [
-    prompt,
-    "",
-    scheduledBlock,
-    "",
-    "Candidate's latest answer, if the transcript is reliable:",
-    latestAnswer ? latestAnswer.slice(0, 360) : "No reliable text transcript; use the just-finished audio if available.",
-    "",
-    "Live turn control for the next examiner response:",
-    "Immediate conversation context:",
-    `Last examiner question: ${lastExaminerQuestion || "None yet."}`,
-    `Candidate latest turn type: ${lastCandidateTurnKind}`,
-    `Candidate latest turn: ${lastCandidateTurn ? lastCandidateTurn.slice(0, 360) : "None yet."}`,
-    "",
-    "Already asked examiner questions:",
-    asked,
-    "",
-    "Candidate has already discussed:",
-    answered,
-    "",
-    "Candidate has asked or requested clarification:",
-    candidateQuestions,
-    "",
-    ...deliveryRules,
-    "Do not repeat or paraphrase any listed question or topic unless this is the scheduled short-answer follow-up.",
-    "Do not return to a topic the candidate has already answered unless you ask a clearly deeper why/how follow-up.",
-    "A good next move can follow the candidate's latest answer or use a fresh topic-bank prompt, but it must not repeat an old question.",
-    "Do not invent an unrelated topic.",
-    action?.kind === "cue-card"
-      ? "Keep the cue-card delivery concise and clear."
-      : action?.kind === "auto-finish"
-        ? "Keep the closing message under 12 words."
-      : action?.kind === "candidate-question" || action?.kind === "ai-context-turn"
-        ? "Keep the response natural and usually under 45 words total."
-        : "Keep the response natural and usually under 28 words total.",
-  ].join("\n");
-}
-
-function qwenBeginAssistantResponse(prefix, source) {
-  const session = qwenSession(prefix);
-  if (!session.responseActive) {
-    qwenRememberCandidateAnswer(prefix, qwenLatestTurnCandidateText(session));
-    session.currentAssistantText = "";
-    session.pendingAssistantText = "";
-    session.assistantTextSource = "";
-    session.scheduleAdvancedForResponse = false;
-    session.lastFinalAssistantText = "";
-    session.assistantNode = null;
-    session.candidateNode = null;
-    session.currentCandidateText = "";
-  }
-  if (source === "audio" && session.assistantTextSource !== "audio") {
-    session.assistantTextSource = "audio";
-    session.currentAssistantText = "";
-    session.pendingAssistantText = "";
-    if (session.assistantNode) session.assistantNode.textContent = "";
-  } else if (!session.assistantTextSource) {
-    session.assistantTextSource = source;
-  }
-  session.responseActive = true;
-}
-
-function qwenUpdateCandidateTranscript(prefix, text) {
-  const clean = compactDialogueText(text);
-  if (!clean) return;
-  const session = qwenSession(prefix);
-  const now = Date.now();
-  if (session.transport === "ws" || session.transport === "http") {
-    session.voiceStarted = true;
-    if (!session.voiceStartAt) session.voiceStartAt = now;
-    session.lastHumanVoiceAt = now;
-    session.lastVoiceAt = now;
-  }
-  const cleanFp = dialogueFingerprint(clean);
-  const lastFp = dialogueFingerprint(session.lastCandidateText);
-  if (!session.candidateNode && lastFp && cleanFp === lastFp && now - session.lastCandidateAt < 8000) return;
-  const next = qwenMergeCandidateTurnText(session.currentCandidateText, clean);
-  if (!session.candidateNode) {
-    session.candidateNode = qwenAddBubble(prefix, "user", next);
-  } else {
-    session.candidateNode.textContent = next;
-  }
-  session.currentCandidateText = next;
-  session.lastCandidateText = next;
-  session.lastCandidateAt = now;
-  if (session.transport === "webrtc" && !session.responseActive && !session.waitingForResponse && !qwenOutputBusy(prefix)) {
-    scheduleQwenWebRtcResponse(prefix, QWEN_WEBRTC_LOCAL_SILENCE_MS);
-  }
-  const log = $(`${prefix}-speaking-log`);
-  if (log) log.scrollTop = log.scrollHeight;
-}
-
 function flushQwenAssistant(prefix) {
   const session = qwenSession(prefix);
   session.assistantRenderId = null;
@@ -5965,18 +2022,20 @@ function flushQwenAudio(prefix) {
   const session = qwenSession(prefix);
   session.audioRenderId = null;
   if (!session.pendingAudioChunks.length) return;
-  const chunks = session.pendingAudioChunks.splice(0, QWEN_PLAYBACK_BATCH_CHUNKS);
-  playQwenPcmChunks(prefix, chunks);
+  const chunks = session.pendingAudioChunks.splice(0, 8);
+  for (const chunk of chunks) {
+    playQwenPcm(prefix, chunk);
+  }
   if (session.pendingAudioChunks.length) {
-    session.audioRenderId = window.setTimeout(() => flushQwenAudio(prefix), 24);
+    session.audioRenderId = requestAnimationFrame(() => flushQwenAudio(prefix));
   }
   scheduleQwenPlaybackTail(prefix);
 }
 
 function mergeQwenAssistantText(session, text) {
   const current = session.currentAssistantText || "";
-  const next = normalizeRealtimeDialogueText(text, { trim: !current });
-  if (!next.trim() || next === current) return current;
+  const next = String(text || "");
+  if (!next || next === current) return current;
   let merged = current;
   if (next.startsWith(current)) {
     merged = next;
@@ -5989,42 +2048,19 @@ function mergeQwenAssistantText(session, text) {
         break;
       }
     }
-    const tail = next.slice(overlap);
-    const needsPunctuationSpace = !overlap
-      && /[,.!?;:]$/.test(current)
-      && /^[A-Za-z0-9]/.test(next);
-    merged = overlap ? current + tail : current + (needsPunctuationSpace ? " " : "") + next;
+    merged = overlap ? current + next.slice(overlap) : current + next;
   }
-  const display = normalizeAssistantDisplayText(merged);
-  session.currentAssistantText = display;
-  session.pendingAssistantText = display;
-  return display;
-}
-
-function mergeQwenTextValue(current, text) {
-  const existing = String(current || "");
-  const next = normalizeRealtimeDialogueText(text, { trim: !existing });
-  if (!next.trim() || next === existing) return existing;
-  if (next.startsWith(existing)) return normalizeAssistantDisplayText(next);
-  if (existing.startsWith(next)) return existing;
-  let overlap = 0;
-  const limit = Math.min(existing.length, next.length);
-  for (let len = limit; len > 0; len -= 1) {
-    if (existing.slice(-len) === next.slice(0, len)) {
-      overlap = len;
-      break;
-    }
-  }
-  return normalizeAssistantDisplayText(overlap ? existing + next.slice(overlap) : existing + next);
+  session.currentAssistantText = merged;
+  session.pendingAssistantText = merged;
+  return merged;
 }
 
 function qwenOutputBusy(prefix) {
   const session = qwenSession(prefix);
-  if (Date.now() < (session.playbackBlockedUntil || 0)) return true;
   if (session.responseActive || session.pendingAudioChunks.length || session.audioRenderId) return true;
   const contextTime = session.outputContext?.currentTime;
   if (!Number.isFinite(contextTime)) return false;
-  return session.playbackCursor > contextTime + 0.05;
+  return session.playbackCursor > contextTime + 0.25;
 }
 
 function scheduleQwenPlaybackTail(prefix) {
@@ -6033,59 +2069,16 @@ function scheduleQwenPlaybackTail(prefix) {
   const contextTime = session.outputContext?.currentTime;
   if (!Number.isFinite(contextTime)) return;
   const remainingMs = Math.max(0, (session.playbackCursor - contextTime) * 1000);
-  session.playbackBlockedUntil = Date.now() + remainingMs + 650;
   session.playbackTailTimer = setTimeout(() => {
     session.playbackTailTimer = null;
-    session.playbackBlockedUntil = 0;
-    if (!qwenOutputBusy(prefix)) qwenSetStatus(prefix, session.micActive ? "Listening..." : "Connected", true);
-  }, remainingMs + 650);
-}
-
-function qwenStopOutputPlayback(prefix) {
-  const session = qwenSession(prefix);
-  if (session.audioRenderId) clearTimeout(session.audioRenderId);
-  session.audioRenderId = null;
-  if (session.playbackTailTimer) clearTimeout(session.playbackTailTimer);
-  session.playbackTailTimer = null;
-  session.pendingAudioChunks = [];
-  session.audioJitterStarted = false;
-  session.playbackBlockedUntil = 0;
-  session.playbackCursor = 0;
-  if (session.playbackSources?.size) {
-    for (const source of session.playbackSources) {
-      try {
-        source.stop(0);
-      } catch {}
-      try {
-        source.disconnect();
-      } catch {}
-    }
-    session.playbackSources.clear();
-  }
-  if (session.remoteAudio) {
-    try {
-      session.remoteAudio.pause();
-      session.remoteAudio.srcObject = null;
-    } catch {}
-  }
-  if (session.outputContext) {
-    const context = session.outputContext;
-    session.outputContext = null;
-    session.outputUnlocked = false;
-    context.close?.().catch(() => {});
-  }
+    if (!qwenOutputBusy(prefix)) qwenSetStatus(prefix, "???", true);
+  }, remainingMs + 300);
 }
 
 function qwenAppendAssistant(prefix, text) {
-  const clean = normalizeRealtimeDialogueText(text);
-  if (!clean.trim()) return;
+  if (!text) return;
   const session = qwenSession(prefix);
-  const mergedText = mergeQwenAssistantText(session, clean);
-  if (!session.assistantNode && session.lastFinalAssistantText) {
-    const mergedFp = dialogueFingerprint(mergedText);
-    const finalFp = dialogueFingerprint(session.lastFinalAssistantText);
-    if (mergedFp && mergedFp === finalFp && Date.now() - session.lastFinalAssistantAt < 8000) return;
-  }
+  const mergedText = mergeQwenAssistantText(session, text);
   if (!qwenAssistantTranscriptVisible(prefix)) return;
   if (!session.assistantNode) {
     session.assistantNode = qwenAddBubble(prefix, "assistant", "");
@@ -6100,24 +2093,6 @@ function qwenAppendAssistant(prefix, text) {
     log.removeChild(log.firstElementChild);
   }
   if (log) log.scrollTop = log.scrollHeight;
-}
-
-function qwenTextFromPayload(payload) {
-  const chunks = [];
-  const visit = (value) => {
-    if (!value || chunks.length > 30) return;
-    if (Array.isArray(value)) {
-      value.forEach(visit);
-      return;
-    }
-    if (typeof value !== "object") return;
-    for (const key of ["text", "transcript", "output_text"]) {
-      if (typeof value[key] === "string" && value[key].trim()) chunks.push(value[key]);
-    }
-    for (const key of ["content", "output", "response", "item"]) visit(value[key]);
-  };
-  visit(payload);
-  return chunks.join("\n");
 }
 
 function combineBase64PcmChunks(chunks) {
@@ -6152,74 +2127,8 @@ function combineArrayBufferChunks(chunks) {
   return merged.buffer;
 }
 
-function qwenEventId() {
-  return `event_${crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}_${Math.random().toString(16).slice(2)}`}`;
-}
-
-function qwenRealtimeEventFromPayload(payload) {
-  if (!payload || !payload.type) return null;
-  if (payload.type === "session.update") {
-    const turnDetectionType = payload.turnDetection === "manual" ? "" : (payload.turnDetection || "server_vad");
-    const turnDetection = turnDetectionType
-      ? {
-        type: turnDetectionType,
-        threshold: 0.5,
-        prefix_padding_ms: Number(payload.prefixPaddingMs || 500),
-        silence_duration_ms: Number(payload.silenceDurationMs || QWEN_WEBRTC_SILENCE_MS),
-        create_response: payload.createResponse !== false,
-        interrupt_response: false,
-      }
-      : null;
-    return {
-      event_id: qwenEventId(),
-      type: "session.update",
-      session: {
-        modalities: ["text", "audio"],
-        voice: payload.voice || "Ethan",
-        input_audio_format: "pcm",
-        input_audio_transcription: { model: "qwen3-asr-flash-realtime" },
-        output_audio_format: "pcm",
-        smooth_output: false,
-        instructions: payload.instructions || "You are a professional IELTS Speaking examiner. Ask one short question and wait.",
-        turn_detection: turnDetection,
-      },
-    };
-  }
-  if (payload.type === "response.create") {
-    return {
-      event_id: qwenEventId(),
-      type: "response.create",
-      response: {
-        modalities: ["text", "audio"],
-        ...(payload.instructions ? { instructions: payload.instructions } : {}),
-      },
-    };
-  }
-  if (payload.type === "audio.commit") {
-    return {
-      event_id: qwenEventId(),
-      type: "input_audio_buffer.commit",
-    };
-  }
-  return null;
-}
-
 function qwenSendNow(prefix, payload) {
   const session = qwenSession(prefix);
-  if (session.transport === "webrtc" && session.dataChannel?.readyState === "open") {
-    if (payload.type === "disconnect") {
-      qwenCloseWebRtc(prefix);
-      return;
-    }
-    if (payload.type === "audio.append" || payload.type === "ping") return;
-    const event = qwenRealtimeEventFromPayload(payload);
-    if (event) {
-      session.realtimeEventTypes.push(`sent:${event.type}`);
-      while (session.realtimeEventTypes.length > 30) session.realtimeEventTypes.shift();
-      session.dataChannel.send(JSON.stringify(event));
-    }
-    return;
-  }
   if (session.transport === "ws" && session.ws?.readyState === WebSocket.OPEN) {
     if (payload.type === "audio.append" && payload.audio) {
       session.ws.send(payload.audio instanceof ArrayBuffer ? payload.audio : combineArrayBufferChunks([payload.audio]));
@@ -6247,31 +2156,31 @@ function flushQwenMicAudio(prefix) {
     session.micAudioFlushTimer = null;
   }
   if (!session.micAudioQueue.length) return;
-
-  const isWs = session.transport === "ws" && session.ws?.readyState === WebSocket.OPEN;
-  const maxChunks = isWs ? QWEN_WS_AUDIO_BATCH_CHUNKS : QWEN_HTTP_AUDIO_BATCH_CHUNKS;
-  const chunks = session.micAudioQueue.splice(0, maxChunks);
-  const audioBuffer = combineArrayBufferChunks(chunks);
-  if (isWs) {
-    if (audioBuffer.byteLength) qwenSendNow(prefix, { type: "audio.append", audio: audioBuffer });
-  } else {
-    const audio = arrayBufferToBase64(audioBuffer);
-    if (audio) qwenSendNow(prefix, { type: "audio.append", audio });
+  if (session.transport === "ws" && session.ws?.readyState === WebSocket.OPEN) {
+    const chunks = session.micAudioQueue.splice(0, session.micAudioQueue.length);
+    for (const chunk of chunks) {
+      qwenSendNow(prefix, { type: "audio.append", audio: chunk });
+    }
+    return;
   }
-
+  const chunks = session.micAudioQueue.splice(0, 12);
+  const audio = arrayBufferToBase64(combineArrayBufferChunks(chunks));
+  if (audio) qwenSendNow(prefix, { type: "audio.append", audio });
   if (session.micAudioQueue.length) {
-    session.micAudioFlushTimer = setTimeout(() => flushQwenMicAudio(prefix), isWs ? 40 : 20);
+    session.micAudioFlushTimer = setTimeout(() => flushQwenMicAudio(prefix), 20);
   }
 }
 
 function qwenSend(prefix, payload) {
   const session = qwenSession(prefix);
   if (payload.type === "audio.append") {
-    if (session.transport === "webrtc") return;
+    if (session.transport === "ws" && session.ws?.readyState === WebSocket.OPEN) {
+      qwenSendNow(prefix, payload);
+      return;
+    }
     session.micAudioQueue.push(payload.audio);
     if (!session.micAudioFlushTimer) {
-      const delay = session.transport === "ws" ? QWEN_WS_AUDIO_BATCH_MS : QWEN_HTTP_AUDIO_BATCH_MS;
-      session.micAudioFlushTimer = setTimeout(() => flushQwenMicAudio(prefix), delay);
+      session.micAudioFlushTimer = setTimeout(() => flushQwenMicAudio(prefix), 40);
     }
     return;
   }
@@ -6279,261 +2188,56 @@ function qwenSend(prefix, payload) {
   qwenSendNow(prefix, payload);
 }
 
-function waitForQwenIceGathering(pc, timeoutMs = 3000) {
-  if (pc.iceGatheringState === "complete") return Promise.resolve();
-  return new Promise((resolve) => {
-    let settled = false;
-    const finish = () => {
-      if (settled) return;
-      settled = true;
-      pc.removeEventListener("icegatheringstatechange", onStateChange);
-      resolve();
-    };
-    const onStateChange = () => {
-      if (pc.iceGatheringState === "complete") finish();
-    };
-    pc.addEventListener("icegatheringstatechange", onStateChange);
-    setTimeout(finish, timeoutMs);
-  });
-}
-
-async function handleQwenSessionCreated(prefix, channel) {
+async function startQwenSpeaking(prefix) {
   const session = qwenSession(prefix);
-  if (session.webrtcMediaUngated) return;
-  session.webrtcMediaUngated = true;
-  if (session.webrtcSessionTimer) clearTimeout(session.webrtcSessionTimer);
-  session.webrtcSessionTimer = null;
-  session.dataChannel = channel || session.dataChannel;
-  qwenSetWebRtcAudioSending(prefix, false);
-  qwenSetStatus(prefix, "Connected · WebRTC", true);
-  qwenSetControls(prefix, true);
-  lockQwenWebRtcControls(prefix);
-  qwenAddBubble(prefix, "system", "Live speaking session ready.");
-  qwenSend(prefix, {
-    type: "session.update",
-    instructions: qwenTurnControlInstructions(prefix, "opening"),
-    voice: "Ethan",
-    turnDetection: "server_vad",
-    silenceDurationMs: QWEN_WEBRTC_SILENCE_MS,
-    createResponse: false,
-  });
-  setTimeout(() => {
-    if (!session.connected || session.transport !== "webrtc" || session.openingRequested) return;
-    session.openingRequested = true;
-    qwenSend(prefix, { type: "response.create", instructions: qwenTurnControlInstructions(prefix, "opening") });
-  }, 800);
-  startQwenMic(prefix);
-}
-
-function handleQwenDataChannelMessage(prefix, data, channel) {
-  try {
-    const payload = typeof data === "string" ? JSON.parse(data) : JSON.parse(new TextDecoder().decode(data));
-    const session = qwenSession(prefix);
-    session.realtimeEventTypes.push(payload.type || "unknown");
-    while (session.realtimeEventTypes.length > 30) session.realtimeEventTypes.shift();
-    if (payload.type === "session.created") {
-      handleQwenSessionCreated(prefix, channel);
-    }
-    handleQwenMessage(prefix, { type: "event", eventType: payload.type, payload });
-  } catch {
-    qwenAddBubble(prefix, "system", "Unreadable realtime event received.");
-  }
-}
-
-function attachQwenRemoteAudio(prefix, stream) {
-  const session = qwenSession(prefix);
-  session.remoteStream = stream;
-  session.remoteAudio ||= new Audio();
-  session.remoteAudio.autoplay = true;
-  session.remoteAudio.playsInline = true;
-  session.remoteAudio.srcObject = stream;
-  session.remoteAudio.play().catch(() => {
-    qwenSetStatus(prefix, "Tap the page once to allow audio playback", true);
-  });
-  if (session.recordingContext && session.recordingDestination && stream) {
-    try {
-      session.recordingRemoteSource?.disconnect();
-      session.recordingRemoteSource = session.recordingContext.createMediaStreamSource(stream);
-      session.recordingRemoteSource.connect(session.recordingDestination);
-    } catch {
-      session.recordingRemoteSource = null;
-    }
-  }
-}
-
-function qwenCloseWebRtc(prefix) {
-  const session = qwenSession(prefix);
-  qwenSetWebRtcAudioSending(prefix, false);
-  if (session.webrtcControlTimer) clearInterval(session.webrtcControlTimer);
-  session.webrtcControlTimer = null;
-  if (session.webrtcSessionTimer) clearTimeout(session.webrtcSessionTimer);
-  session.webrtcSessionTimer = null;
-  clearQwenWebRtcTurnTimer(prefix);
-  clearQwenWebRtcFallbackTimer(prefix);
-  clearQwenWebRtcSubmitWatchdog(prefix);
-  if (session.autoScoreTimer) clearTimeout(session.autoScoreTimer);
-  session.autoScoreTimer = null;
-  session.dataChannel?.close();
-  session.pc?.getSenders?.().forEach((sender) => sender.track?.stop());
-  session.pc?.close();
-  if (session.remoteAudio) {
-    session.remoteAudio.pause();
-    session.remoteAudio.srcObject = null;
-  }
-  session.remoteStream = null;
-  session.pc = null;
-  session.dataChannel = null;
-  session.webrtcAudioSender = null;
-  session.webrtcAudioTrack = null;
-  session.webrtcAudioSending = false;
-  session.webrtcMediaUngated = false;
-}
-
-function lockQwenWebRtcControls(prefix) {
-  const session = qwenSession(prefix);
-  if (session.webrtcControlTimer) clearInterval(session.webrtcControlTimer);
-  const lock = () => {
-    if (!session.pc && session.transport !== "webrtc") return;
-    document.querySelectorAll(`.qwen-commit-answer[data-prefix="${prefix}"]`).forEach((button) => {
-      button.disabled = true;
-      button.setAttribute("aria-disabled", "true");
-    });
-  };
-  lock();
-  session.webrtcControlTimer = setInterval(lock, 500);
-}
-
-async function startQwenWebRtc(prefix, openingInstructions) {
-  const session = qwenSession(prefix);
-  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-  if (!window.RTCPeerConnection || !navigator.mediaDevices?.getUserMedia || !AudioContextClass) {
-    throw new Error("WebRTC voice is not supported in this browser.");
-  }
-  qwenSetStatus(prefix, "Connecting via WebRTC...", false);
-  session.transport = "webrtc";
-  session.micStream = await navigator.mediaDevices.getUserMedia(qwenMicConstraints());
-
-  const pc = new RTCPeerConnection();
-  session.pc = pc;
-  const dc = pc.createDataChannel("oai-events");
-  session.dataChannel = dc;
-
-  const audioTrack = session.micStream.getAudioTracks()[0];
-  if (!audioTrack) throw new Error("No microphone audio track is available.");
-  audioTrack.enabled = true;
-  session.webrtcAudioTrack = audioTrack;
-  session.webrtcAudioSender = pc.addTrack(audioTrack, session.micStream);
-  try {
-    const parameters = session.webrtcAudioSender.getParameters();
-    parameters.encodings = parameters.encodings?.length ? parameters.encodings : [{}];
-    parameters.encodings[0].maxBitrate = QWEN_OPUS_MAX_AVERAGE_BITRATE;
-    await session.webrtcAudioSender.setParameters(parameters);
-  } catch {}
-  await session.webrtcAudioSender.replaceTrack(null).catch(() => {});
-  pc.ontrack = (event) => {
-    const stream = event.streams?.[0] || new MediaStream([event.track]);
-    attachQwenRemoteAudio(prefix, stream);
-  };
-  pc.onconnectionstatechange = () => {
-    if (pc.connectionState === "connected") {
-      qwenSetStatus(prefix, "Connected · WebRTC", true);
-      return;
-    }
-    if (pc.connectionState === "disconnected") {
-      qwenSetStatus(prefix, "WebRTC reconnecting...", true);
-      return;
-    }
-    if (["failed", "closed"].includes(pc.connectionState)) {
-      if (session.transport === "webrtc") {
-        session.connected = false;
-        stopQwenHeartbeat(prefix);
-        qwenSetControls(prefix, false);
-        qwenSetStatus(prefix, `WebRTC ${pc.connectionState}`, false);
-      }
-    }
-  };
-  pc.oniceconnectionstatechange = () => {
-    if (pc.iceConnectionState === "connected" || pc.iceConnectionState === "completed") {
-      qwenSetStatus(prefix, "Connected · WebRTC", true);
-    } else if (pc.iceConnectionState === "checking") {
-      qwenSetStatus(prefix, "Connecting WebRTC media...", true);
-    } else if (pc.iceConnectionState === "failed") {
-      qwenSetStatus(prefix, "WebRTC media connection failed", false);
-    }
-  };
-  dc.onmessage = (event) => handleQwenDataChannelMessage(prefix, event.data, dc);
-  pc.ondatachannel = (event) => {
-    const channel = event.channel;
-    session.dataChannel = channel;
-    channel.onmessage = (messageEvent) => handleQwenDataChannelMessage(prefix, messageEvent.data, channel);
-    channel.onopen = () => {
-      session.connected = true;
-      session.transport = "webrtc";
-      qwenSetStatus(prefix, "Connected · WebRTC", true);
-    };
-  };
-  dc.onopen = () => {
-    session.connected = true;
-    session.transport = "webrtc";
-    qwenSetStatus(prefix, "Connected · WebRTC, waiting for session...", true);
-    qwenSetControls(prefix, true);
-    lockQwenWebRtcControls(prefix);
-    session.webrtcSessionTimer = setTimeout(() => {
-      if (session.webrtcMediaUngated || session.transport !== "webrtc") return;
-      qwenSetStatus(prefix, "WebRTC session timeout, using WebSocket fallback", false);
-      qwenAddBubble(prefix, "system", "WebRTC session timeout, switching to WebSocket fallback.");
-      qwenCloseWebRtc(prefix);
-      stopQwenMic(prefix, false);
-      session.connected = false;
-      session.transport = "";
-      startQwenWebSocket(prefix, openingInstructions);
-    }, 25000);
-  };
-  dc.onerror = () => qwenSetStatus(prefix, "WebRTC data channel error", false);
-  dc.onclose = () => {
-    if (session.transport === "webrtc" || session.pc) {
-      session.connected = false;
-      qwenSetControls(prefix, false);
-      qwenSetStatus(prefix, "WebRTC disconnected", false);
-    }
-  };
-
-  const offer = await pc.createOffer();
-  await pc.setLocalDescription(offer);
-  await waitForQwenIceGathering(pc);
-  const sdp = qwenApplyLowBandwidthAudioSdp(pc.localDescription?.sdp || offer.sdp || "");
-  const response = await fetch("/api/qwen-webrtc-offer", {
-    method: "POST",
-    headers: { "content-type": "application/sdp" },
-    body: sdp,
-  });
-  const answerSdp = await response.text();
-  if (!response.ok) {
-    let message = answerSdp;
-    try {
-      const json = JSON.parse(answerSdp);
-      const detail = String(json.detail || "");
-      if (/unsupported_district/i.test(detail)) {
-        message = "Qwen WebRTC is not available from this server region. Configure a supported WebRTC exchange proxy or move the exchange service closer to Qwen.";
-      } else {
-        message = [json.error, detail].filter(Boolean).join(" · ") || message;
-      }
-    } catch {}
-    throw new Error(message || `WebRTC SDP exchange failed: HTTP ${response.status}`);
-  }
-  const normalizedAnswerSdp = String(answerSdp || "").trim().replace(/\r?\n/g, "\r\n") + "\r\n";
-  await pc.setRemoteDescription({ type: "answer", sdp: normalizedAnswerSdp });
-}
-
-function startQwenWebSocket(prefix, openingInstructions) {
-  const session = qwenSession(prefix);
+  if (session.connected || session.ws?.readyState === WebSocket.OPEN) return;
+  const prompt = $(`${prefix}-qwen-prompt`)?.value || "";
+  const log = $(`${prefix}-speaking-log`);
+  if (log) log.textContent = "";
+  session.assistantNode = null;
+  session.openingRequested = false;
+  session.transport = "";
+  session.httpSessionId = "";
+  if (session.pollTimer) clearTimeout(session.pollTimer);
+  session.pollTimer = null;
+  session.micAudioQueue = [];
+  if (session.micAudioFlushTimer) clearTimeout(session.micAudioFlushTimer);
+  session.micAudioFlushTimer = null;
+  session.awaitingScore = false;
+  session.scoreFilled = false;
+  session.turnCommitted = false;
+  session.voiceStarted = false;
+  session.voiceStartAt = 0;
+  session.voicedMs = 0;
+  session.lastVoiceAt = 0;
+  session.silenceSince = 0;
+  if (session.autoCommitTimer) clearTimeout(session.autoCommitTimer);
+  session.autoCommitTimer = null;
+  session.currentAssistantText = "";
+  session.pendingAssistantText = "";
+  if (session.assistantRenderId) cancelAnimationFrame(session.assistantRenderId);
+  session.assistantRenderId = null;
+  session.pendingAudioChunks = [];
+  if (session.audioRenderId) cancelAnimationFrame(session.audioRenderId);
+  session.audioRenderId = null;
+  session.responseActive = false;
+  if (session.playbackTailTimer) clearTimeout(session.playbackTailTimer);
+  session.playbackTailTimer = null;
+  session.recordingChunks = [];
+  session.recordingMime = "";
+  session.recordingReady = null;
+  const recordingNode = $(`${prefix}-recording-download`);
+  if (recordingNode) recordingNode.innerHTML = "";
+  unlockQwenOutput(prefix);
+  qwenSetStatus(prefix, "Connecting...", false);
+  qwenSetControls(prefix, false);
   const wsUrl = `${location.origin.replace(/^http/, "ws")}/qwen-client`;
   session.ws = new WebSocket(wsUrl);
   session.ws.addEventListener("open", () => {
     session.transport = "ws";
     qwenSend(prefix, {
       type: "connect",
-      instructions: openingInstructions,
+      instructions: prompt,
       voice: "Ethan",
       turnDetection: "manual",
     });
@@ -6541,175 +2245,31 @@ function startQwenWebSocket(prefix, openingInstructions) {
   });
   session.ws.addEventListener("message", (event) => handleQwenMessage(prefix, JSON.parse(event.data)));
   session.ws.addEventListener("close", () => {
-    if (session.userDisconnected) {
-      session.connected = false;
-      session.transport = "";
-      stopQwenHeartbeat(prefix);
-      qwenSetStatus(prefix, "Disconnected", false);
-      qwenSetControls(prefix, false);
-      return;
-    }
     if (!session.connected && session.transport !== "http") {
-      startQwenHttpFallback(prefix, openingInstructions);
+      startQwenHttpFallback(prefix, prompt);
       return;
     }
     session.connected = false;
-    stopQwenHeartbeat(prefix);
     stopQwenMic(prefix, false);
     qwenSetStatus(prefix, "Disconnected", false);
     qwenSetControls(prefix, false);
   });
   session.ws.addEventListener("error", () => {
-    if (session.userDisconnected) {
-      session.connected = false;
-      session.transport = "";
-      stopQwenHeartbeat(prefix);
-      qwenSetStatus(prefix, "Disconnected", false);
-      qwenSetControls(prefix, false);
-      return;
-    }
     if (!session.connected && session.transport !== "http") {
-      startQwenHttpFallback(prefix, openingInstructions);
+      startQwenHttpFallback(prefix, prompt);
       return;
     }
-    stopQwenHeartbeat(prefix);
     qwenSetStatus(prefix, "Connection error", false);
     qwenAddBubble(prefix, "system", "Connection error.");
   });
 }
 
-async function startQwenSpeaking(prefix) {
-  const session = qwenSession(prefix);
-  if (session.connected || session.ws?.readyState === WebSocket.OPEN) return;
-  session.userDisconnected = false;
-  stopQwenHeartbeat(prefix);
-  qwenCloseWebRtc(prefix);
-  const log = $(`${prefix}-speaking-log`);
-  if (log) log.textContent = "";
-  session.assistantNode = null;
-  session.openingRequested = false;
-  const scoreInput = $(`${prefix}-speaking-score`);
-  if (scoreInput) scoreInput.value = "";
-  session.transport = "";
-  session.httpSessionId = "";
-  session.pc = null;
-  session.dataChannel = null;
-  session.remoteStream = null;
-  session.webrtcSessionTimer = null;
-  session.webrtcAudioSender = null;
-  session.webrtcAudioTrack = null;
-  session.webrtcAudioSending = false;
-  session.webrtcMediaUngated = false;
-  session.micStream = null;
-  session.sourceNode = null;
-  session.workletNode = null;
-  session.scriptNode = null;
-  session.silentGain = null;
-  if (session.pollTimer) clearTimeout(session.pollTimer);
-  session.pollTimer = null;
-  session.micAudioQueue = [];
-  if (session.micAudioFlushTimer) clearTimeout(session.micAudioFlushTimer);
-  session.micAudioFlushTimer = null;
-  session.awaitingScore = false;
-  session.finalScoreInFlight = false;
-  session.scoreFilled = false;
-  session.scoringText = "";
-  session.turnCommitted = false;
-  session.inputPaused = false;
-  session.waitingForResponse = false;
-  session.responseRetryCount = 0;
-  session.askedQuestions = [];
-  session.candidateAnswers = [];
-  qwenResetExaminerSchedule(prefix);
-  qwenAdvanceScheduledAction(prefix);
-  session.voiceStarted = false;
-  session.voiceStartAt = 0;
-  session.voicedMs = 0;
-  session.lastVoiceFrameAt = 0;
-  session.lastVoiceAt = 0;
-  session.lastHumanVoiceAt = 0;
-  session.silenceSince = 0;
-  session.noiseFloor = 0;
-  session.speechFrameCount = 0;
-  session.quietFrameCount = 0;
-  session.lastMicPacketAt = 0;
-  session.currentTurnBytes = 0;
-  if (session.autoCommitTimer) clearTimeout(session.autoCommitTimer);
-  session.autoCommitTimer = null;
-  stopQwenAutoCommitLoop(prefix);
-  stopQwenAutoCommitLoop(prefix);
-  if (session.commitWatchdogTimer) clearTimeout(session.commitWatchdogTimer);
-  session.commitWatchdogTimer = null;
-  if (session.webRtcTurnTimer) clearTimeout(session.webRtcTurnTimer);
-  session.webRtcTurnTimer = null;
-  if (session.webRtcFallbackTimer) clearTimeout(session.webRtcFallbackTimer);
-  session.webRtcFallbackTimer = null;
-  if (session.autoScoreTimer) clearTimeout(session.autoScoreTimer);
-  session.autoScoreTimer = null;
-  session.autoScoreInFlight = false;
-  session.lastAutoScoreKey = "";
-  session.webRtcResponseRequested = false;
-  session.serverTurnCommitted = false;
-  session.webRtcLastCompletedAt = 0;
-  session.nextQuestionPrepared = false;
-  session.webRtcTurnPreparedForAnswer = false;
-  session.currentAssistantText = "";
-  session.pendingAssistantText = "";
-  session.assistantTextSource = "";
-  session.scheduleAdvancedForResponse = false;
-  session.lastFinalAssistantText = "";
-  session.lastFinalAssistantAt = 0;
-  session.candidateNode = null;
-  session.currentCandidateText = "";
-  session.lastCandidateText = "";
-  session.lastCandidateAt = 0;
-  if (session.assistantRenderId) cancelAnimationFrame(session.assistantRenderId);
-  session.assistantRenderId = null;
-  session.pendingAudioChunks = [];
-  if (session.audioRenderId) clearTimeout(session.audioRenderId);
-  session.audioRenderId = null;
-  session.audioJitterStarted = false;
-  session.responseActive = false;
-  if (session.playbackTailTimer) clearTimeout(session.playbackTailTimer);
-  session.playbackTailTimer = null;
-  session.playbackBlockedUntil = 0;
-  session.recordingChunks = [];
-  session.recordingMime = "";
-  session.recordingReady = null;
-  session.recordingPlaybackCursor = 0;
-  session.recordingMicSource = null;
-  session.recordingDestination = null;
-  session.recordingContext = null;
-  const openingInstructions = qwenTurnControlInstructions(prefix, "opening");
-  const recordingNode = $(`${prefix}-recording-download`);
-  if (recordingNode) recordingNode.innerHTML = "";
-  unlockQwenOutput(prefix);
-  qwenSetStatus(prefix, "Connecting...", false);
-  qwenSetControls(prefix, false);
-  const tryWebRtc = await qwenShouldTryWebRtc(prefix);
-  if (!tryWebRtc) {
-    startQwenWebSocket(prefix, openingInstructions);
-    return;
-  }
-  try {
-    await startQwenWebRtc(prefix, openingInstructions);
-  } catch (error) {
-    qwenAddBubble(prefix, "system", `WebRTC unavailable, using WebSocket fallback: ${error.message}`);
-    qwenCloseWebRtc(prefix);
-    session.transport = "";
-    session.connected = false;
-    await stopQwenMic(prefix, false);
-    startQwenWebSocket(prefix, openingInstructions);
-  }
-}
-
 async function startQwenHttpFallback(prefix, prompt) {
   const session = qwenSession(prefix);
-  if (session.userDisconnected) return;
   if (session.transport === "http" || session.httpSessionId) return;
   try {
     session.transport = "http";
-    qwenSetStatus(prefix, "Connecting via HTTP fallback...", false);
+    qwenSetStatus(prefix, "Connecting...", false);
     qwenAddBubble(prefix, "system", "WebSocket unavailable, switching to HTTP fallback.");
     const response = await fetch("/api/qwen-session", {
       method: "POST",
@@ -6720,8 +2280,8 @@ async function startQwenHttpFallback(prefix, prompt) {
       turnDetection: "manual",
     }),
   });
-    const json = await parseJsonResponse(response);
-    if (!json.id) throw new Error("HTTP session failed");
+    const json = await response.json();
+    if (!response.ok || !json.id) throw new Error(json.error || "HTTP session failed");
     session.httpSessionId = json.id;
     pollQwenHttpEvents(prefix);
   } catch (error) {
@@ -6753,30 +2313,25 @@ async function pollQwenHttpEvents(prefix) {
 
 function handleQwenMessage(prefix, message) {
   const session = qwenSession(prefix);
-  if (session.userDisconnected && message.type !== "status") return;
   if (message.type === "status") {
     if (message.status === "qwen-open") {
       session.connected = true;
-      qwenSetStatus(prefix, session.transport === "http" ? "Connected · HTTP fallback" : "Connected · WebSocket", true);
+      qwenSetStatus(prefix, "Connected", true);
       qwenSetControls(prefix, true);
       initQwenOutput(prefix);
-      startQwenHeartbeat(prefix);
       qwenAddBubble(prefix, "system", "Live speaking session ready.");
       startQwenMic(prefix);
     }
     if (message.status === "qwen-closed") {
       session.connected = false;
-      stopQwenHeartbeat(prefix);
       qwenSetControls(prefix, false);
-      const reason = message.reason ? ` (${message.reason})` : "";
-      qwenSetStatus(prefix, `Disconnected${reason}`, false);
+      qwenSetStatus(prefix, "Disconnected", false);
     }
     return;
   }
   if (message.type === "error") {
     qwenSetStatus(prefix, "Error", false);
     qwenSetControls(prefix, false);
-    stopQwenHeartbeat(prefix);
     qwenAddBubble(prefix, "system", message.message || "Session stopped.");
     return;
   }
@@ -6784,157 +2339,45 @@ function handleQwenMessage(prefix, message) {
   const payload = message.payload || {};
   const type = payload.type || message.eventType || "";
   const delta = payload.delta || payload.audio || payload.text || payload.transcript || "";
-  if (type === "error" || type.endsWith(".error") || payload.error) {
-    session.waitingForResponse = false;
-    session.turnCommitted = false;
-    session.inputPaused = false;
-    clearQwenCommitWatchdog(prefix);
-    clearQwenWebRtcTurnTimer(prefix);
-    clearQwenWebRtcFallbackTimer(prefix);
-    const errorMessage = payload.message || payload.error?.message || payload.error || "Realtime response error.";
-    qwenSetStatus(prefix, "Error", false);
-    qwenAddBubble(prefix, "system", String(errorMessage));
-    return;
-  }
   if (type === "session.updated" && !session.openingRequested) {
     session.openingRequested = true;
-    qwenSend(prefix, { type: "response.create", instructions: qwenTurnControlInstructions(prefix, "opening") });
+    qwenSend(prefix, { type: "response.create" });
   }
   if ((type === "response.audio.delta" || type === "response.output_audio.delta") && delta) {
-    session.waitingForResponse = false;
-    clearQwenCommitWatchdog(prefix);
-    clearQwenWebRtcTurnTimer(prefix);
-    clearQwenWebRtcFallbackTimer(prefix);
-    qwenBeginAssistantResponse(prefix, "audio");
-    qwenSetStatus(prefix, "Examiner speaking...", true);
+    session.responseActive = true;
     session.pendingAudioChunks.push(delta);
     if (!session.audioRenderId) {
-      const delay = session.audioJitterStarted ? 12 : QWEN_PLAYBACK_INITIAL_JITTER_MS;
-      session.audioJitterStarted = true;
-      session.audioRenderId = window.setTimeout(() => flushQwenAudio(prefix), delay);
+      session.audioRenderId = requestAnimationFrame(() => flushQwenAudio(prefix));
     }
   }
-  if (type === "response.audio_transcript.delta") {
-    session.waitingForResponse = false;
-    clearQwenCommitWatchdog(prefix);
-    clearQwenWebRtcTurnTimer(prefix);
-    clearQwenWebRtcFallbackTimer(prefix);
-    qwenBeginAssistantResponse(prefix, "audio");
-    qwenSetStatus(prefix, "Examiner speaking...", true);
+  if (type === "response.audio_transcript.delta" || type === "response.output_text.delta") {
+    session.responseActive = true;
     qwenAppendAssistant(prefix, delta);
   }
-  if (type === "response.output_text.delta" || type === "response.text.delta") {
-    session.waitingForResponse = false;
-    clearQwenCommitWatchdog(prefix);
-    clearQwenWebRtcTurnTimer(prefix);
-    clearQwenWebRtcFallbackTimer(prefix);
-    if (session.awaitingScore && delta) {
-      session.scoringText = mergeQwenTextValue(session.scoringText, delta);
-    }
-    if (session.assistantTextSource !== "audio") {
-      qwenBeginAssistantResponse(prefix, "text");
-      qwenAppendAssistant(prefix, delta);
-    }
-  }
-  if (type.includes("input_audio_transcription")) {
-    qwenUpdateCandidateTranscript(prefix, payload.transcript || payload.text || delta);
-    if (type === "conversation.item.input_audio_transcription.completed"
-      || type === "input_audio_transcription.completed") {
-      qwenRememberCandidateAnswer(prefix, payload.transcript || payload.text || qwenLatestTurnCandidateText(session));
-    }
-    if (type === "conversation.item.input_audio_transcription.completed"
-      && session.transport === "webrtc"
-      && session.serverTurnCommitted
-      && !session.turnCommitted
-      && !session.waitingForResponse
-      && !session.responseActive
-      && qwenWordCount(qwenLatestTurnCandidateText(session)) >= 2) {
-      session.webRtcLastCompletedAt = Date.now();
-      qwenSetStatus(prefix, "Processing your answer...", true);
-      startQwenWebRtcSubmitWatchdog(prefix);
-      scheduleQwenWebRtcResponse(prefix, QWEN_WEBRTC_SUBMIT_GRACE_MS);
-    }
+  if (type === "conversation.item.input_audio_transcription.completed") {
+    if (payload.transcript || payload.text) qwenAddBubble(prefix, "user", payload.transcript || payload.text);
   }
   if (type === "input_audio_buffer.speech_started") {
-    clearQwenWebRtcTurnTimer(prefix);
-    session.serverTurnCommitted = false;
-    session.webRtcLastCompletedAt = 0;
-    session.webRtcResponseRequested = false;
-    session.responseRetryCount = 0;
     session.silenceSince = 0;
-    qwenSetStatus(prefix, "Listening to your answer...", true);
   }
-  if (type === "input_audio_buffer.speech_stopped" || type === "input_audio_buffer.committed") {
-    if (session.transport === "webrtc") qwenSetWebRtcAudioSending(prefix, false);
-    session.serverTurnCommitted = true;
-    scheduleQwenWebRtcResponse(prefix, 900);
-    qwenSetStatus(prefix, "Processing your answer...", true);
-  }
-  if (type === "response.created") {
-    if (session.transport === "webrtc") qwenSetWebRtcAudioSending(prefix, false);
-    if (!session.awaitingScore && !session.responseActive) {
-      qwenRememberCandidateAnswer(prefix, qwenLatestTurnCandidateText(session));
-      qwenClearActiveCandidateTurn(prefix);
-    }
-    session.responseActive = true;
-    session.audioJitterStarted = false;
-    session.waitingForResponse = false;
-    session.nextQuestionPrepared = false;
-    session.webRtcTurnPreparedForAnswer = false;
-    clearQwenWebRtcTurnTimer(prefix);
-    clearQwenWebRtcFallbackTimer(prefix);
-    qwenSetStatus(prefix, "Examiner preparing response...", true);
-  }
-  if (type === "response.done" || type === "response.audio.done" || type === "response.text.done" || type === "response.output_text.done" || type === "response.audio_transcript.done") {
-    const finalText = compactDialogueText(qwenTextFromPayload(payload));
-    const shouldUseFinalText = finalText
-      && !session.currentAssistantText
-      && !(session.assistantTextSource === "audio" && (type === "response.output_text.done" || type === "response.text.done" || type === "response.done"));
-    if (shouldUseFinalText) {
-      qwenBeginAssistantResponse(prefix, type.includes("audio") ? "audio" : "text");
-      qwenAppendAssistant(prefix, finalText);
-    }
+  if (type === "response.done" || type === "response.audio.done" || type === "response.text.done") {
     session.responseActive = false;
-    session.audioJitterStarted = false;
-    session.waitingForResponse = false;
-    session.inputPaused = false;
-    clearQwenCommitWatchdog(prefix);
-    clearQwenWebRtcTurnTimer(prefix);
-    clearQwenWebRtcFallbackTimer(prefix);
-    const responseText = session.scoringText || session.pendingAssistantText || session.currentAssistantText || finalText;
-    if (session.awaitingScore) qwenSetStatus(prefix, "Scoring complete", true);
-    if (!session.awaitingScore) {
-      qwenRememberCandidateAnswer(prefix, qwenLatestTurnCandidateText(session));
-      qwenRememberExaminerQuestion(prefix, responseText);
-      session.nextQuestionPrepared = false;
-      session.webRtcTurnPreparedForAnswer = false;
-      qwenClearActiveCandidateTurn(prefix);
+    if (session.awaitingScore && !session.scoreFilled) {
+      fillSpeakingBandFromText(prefix, session.currentAssistantText);
     }
     session.turnCommitted = false;
     session.voiceStarted = false;
     session.voiceStartAt = 0;
     session.voicedMs = 0;
-    session.lastVoiceFrameAt = 0;
     session.lastVoiceAt = 0;
-    session.lastHumanVoiceAt = 0;
     session.silenceSince = 0;
-    session.noiseFloor = 0;
-    session.speechFrameCount = 0;
-    session.quietFrameCount = 0;
-    session.currentTurnBytes = 0;
-    session.webRtcResponseRequested = false;
-    session.serverTurnCommitted = false;
     if (session.assistantRenderId) cancelAnimationFrame(session.assistantRenderId);
     session.assistantRenderId = null;
     if (session.assistantNode) {
       session.assistantNode.textContent = session.pendingAssistantText || session.currentAssistantText || session.assistantNode.textContent;
     }
-    session.lastFinalAssistantText = session.pendingAssistantText || session.currentAssistantText || finalText || session.lastFinalAssistantText || "";
-    session.lastFinalAssistantAt = Date.now();
     session.pendingAssistantText = "";
     session.assistantNode = null;
-    session.assistantTextSource = "";
-    qwenMaybeAutoFinish(prefix);
   }
 }
 
@@ -6947,22 +2390,11 @@ async function startQwenMic(prefix) {
       throw new Error("Audio capture is not supported in this browser. Try Chrome, Edge, or Safari.");
     }
     session.inputContext = new AudioContextClass({ latencyHint: "interactive" });
-    if (!session.micStream) {
-      session.micStream = await navigator.mediaDevices.getUserMedia(qwenMicConstraints());
-    }
+    session.micStream = await navigator.mediaDevices.getUserMedia({
+      audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+    });
+    startQwenRecording(prefix);
     if (session.inputContext.state === "suspended") await session.inputContext.resume().catch(() => {});
-    if (!session.recordingContext) {
-      session.recordingContext = new AudioContextClass({ latencyHint: "interactive", sampleRate: QWEN_PLAYBACK_SAMPLE_RATE });
-      if (session.recordingContext.state === "suspended") await session.recordingContext.resume().catch(() => {});
-    }
-    if (session.recordingContext.createMediaStreamDestination && !session.recordingDestination) {
-      session.recordingDestination = session.recordingContext.createMediaStreamDestination();
-      session.recordingMicSource = session.recordingContext.createMediaStreamSource(session.micStream);
-      session.recordingMicSource.connect(session.recordingDestination);
-      session.recordingPlaybackCursor = session.recordingContext.currentTime + 0.05;
-      if (session.remoteStream) attachQwenRemoteAudio(prefix, session.remoteStream);
-    }
-    if (!session.recorder || session.recorder.state === "inactive") startQwenRecording(prefix);
     session.sourceNode = session.inputContext.createMediaStreamSource(session.micStream);
     session.silentGain = session.inputContext.createGain();
     session.silentGain.gain.value = 0;
@@ -6973,13 +2405,8 @@ async function startQwenMic(prefix) {
     const canUseWorklet = session.inputContext.audioWorklet && typeof AudioWorkletNode !== "undefined";
     if (canUseWorklet) {
       try {
-        await session.inputContext.audioWorklet.addModule("/pcm-worklet.js?v=20260720-audio-gate-2");
-        session.workletNode = new AudioWorkletNode(session.inputContext, "pcm-worklet", {
-          processorOptions: {
-            targetRate: QWEN_PCM_TARGET_SAMPLE_RATE,
-            chunkMs: QWEN_PCM_CHUNK_MS,
-          },
-        });
+        await session.inputContext.audioWorklet.addModule("/pcm-worklet.js");
+        session.workletNode = new AudioWorkletNode(session.inputContext, "pcm-worklet");
         session.workletNode.port.addEventListener("message", (event) => {
           if (event.data.type !== "pcm") return;
           sendQwenMicPacket(prefix, event.data.pcm, event.data.level);
@@ -6994,18 +2421,8 @@ async function startQwenMic(prefix) {
       setupQwenScriptProcessor(prefix);
     }
     session.micActive = true;
-    startQwenAutoCommitLoop(prefix);
-    if (session.transport === "webrtc") qwenSetWebRtcAudioSending(prefix, false);
     const button = document.querySelector(`.qwen-mic-toggle[data-prefix="${prefix}"]`);
-    if (button) button.textContent = "Stop mic";
-    qwenSetControls(prefix, session.connected);
-    if (session.transport === "webrtc") {
-      document.querySelectorAll(`.qwen-commit-answer[data-prefix="${prefix}"]`).forEach((item) => {
-        item.disabled = true;
-        item.setAttribute("aria-disabled", "true");
-      });
-    }
-    qwenSetStatus(prefix, "Listening...", true);
+    if (button) button.textContent = "Stopped";
   } catch (error) {
     await stopQwenMic(prefix, false);
     qwenAddBubble(prefix, "system", `Microphone could not be started: ${error.message}`);
@@ -7025,8 +2442,7 @@ function setupQwenScriptProcessor(prefix) {
     let sum = 0;
     for (let i = 0; i < input.length; i += 1) sum += input[i] * input[i];
     const level = Math.sqrt(sum / input.length);
-    const ratio = session.inputContext.sampleRate / QWEN_PCM_TARGET_SAMPLE_RATE;
-    const pcmChunkSamples = Math.max(160, Math.round((QWEN_PCM_TARGET_SAMPLE_RATE * QWEN_PCM_CHUNK_MS) / 1000));
+    const ratio = session.inputContext.sampleRate / 16000;
     while (session.pcmPosition < input.length) {
       const index = Math.floor(session.pcmPosition);
       const sample = Math.max(-1, Math.min(1, input[index] || 0));
@@ -7034,8 +2450,8 @@ function setupQwenScriptProcessor(prefix) {
       session.pcmPosition += ratio;
     }
     session.pcmPosition -= input.length;
-    while (session.pcmBuffer.length >= pcmChunkSamples) {
-      const chunk = new Int16Array(pcmChunkSamples);
+    while (session.pcmBuffer.length >= 320) {
+      const chunk = new Int16Array(320);
       for (let i = 0; i < chunk.length; i += 1) chunk[i] = session.pcmBuffer.shift();
       sendQwenMicPacket(prefix, chunk.buffer, level);
     }
@@ -7047,61 +2463,12 @@ function setupQwenScriptProcessor(prefix) {
 function sendQwenMicPacket(prefix, pcm, level) {
   const session = qwenSession(prefix);
   if (!session.micActive || !session.connected) return;
-  const speechLevel = Number(level || 0);
-  const startThreshold = session.transport === "webrtc" ? 0.01 : 0.004;
+  qwenSend(prefix, { type: "audio.append", audio: pcm });
   const normalizedLevel = Math.min(1, level * 14);
   const bar = $(`${prefix}-qwen-level`);
   const meter = $(`${prefix}-qwen-meter`);
   if (bar) bar.style.width = `${Math.round(normalizedLevel * 100)}%`;
   if (meter) meter.textContent = normalizedLevel.toFixed(2);
-  if (session.inputPaused || session.turnCommitted || qwenOutputBusy(prefix)) {
-    if (session.transport === "webrtc") qwenSetWebRtcAudioSending(prefix, false);
-    return;
-  }
-  if (!session.voiceStarted && speechLevel < startThreshold) {
-    if (session.transport === "webrtc") qwenSetWebRtcAudioSending(prefix, false);
-    return;
-  }
-  session.lastMicPacketAt = Date.now();
-  session.currentTurnBytes += pcm?.byteLength || 0;
-  if (session.transport === "webrtc") {
-    const now = Date.now();
-    const continueThreshold = 0.0065;
-    if (speechLevel >= startThreshold) {
-      qwenSetWebRtcAudioSending(prefix, true);
-      clearQwenWebRtcTurnTimer(prefix);
-      if (!session.voiceStarted) {
-        session.voiceStartAt = now;
-        session.voicedMs = 0;
-        session.lastVoiceFrameAt = now;
-      } else {
-        session.voicedMs += Math.min(120, Math.max(0, now - (session.lastVoiceFrameAt || now)));
-        session.lastVoiceFrameAt = now;
-      }
-      session.voiceStarted = true;
-      session.lastVoiceAt = now;
-      session.silenceSince = 0;
-      qwenSetStatus(prefix, "Listening to your answer...", true);
-      return;
-    }
-    if (session.voiceStarted && speechLevel >= continueThreshold) {
-      qwenSetWebRtcAudioSending(prefix, true);
-      session.lastVoiceAt = now;
-      session.silenceSince = 0;
-      return;
-    }
-    if (session.voiceStarted && !session.silenceSince) {
-      session.silenceSince = now;
-    }
-    if (session.voiceStarted && session.lastVoiceAt && now - session.lastVoiceAt >= QWEN_WEBRTC_AUDIO_TAIL_MS) {
-      qwenSetWebRtcAudioSending(prefix, false);
-    }
-    if (session.voiceStarted && session.lastVoiceAt && now - session.lastVoiceAt >= QWEN_WEBRTC_LOCAL_SILENCE_MS) {
-      scheduleQwenWebRtcResponse(prefix, 120);
-    }
-    return;
-  }
-  qwenSend(prefix, { type: "audio.append", audio: pcm });
   scheduleQwenAutoCommit(prefix, level);
 }
 
@@ -7109,57 +2476,42 @@ function scheduleQwenAutoCommit(prefix, level) {
   const session = qwenSession(prefix);
   if (!session.micActive || !session.connected || session.awaitingScore || session.turnCommitted) return;
   if (qwenOutputBusy(prefix)) return;
+  const speechLevel = Number(level || 0);
   const now = Date.now();
-  const voice = qwenUpdateWsHumanVoice(prefix, level);
-  if (voice.active) {
-    qwenSetStatus(prefix, "Listening...", true);
+  const startThreshold = 0.012;
+  const silenceThreshold = 0.008;
+  if (speechLevel >= startThreshold) {
     if (!session.voiceStarted) {
       session.voiceStarted = true;
       session.voiceStartAt = now;
       session.voicedMs = 0;
-      session.lastVoiceFrameAt = now;
     } else {
-      session.voicedMs += Math.min(120, Math.max(0, now - (session.lastVoiceFrameAt || now)));
-      session.lastVoiceFrameAt = now;
+      session.voicedMs = now - session.voiceStartAt;
     }
-    session.lastVoiceAt = session.lastHumanVoiceAt || now;
+    session.lastVoiceAt = now;
     session.silenceSince = 0;
-    armQwenAutoCommitWatchdog(prefix);
+    if (session.autoCommitTimer) clearTimeout(session.autoCommitTimer);
+    session.autoCommitTimer = null;
     return;
   }
-  if (!session.lastVoiceAt || !qwenHasMinimumWsTurn(session)) return;
-  if (!session.silenceSince) session.silenceSince = now;
+  if (!session.voiceStarted || session.voicedMs < 500 || !session.lastVoiceAt) return;
+  if (speechLevel < silenceThreshold && !session.silenceSince) {
+    session.silenceSince = now;
+  }
   if (session.autoCommitTimer) return;
-  armQwenAutoCommitWatchdog(prefix);
-}
-
-function armQwenAutoCommitWatchdog(prefix, delayMs = QWEN_WS_SILENCE_COMMIT_MS + 120) {
-  const session = qwenSession(prefix);
-  if (session.transport === "webrtc") return;
-  if (session.autoCommitTimer) clearTimeout(session.autoCommitTimer);
   session.autoCommitTimer = setTimeout(() => {
     session.autoCommitTimer = null;
     if (!session.micActive || !session.connected || session.awaitingScore || session.turnCommitted) return;
-    if (qwenOutputBusy(prefix)) {
-      armQwenAutoCommitWatchdog(prefix, 500);
-      return;
-    }
-    if (qwenMaybeCommitWsAnswer(prefix)) return;
-    if (!qwenHasMinimumWsTurn(session)) return;
-    const lastHumanVoiceAt = Number(session.lastHumanVoiceAt || session.lastVoiceAt || 0);
-    const silenceAge = lastHumanVoiceAt ? Date.now() - lastHumanVoiceAt : 0;
-    if (!lastHumanVoiceAt || silenceAge < QWEN_WS_SILENCE_COMMIT_MS) {
-      armQwenAutoCommitWatchdog(prefix, Math.max(350, QWEN_WS_SILENCE_COMMIT_MS - silenceAge + 120));
-      return;
-    }
-    armQwenAutoCommitWatchdog(prefix, 350);
-  }, delayMs);
+    if (!session.voiceStarted || session.voicedMs < 500) return;
+    const silenceAge = session.silenceSince ? Date.now() - session.silenceSince : 0;
+    if (silenceAge < 2600 || Date.now() - session.lastVoiceAt < 2600) return;
+    commitQwenAnswer(prefix);
+  }, 2650);
 }
 
 async function stopQwenMic(prefix, commit = false) {
   const session = qwenSession(prefix);
   const wasActive = session.micActive;
-  qwenSetWebRtcAudioSending(prefix, false);
   session.micActive = false;
   const recordingPromise = stopQwenRecording(prefix);
   if (session.scriptNode) session.scriptNode.onaudioprocess = null;
@@ -7167,8 +2519,6 @@ async function stopQwenMic(prefix, commit = false) {
   session.workletNode?.disconnect();
   session.scriptNode?.disconnect();
   session.silentGain?.disconnect();
-  session.recordingMicSource?.disconnect();
-  session.recordingRemoteSource?.disconnect();
   session.sourceNode = null;
   session.workletNode = null;
   session.scriptNode = null;
@@ -7180,19 +2530,8 @@ async function stopQwenMic(prefix, commit = false) {
   await session.inputContext?.close().catch(() => {});
   session.inputContext = null;
   await recordingPromise;
-  await session.recordingContext?.close().catch(() => {});
-  session.recordingContext = null;
-  session.recordingDestination = null;
-  session.recordingMicSource = null;
-  session.recordingRemoteSource = null;
-  session.recordingPlaybackCursor = 0;
   if (session.autoCommitTimer) clearTimeout(session.autoCommitTimer);
   session.autoCommitTimer = null;
-  stopQwenAutoCommitLoop(prefix);
-  if (session.commitWatchdogTimer) clearTimeout(session.commitWatchdogTimer);
-  session.commitWatchdogTimer = null;
-  clearQwenWebRtcTurnTimer(prefix);
-  clearQwenWebRtcFallbackTimer(prefix);
   const bar = $(`${prefix}-qwen-level`);
   const meter = $(`${prefix}-qwen-meter`);
   if (bar) bar.style.width = "0%";
@@ -7215,107 +2554,30 @@ function commitQwenAnswer(prefix) {
     qwenSetStatus(prefix, "Please wait for playback to finish", true);
     return;
   }
-  if (!session.voiceStarted || (session.currentTurnBytes || 0) < QWEN_WS_MIN_TURN_BYTES) {
-    qwenSetStatus(prefix, "Listening...", true);
-    return;
-  }
   session.turnCommitted = true;
-  session.inputPaused = true;
-  session.waitingForResponse = true;
-  session.responseRetryCount = 0;
   if (session.autoCommitTimer) clearTimeout(session.autoCommitTimer);
   session.autoCommitTimer = null;
-  clearQwenCommitWatchdog(prefix);
-  qwenRememberCandidateAnswer(prefix, qwenLatestTurnCandidateText(session));
-  qwenAdvanceScheduledAction(prefix);
   qwenSend(prefix, { type: "audio.commit" });
-  qwenSend(prefix, {
-    type: "session.update",
-    instructions: qwenTurnControlInstructions(prefix, "next-question"),
-    voice: "Ethan",
-    turnDetection: "manual",
-  });
-  qwenSend(prefix, { type: "response.create", instructions: qwenTurnControlInstructions(prefix, "next-question") });
-  qwenSetStatus(prefix, "Answer submitted, waiting...", true);
+  qwenSend(prefix, { type: "response.create" });
   qwenAddBubble(prefix, "system", "Answer submitted.");
-  scheduleQwenCommitWatchdog(prefix);
-}
-
-async function waitForQwenIdle(prefix, timeoutMs = 12000) {
-  const startedAt = Date.now();
-  while (Date.now() - startedAt < timeoutMs) {
-    const session = qwenSession(prefix);
-    if (!session.waitingForResponse && !qwenOutputBusy(prefix)) return true;
-    await new Promise((resolve) => window.setTimeout(resolve, 180));
-  }
-  return false;
-}
-
-function qwenMaybeAutoFinish(prefix) {
-  const session = qwenSession(prefix);
-  if (session.awaitingScore || session.finalScoreInFlight || session.autoFinishStarted) return;
-  if (session.scheduledAction?.kind !== "auto-finish" && session.lastActionKind !== "auto-finish") return;
-  if (qwenWordCount(qwenBuildAutoScoreTranscript(prefix)) < 12) return;
-  session.autoFinishStarted = true;
-  qwenSetStatus(prefix, "Speaking test complete. Scoring now...", true);
-  window.setTimeout(() => {
-    finishQwenSpeaking(prefix).catch((error) => {
-      session.autoFinishStarted = false;
-      qwenSetStatus(prefix, `Auto scoring failed: ${error.message}`, false);
-    });
-  }, 500);
 }
 
 async function finishQwenSpeaking(prefix) {
+  await stopQwenMic(prefix, false);
+  const prompt = $(`${prefix}-qwen-prompt`)?.value || "";
   const session = qwenSession(prefix);
-  if (session.finalScoreInFlight) return;
-  session.finalScoreInFlight = true;
-  try {
-    qwenSetStatus(prefix, "Ending speaking test...", true);
-    await waitForQwenIdle(prefix, 5000);
-    await stopQwenMic(prefix, false);
-    session.awaitingScore = false;
-    session.scoringText = "";
-    session.waitingForResponse = false;
-    session.inputPaused = false;
-    session.scoreFilled = false;
-    clearQwenCommitWatchdog(prefix);
-    qwenSetStatus(prefix, "Scoring speaking band...", true);
-    const result = await qwenRunAutoScore(prefix, { force: true, fillScore: true, showFeedback: true, showStatus: true });
-    if (!result) {
-      qwenSetStatus(prefix, "No complete speaking answer to score yet", false);
-      return;
-    }
-    const band = normalizeSpeakingBand(result.band) || extractSpeakingBandFromText(result.feedback);
-    qwenSetStatus(prefix, band ? `Speaking ended. Final Band: ${band}. Saying goodbye...` : "Speaking ended. Score ready. Saying goodbye...", true);
-    await qwenSayGoodbyeAndDisconnect(prefix, band);
-    await createQwenRecordingDownload(prefix);
-  } catch (error) {
-    qwenSetStatus(prefix, `Speaking scoring failed: ${error.message}`, false);
-  } finally {
-    session.finalScoreInFlight = false;
-  }
-}
-
-async function qwenSayGoodbyeAndDisconnect(prefix, band) {
-  const session = qwenSession(prefix);
-  const finalLine = band ? `Your final speaking score is Band ${band}.` : "Your speaking score is ready.";
-  const goodbye = `${finalLine} Thank you. This is the end of the IELTS Speaking test. Goodbye.`;
-  if (!session.connected) {
-    disconnectQwenSpeaking(prefix);
-    return;
-  }
-  try {
-    session.waitingForResponse = true;
-    qwenSend(prefix, {
-      type: "response.create",
-      instructions: `${goodbye} Say this once only. Do not ask another question.`,
-    });
-    await new Promise((resolve) => window.setTimeout(resolve, 700));
-    await waitForQwenIdle(prefix, 6500);
-  } finally {
-    disconnectQwenSpeaking(prefix);
-  }
+  session.awaitingScore = true;
+  session.scoreFilled = false;
+  session.currentAssistantText = "";
+  createQwenRecordingDownload(prefix);
+  qwenSend(prefix, {
+    type: "session.update",
+    instructions: `${prompt}\n\nEnd the speaking test now. Score the candidate using FC, LR, GRA and Pronunciation. Give Overall Band rounded to nearest 0.5. Include a clear line exactly like: Overall Band: 6.5. Then give concise English feedback.`,
+    voice: "Ethan",
+    turnDetection: "manual",
+  });
+  qwenSend(prefix, { type: "response.create" });
+  qwenAddBubble(prefix, "system", "Scoring speaking response...");
 }
 
 function preferredRecordingMime() {
@@ -7331,14 +2593,13 @@ function preferredRecordingMime() {
 
 function startQwenRecording(prefix) {
   const session = qwenSession(prefix);
-  const stream = session.recordingDestination?.stream || session.micStream;
-  if (typeof MediaRecorder === "undefined" || !stream) return;
+  if (typeof MediaRecorder === "undefined" || !session.micStream) return;
   try {
     const mimeType = preferredRecordingMime();
     session.recordingChunks = [];
     session.recordingMime = mimeType || "audio/webm";
     session.recordingReady = null;
-    session.recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+    session.recorder = new MediaRecorder(session.micStream, mimeType ? { mimeType } : undefined);
     session.recorder.ondataavailable = (event) => {
       if (event.data?.size) session.recordingChunks.push(event.data);
     };
@@ -7397,20 +2658,6 @@ function blobToDataUrl(blob) {
 
 function fillSpeakingBandFromText(prefix, text) {
   const clean = String(text || "");
-  const extracted = extractSpeakingBandFromText(clean);
-  if (extracted) {
-    const input = $(`${prefix}-speaking-score`);
-    if (input) input.value = extracted;
-    qwenSession(prefix).scoreFilled = true;
-    return;
-  }
-  const direct = normalizeSpeakingBand(clean);
-  if (direct) {
-    const input = $(`${prefix}-speaking-score`);
-    if (input) input.value = direct;
-    qwenSession(prefix).scoreFilled = true;
-    return;
-  }
   const patterns = [
     /overall\s*band\s*[:：]?\s*(\d(?:\.\d)?)/i,
     /speaking\s*band\s*[:：]?\s*(\d(?:\.\d)?)/i,
@@ -7428,36 +2675,15 @@ function fillSpeakingBandFromText(prefix, text) {
 }
 
 function disconnectQwenSpeaking(prefix) {
-  const session = qwenSession(prefix);
-  session.userDisconnected = true;
-  session.connected = false;
-  session.inputPaused = false;
-  session.waitingForResponse = false;
-  session.responseActive = false;
-  session.turnCommitted = false;
-  qwenStopOutputPlayback(prefix);
   stopQwenMic(prefix, false);
-  if (session.micAudioFlushTimer) clearTimeout(session.micAudioFlushTimer);
-  session.micAudioFlushTimer = null;
-  session.micAudioQueue = [];
+  flushQwenMicAudio(prefix);
   qwenSend(prefix, { type: "disconnect" });
-  stopQwenHeartbeat(prefix);
+  const session = qwenSession(prefix);
   if (session.pollTimer) clearTimeout(session.pollTimer);
-  if (session.autoScoreTimer) clearTimeout(session.autoScoreTimer);
-  clearQwenCommitWatchdog(prefix);
-  clearQwenWebRtcTurnTimer(prefix);
-  clearQwenWebRtcFallbackTimer(prefix);
-  clearQwenWebRtcSubmitWatchdog(prefix);
-  stopQwenAutoCommitLoop(prefix);
   session.pollTimer = null;
-  session.autoScoreTimer = null;
-  qwenCloseWebRtc(prefix);
   session.transport = "";
   session.httpSessionId = "";
   session.ws?.close(1000, "user disconnected");
-  session.ws = null;
-  qwenSetControls(prefix, false);
-  qwenSetStatus(prefix, "Disconnected", false);
 }
 
 function initQwenOutput(prefix) {
@@ -7465,10 +2691,10 @@ function initQwenOutput(prefix) {
   const AudioContextClass = window.AudioContext || window.webkitAudioContext;
   if (!AudioContextClass) return;
   const created = !session.outputContext;
-  session.outputContext ||= new AudioContextClass({ latencyHint: "playback", sampleRate: QWEN_PLAYBACK_SAMPLE_RATE });
+  session.outputContext ||= new AudioContextClass({ latencyHint: "interactive", sampleRate: 24000 });
   if (session.outputContext.state === "suspended") session.outputContext.resume().catch(() => {});
   if (created || !Number.isFinite(session.playbackCursor) || session.playbackCursor < session.outputContext.currentTime) {
-    session.playbackCursor = session.outputContext.currentTime + QWEN_PLAYBACK_LEAD_SECONDS;
+    session.playbackCursor = session.outputContext.currentTime + 0.05;
   }
 }
 
@@ -7477,7 +2703,7 @@ function unlockQwenOutput(prefix) {
   try {
     initQwenOutput(prefix);
     if (!session.outputContext || session.outputUnlocked) return;
-    const buffer = session.outputContext.createBuffer(1, 1, QWEN_PLAYBACK_SAMPLE_RATE);
+    const buffer = session.outputContext.createBuffer(1, 1, 24000);
     const source = session.outputContext.createBufferSource();
     source.buffer = buffer;
     source.connect(session.outputContext.destination);
@@ -7488,62 +2714,23 @@ function unlockQwenOutput(prefix) {
   }
 }
 
-function qwenDecodePcmChunks(chunks) {
-  const validChunks = (Array.isArray(chunks) ? chunks : [chunks]).filter(Boolean);
-  if (!validChunks.length) return null;
-  const buffers = validChunks.map((base64) => Uint8Array.from(atob(base64), (char) => char.charCodeAt(0)));
-  const totalBytes = buffers.reduce((sum, item) => sum + item.byteLength, 0);
-  if (totalBytes < 2) return null;
-  const bytes = new Uint8Array(totalBytes);
-  let offset = 0;
-  for (const buffer of buffers) {
-    bytes.set(buffer, offset);
-    offset += buffer.byteLength;
-  }
-  return bytes;
-}
-
-function playQwenPcmChunks(prefix, chunks) {
-  const bytes = qwenDecodePcmChunks(chunks);
-  if (!bytes) return;
+function playQwenPcm(prefix, base64) {
+  if (!base64) return;
   const session = qwenSession(prefix);
   initQwenOutput(prefix);
   if (!session.outputContext) return;
+  const bytes = Uint8Array.from(atob(base64), (char) => char.charCodeAt(0));
   const view = new DataView(bytes.buffer);
   const sampleCount = Math.floor(bytes.byteLength / 2);
-  const audioBuffer = session.outputContext.createBuffer(1, sampleCount, QWEN_PLAYBACK_SAMPLE_RATE);
+  const audioBuffer = session.outputContext.createBuffer(1, sampleCount, 24000);
   const channel = audioBuffer.getChannelData(0);
   for (let i = 0; i < sampleCount; i += 1) channel[i] = view.getInt16(i * 2, true) / 32768;
   const source = session.outputContext.createBufferSource();
   source.buffer = audioBuffer;
   source.connect(session.outputContext.destination);
-  session.playbackSources ||= new Set();
-  session.playbackSources.add(source);
-  source.onended = () => {
-    session.playbackSources?.delete(source);
-    try {
-      source.disconnect();
-    } catch {}
-  };
-  session.playbackCursor = Math.max(session.playbackCursor, session.outputContext.currentTime + QWEN_PLAYBACK_LEAD_SECONDS);
+  session.playbackCursor = Math.max(session.playbackCursor, session.outputContext.currentTime + 0.03);
   source.start(session.playbackCursor);
   session.playbackCursor += audioBuffer.duration;
-
-  if (session.recordingContext && session.recordingDestination) {
-    const recordingBuffer = session.recordingContext.createBuffer(1, sampleCount, QWEN_PLAYBACK_SAMPLE_RATE);
-    const recordingChannel = recordingBuffer.getChannelData(0);
-    for (let i = 0; i < sampleCount; i += 1) recordingChannel[i] = channel[i];
-    const recordingSource = session.recordingContext.createBufferSource();
-    recordingSource.buffer = recordingBuffer;
-    recordingSource.connect(session.recordingDestination);
-    session.recordingPlaybackCursor = Math.max(session.recordingPlaybackCursor || 0, session.recordingContext.currentTime + QWEN_PLAYBACK_LEAD_SECONDS);
-    recordingSource.start(session.recordingPlaybackCursor);
-    session.recordingPlaybackCursor += recordingBuffer.duration;
-  }
-}
-
-function playQwenPcm(prefix, base64) {
-  playQwenPcmChunks(prefix, [base64]);
 }
 
 function arrayBufferToBase64(buffer) {
@@ -7555,19 +2742,18 @@ function arrayBufferToBase64(buffer) {
 
 function renderSingle() {
   const moduleName = state.activeModule;
-  resetListeningCaptionSession("single");
   const allOptions = mergedItems(moduleName).map(normalizeItem);
   renderSingleFilters(allOptions, moduleName);
-  const options = singleOptions(moduleName);
+  const options = applySingleFilters(allOptions, moduleName);
   if (!options.length) {
     $("singleTitle").textContent = "No questions available";
     $("singleSelect").innerHTML = "";
-    $("singleContent").innerHTML = `<div class="notice">${moduleName === "writing" ? "No complete Writing Task 1 + Task 2 set is available for this filter." : "This module has no imported questions yet. Add materials to the user bank first."}</div>`;
+    $("singleContent").innerHTML = `<div class="notice">This module has no imported questions yet. Add materials to the user bank first.</div>`;
     return;
   }
   state.activeSingle = state.activeSingle && state.activeSingle.module === moduleName && options.some((item) => item.id === state.activeSingle.id) ? state.activeSingle : options[0];
   $("singleTitle").textContent = { listening: "Listening practice", reading: "Reading practice", writing: "Writing practice", speaking: "Speaking practice" }[moduleName];
-  $("singleSelect").innerHTML = options.map((item) => `<option value="${item.id}">${item.title || item.type || "Untitled"}${item.source && moduleName !== "writing" ? ` · ${item.source}` : ""}</option>`).join("");
+  $("singleSelect").innerHTML = options.map((item) => `<option value="${item.id}">${item.title || item.type || "Untitled"} · ${item.source}</option>`).join("");
   $("singleSelect").value = state.activeSingle.id;
   const prefix = "single";
   $("singleContent").innerHTML =
@@ -7576,7 +2762,7 @@ function renderSingle() {
       : moduleName === "reading"
         ? renderReading(state.activeSingle, prefix)
         : moduleName === "writing"
-          ? renderWritingExamTwoColumn(state.activeSingle.writingTasks || [], prefix)
+          ? renderWriting(state.activeSingle, prefix)
           : renderSpeaking(state.activeSingle, prefix);
   bindDynamicControls();
 }
@@ -7619,17 +2805,11 @@ function buildExam() {
 }
 
 function renderFullExamPaper(bundle, prefixRoot, scoreButtonId) {
-  const timerConfig = prefixRoot === "exam"
-    ? { timer: "examStickyTimer", toggle: "examStickyTimerToggle", reset: "examStickyTimerReset", seconds: state.examSeconds }
-    : prefixRoot === "sequence"
-      ? { timer: "sequenceStickyTimer", toggle: "sequenceStickyTimerToggle", reset: "sequenceStickyTimerReset", seconds: state.sequenceSeconds }
-      : null;
-  const timerHtml = timerConfig
+  const timerHtml = prefixRoot === "exam"
     ? `<div class="exam-quick-timer timer" aria-label="Stopped">
-        <button class="help-capture-button" type="button" data-help-trigger>Help</button>
-        <span id="${timerConfig.timer}">${formatTime(timerConfig.seconds)}</span>
-        <button id="${timerConfig.toggle}" class="icon-btn">Start</button>
-        <button id="${timerConfig.reset}" class="icon-btn">Reset</button>
+        <span id="examStickyTimer">02:44:00</span>
+        <button id="examStickyTimerToggle" class="icon-btn">Start</button>
+        <button id="examStickyTimerReset" class="icon-btn">Reset</button>
       </div>`
     : "";
   return `
@@ -7640,13 +2820,8 @@ function renderFullExamPaper(bundle, prefixRoot, scoreButtonId) {
         <a href="#${prefixRoot}-reading-section" data-focus-module="reading">Reading</a>
         <a href="#${prefixRoot}-writing-section" data-focus-module="writing">Writing</a>
         <a href="#${prefixRoot}-speaking-section" data-focus-module="speaking">Speaking</a>
-        <button class="back-submit-button" type="button" data-submit-target="${scoreButtonId}">Back and submit</button>
       </div>
       ${timerHtml}
-      <div id="${prefixRoot}CaptionBar" class="listening-caption-bar" hidden>
-        <span id="${prefixRoot}CaptionKicker">Captions</span>
-        <strong id="${prefixRoot}CaptionLine">Play audio to show captions.</strong>
-      </div>
     </nav>
     <section id="${prefixRoot}-listening-section" class="panel exam-section" data-module="listening"><h2>Listening</h2>${renderListening(bundle.listening, `${prefixRoot}-listening`)}</section>
     <section id="${prefixRoot}-reading-section" class="panel exam-section" data-module="reading"><h2>Reading</h2>${renderReading(bundle.reading, `${prefixRoot}-reading`)}</section>
@@ -7667,12 +2842,11 @@ function pickAvoidingSet(items, avoidKeys) {
 }
 
 function pickWritingPairAvoidingSet(pairs, avoidKeys) {
-  const validPairs = pairs.filter((pair) => Array.isArray(pair) && pair[0] && pair[1]);
-  const candidates = validPairs.filter((pair) => {
+  const candidates = pairs.filter((pair) => {
     const key = examSetKey(pair[0]);
     return !key || !avoidKeys.has(key);
   });
-  return pick(candidates.length ? candidates : validPairs);
+  return pick(candidates.length ? candidates : pairs);
 }
 
 function buildRandomBundle() {
@@ -7688,10 +2862,7 @@ function buildRandomBundle() {
   const reading = normalizeItem(pickAvoidingSet(readingPool, used));
   const readingKey = examSetKey(reading);
   if (readingKey) used.add(readingKey);
-  const pickedWritingPair = pickWritingPairAvoidingSet(writingPairs, used);
-  if (!pickedWritingPair?.length) return null;
-  const writingTasks = pickedWritingPair.map(normalizeItem).filter((item) => item.id || item.title || item.prompt || item.writingPageImages?.length);
-  if (writingTasks.length < 2) return null;
+  const writingTasks = pickWritingPairAvoidingSet(writingPairs, used).map(normalizeItem);
   return {
     listening,
     reading,
@@ -7701,9 +2872,9 @@ function buildRandomBundle() {
   };
 }
 
-function buildExam(savedBundle = null) {
+function buildExam() {
   setImmersivePractice("", "");
-  const bundle = isExamBundle(savedBundle) ? savedBundle : buildRandomBundle();
+  const bundle = buildRandomBundle();
   if (!bundle) {
     $("examPaper").innerHTML = `<section class="panel notice">The question bank is incomplete, so a random exam cannot be generated.</section>`;
     return;
@@ -7736,17 +2907,9 @@ function renderSequenceFilters() {
   renderFilterOptions("sequenceTestFilter", testSets.map((set) => itemTest(set.listening)), "All tests");
 }
 
-function buildSequence(savedBundle = null) {
+function buildSequence() {
   setImmersivePractice("", "");
   renderSequenceFilters();
-  if (isExamBundle(savedBundle)) {
-    state.sequence = savedBundle;
-    $("sequencePaper").innerHTML = renderFullExamPaper(state.sequence, "sequence", "scoreSequenceBottom");
-    $("scoreSequenceBottom").addEventListener("click", () => scoreFullExam(state.sequence, "sequence", "sequenceFeedback", "sequenceMode"));
-    bindDynamicControls();
-    resetSequenceTimer();
-    return;
-  }
   const sets = sequenceSets();
   const book = filterValue("sequenceBookFilter");
   const test = filterValue("sequenceTestFilter");
@@ -7769,7 +2932,6 @@ function buildSequence(savedBundle = null) {
   $("sequencePaper").innerHTML = renderFullExamPaper(state.sequence, "sequence", "scoreSequenceBottom");
   $("scoreSequenceBottom").addEventListener("click", () => scoreFullExam(state.sequence, "sequence", "sequenceFeedback", "sequenceMode"));
   bindDynamicControls();
-  resetSequenceTimer();
 }
 
 async function submitSingle() {
@@ -7781,25 +2943,16 @@ async function submitSingle() {
       const json = await postJson(`/api/${moduleName}/score`, { questions: item.questions || [], answers: collectAnswers("single") });
       setFeedback("singleFeedback", formatObjectiveFeedback(json), "singleMode", json.mode);
     } else if (moduleName === "writing") {
-      setFeedback("singleFeedback", "Writing feedback is being generated. Estimated time: 1-10 min.", "singleMode", "");
-      const tasks = (state.activeSingle.writingTasks || [state.activeSingle]).filter(Boolean).map(normalizeItem);
-      const prompt = tasks.map((task, index) => {
-        const taskName = task.type || `Task ${index + 1}`;
-        const body = [task.prompt, task.data].filter(Boolean).join("\n\nData: ");
-        return `${taskName}: ${task.title || "Writing task"}\n${body}`;
-      }).join("\n\n---\n\n");
-      const essay = tasks.map((task, index) => {
-        const taskName = task.type || `Task ${index + 1}`;
-        const value = $(`single-task${index + 1}-writing`)?.value.trim() || "";
-        return `${taskName} response:\n${value}`;
-      }).join("\n\n---\n\n");
-      const json = await runWritingFeedbackJob(prompt, essay, () => {
-        setFeedback("singleFeedback", "Writing feedback is being generated. Estimated time: 1-10 min.", "singleMode", "");
-      });
+      setFeedback("singleFeedback", "Scoring writing...", "singleMode", "");
+      const essay = $("single-writing").value.trim();
+      const item = normalizeItem(state.activeSingle);
+      const prompt = [item.prompt, item.data].filter(Boolean).join("\n\nData: ");
+      const json = await postJson("/api/writing/feedback", { prompt, essay });
       setFeedbackHtml("singleFeedback", feedbackWithPdfHtml(json.feedback, json, "ielts-writing-feedback.pdf"), "singleMode", json.mode);
     } else {
-      const item = normalizeItem(state.activeSingle);
-      await scoreSpeakingText("single", item.title || "Speaking", "singleFeedback", "singleMode");
+      const text = $("single-speaking")?.value.trim() || "";
+      const score = $("single-speaking-score")?.value.trim() || "";
+      setFeedback("singleFeedback", text || score ? `Speaking practice recorded.${score ? ` Self-reported band: ${score}.` : ""}` : "Start the speaking test first, then record the band here.", "singleMode", "link");
     }
   } catch (error) {
     setFeedback("singleFeedback", `Submit failed: ${error.message}`, "singleMode", "error");
@@ -7888,9 +3041,7 @@ async function submitUploadedWriting() {
   }
   setFeedback("uploadWritingFeedback", "Scoring in progress. Estimated time: 10 min.", "uploadWritingMode", "");
   try {
-    const json = await runWritingFeedbackJob(prompt, essay, () => {
-      setFeedback("uploadWritingFeedback", "Writing feedback is being generated. Estimated time: 1-10 min.", "uploadWritingMode", "");
-    });
+    const json = await postJson("/api/writing/feedback", { prompt, essay });
     setFeedbackHtml("uploadWritingFeedback", feedbackWithPdfHtml(json.feedback, json, "ielts-writing-feedback.pdf"), "uploadWritingMode", json.mode);
   } catch (error) {
     setFeedback("uploadWritingFeedback", `Submission failed: ${error.message}`, "uploadWritingMode", "error");
@@ -7898,64 +3049,15 @@ async function submitUploadedWriting() {
 }
 
 function setImmersivePractice(moduleName, targetId) {
-  const shouldFocus = ["listening", "reading", "writing", "speaking"].includes(moduleName);
-  if (moduleName !== "listening") {
-    document.body.classList.remove("listening-caption-rail-active");
-    restoreListeningCaptionRail();
-  }
+  const shouldFocus = moduleName === "listening" || moduleName === "reading";
   if (shouldFocus) applySidebarState(true);
   document.body.classList.toggle("immersive-mode", shouldFocus);
-  document.body.classList.remove("single-immersive-mode");
-  document.body.dataset.immersiveScope = shouldFocus ? "exam" : "";
-  document.body.dataset.immersiveModule = shouldFocus ? moduleName : "";
   document.querySelectorAll(".exam-section").forEach((section) => {
     section.classList.toggle("focused-section", shouldFocus && section.id === targetId);
   });
   document.querySelectorAll(".exam-quick-nav a[data-focus-module]").forEach((link) => {
     link.classList.toggle("active", shouldFocus && link.dataset.focusModule === moduleName);
   });
-  Object.entries(state.listeningCaptionState).forEach(([prefix, captionState]) => {
-    if (captionState?.enabled) mountListeningCaptionRail(prefix, moduleName === "listening");
-  });
-}
-
-function setSingleImmersive(moduleName = state.activeModule) {
-  applySidebarState(true);
-  if (moduleName !== "listening") {
-    document.body.classList.remove("listening-caption-rail-active");
-    restoreListeningCaptionRail();
-  }
-  document.body.classList.add("immersive-mode", "single-immersive-mode");
-  document.body.dataset.immersiveScope = "single";
-  document.body.dataset.immersiveModule = moduleName || "";
-  Object.entries(state.listeningCaptionState).forEach(([prefix, captionState]) => {
-    if (captionState?.enabled) mountListeningCaptionRail(prefix, moduleName === "listening");
-  });
-}
-
-function exitImmersiveMode() {
-  document.body.classList.remove("immersive-mode", "single-immersive-mode");
-  document.body.classList.remove("listening-caption-rail-active");
-  restoreListeningCaptionRail();
-  document.body.dataset.immersiveScope = "";
-  document.body.dataset.immersiveModule = "";
-  document.querySelectorAll(".exam-section").forEach((section) => {
-    section.classList.remove("focused-section");
-  });
-  document.querySelectorAll(".exam-quick-nav a[data-focus-module]").forEach((link) => {
-    link.classList.remove("active");
-  });
-}
-
-function backAndScrollToSubmit(targetId) {
-  exitImmersiveMode();
-  localStorage.setItem(sidebarStoreKey, "false");
-  applySidebarState(false);
-  const target = $(targetId);
-  setTimeout(() => {
-    target?.scrollIntoView({ behavior: "auto", block: "center" });
-    target?.focus?.({ preventScroll: true });
-  }, 80);
 }
 
 function scrollToExamSection(targetId) {
@@ -7971,85 +3073,7 @@ function scrollToExamSection(targetId) {
   setTimeout(run, 250);
 }
 
-async function ensureListeningCaptionPayload(prefix) {
-  if (listeningCaptionPayload(prefix)) return listeningCaptionPayload(prefix);
-  const root = $(`${prefix}-listening-studio`);
-  if (!root) return null;
-  let pageImageUrls = [];
-  if (root.dataset.pageImages) {
-    try {
-      pageImageUrls = JSON.parse(decodeURIComponent(root.dataset.pageImages));
-    } catch {
-      pageImageUrls = [];
-    }
-  }
-  return loadListeningScripts(prefix, root.dataset.listeningId || "", pageImageUrls);
-}
-
-function bindListeningCaptionPlayers() {
-  document.querySelectorAll(".listening-player[data-prefix]").forEach((audio) => {
-    if (audio.dataset.captionBound === "1") return;
-    audio.dataset.captionBound = "1";
-    const sync = async () => {
-      const prefix = audio.dataset.prefix || "single";
-      const captionState = state.listeningCaptionState[prefix];
-      if (!captionState?.enabled) return;
-      if (captionState.source === "asr") {
-        const session = listeningAsrSession(prefix);
-        if (!session.ws || session.audio !== audio) connectListeningAsr(prefix, audio.dataset.section || "", audio);
-        else attachListeningAsrAudio(prefix, audio);
-        return;
-      }
-      if (captionState.source === "timed-cache") {
-        updateListeningCaptionFromAudio(audio);
-        if (!audio.paused && !audio.ended) startTimedListeningCaptionLoop(prefix, audio);
-        return;
-      }
-      await ensureListeningCaptionPayload(prefix);
-      updateListeningCaptionFromAudio(audio);
-      if (state.listeningCaptionState[prefix]?.source === "timed-cache" && !audio.paused && !audio.ended) {
-        startTimedListeningCaptionLoop(prefix, audio);
-      }
-    };
-    audio.addEventListener("play", sync);
-    audio.addEventListener("playing", sync);
-    audio.addEventListener("canplay", sync);
-    audio.addEventListener("timeupdate", sync);
-    audio.addEventListener("pause", () => {
-      if (!audio.seeking) stopTimedListeningCaptionLoop(audio.dataset.prefix || "single", audio.dataset.section || "");
-    });
-    audio.addEventListener("seeking", () => startTimedListeningCaptionLoop(audio.dataset.prefix || "single", audio));
-    audio.addEventListener("seeked", () => {
-      resetTimedListeningCaptionAnchor(audio.dataset.prefix || "single", audio);
-      sync();
-    });
-    audio.addEventListener("loadedmetadata", sync);
-    audio.addEventListener("ended", () => {
-      const prefix = audio.dataset.prefix || "single";
-      const section = audio.dataset.section || "";
-      stopTimedListeningCaptionLoop(prefix, section);
-      if (state.listeningCaptionState[prefix]?.source === "asr") {
-        setListeningCaption(prefix, section, "Finalizing captions...", section ? `Section ${section}` : "Live caption");
-        maybeCommitListeningAsr(prefix, true);
-        window.setTimeout(() => {
-          persistListeningAsr(prefix);
-          stopListeningAsr(prefix);
-          setListeningCaption(prefix, section, "Section finished.", section ? `Section ${section}` : "Live caption");
-        }, 1800);
-      } else {
-        setListeningCaption(prefix, section, "Section finished.", section ? `Section ${section}` : "Live caption");
-      }
-    });
-  });
-}
-
 function bindDynamicControls() {
-  bindHelpControls();
-  bindPdfAnnotations();
-  bindListeningCaptionPlayers();
-  document.querySelectorAll(".back-submit-button").forEach((button) => {
-    button.onclick = () => backAndScrollToSubmit(button.dataset.submitTarget || "");
-  });
   document.querySelectorAll(".inline-sidebar-toggle").forEach((button) => {
     button.onclick = () => {
       localStorage.setItem(sidebarStoreKey, "false");
@@ -8065,10 +3089,6 @@ function bindDynamicControls() {
       stopExamTimer();
     };
   }
-  const sequenceStickyTimerToggle = $("sequenceStickyTimerToggle");
-  if (sequenceStickyTimerToggle) sequenceStickyTimerToggle.onclick = () => (state.sequenceTimerId ? stopSequenceTimer() : startSequenceTimer());
-  const sequenceStickyTimerReset = $("sequenceStickyTimerReset");
-  if (sequenceStickyTimerReset) sequenceStickyTimerReset.onclick = resetSequenceTimer;
   document.querySelectorAll(".exam-quick-nav a[data-focus-module]").forEach((link) => {
     link.onclick = (event) => {
       event.preventDefault();
@@ -8082,18 +3102,10 @@ function bindDynamicControls() {
     button.onclick = () => playTranscript(decodeURIComponent(button.dataset.text || ""));
   });
   document.querySelectorAll(".play-source-audio").forEach((button) => {
-    button.onclick = () => {
-      if (button.dataset.prefix && button.dataset.section) {
-        highlightListeningScriptPart(button.dataset.prefix, button.dataset.section);
-      }
-      playAudioUrl(button.dataset.url);
-    };
+    button.onclick = () => playAudioUrl(button.dataset.url);
   });
   document.querySelectorAll(".reveal-transcript").forEach((button) => {
     button.onclick = () => $(button.dataset.target).classList.toggle("show");
-  });
-  document.querySelectorAll(".listening-caption-toggle").forEach((button) => {
-    button.onclick = () => toggleListeningCaptions(button);
   });
   document.querySelectorAll("textarea[id$='writing']").forEach((textarea) => {
     textarea.oninput = () => {
@@ -8118,14 +3130,6 @@ function bindDynamicControls() {
   });
   document.querySelectorAll(".qwen-disconnect").forEach((button) => {
     button.onclick = () => disconnectQwenSpeaking(button.dataset.prefix);
-  });
-  document.querySelectorAll(".score-speaking-text").forEach((button) => {
-    button.onclick = () => scoreSpeakingText(button.dataset.prefix, button.dataset.topic);
-  });
-  document.querySelectorAll(".view.active textarea, .view.active input.answer-input, .view.active input.paper-answer-input, .view.active input.page-card-input, .view.active input.band-input").forEach((field) => {
-    if (field.dataset.draftBound === "1") return;
-    field.dataset.draftBound = "1";
-    field.addEventListener("input", scheduleDraftAutosave);
   });
 }
 
@@ -8271,7 +3275,6 @@ function applySidebarState(collapsed) {
   const toggle = $("toggleSidebar");
   if (!shell || !toggle) return;
   shell.classList.toggle("sidebar-collapsed", collapsed);
-  document.body.classList.toggle("sidebar-is-collapsed", collapsed);
   toggle.textContent = collapsed ? ">" : "<";
   toggle.setAttribute("aria-expanded", String(!collapsed));
   toggle.setAttribute("aria-label", collapsed ? "Open sidebar" : "Collapse sidebar");
@@ -8307,10 +3310,6 @@ function activateView(viewId, updateHash = false) {
   document.querySelectorAll(".view").forEach((item) => item.classList.remove("active"));
   tab.classList.add("active");
   view.classList.add("active");
-  if (window.matchMedia("(min-width: 681px) and (max-width: 1024px)").matches) {
-    localStorage.setItem(sidebarStoreKey, "true");
-    applySidebarState(true);
-  }
   if (updateHash) history.replaceState(null, "", "#" + viewId);
 }
 
@@ -8328,109 +3327,28 @@ function applyInitialHash() {
 }
 
 function bindEvents() {
-  bindHelpControls();
-  $("helpCaptureAgain")?.addEventListener("click", beginHelpCapture);
-  $("helpAttachImage")?.addEventListener("click", () => beginHelpCapture("attach"));
-  $("helpAttachmentClear")?.addEventListener("click", () => {
-    state.help.pendingImageDataUrl = "";
-    updateHelpAttachmentPreview();
-    setHelpStatus("Ready");
-  });
-  $("helpCaptureConfirm")?.addEventListener("click", confirmHelpSelection);
-  $("helpCaptureRetake")?.addEventListener("click", retakeHelpSelection);
-  $("helpSaveVocab")?.addEventListener("click", saveHelpVocabulary);
-  $("toggleAnnotation")?.addEventListener("click", () => setAnnotationMode(!state.annotation.enabled || state.annotation.erasing, false));
-  $("toggleEraser")?.addEventListener("click", () => setAnnotationMode(!state.annotation.erasing, true));
-  $("clearAnnotation")?.addEventListener("click", clearVisibleAnnotationPage);
-  $("helpCaptureCancel")?.addEventListener("click", () => {
-    hideHelpCaptureOverlay();
-    stopHelpCaptureStream();
-    setHelpStatus("Ready");
-  });
-  $("helpChatClose")?.addEventListener("click", closeHelpPanel);
-  $("helpChatForm")?.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const input = $("helpChatInput");
-    const message = input?.value || "";
-    if (input) input.value = "";
-    await sendHelpChatMessage(message);
-  });
-  const helpOverlay = $("helpCaptureOverlay");
-  if (helpOverlay) {
-    helpOverlay.addEventListener("mousedown", beginHelpSelection);
-    helpOverlay.addEventListener("mousemove", moveHelpSelection);
-    helpOverlay.addEventListener("mouseup", finishHelpSelection);
-    helpOverlay.addEventListener("touchstart", beginHelpSelection, { passive: false });
-    helpOverlay.addEventListener("touchmove", moveHelpSelection, { passive: false });
-    helpOverlay.addEventListener("touchend", finishHelpSelection, { passive: false });
-    helpOverlay.addEventListener("touchcancel", () => {
-      hideHelpCaptureOverlay();
-      stopHelpCaptureStream();
-      setHelpStatus("Ready");
-    });
-  }
-  const helpToolbar = $("helpCaptureToolbar");
-  if (helpToolbar) {
-    ["mousedown", "mousemove", "mouseup", "touchstart", "touchmove", "touchend", "click"].forEach((eventName) => {
-      helpToolbar.addEventListener(eventName, (event) => event.stopPropagation(), { passive: false });
-    });
-  }
-  document.addEventListener("mousemove", moveHelpSelection);
-  document.addEventListener("mouseup", finishHelpSelection);
-  document.addEventListener("touchmove", moveHelpSelection, { passive: false });
-  document.addEventListener("touchend", finishHelpSelection, { passive: false });
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && !$("helpCaptureOverlay")?.hidden) {
-      hideHelpCaptureOverlay();
-      stopHelpCaptureStream();
-      setHelpStatus("Ready");
-    }
-    if (event.key === "Escape" && !$("captionTranscriptOverlay")?.hidden) {
-      closeListeningCaptionTranscript();
-    }
-  });
-  document.addEventListener("click", (event) => {
-    const transcriptClose = event.target.closest?.("#captionTranscriptClose");
-    if (transcriptClose) {
-      closeListeningCaptionTranscript();
-      return;
-    }
-    const overlay = event.target.closest?.("#captionTranscriptOverlay");
-    if (overlay && event.target === overlay) {
-      closeListeningCaptionTranscript();
-      return;
-    }
-    const captionBar = event.target.closest?.(".listening-caption-bar");
-    if (captionBar && !captionBar.hidden) {
-      openListeningCaptionTranscript(captionBar.dataset.prefix || "", captionBar.dataset.section || "");
-    }
-  });
   initSidebarToggle();
   $("globalSidebarToggle")?.addEventListener("click", () => {
     revealSidebarFromCurrentPosition();
   });
   document.querySelectorAll(".tab").forEach((button) => {
     button.addEventListener("click", () => {
-      syncCurrentDraftNow();
       setImmersivePractice("", "");
       activateView(button.dataset.view, true);
-      renderMine();
     });
   });
   document.querySelectorAll(".module-btn").forEach((button) => {
     button.addEventListener("click", () => {
-      syncCurrentDraftNow();
       document.querySelectorAll(".module-btn").forEach((item) => item.classList.remove("active"));
       button.classList.add("active");
       state.activeModule = button.dataset.module;
       state.activeSingle = null;
       resetSingleTimer(state.activeModule);
       renderSingle();
-      setSingleImmersive(state.activeModule);
     });
   });
   $("singleSelect").addEventListener("change", (event) => {
-    state.activeSingle = singleOptions(state.activeModule).find((item) => item.id === event.target.value);
+    state.activeSingle = applySingleFilters(mergedItems(state.activeModule).map(normalizeItem), state.activeModule).find((item) => item.id === event.target.value);
     renderSingle();
   });
   ["singleBookFilter", "singleTestFilter", "singleTaskFilter"].forEach((id) => {
@@ -8464,8 +3382,6 @@ function bindEvents() {
     state.examSeconds = state.examTotal;
     stopExamTimer();
   });
-  $("sequenceTimerToggle").addEventListener("click", () => (state.sequenceTimerId ? stopSequenceTimer() : startSequenceTimer()));
-  $("sequenceTimerReset").addEventListener("click", resetSequenceTimer);
   $("singleTimerToggle").addEventListener("click", () => (state.singleTimerId ? stopSingleTimer() : startSingleTimer()));
   $("singleTimerReset").addEventListener("click", () => resetSingleTimer(state.activeModule));
   $("saveBankItem").addEventListener("click", saveBankItem);
@@ -8502,7 +3418,6 @@ function bindEvents() {
 
 async function init() {
   bindEvents();
-  state.authToken = localStorage.getItem(authStoreKey) || "";
   loadBank();
   state.data = await fetch("/api/tasks").then((res) => res.json());
   $("aiStatus").textContent = state.data.aiEnabled
@@ -8512,14 +3427,10 @@ async function init() {
     .map((source) => `<a href="${source.url}" target="_blank" rel="noreferrer">${source.label}</a>`)
     .join("");
   renderBankList();
-  updateUserChrome();
-  renderMine();
-  refreshMineData();
   renderSingle();
-  $("examPaper").innerHTML = `<section class="panel notice">Click Generate random exam to load a full paper.</section>`;
-  $("sequencePaper").innerHTML = `<section class="panel notice">Choose a Cambridge test, then click Generate same-test paper.</section>`;
+  buildExam();
+  buildSequence();
   renderExamTimer();
-  renderSequenceTimer();
   resetSingleTimer(state.activeModule);
 
   const singleActions = document.createElement("div");
