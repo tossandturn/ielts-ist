@@ -1,28 +1,29 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>IELTS-ist</title>
-    <link rel="stylesheet" href="/styles.css?v=20260718-english-fix-1" />
+    <link rel="stylesheet" href="/styles.css?v=20260725-ux-rollback-2" />
   </head>
   <body>
     <div class="app-shell">
       <aside class="sidebar">
         <button id="toggleSidebar" class="sidebar-toggle" type="button" aria-label="Toggle sidebar" aria-expanded="true">&lt;</button>
         <div class="brand">
-          <div class="brand-mark">I</div>
+          <div id="brandAvatar" class="brand-mark">I</div>
           <div>
             <h1>IELTS-ist</h1>
-            <p>Cambridge IELTS practice / single modules / writing feedback</p>
+            <p id="brandUserInfo">Cambridge IELTS practice / single modules / writing feedback</p>
           </div>
         </div>
         <div id="aiStatus" class="status-pill">Checking AI</div>
         <nav class="tabs" aria-label="Main navigation">
-          <button class="tab active" data-view="exam" data-short="Exam">Random exam</button>
+          <button class="tab active" data-view="single" data-short="One">Single module</button>
+          <button class="tab" data-view="exam" data-short="Exam">Random exam</button>
           <button class="tab" data-view="sequence" data-short="Seq">Same test</button>
-          <button class="tab" data-view="single" data-short="One">Single module</button>
           <button class="tab" data-view="writing-upload" data-short="Write">Writing feedback</button>
+          <button class="tab" data-view="mine" data-short="Mine">Mine</button>
           <button class="tab" data-view="bank" data-short="Bank">Question bank</button>
           <button class="tab" data-view="sources" data-short="Src">Sources</button>
         </nav>
@@ -35,13 +36,14 @@
       <main>
         <button id="globalSidebarToggle" class="inline-sidebar-toggle global-sidebar-toggle" type="button" aria-label="Open sidebar">&gt;</button>
 
-        <section id="exam" class="view active">
+        <section id="exam" class="view">
           <div class="view-head">
             <div>
               <h2>Random Full Exam</h2>
               <p>Randomly combine listening, reading, writing and speaking practice from the local question bank.</p>
             </div>
             <div class="timer">
+              <button class="help-capture-button" type="button" data-help-trigger>Help</button>
               <span id="examTimer">02:44:00</span>
               <button id="examTimerToggle" class="icon-btn">Start</button>
               <button id="examTimerReset" class="icon-btn">Reset</button>
@@ -67,7 +69,10 @@
               <p>Choose one Cambridge IELTS book and test, then practise the complete set in order.</p>
             </div>
             <div class="timer">
-              <span>Same Test</span>
+              <button class="help-capture-button" type="button" data-help-trigger>Help</button>
+              <span id="sequenceTimer">02:44:00</span>
+              <button id="sequenceTimerToggle" class="icon-btn">Start</button>
+              <button id="sequenceTimerReset" class="icon-btn">Reset</button>
             </div>
           </div>
           <div class="single-filters">
@@ -87,7 +92,7 @@
           </section>
         </section>
 
-        <section id="single" class="view">
+        <section id="single" class="view active">
           <div class="view-head">
             <div>
               <h2>Single Module</h2>
@@ -98,11 +103,17 @@
               <button class="module-btn" data-module="reading">Reading</button>
               <button class="module-btn" data-module="writing">Writing</button>
               <button class="module-btn" data-module="speaking">Speaking</button>
+              <button id="singleBackSubmit" class="back-submit-button" type="button" data-submit-target="submitSingle">Back and submit</button>
             </div>
             <div class="timer single-sticky-timer">
+              <button class="help-capture-button" type="button" data-help-trigger>Help</button>
               <span id="singleTimer">00:30:00</span>
               <button id="singleTimerToggle" class="icon-btn">Start</button>
               <button id="singleTimerReset" class="icon-btn">Reset</button>
+            </div>
+            <div id="singleCaptionBar" class="listening-caption-bar" hidden>
+              <span id="singleCaptionKicker">Captions</span>
+              <strong id="singleCaptionLine">Play audio to show captions.</strong>
             </div>
           </div>
           <section class="panel">
@@ -154,6 +165,16 @@
             </div>
             <div id="uploadWritingFeedback" class="feedback-output empty">Submit a prompt and essay to see feedback.</div>
           </section>
+        </section>
+
+        <section id="mine" class="view">
+          <div class="view-head">
+            <div>
+              <h2>Mine</h2>
+              <p>Account, membership, drafts and vocabulary notebook.</p>
+            </div>
+          </div>
+          <div id="mineContent" class="mine-layout"></div>
         </section>
 
         <section id="bank" class="view">
@@ -215,6 +236,50 @@
         </section>
       </main>
     </div>
-    <script src="/app.js?v=20260718-english-fix-1"></script>
+    <div id="helpCaptureOverlay" class="help-capture-overlay" hidden>
+      <div class="help-capture-hint">Drag on the PDF, then adjust the box and tap Explain</div>
+      <div id="helpCaptureSelection" class="help-capture-selection">
+        <span class="help-selection-handle nw" data-help-handle="nw"></span>
+        <span class="help-selection-handle ne" data-help-handle="ne"></span>
+        <span class="help-selection-handle sw" data-help-handle="sw"></span>
+        <span class="help-selection-handle se" data-help-handle="se"></span>
+      </div>
+      <div id="helpCaptureToolbar" class="help-capture-toolbar" hidden>
+        <button id="helpCaptureConfirm" class="primary" type="button">Explain</button>
+        <button id="helpCaptureRetake" class="secondary" type="button">Retake</button>
+        <button id="helpCaptureCancel" class="secondary" type="button">Cancel</button>
+      </div>
+    </div>
+    <aside id="helpChatPanel" class="help-chat-panel" aria-label="Help chat" hidden>
+      <div class="help-chat-head">
+        <div>
+          <strong>Help</strong>
+          <span id="helpChatStatus">Ready</span>
+        </div>
+        <div class="help-chat-actions">
+          <button id="helpSaveVocab" class="icon-btn" type="button">Save note</button>
+          <button id="helpCaptureAgain" class="icon-btn" type="button">Capture</button>
+          <button id="helpChatClose" class="icon-btn" type="button">Close</button>
+        </div>
+      </div>
+      <div id="helpChatLog" class="help-chat-log"></div>
+      <form id="helpChatForm" class="help-chat-form">
+        <div class="help-chat-composer">
+          <div id="helpAttachmentPreview" class="help-attachment-preview" hidden>
+            <span>Screenshot attached</span>
+            <button id="helpAttachmentClear" class="icon-btn" type="button" aria-label="Remove screenshot">Remove</button>
+          </div>
+          <textarea id="helpChatInput" rows="2" placeholder="Ask about this question..."></textarea>
+          <button id="helpAttachImage" class="icon-btn help-attach-button" type="button" aria-label="Attach screenshot">Capture</button>
+        </div>
+        <button class="primary" type="submit">Send</button>
+      </form>
+    </aside>
+    <div id="annotationToolbar" class="annotation-toolbar" aria-label="PDF annotation tools">
+      <button id="toggleAnnotation" class="icon-btn" type="button">Draw</button>
+      <button id="toggleEraser" class="icon-btn" type="button">Erase</button>
+      <button id="clearAnnotation" class="icon-btn" type="button">Clear page</button>
+    </div>
+    <script src="/app.js?v=20260725-reading-caption-draft-15"></script>
   </body>
 </html>
