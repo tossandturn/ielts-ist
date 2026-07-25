@@ -3752,7 +3752,7 @@ body.has-pdf-pages .annotation-toolbar .icon-btn {
 }
 
 body.has-pdf-pages .annotation-toolbar .icon-btn:not(#toggleAnnotation) {
-  display: none;
+  display: inline-flex;
 }
 
 body.has-pdf-pages .annotation-toolbar:hover .icon-btn,
@@ -4280,6 +4280,12 @@ body.single-immersive-mode[data-immersive-module="speaking"] #singleContent {
   gap: 8px !important;
 }
 
+body.single-immersive-mode[data-immersive-module="writing"] #singleContent .exam-two-column {
+  height: calc(100dvh - 120px) !important;
+  min-height: 0 !important;
+  grid-template-columns: minmax(0, 62fr) minmax(300px, 38fr) !important;
+}
+
 body.single-immersive-mode[data-immersive-module="writing"] #singleContent .exam-left-pane,
 body.single-immersive-mode[data-immersive-module="writing"] #singleContent .exam-right-pane,
 body.immersive-mode[data-immersive-module="writing"] .exam-section.focused-section .exam-left-pane,
@@ -4292,6 +4298,18 @@ body.single-immersive-mode[data-immersive-module="speaking"] #singleContent .qwe
 
 body.single-immersive-mode[data-immersive-module="speaking"] #singleContent .qwen-speaking {
   border-left: 1px solid rgba(198, 209, 219, 0.8) !important;
+}
+
+body.single-immersive-mode[data-immersive-module="writing"] #singleContent .exam-left-pane,
+body.single-immersive-mode[data-immersive-module="writing"] #singleContent .exam-right-pane {
+  height: 100% !important;
+  max-height: none !important;
+  overflow: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+body.single-immersive-mode[data-immersive-module="writing"] #singleContent .writing-answer-block textarea {
+  min-height: calc((100dvh - 210px) / 2) !important;
 }
 
 body.listening-caption-rail-active.single-immersive-mode[data-immersive-module="listening"] #singleContent .pdf-study-layout.caption-rail-mounted > .listening-caption-bar,
@@ -4674,6 +4692,68 @@ body.immersive-mode[data-immersive-module="speaking"] .exam-section.focused-sect
 body.immersive-mode[data-immersive-module="speaking"] .exam-section.focused-section .speaking-two-column:not(:has(.pdf-pages)) .qwen-speaking {
   height: auto !important;
   min-height: 420px !important;
+}
+
+/* Listening exam layout guard: same rules for Single, Random, and Same Test. */
+body.single-immersive-mode[data-immersive-module="listening"] #singleContent .pdf-study-layout,
+body.immersive-mode[data-immersive-module="listening"] .exam-section.focused-section .pdf-study-layout {
+  height: calc(100dvh - 120px) !important;
+  min-height: 0 !important;
+  grid-template-columns: minmax(0, 82fr) minmax(240px, 18fr) !important;
+  gap: 8px !important;
+  overflow: hidden !important;
+}
+
+body.single-immersive-mode[data-immersive-module="listening"] #singleContent .pdf-scroll-box,
+body.single-immersive-mode[data-immersive-module="listening"] #singleContent .paper-answer-scroll,
+body.immersive-mode[data-immersive-module="listening"] .exam-section.focused-section .pdf-scroll-box,
+body.immersive-mode[data-immersive-module="listening"] .exam-section.focused-section .paper-answer-scroll {
+  height: 100% !important;
+  max-height: none !important;
+  overflow: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+body.single-immersive-mode[data-immersive-module="listening"] #singleContent .pdf-page-list,
+body.immersive-mode[data-immersive-module="listening"] .exam-section.focused-section .pdf-page-list {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+body.single-immersive-mode[data-immersive-module="listening"] #singleContent .pdf-page img,
+body.immersive-mode[data-immersive-module="listening"] .exam-section.focused-section .pdf-page img {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin-left: 0 !important;
+}
+
+body.listening-caption-rail-active.single-immersive-mode[data-immersive-module="listening"] #singleContent .pdf-study-layout.caption-rail-mounted,
+body.listening-caption-rail-active.immersive-mode[data-immersive-module="listening"] .exam-section.focused-section .pdf-study-layout.caption-rail-mounted {
+  grid-template-columns: clamp(130px, 8vw, 170px) minmax(0, 1fr) minmax(240px, 18vw) !important;
+  height: calc(100dvh - 120px) !important;
+  overflow: hidden !important;
+}
+
+body.listening-caption-rail-active.single-immersive-mode[data-immersive-module="listening"] #singleContent .pdf-study-layout.caption-rail-mounted > .listening-caption-bar,
+body.listening-caption-rail-active.immersive-mode[data-immersive-module="listening"] .exam-section.focused-section .pdf-study-layout.caption-rail-mounted > .listening-caption-bar {
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+  height: 100% !important;
+  max-height: none !important;
+}
+
+body.listening-caption-rail-active.single-immersive-mode[data-immersive-module="listening"] #singleContent .pdf-study-layout.caption-rail-mounted > .pdf-scroll-box,
+body.listening-caption-rail-active.immersive-mode[data-immersive-module="listening"] .exam-section.focused-section .pdf-study-layout.caption-rail-mounted > .pdf-scroll-box {
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+  min-width: 0 !important;
+}
+
+body.listening-caption-rail-active.single-immersive-mode[data-immersive-module="listening"] #singleContent .pdf-study-layout.caption-rail-mounted > .paper-answer-scroll,
+body.listening-caption-rail-active.immersive-mode[data-immersive-module="listening"] .exam-section.focused-section .pdf-study-layout.caption-rail-mounted > .paper-answer-scroll {
+  grid-column: 3 !important;
+  grid-row: 1 !important;
+  min-width: 0 !important;
 }
 
 /* Keep collapsed-sidebar safety after later UI overrides. */

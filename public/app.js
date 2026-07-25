@@ -3842,6 +3842,12 @@ function startTimedListeningCaptionLoop(prefix, audio) {
   state.listeningTimedCaptionLoops[key] = setTimeout(run, 60);
 }
 
+function restartTimedListeningCaptionLoop(prefix, audio) {
+  if (!audio) return;
+  stopTimedListeningCaptionLoop(prefix, audio.dataset?.section || "");
+  startTimedListeningCaptionLoop(prefix, audio);
+}
+
 function updateTimedListeningCaption(prefix, section, selected, audio) {
   const payload = listeningCaptionPayload(prefix);
   const model = listeningTimedCaptionModel(selected, payload);
@@ -4430,7 +4436,7 @@ async function toggleListeningCaptions(button) {
       if (activeAudio) {
         resetTimedListeningCaptionAnchor(prefix, activeAudio);
         updateListeningCaptionFromAudio(activeAudio);
-        if (!activeAudio.paused && !activeAudio.ended) startTimedListeningCaptionLoop(prefix, activeAudio);
+        if (!activeAudio.paused && !activeAudio.ended) restartTimedListeningCaptionLoop(prefix, activeAudio);
       } else {
         highlightListeningScriptPart(prefix, section);
       }
@@ -7990,7 +7996,7 @@ function bindListeningCaptionPlayers() {
   document.querySelectorAll(".listening-player[data-prefix]").forEach((audio) => {
     if (audio.dataset.captionBound === "1") return;
     audio.dataset.captionBound = "1";
-    const sync = async () => {
+    const sync = async ({ restart = false } = {}) => {
       const prefix = audio.dataset.prefix || "single";
       const captionState = state.listeningCaptionState[prefix];
       if (!captionState?.enabled) return;
@@ -8002,28 +8008,33 @@ function bindListeningCaptionPlayers() {
       }
       if (captionState.source === "timed-cache") {
         updateListeningCaptionFromAudio(audio);
-        if (!audio.paused && !audio.ended) startTimedListeningCaptionLoop(prefix, audio);
+        if (restart && !audio.paused && !audio.ended) restartTimedListeningCaptionLoop(prefix, audio);
+        else if (!audio.paused && !audio.ended) startTimedListeningCaptionLoop(prefix, audio);
         return;
       }
       await ensureListeningCaptionPayload(prefix);
       updateListeningCaptionFromAudio(audio);
       if (state.listeningCaptionState[prefix]?.source === "timed-cache" && !audio.paused && !audio.ended) {
-        startTimedListeningCaptionLoop(prefix, audio);
+        if (restart) restartTimedListeningCaptionLoop(prefix, audio);
+        else startTimedListeningCaptionLoop(prefix, audio);
       }
     };
-    audio.addEventListener("play", sync);
-    audio.addEventListener("playing", sync);
-    audio.addEventListener("canplay", sync);
-    audio.addEventListener("timeupdate", sync);
+    audio.addEventListener("play", () => sync({ restart: true }));
+    audio.addEventListener("playing", () => sync({ restart: true }));
+    audio.addEventListener("canplay", () => sync({ restart: false }));
+    audio.addEventListener("timeupdate", () => sync({ restart: false }));
     audio.addEventListener("pause", () => {
       if (!audio.seeking) stopTimedListeningCaptionLoop(audio.dataset.prefix || "single", audio.dataset.section || "");
     });
-    audio.addEventListener("seeking", () => startTimedListeningCaptionLoop(audio.dataset.prefix || "single", audio));
+    audio.addEventListener("seeking", () => {
+      const prefix = audio.dataset.prefix || "single";
+      stopTimedListeningCaptionLoop(prefix, audio.dataset.section || "");
+    });
     audio.addEventListener("seeked", () => {
       resetTimedListeningCaptionAnchor(audio.dataset.prefix || "single", audio);
-      sync();
+      sync({ restart: true });
     });
-    audio.addEventListener("loadedmetadata", sync);
+    audio.addEventListener("loadedmetadata", () => sync({ restart: false }));
     audio.addEventListener("ended", () => {
       const prefix = audio.dataset.prefix || "single";
       const section = audio.dataset.section || "";
