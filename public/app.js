@@ -3439,7 +3439,6 @@ function clearListeningCaption(prefix) {
 }
 
 function resetListeningCaptionSession(prefix) {
-  persistListeningAsr(prefix);
   stopListeningAsr(prefix);
   stopTimedListeningCaptionLoop(prefix);
   delete state.listeningCaptionState[prefix];
@@ -3741,7 +3740,7 @@ function setListeningCaptionConversation(prefix, section, entries, kicker = "") 
   if (header.line) {
     const lines = entries
       .filter((entry) => entry?.text)
-      .slice(-1)
+      .slice(-5)
       .map((entry) => {
         const voice = listeningCaptionVoice(prefix, entry.speaker || "Voice 1", section);
         return captionDisplayLineHtml({ speaker: entry.speaker || "", text: entry.text, voice });
@@ -3910,42 +3909,6 @@ function timedCaptionVisibleCountForTime(words, currentTime) {
   return Math.max(0, Math.min(words.length, count));
 }
 
-function qwenAsrTextFromPayload(payload = {}) {
-  const candidates = [
-    payload.text,
-    payload.transcript,
-    payload.delta,
-    payload.output_text,
-    payload.audio_transcript,
-    payload.transcription,
-    payload.transcription?.text,
-    payload.transcript?.text,
-    payload.output?.text,
-    payload.output?.transcript,
-    payload.delta?.text,
-    payload.delta?.transcript,
-    payload.item?.content?.map?.((part) => part?.text || part?.transcript || "").join(" "),
-    payload.content?.map?.((part) => part?.text || part?.transcript || "").join(" "),
-    payload.response?.output_text,
-    payload.response?.text,
-    payload.response?.output?.map?.((item) => item?.content?.map?.((part) => part?.text || part?.transcript || "").join(" ")).join(" "),
-  ];
-  for (const value of candidates) {
-    if (value === null || value === undefined || typeof value === "object") continue;
-    const text = String(value || "").replace(/\s+/g, " ").trim();
-    if (text) return text;
-  }
-  return "";
-}
-
-function qwenAsrCaptionLine(text) {
-  const sentences = listeningCaptionSentences(text);
-  const last = sentences[sentences.length - 1] || "";
-  const previous = sentences[sentences.length - 2] || "";
-  if (previous && `${previous}\n${last}`.length <= 220) return `${previous}\n${last}`;
-  return last || String(text || "").replace(/\s+/g, " ").trim().slice(-156);
-}
-
 async function loadListeningAsrCache(prefix, section) {
   const id = listeningRootItemId(prefix);
   if (!id || !section) return null;
@@ -3961,335 +3924,11 @@ function isUsableListeningCaptionSource(text) {
   const clean = String(text || "").replace(/\s+/g, " ").trim();
   const words = clean.split(/\s+/).filter(Boolean);
   if (words.length < 80) return false;
-  if (/published by cambridge|this recording is copyright|cambridge assessment english/i.test(clean) && words.length < 180) return false;
   return true;
 }
 
-async function saveListeningAsrCache(prefix, section, text) {
-  const id = listeningRootItemId(prefix);
-  const clean = String(text || "").replace(/\s+/g, " ").trim();
-  if (!id || !section || !isUsableListeningCaptionSource(clean)) return;
-  try {
-    await postJson("/api/listening/asr-cache", { id, section, text: clean, source: listeningAsrCacheSource });
-  } catch {
-    // Captions remain usable even if cache persistence fails.
-  }
-}
-
-function listeningAsrSession(prefix) {
-  state.listeningAsr[prefix] ||= {
-    ws: null,
-    connected: false,
-    audio: null,
-    audioContext: null,
-    sourceNode: null,
-    processor: null,
-    gainNode: null,
-    pcmBuffer: [],
-    pcmPosition: 0,
-    currentText: "",
-    lastIncomingText: "",
-    liveItems: {},
-    statusTimer: null,
-    lastCommitAt: 0,
-    lastVoiceAt: 0,
-    segmentStartedAt: 0,
-    segmentHadVoice: false,
-    noiseFloor: 0.006,
-    section: "",
-  };
-  return state.listeningAsr[prefix];
-}
-
 function stopListeningAsr(prefix) {
-  const session = state.listeningAsr[prefix];
-  if (!session) return;
-  try {
-    if (session.sourceNode && session.processor) session.sourceNode.disconnect(session.processor);
-  } catch {}
-  try {
-    session.processor?.disconnect();
-  } catch {}
-  try {
-    if (session.ws?.readyState === WebSocket.OPEN) session.ws.send(JSON.stringify({ type: "disconnect" }));
-    session.ws?.close();
-  } catch {}
-  if (session.statusTimer) clearTimeout(session.statusTimer);
-  session.ws = null;
-  session.connected = false;
-  session.audio = null;
-  session.audioContext = null;
-  session.sourceNode = null;
-  session.processor = null;
-  session.gainNode = null;
-  session.pcmBuffer = [];
-  session.pcmPosition = 0;
-  session.currentText = "";
-  session.lastIncomingText = "";
-  session.liveItems = {};
-  session.statusTimer = null;
-  session.lastCommitAt = 0;
-  session.lastVoiceAt = 0;
-  session.segmentStartedAt = 0;
-  session.segmentHadVoice = false;
-  session.noiseFloor = 0.006;
-  session.section = "";
-}
-
-function listeningAudioGraph(audio) {
-  if (!audio) return null;
-  const existing = listeningAudioGraphs.get(audio);
-  if (existing) return existing;
-  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContextClass) return null;
-  const context = new AudioContextClass({ latencyHint: "interactive" });
-  const sourceNode = context.createMediaElementSource(audio);
-  const gainNode = context.createGain();
-  gainNode.gain.value = 1;
-  sourceNode.connect(gainNode);
-  gainNode.connect(context.destination);
-  const graph = { context, sourceNode, gainNode };
-  listeningAudioGraphs.set(audio, graph);
-  return graph;
-}
-
-function persistListeningAsr(prefix) {
-  const session = state.listeningAsr[prefix];
-  if (!session?.currentText || !session.section) return;
-  saveListeningAsrCache(prefix, session.section, session.currentText);
-}
-
-function appendListeningAsrText(prefix, section, text, final = false) {
-  const clean = normalizeListeningCaptionText(text);
-  if (!clean) return;
-  const session = listeningAsrSession(prefix);
-  if (session.statusTimer) {
-    clearTimeout(session.statusTimer);
-    session.statusTimer = null;
-  }
-  session.currentText = mergeAsrTranscript(session.currentText, clean, session.lastIncomingText);
-  session.lastIncomingText = clean;
-  state.listeningCaptionState[prefix] = { enabled: true, section, source: "asr" };
-  setListeningCaption(prefix, section, qwenAsrCaptionLine(session.currentText), `Qwen ASR · Section ${section}`);
-  if (final || session.currentText.length >= 120) {
-    saveListeningAsrCache(prefix, section, session.currentText);
-  }
-}
-
-function listeningAsrItemId(payload = {}) {
-  return String(payload.item_id || payload.itemId || payload.item?.id || payload.id || "live").trim() || "live";
-}
-
-function qwenAsrLiveTextFromPayload(payload = {}) {
-  const text = [
-    payload.text,
-    payload.stash,
-    payload.delta,
-    payload.transcript,
-  ]
-    .filter((value) => typeof value === "string" && value.trim())
-    .join(" ");
-  return normalizeListeningCaptionText(text);
-}
-
-function renderListeningAsrPreview(prefix, section) {
-  const session = listeningAsrSession(prefix);
-  if (session.statusTimer) {
-    clearTimeout(session.statusTimer);
-    session.statusTimer = null;
-  }
-  const liveText = Object.values(session.liveItems || {})
-    .filter(Boolean)
-    .join(" ");
-  const previewText = normalizeListeningCaptionText(`${session.currentText || ""} ${liveText}`.trim());
-  if (!previewText) return;
-  state.listeningCaptionState[prefix] = { enabled: true, section, source: "asr" };
-  setListeningCaption(prefix, section, qwenAsrCaptionLine(previewText), `Live captions · Section ${section}`);
-}
-
-function mergeAsrTranscript(existing, incoming, previousIncoming = "") {
-  const base = normalizeListeningCaptionText(existing);
-  const next = normalizeListeningCaptionText(incoming);
-  const previous = normalizeListeningCaptionText(previousIncoming);
-  if (!base) return next;
-  if (!next) return base;
-  if (next.toLowerCase().startsWith(base.toLowerCase())) return next;
-  if (base.toLowerCase().endsWith(next.toLowerCase())) return base;
-  if (previous && next.toLowerCase().startsWith(previous.toLowerCase())) {
-    const delta = normalizeListeningCaptionText(next.slice(previous.length));
-    return delta ? mergeAsrTranscript(base, delta, "") : base;
-  }
-
-  const baseLower = base.toLowerCase();
-  const nextLower = next.toLowerCase();
-  const maxOverlap = Math.min(base.length, next.length, 120);
-  for (let length = maxOverlap; length >= 6; length -= 1) {
-    if (baseLower.slice(-length) === nextLower.slice(0, length)) {
-      return normalizeListeningCaptionText(`${base}${next.slice(length)}`);
-    }
-  }
-  return normalizeListeningCaptionText(`${base} ${next}`);
-}
-
-function handleListeningAsrMessage(prefix, section, message) {
-  if (message?.type === "status") {
-    if (message.status === "qwen-asr-open") {
-      const session = listeningAsrSession(prefix);
-      session.connected = true;
-      setListeningCaption(prefix, section, "Live captions are listening. Play audio if no words appear.", `Qwen ASR · Section ${section}`);
-      if (session.audio) attachListeningAsrAudio(prefix, session.audio);
-    }
-    if (message.status === "qwen-asr-closed" || message.status === "disconnected") {
-      listeningAsrSession(prefix).connected = false;
-    }
-    return;
-  }
-  if (message?.type === "error") {
-    setListeningCaption(prefix, section, message.message || "Qwen ASR failed.", "Qwen ASR");
-    return;
-  }
-  const payload = message?.payload || message || {};
-  const eventType = message?.eventType || payload.type || "";
-  if (/input_audio_transcription\.text$/i.test(eventType)) {
-    const liveText = qwenAsrLiveTextFromPayload(payload);
-    if (liveText) {
-      const itemId = listeningAsrItemId(payload);
-      const session = listeningAsrSession(prefix);
-      session.liveItems[itemId] = liveText;
-      renderListeningAsrPreview(prefix, section);
-    }
-    return;
-  }
-  if (/input_audio_transcription\.completed$/i.test(eventType)) {
-    const itemId = listeningAsrItemId(payload);
-    const text = qwenAsrTextFromPayload(payload) || qwenAsrLiveTextFromPayload(payload);
-    if (text) appendListeningAsrText(prefix, section, text, true);
-    delete listeningAsrSession(prefix).liveItems[itemId];
-    return;
-  }
-  const text = qwenAsrTextFromPayload(payload);
-  if (text) appendListeningAsrText(prefix, section, text, /completed|done|final/i.test(eventType));
-}
-
-function connectListeningAsr(prefix, section, audio) {
-  persistListeningAsr(prefix);
-  stopListeningAsr(prefix);
-  const session = listeningAsrSession(prefix);
-  session.section = String(section || "");
-  session.audio = audio || null;
-  session.currentText = "";
-  if (!audio) {
-    setListeningCaption(prefix, section, "Play this section's audio to generate live captions.", `Qwen ASR · Section ${section}`);
-    return;
-  }
-  const wsUrl = `${location.origin.replace(/^http/, "ws")}/qwen-asr-client`;
-  const ws = new WebSocket(wsUrl);
-  session.ws = ws;
-  ws.binaryType = "arraybuffer";
-  session.statusTimer = window.setTimeout(() => {
-    const current = state.listeningAsr[prefix];
-    if (current?.ws !== ws || current.currentText || state.listeningCaptionState[prefix]?.source !== "asr") return;
-    const message = audio.paused
-      ? "Play this section's audio to start live captions."
-      : "Connecting to Qwen ASR. If this stays here, tap Captions off and on once.";
-    setListeningCaption(prefix, section, message, `Qwen ASR · Section ${section}`);
-  }, 6500);
-  ws.onopen = () => {
-    ws.send(JSON.stringify({
-      type: "connect",
-      model: "qwen3-asr-flash-realtime",
-      instructions: "Transcribe IELTS listening audio with natural punctuation and original casing. Do not force uppercase. If speakers can be distinguished, prefix turns as Speaker 1: and Speaker 2:. Return transcript text only.",
-      turnDetection: "server_vad",
-      language: "en",
-      silenceDurationMs: 500,
-    }));
-  };
-  ws.onmessage = (event) => {
-    try {
-      handleListeningAsrMessage(prefix, section, JSON.parse(event.data));
-    } catch {
-      // Ignore non-JSON ASR messages.
-    }
-  };
-  ws.onerror = () => setListeningCaption(prefix, section, "Qwen ASR connection error.", "Qwen ASR");
-  ws.onclose = () => {
-    const current = state.listeningAsr[prefix];
-    if (current?.ws === ws) {
-      current.connected = false;
-      if (state.listeningCaptionState[prefix]?.enabled && state.listeningCaptionState[prefix]?.source === "asr") {
-        setListeningCaption(prefix, section, "ASR connection closed. Reopen captions if it does not reconnect.", "Qwen ASR");
-      }
-    }
-  };
-}
-
-function sendListeningAsrPcm(prefix, pcmBuffer) {
-  const session = listeningAsrSession(prefix);
-  if (!session.connected || session.ws?.readyState !== WebSocket.OPEN || !pcmBuffer?.byteLength) return;
-  session.ws.send(pcmBuffer);
-}
-
-function maybeCommitListeningAsr(prefix, force = false) {
-  const session = listeningAsrSession(prefix);
-  if (!session.connected || session.ws?.readyState !== WebSocket.OPEN) return;
-  if (!force) return;
-  try {
-    session.ws.send(JSON.stringify({ type: "session.finish" }));
-  } catch {}
-}
-
-function attachListeningAsrAudio(prefix, audio) {
-  const session = listeningAsrSession(prefix);
-  if (!audio || session.processor) return;
-  const graph = listeningAudioGraph(audio);
-  if (!graph) {
-    setListeningCaption(prefix, session.section, "This browser cannot capture audio for ASR.", "Qwen ASR");
-    return;
-  }
-  try {
-    const context = graph.context;
-    session.audioContext = context;
-    session.sourceNode = graph.sourceNode;
-    session.gainNode = graph.gainNode;
-    session.processor = context.createScriptProcessor(2048, 1, 1);
-    session.sourceNode.connect(session.processor);
-    session.processor.connect(context.destination);
-    session.processor.onaudioprocess = (event) => {
-      if (!state.listeningCaptionState[prefix]?.enabled || !session.connected) return;
-      const input = event.inputBuffer.getChannelData(0);
-      let sumSquares = 0;
-      for (let i = 0; i < input.length; i += 16) sumSquares += input[i] * input[i];
-      const rms = Math.sqrt(sumSquares / Math.max(1, Math.ceil(input.length / 16)));
-      const now = Date.now();
-      const voiceThreshold = Math.max(0.012, session.noiseFloor * 3.2);
-      const hasVoice = rms > voiceThreshold;
-      if (hasVoice) {
-        session.lastVoiceAt = now;
-        if (!session.segmentHadVoice) session.segmentStartedAt = now;
-        session.segmentHadVoice = true;
-      } else {
-        session.noiseFloor = Math.max(0.003, Math.min(0.03, session.noiseFloor * 0.96 + rms * 0.04));
-      }
-      const ratio = context.sampleRate / QWEN_PCM_TARGET_SAMPLE_RATE;
-      const pcmChunkSamples = Math.max(800, Math.round((QWEN_PCM_TARGET_SAMPLE_RATE * 100) / 1000));
-      while (session.pcmPosition < input.length) {
-        const index = Math.floor(session.pcmPosition);
-        const sample = Math.max(-1, Math.min(1, input[index] || 0));
-        session.pcmBuffer.push(sample < 0 ? sample * 0x8000 : sample * 0x7fff);
-        session.pcmPosition += ratio;
-      }
-      session.pcmPosition -= input.length;
-      while (session.pcmBuffer.length >= pcmChunkSamples) {
-        const chunk = new Int16Array(pcmChunkSamples);
-        for (let i = 0; i < chunk.length; i += 1) chunk[i] = session.pcmBuffer.shift();
-        sendListeningAsrPcm(prefix, chunk.buffer);
-      }
-      maybeCommitListeningAsr(prefix);
-    };
-    if (context.state === "suspended") context.resume().catch(() => {});
-  } catch (error) {
-    setListeningCaption(prefix, session.section, `Qwen ASR audio capture failed: ${error.message}`, "Qwen ASR");
-  }
+  delete state.listeningAsr[prefix];
 }
 
 function setListeningScriptsVisible(prefix, visible) {
@@ -4356,12 +3995,18 @@ function mountListeningCaptionRail(prefix, visible) {
 function highlightListeningScriptPart(prefix, part) {
   const payload = listeningCaptionPayload(prefix);
   if (!isReliableListeningCaptionPayload(payload, part)) {
-    setListeningCaption(prefix, part, "Play this section's audio to generate live captions.", part ? `Section ${part}` : "Auto captions");
+    setListeningCaption(prefix, part, "No cached captions for this section yet.", part ? `Section ${part}` : "Captions");
     return;
   }
   const section = listeningCaptionSection(payload, part);
+  const model = listeningTimedCaptionModel(section, payload);
+  const firstEntry = model.segments[0] ? [{ speaker: model.segments[0].speaker, text: model.segments[0].text }] : [];
+  if (firstEntry.length) {
+    setListeningCaptionConversation(prefix, part, firstEntry, section?.title || (part ? `Section ${part}` : "Cached captions"));
+    return;
+  }
   const firstSentence = listeningCaptionSentences(section?.text || payload?.text || "")[0] || "";
-  setListeningCaption(prefix, part, firstSentence, section?.title || (part ? `Section ${part}` : "Live caption"));
+  setListeningCaption(prefix, part, firstSentence || "Play audio to show cached captions.", section?.title || (part ? `Section ${part}` : "Cached captions"));
 }
 
 async function loadListeningScripts(prefix, itemId, pageImageUrls = []) {
@@ -4401,12 +4046,11 @@ async function toggleListeningCaptions(button) {
   const wasEnabled = state.listeningCaptionState[prefix]?.enabled && String(state.listeningCaptionState[prefix]?.section || "") === String(section || "");
   const visible = !wasEnabled;
   if (!visible) {
-    persistListeningAsr(prefix);
     stopListeningAsr(prefix);
     stopTimedListeningCaptionLoop(prefix, section);
     resetListeningCaptionVoices(prefix, section);
   }
-  state.listeningCaptionState[prefix] = { enabled: visible, section, source: "" };
+  state.listeningCaptionState[prefix] = { enabled: visible, section, source: visible ? "loading-cache" : "" };
   setListeningScriptsVisible(prefix, visible);
   document.querySelectorAll(`.listening-caption-toggle[data-prefix="${prefix}"]`).forEach((item) => {
     const active = visible && String(item.dataset.section || "") === String(section || "");
@@ -4453,10 +4097,8 @@ async function toggleListeningCaptions(button) {
       }
       return;
     }
-    state.listeningCaptionState[prefix] = { enabled: true, section, source: "asr" };
-    const shouldStartAsr = activeAudio && !activeAudio.paused && !activeAudio.ended;
-    setListeningCaption(prefix, section, shouldStartAsr ? "Starting Qwen ASR captions..." : "Play this section's audio to generate live captions.", `Qwen ASR · Section ${section}`);
-    if (shouldStartAsr) connectListeningAsr(prefix, section, activeAudio);
+    state.listeningCaptionState[prefix] = { enabled: true, section, source: "missing-cache" };
+    setListeningCaption(prefix, section, "No cached captions for this section yet. Please refresh the offline ASR cache.", `Section ${section}`);
   }
 }
 
@@ -7991,17 +7633,7 @@ function scrollToExamSection(targetId) {
 
 async function ensureListeningCaptionPayload(prefix) {
   if (listeningCaptionPayload(prefix)) return listeningCaptionPayload(prefix);
-  const root = $(`${prefix}-listening-studio`);
-  if (!root) return null;
-  let pageImageUrls = [];
-  if (root.dataset.pageImages) {
-    try {
-      pageImageUrls = JSON.parse(decodeURIComponent(root.dataset.pageImages));
-    } catch {
-      pageImageUrls = [];
-    }
-  }
-  return loadListeningScripts(prefix, root.dataset.listeningId || "", pageImageUrls);
+  return null;
 }
 
 function bindListeningCaptionPlayers() {
@@ -8013,11 +7645,12 @@ function bindListeningCaptionPlayers() {
       const captionState = state.listeningCaptionState[prefix];
       if (!captionState?.enabled) return;
       if (captionState.source === "asr") {
-        const session = listeningAsrSession(prefix);
-        if (!session.ws || session.audio !== audio) connectListeningAsr(prefix, audio.dataset.section || "", audio);
-        else attachListeningAsrAudio(prefix, audio);
+        stopListeningAsr(prefix);
+        state.listeningCaptionState[prefix] = { enabled: true, section: audio.dataset.section || "", source: "missing-cache" };
+        setListeningCaption(prefix, audio.dataset.section || "", "Listening captions now use offline cache only.", "Cached captions");
         return;
       }
+      if (captionState.source === "loading-cache" || captionState.source === "missing-cache") return;
       if (captionState.source === "timed-cache") {
         updateListeningCaptionFromAudio(audio);
         if (restart && !audio.paused && !audio.ended) restartTimedListeningCaptionLoop(prefix, audio);
@@ -8051,17 +7684,7 @@ function bindListeningCaptionPlayers() {
       const prefix = audio.dataset.prefix || "single";
       const section = audio.dataset.section || "";
       stopTimedListeningCaptionLoop(prefix, section);
-      if (state.listeningCaptionState[prefix]?.source === "asr") {
-        setListeningCaption(prefix, section, "Finalizing captions...", section ? `Section ${section}` : "Live caption");
-        maybeCommitListeningAsr(prefix, true);
-        window.setTimeout(() => {
-          persistListeningAsr(prefix);
-          stopListeningAsr(prefix);
-          setListeningCaption(prefix, section, "Section finished.", section ? `Section ${section}` : "Live caption");
-        }, 1800);
-      } else {
-        setListeningCaption(prefix, section, "Section finished.", section ? `Section ${section}` : "Live caption");
-      }
+      setListeningCaption(prefix, section, "Section finished.", section ? `Section ${section}` : "Cached captions");
     });
   });
 }

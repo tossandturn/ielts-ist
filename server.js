@@ -613,7 +613,6 @@ function isUsableListeningAsrText(text) {
   const clean = cleanListeningScriptText(text);
   const words = clean.split(/\s+/).filter(Boolean);
   if (words.length < 80) return false;
-  if (/published by cambridge|this recording is copyright|cambridge assessment english/i.test(clean) && words.length < 180) return false;
   return true;
 }
 
@@ -2283,16 +2282,7 @@ async function handleListeningAsrCache(req, res) {
     return;
   }
   if (req.method === "POST") {
-    const payload = await readJsonBody(req);
-    const id = String(payload.id || "").trim();
-    const section = String(payload.section || "").trim();
-    const text = String(payload.text || "").trim();
-    if (!id || !section || !text) {
-      sendJson(res, 400, { error: "Listening id, section, and text are required." });
-      return;
-    }
-    const item = writeListeningAsrCache({ id, section, text, source: LISTENING_ASR_CACHE_SOURCE });
-    sendJson(res, 200, { ok: Boolean(item), item });
+    sendJson(res, 405, { error: "Listening captions use offline ASR cache only. Refresh data/listening-asr-cache.json with the cache script." });
     return;
   }
   sendJson(res, 405, { error: "Method not allowed" });
@@ -3340,12 +3330,6 @@ server.on("upgrade", (req, socket, head) => {
   if (url.pathname === "/qwen-client") {
     qwenWss.handleUpgrade(req, socket, head, (ws) => {
       qwenWss.emit("connection", ws, req);
-    });
-    return;
-  }
-  if (url.pathname === "/qwen-asr-client") {
-    qwenAsrWss.handleUpgrade(req, socket, head, (ws) => {
-      qwenAsrWss.emit("connection", ws, req);
     });
     return;
   }
