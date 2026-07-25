@@ -111,4 +111,4 @@ Durable rules from the full thread:
 - Help must understand the current exam context. Reading/listening explanations need access to question, answer, passage/audio context, OCR/screenshot text, and the student's typed question.
 - All generated student-facing PDF reports and Chinese feedback must be rendered and checked for mojibake.
 - If a command/tool fails for environment reasons, record the failure and switch approach instead of silently stopping.
-
+- UI regression from 2026-07-25: a visual polish pass broke collapsed sidebar and Caption/Writing/Speaking immersive layouts because testing covered only one tablet state. Future UI work must verify ultra-wide, desktop, iPad portrait/landscape, collapsed/expanded sidebar, Listening Caption on, Writing immersive, Speaking immersive, local and public before finalizing.
