@@ -665,6 +665,8 @@ function setFeedbackHtml(id, html, modeId, mode) {
   const node = $(id);
   node.innerHTML = html || "";
   node.classList.toggle("empty", !html);
+  bindSpeakingResultActions(node);
+  document.body.classList.toggle("speaking-result-page-visible", Boolean(document.querySelector(".speaking-result-page")));
   if (modeId) $(modeId).textContent = mode ? String(mode).toUpperCase() : "";
 }
 
@@ -2246,81 +2248,391 @@ function speakingBandLabel(score) {
   return "Developing User";
 }
 
-function renderSpeakingResultHtml(text, json = {}, bandValue = "") {
+function speakingCriterionItems(criteria, band) {
+  const byKey = new Map((Array.isArray(criteria) ? criteria : []).map((item) => {
+    const key = String(item.label || "").toLowerCase();
+    const normalizedKey = key.includes("fluency") ? "fc"
+      : key.includes("lexical") ? "lr"
+        : key.includes("grammar") || key.includes("grammatical") ? "gra"
+          : key.includes("pronunciation") ? "p"
+            : key;
+    return [normalizedKey, normalizeSpeakingBand(item.score)];
+  }));
+  const fallback = normalizeSpeakingBand(band);
+  return [
+    { key: "fc", short: "Fluency & Coherence", label: "Fluency & Coherence", score: byKey.get("fc") || fallback || "" },
+    { key: "lr", short: "Lexical Resource", label: "Lexical Resource", score: byKey.get("lr") || fallback || "" },
+    { key: "gra", short: "Grammatical Range & Accuracy", label: "Grammatical Range & Accuracy", score: byKey.get("gra") || fallback || "" },
+    { key: "p", short: "Pronunciation", label: "Pronunciation", score: byKey.get("p") || fallback || "" },
+  ];
+}
+
+function speakingScorePercent(score) {
+  const value = Number.parseFloat(score);
+  return Number.isFinite(value) ? Math.max(0, Math.min(100, (value / 9) * 100)) : 0;
+}
+
+function speakingScoreWord(score) {
+  const value = Number.parseFloat(score);
+  if (!Number.isFinite(value)) return "Review";
+  if (value >= 7.5) return "Excellent";
+  if (value >= 6.5) return "Good";
+  if (value >= 5.5) return "Developing";
+  return "Focus";
+}
+
+function renderSpeakingRadar(criteriaItems) {
+  const cx = 120;
+  const cy = 104;
+  const maxRadius = 70;
+  const points = criteriaItems.map((item, index) => {
+    const value = Number.parseFloat(item.score);
+    const ratio = Number.isFinite(value) ? Math.max(0, Math.min(1, value / 9)) : 0;
+    const angle = -Math.PI / 2 + index * (Math.PI / 2);
+    return `${(cx + Math.cos(angle) * maxRadius * ratio).toFixed(1)},${(cy + Math.sin(angle) * maxRadius * ratio).toFixed(1)}`;
+  }).join(" ");
+  const grid = [0.25, 0.5, 0.75, 1].map((ratio) => {
+    const r = maxRadius * ratio;
+    const polygon = [0, 1, 2, 3].map((index) => {
+      const angle = -Math.PI / 2 + index * (Math.PI / 2);
+      return `${(cx + Math.cos(angle) * r).toFixed(1)},${(cy + Math.sin(angle) * r).toFixed(1)}`;
+    }).join(" ");
+    return `<polygon points="${polygon}" class="speaking-radar-grid-line" />`;
+  }).join("");
+  const axes = [0, 1, 2, 3].map((index) => {
+    const angle = -Math.PI / 2 + index * (Math.PI / 2);
+    return `<line x1="${cx}" y1="${cy}" x2="${(cx + Math.cos(angle) * maxRadius).toFixed(1)}" y2="${(cy + Math.sin(angle) * maxRadius).toFixed(1)}" />`;
+  }).join("");
+  return `<div class="speaking-radar-wrap" aria-label="Speaking band radar">
+    <svg class="speaking-radar" viewBox="0 0 240 220" role="img" aria-label="IELTS Speaking criteria radar">
+      <g class="speaking-radar-grid">${grid}${axes}</g>
+      <polygon points="${points}" class="speaking-radar-area" />
+      <polyline points="${points} ${points.split(" ")[0] || ""}" class="speaking-radar-line" />
+      ${criteriaItems.map((item, index) => {
+        const value = Number.parseFloat(item.score);
+        const ratio = Number.isFinite(value) ? Math.max(0, Math.min(1, value / 9)) : 0;
+        const angle = -Math.PI / 2 + index * (Math.PI / 2);
+        const x = cx + Math.cos(angle) * maxRadius * ratio;
+        const y = cy + Math.sin(angle) * maxRadius * ratio;
+        return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.8" />`;
+      }).join("")}
+    </svg>
+    <div class="speaking-radar-label top"><span>${escapeHtml(criteriaItems[0].short)}</span><strong>${escapeHtml(criteriaItems[0].score || "--")}</strong></div>
+    <div class="speaking-radar-label right"><span>${escapeHtml(criteriaItems[1].short)}</span><strong>${escapeHtml(criteriaItems[1].score || "--")}</strong></div>
+    <div class="speaking-radar-label bottom"><span>${escapeHtml(criteriaItems[2].short)}</span><strong>${escapeHtml(criteriaItems[2].score || "--")}</strong></div>
+    <div class="speaking-radar-label left"><span>${escapeHtml(criteriaItems[3].short)}</span><strong>${escapeHtml(criteriaItems[3].score || "--")}</strong></div>
+  </div>`;
+}
+
+function speakingFeedbackBulletText(line) {
+  return String(line || "")
+    .replace(/^\s*(?:[-*]|\d+[.)])\s*/g, "")
+    .replace(/^(?:strengths?|areas?\s+to\s+improve|weaknesses?|improvement\s+points?|next\s+drills?)\s*[:：-]?\s*/i, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+function speakingFeedbackLineIsUseful(line) {
+  const clean = speakingFeedbackBulletText(line);
+  if (!clean || clean.length < 10) return false;
+  if (/^(?:criterion|band|examiner comment|score table|exact overall calculation)$/i.test(clean)) return false;
+  if (/^(?:fluency\s*(?:and|&)?\s*coherence|lexical\s*resource|grammatical\s*range\s*(?:and|&)\s*accuracy|grammatical|grammar|pronunciation)\s*[-|:]/i.test(clean)) return false;
+  if (/^(?:fluency\s*(?:and|&)?\s*coherence|lexical\s*resource|grammatical\s*range\s*(?:and|&)\s*accuracy|grammatical|grammar|pronunciation)\s*-\s*[0-9](?:\.\d)?\s*-/i.test(clean)) return false;
+  if (/^overall\s+(?:estimate|calculation|speaking band|band)/i.test(clean)) return false;
+  return true;
+}
+
+function speakingFeedbackBuckets(cleanFeedback, strongest, weakest) {
+  const buckets = { strengths: [], improve: [], drills: [] };
+  let mode = "";
+  String(cleanFeedback || "").split("\n").forEach((raw) => {
+    const line = raw.trim();
+    const lower = line.toLowerCase();
+    if (!line) return;
+    if (/^(?:strengths?|what went well)/i.test(line)) {
+      mode = "strengths";
+      return;
+    }
+    if (/^(?:areas?\s+to\s+improve|weaknesses?|priority focus|improvement points?)/i.test(line)) {
+      mode = "improve";
+      return;
+    }
+    if (/^(?:next drills?|drills?|ai tip|practice)/i.test(line)) {
+      mode = "drills";
+      return;
+    }
+    if (!speakingFeedbackLineIsUseful(line)) return;
+    const text = speakingFeedbackBulletText(line);
+    if (mode && buckets[mode] && buckets[mode].length < 4) {
+      buckets[mode].push(text);
+      return;
+    }
+    if (buckets.strengths.length < 3 && /\b(clear|good|strong|fluent|relevant|coherent|accurate|range|understandable)\b/i.test(text)) {
+      buckets.strengths.push(text);
+    } else if (buckets.improve.length < 3 && /\b(improve|need|should|try|more|limited|hesitation|grammar|detail|expand|avoid)\b/i.test(text)) {
+      buckets.improve.push(text);
+    }
+  });
+  if (!buckets.strengths.length) {
+    buckets.strengths.push(
+      strongest ? `${strongest.label} is your strongest area in this test.` : "Your answers were relevant and understandable.",
+      "You completed enough speaking evidence for an examiner-style score.",
+      "Your response flow gives a clear base for focused practice."
+    );
+  }
+  if (!buckets.improve.length) {
+    buckets.improve.push(
+      weakest ? `Prioritise ${weakest.label} in the next practice round.` : "Expand answers with one reason and one short example.",
+      "Use more precise topic vocabulary instead of repeating simple words.",
+      "Keep longer sentences controlled and easy to follow."
+    );
+  }
+  if (!buckets.drills.length) {
+    buckets.drills.push("For each answer, use: direct answer, reason, example, and one extra detail.");
+  }
+  return buckets;
+}
+
+function speakingResultSession(prefix) {
+  if (prefix && state.qwenSpeaking?.[prefix]) return state.qwenSpeaking[prefix];
+  return null;
+}
+
+function speakingTranscriptTurns(prefix, transcript) {
+  const qwen = speakingResultSession(prefix);
+  if (Array.isArray(qwen?.dialogueTurns) && qwen.dialogueTurns.length) {
+    return qwen.dialogueTurns
+      .filter((turn) => compactDialogueText(turn.text))
+      .map((turn) => ({ role: /candidate|user/i.test(turn.role) ? "Candidate" : "Examiner", text: compactDialogueText(turn.text) }));
+  }
+  const legacy = prefix && state.speakingSessions?.[prefix]?.history;
+  if (Array.isArray(legacy) && legacy.length) {
+    return legacy
+      .filter((turn) => compactDialogueText(turn.text))
+      .map((turn) => ({ role: turn.role === "examiner" ? "Examiner" : "Candidate", text: compactDialogueText(turn.text) }));
+  }
+  const turns = [];
+  String(transcript || "").split(/\n+/).forEach((line) => {
+    const match = line.match(/^\s*(Examiner|Candidate|AI|Student|User)\s*:\s*(.+)$/i);
+    if (!match) return;
+    turns.push({
+      role: /candidate|student|user/i.test(match[1]) ? "Candidate" : "Examiner",
+      text: compactDialogueText(match[2]),
+    });
+  });
+  return turns;
+}
+
+function speakingAnalysisPairs(prefix, transcript) {
+  const turns = speakingTranscriptTurns(prefix, transcript);
+  const pairs = [];
+  let question = "";
+  turns.forEach((turn) => {
+    if (turn.role === "Examiner") {
+      question = qwenExtractQuestion(turn.text) || turn.text;
+      return;
+    }
+    if (turn.role === "Candidate" && turn.text) {
+      pairs.push({ question: question || "Speaking response", answer: turn.text });
+      question = "";
+    }
+  });
+  return pairs.slice(0, 6);
+}
+
+function speakingResultOverview(prefix, transcript, json) {
+  const session = speakingResultSession(prefix);
+  const pairs = speakingAnalysisPairs(prefix, transcript);
+  const elapsedMs = Number(session?.sessionStartedAt || 0) ? Math.max(0, Date.now() - Number(session.sessionStartedAt)) : 0;
+  const durationSeconds = elapsedMs ? Math.round(elapsedMs / 1000) : 0;
+  const mm = String(Math.floor(durationSeconds / 60)).padStart(2, "0");
+  const ss = String(durationSeconds % 60).padStart(2, "0");
+  const testType = prefix === "exam" ? "Full Test (Part 1-3)"
+    : prefix === "sequence" ? "Same Test Speaking"
+      : prefix === "bank" ? "Topic Practice"
+        : "Single Module Speaking";
+  return {
+    testType,
+    date: new Date().toLocaleString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+    duration: durationSeconds ? `${mm}:${ss}` : "Text scoring",
+    answered: pairs.length || (String(transcript || "").match(/Candidate\s*:/gi) || []).length || "--",
+    examiner: String(json.mode || "").includes(":audio") ? "IELTS-ist Audio Examiner" : "IELTS-ist AI Examiner",
+  };
+}
+
+function renderSpeakingBandDescriptors(band) {
+  const score = Number.parseFloat(band);
+  const rows = [
+    { band: "9.0", title: "Expert User", text: "Has fully operational command of the language." },
+    { band: "7.0", title: "Good User", text: "Has operational command, with occasional inaccuracies." },
+    { band: "5.0", title: "Modest User", text: "Has partial command and copes with overall meaning." },
+    { band: "3.0", title: "Extremely Limited User", text: "Conveys and understands only general meaning in familiar situations." },
+  ];
+  const active = Number.isFinite(score)
+    ? rows.reduce((best, row) => Math.abs(Number(row.band) - score) < Math.abs(Number(best.band) - score) ? row : best, rows[0]).band
+    : "";
+  return rows.map((row) => `<div class="speaking-band-row${row.band === active ? " active" : ""}">
+    <strong>${escapeHtml(row.band)}</strong>
+    <div><b>${escapeHtml(row.title)}</b><span>${escapeHtml(row.text)}</span></div>
+  </div>`).join("");
+}
+
+function renderSpeakingAnalysis(prefix, transcript, criteriaItems) {
+  const pairs = speakingAnalysisPairs(prefix, transcript);
+  const items = pairs.length ? pairs : [{ question: "Speaking response", answer: "Complete a live speaking test to see answer-level analysis here." }];
+  return `<section class="speaking-answer-analysis speaking-result-card">
+    <div class="speaking-result-card-head">
+      <h4>Your Answer Analysis</h4>
+      <span>Question-level review</span>
+    </div>
+    <div class="speaking-analysis-tabs" aria-label="Speaking parts">
+      <span class="active">Part 1</span><span>Part 2</span><span>Part 3</span>
+    </div>
+    <div class="speaking-analysis-list">
+      ${items.map((item, index) => {
+        const score = criteriaItems[index % criteriaItems.length]?.score || "";
+        const label = speakingScoreWord(score);
+        return `<article class="speaking-analysis-row">
+          <div class="speaking-analysis-question">
+            <strong>Q${index + 1}. ${escapeHtml(compactDialogueText(item.question).slice(0, 120) || "Speaking response")}</strong>
+            <p>${escapeHtml(compactDialogueText(item.answer).slice(0, 280))}</p>
+          </div>
+          <div class="speaking-analysis-tags">
+            <span>Fluency <b>${escapeHtml(label)}</b></span>
+            <span>Vocabulary <b>${escapeHtml(speakingScoreWord(criteriaItems[1]?.score))}</b></span>
+            <span>Grammar <b>${escapeHtml(speakingScoreWord(criteriaItems[2]?.score))}</b></span>
+            <span>Pronunciation <b>${escapeHtml(speakingScoreWord(criteriaItems[3]?.score))}</b></span>
+          </div>
+        </article>`;
+      }).join("")}
+    </div>
+  </section>`;
+}
+
+function renderSpeakingResultDownloadButton(json) {
+  const href = json?.pdfUrl || json?.pdfDataUrl || "";
+  if (!href) return `<button class="speaking-result-button primary" type="button" disabled>Download Report</button>`;
+  const fileName = json.pdfFileName || "ielts-speaking-report.pdf";
+  const openAttrs = json.pdfUrl ? ` target="_blank" rel="noopener"` : "";
+  return `<a class="speaking-result-button primary" href="${escapeHtml(href)}" download="${escapeHtml(fileName)}"${openAttrs}>Download Report</a>`;
+}
+
+function renderSpeakingRecordingButton(prefix) {
+  const result = speakingResultSession(prefix)?.recordingResult;
+  const href = qwenRecordingDownloadHref(result);
+  if (!href) return "";
+  return `<a class="speaking-result-button ghost" href="${escapeHtml(href)}" download="${escapeHtml(result.fileName || "ielts-speaking-recording.mp3")}" target="_blank" rel="noreferrer">Download Recording</a>`;
+}
+
+function bindSpeakingResultActions(root = document) {
+  root.querySelectorAll?.("[data-speaking-result-action]").forEach((button) => {
+    if (button.dataset.boundSpeakingResultAction) return;
+    button.dataset.boundSpeakingResultAction = "1";
+    button.onclick = () => {
+      const action = button.dataset.speakingResultAction;
+      if (action === "back") {
+        activateView(button.dataset.view || "single", true);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+      if (action === "practice") {
+        const feedback = button.closest(".feedback-output");
+        if (feedback) {
+          feedback.classList.add("empty");
+          feedback.textContent = "Start another speaking practice to generate a new result.";
+        }
+        document.body.classList.toggle("speaking-result-page-visible", Boolean(document.querySelector(".speaking-result-page")));
+        const target = document.querySelector(".qwen-speaking, textarea[id$='-speaking']");
+        target?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    };
+  });
+}
+
+function renderSpeakingResultHtml(text, json = {}, bandValue = "", prefix = "") {
   const feedback = String(text || json.feedback || "").trim();
   const criteria = extractSpeakingCriterionScores(feedback);
   const criteriaOverall = speakingOverallFromCriteria(criteria);
   const band = criteriaOverall || normalizeSpeakingBand(bandValue) || normalizeSpeakingBand(json.band) || extractSpeakingBandFromText(feedback) || "";
+  const criteriaItems = speakingCriterionItems(criteria, band);
   const scoreNumber = Number.parseFloat(band);
-  const scorePercent = Number.isFinite(scoreNumber) ? Math.max(0, Math.min(100, (scoreNumber / 9) * 100)) : 0;
-  const metricRows = (criteria.length ? criteria : [
-    { label: "Fluency & Coherence", score: "--" },
-    { label: "Lexical Resource", score: "--" },
-    { label: "Grammar", score: "--" },
-    { label: "Pronunciation", score: "--" },
-  ]).map((item) => {
+  const scorePercent = speakingScorePercent(band);
+  const strongest = criteriaItems.reduce((best, item) => {
+    const score = Number.parseFloat(item.score);
+    return Number.isFinite(score) && (!best || score > Number.parseFloat(best.score)) ? item : best;
+  }, null);
+  const weakest = criteriaItems.reduce((lowest, item) => {
+    const score = Number.parseFloat(item.score);
+    return Number.isFinite(score) && (!lowest || score < Number.parseFloat(lowest.score)) ? item : lowest;
+  }, null);
+  const transcript = json.evidence?.transcriptText
+    || (prefix ? qwenBuildAutoScoreTranscript(prefix) : "")
+    || (prefix ? getSpeakingTranscript(prefix) : "")
+    || "";
+  const cleanFeedback = cleanSpeakingFeedbackForDisplay(feedback);
+  const buckets = speakingFeedbackBuckets(cleanFeedback, strongest, weakest);
+  const overview = speakingResultOverview(prefix, transcript, json);
+  const viewTarget = prefix === "exam" ? "exam" : prefix === "sequence" ? "sequence" : prefix === "bank" ? "bank" : "single";
+  const metricRows = criteriaItems.map((item) => {
     const score = normalizeSpeakingBand(item.score);
-    const percent = score ? Math.max(0, Math.min(100, (Number(score) / 9) * 100)) : 0;
+    const percent = speakingScorePercent(score);
     return `<div class="speaking-result-metric">
       <div><span>${escapeHtml(item.label)}</span><strong>${escapeHtml(score || "--")}</strong></div>
       <i style="--score-width:${percent.toFixed(1)}%"></i>
     </div>`;
   }).join("");
-  const criterionScores = criteria.length ? criteria : [];
-  const strongest = criterionScores.reduce((best, item) => {
-    const score = Number.parseFloat(item.score);
-    return Number.isFinite(score) && (!best || score > Number.parseFloat(best.score)) ? item : best;
-  }, null);
-  const weakest = criterionScores.reduce((lowest, item) => {
-    const score = Number.parseFloat(item.score);
-    return Number.isFinite(score) && (!lowest || score < Number.parseFloat(lowest.score)) ? item : lowest;
-  }, null);
-  const cleanFeedback = cleanSpeakingFeedbackForDisplay(feedback);
-  const pdfLink = pdfDownloadLink(json, "ielts-speaking-report.pdf").replace(/\n/g, "");
-  return `<article class="speaking-result-report">
-    <header class="speaking-result-hero">
-      <div>
-        <span class="speaking-result-kicker">IELTS Speaking Result</span>
-        <h3>Your IELTS Speaking Result</h3>
-        <p>${escapeHtml(speakingBandLabel(band))}</p>
-      </div>
-      <div class="speaking-result-score" style="--score-percent:${scorePercent.toFixed(1)}%">
-        <span>Overall</span>
-        <strong>${escapeHtml(band || "--")}</strong>
-        <em>Band Score</em>
+  return `<article class="speaking-result-page">
+    <header class="speaking-result-topbar">
+      <button class="speaking-result-back" type="button" data-speaking-result-action="back" data-view="${escapeHtml(viewTarget)}">&larr; Back to Dashboard</button>
+      <div class="speaking-result-top-actions">
+        <button class="speaking-result-button" type="button" data-speaking-result-action="practice">Practice Again</button>
+        ${renderSpeakingResultDownloadButton(json)}
       </div>
     </header>
-    <section class="speaking-result-summary">
-      <div>
-        <span>Mode</span>
-        <strong>${escapeHtml(json.mode || "AI Examiner")}</strong>
+    <section class="speaking-result-title">
+      <h3>Your IELTS Speaking Result</h3>
+      <p>Test completed on ${escapeHtml(overview.date)} <span>${escapeHtml(overview.testType)}</span></p>
+    </section>
+    <section class="speaking-result-overview-card">
+      <div class="speaking-result-overall">
+        <span>Overall Band Score</span>
+        <strong>${escapeHtml(band || "--")}</strong>
+        <em>${escapeHtml(speakingBandLabel(band))}</em>
+        <p>${Number.isFinite(scoreNumber) && scoreNumber >= 7 ? "You have a good level of English speaking ability. Keep practising." : "You have a clear speaking base. Keep building longer, more precise answers."}</p>
       </div>
-      <div>
-        <span>Strongest area</span>
-        <strong>${escapeHtml(strongest ? strongest.label : "Ready to review")}</strong>
+      ${renderSpeakingRadar(criteriaItems)}
+      <div class="speaking-result-bars">${metricRows}</div>
+    </section>
+    <section class="speaking-result-lower-grid">
+      <div class="speaking-result-card band-descriptor-card">
+        <div class="speaking-result-card-head"><h4>Band Descriptors</h4><span>IELTS scale</span></div>
+        ${renderSpeakingBandDescriptors(band)}
       </div>
-      <div>
-        <span>Priority focus</span>
-        <strong>${escapeHtml(weakest ? weakest.label : "Complete answers")}</strong>
+      <div class="speaking-result-card examiner-feedback-card">
+        <div class="speaking-result-card-head"><h4>AI Examiner Feedback</h4><span>Score explanation</span></div>
+        <div class="feedback-block positive"><strong>Strengths</strong>${buckets.strengths.slice(0, 3).map((item) => `<p>${escapeHtml(item)}</p>`).join("")}</div>
+        <div class="feedback-block improve"><strong>Areas to Improve</strong>${buckets.improve.slice(0, 3).map((item) => `<p>${escapeHtml(item)}</p>`).join("")}</div>
+        <div class="ai-tip"><strong>AI Tip</strong><span>${escapeHtml(buckets.drills[0])}</span></div>
+      </div>
+      <div class="speaking-result-card test-overview-card">
+        <div class="speaking-result-card-head"><h4>Test Overview</h4><span>Session info</span></div>
+        <dl>
+          <dt>Test Type</dt><dd>${escapeHtml(overview.testType)}</dd>
+          <dt>Test Date</dt><dd>${escapeHtml(overview.date)}</dd>
+          <dt>Duration</dt><dd>${escapeHtml(overview.duration)}</dd>
+          <dt>Questions Answered</dt><dd>${escapeHtml(String(overview.answered))}</dd>
+          <dt>AI Examiner</dt><dd>${escapeHtml(overview.examiner)}</dd>
+        </dl>
+        <div class="speaking-result-secondary-actions">${renderSpeakingRecordingButton(prefix)}</div>
       </div>
     </section>
-    <section class="speaking-result-grid">
-      <div class="speaking-result-card">
-        <h4>Band Breakdown</h4>
-        ${metricRows}
-      </div>
-      <div class="speaking-result-card speaking-result-feedback">
-        <h4>AI Examiner Feedback</h4>
-        <div>${escapeHtml(cleanFeedback || "Your speaking score is ready. Keep practising with more complete answers.").replace(/\n/g, "<br>")}</div>
-      </div>
-    </section>
-    <footer class="speaking-result-footer">
-      <div>
-        <strong>Next practice goal</strong>
-        <span>Give one clear answer, add one reason, then one short example before moving on.</span>
-      </div>
-      ${pdfLink ? `<div class="speaking-result-actions">${pdfLink}</div>` : ""}
-    </footer>
+    ${renderSpeakingAnalysis(prefix, transcript, criteriaItems)}
   </article>`;
 }
 
@@ -5442,7 +5754,7 @@ async function finishSpeakingScore(prefix, setTitle, feedbackId = "singleFeedbac
     const json = await postJson("/api/speaking/feedback", { set: setTitle, transcript });
     const band = speakingBandFromFeedbackPayload(json.feedback, json.band);
     if (band) fillSpeakingBandFromText(prefix, band);
-    setFeedbackHtml(feedbackId, renderSpeakingResultHtml(json.feedback, json, band), modeId, json.mode);
+    setFeedbackHtml(feedbackId, renderSpeakingResultHtml(json.feedback, json, band, prefix), modeId, json.mode);
   } catch (error) {
     setFeedback(feedbackId, `Submission failed: ${error.message}`, modeId, "error");
   }
@@ -5470,7 +5782,7 @@ async function scoreSpeakingText(prefix, setTitle, feedbackId, modeId) {
   const json = await postJson("/api/speaking/feedback", { set: setTitle || "", transcript });
   const band = speakingBandFromFeedbackPayload(json.feedback, json.band);
   if (band) fillSpeakingBandFromText(prefix, band);
-  setFeedbackHtml(targets.feedbackId, renderSpeakingResultHtml(json.feedback, json, band), targets.modeId, json.mode);
+  setFeedbackHtml(targets.feedbackId, renderSpeakingResultHtml(json.feedback, json, band, prefix), targets.modeId, json.mode);
   return json;
 }
 
@@ -6398,7 +6710,7 @@ async function qwenRunAutoScore(prefix, options = {}) {
       const targets = speakingFeedbackTargets(prefix);
       const finalLine = band ? `Final Speaking Band: ${band}` : "Final Speaking Band: unavailable";
       const feedbackText = [finalLine, json.feedback || ""].filter(Boolean).join("\n\n");
-      setFeedbackHtml(targets.feedbackId, renderSpeakingResultHtml(feedbackText || `Speaking band: ${band || ""}`, json, band), targets.modeId, json.mode || "");
+      setFeedbackHtml(targets.feedbackId, renderSpeakingResultHtml(feedbackText || `Speaking band: ${band || ""}`, json, band, prefix), targets.modeId, json.mode || "");
     }
     if (options.showStatus) qwenSetStatus(prefix, band ? `Final Speaking Band: ${band}` : "Scoring complete", true);
     return json;

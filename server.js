@@ -3257,13 +3257,29 @@ async function handleSpeaking(req, res) {
     }
   }
   const feedback = ai || local;
-  sendJson(res, 200, {
+  const band = extractSpeakingBandStable(feedback);
+  const pdfDataUrl = await createReportPdfDataUrl("IELTS Speaking Result", [
+    `Speaking topic set: ${set || "IELTS Speaking"}`,
+    band ? `Final Speaking Band: ${band}` : "",
+    "",
+    evidenceSummary,
+    "",
+    "Examiner feedback:",
+    feedback,
+    warnings.length ? `\nWarnings:\n${warnings.filter(Boolean).join("\n")}` : "",
+  ].filter(Boolean).join("\n"), {
+    subtitle: "IELTS Speaking AI Examiner Report",
+    prompt: transcript,
+  });
+  sendJson(res, 200, addPdfDownloadUrl({
     mode: ai
       ? audioAiUsed ? `ai:${SPEAKING_AUDIO_AI_MODEL}:audio` : "ai"
       : "local",
     feedback,
-    band: extractSpeakingBandStable(feedback),
+    band,
     warning: warnings.filter(Boolean).join("\n"),
+    pdfDataUrl,
+    pdfFileName: "ielts-speaking-report.pdf",
     evidence: {
       transcript: true,
       realtimeNote: Boolean(realtimeNote),
@@ -3271,7 +3287,7 @@ async function handleSpeaking(req, res) {
       mp3Submitted: Boolean(audioEvidence.available),
       mp3Bytes: audioEvidence.available ? audioEvidence.base64Bytes : 0,
     },
-  });
+  }, "ielts-speaking-report.pdf"));
 }
 
 async function handleFullExam(req, res) {
