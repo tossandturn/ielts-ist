@@ -49,6 +49,10 @@ const DASHSCOPE_COMPAT_BASE_URL = (process.env.DASHSCOPE_COMPAT_BASE_URL || DEFA
 const WRITING_AI_MODEL = process.env.WRITING_AI_MODEL || process.env.QWEN_WRITING_MODEL || "qwen3.7-max";
 const WRITING_AI_BASE_URL = (process.env.WRITING_AI_BASE_URL || process.env.QWEN_WRITING_BASE_URL || DASHSCOPE_COMPAT_BASE_URL).replace(/\/+$/, "");
 const WRITING_AI_API_KEY = process.env.WRITING_AI_API_KEY || process.env.QWEN_WRITING_API_KEY || DASHSCOPE_API_KEY;
+const SPEAKING_AUDIO_AI_MODEL = process.env.SPEAKING_AUDIO_AI_MODEL || process.env.QWEN_SPEAKING_AUDIO_MODEL || "qwen3.5-omni-flash";
+const SPEAKING_AUDIO_AI_BASE_URL = (process.env.SPEAKING_AUDIO_AI_BASE_URL || process.env.QWEN_SPEAKING_AUDIO_BASE_URL || DASHSCOPE_COMPAT_BASE_URL).replace(/\/+$/, "");
+const SPEAKING_AUDIO_AI_API_KEY = process.env.SPEAKING_AUDIO_AI_API_KEY || process.env.QWEN_SPEAKING_AUDIO_API_KEY || DASHSCOPE_API_KEY;
+const SPEAKING_AUDIO_MAX_BASE64_BYTES = Number(process.env.SPEAKING_AUDIO_MAX_BASE64_BYTES || 10_000_000);
 const QWEN_REALTIME_MODEL = process.env.QWEN_REALTIME_MODEL || "qwen3.5-omni-flash-realtime";
 const QWEN_ASR_MODEL = process.env.QWEN_ASR_MODEL || "qwen3-asr-flash-realtime";
 const LISTENING_ASR_CACHE_SOURCE = "qwen-asr-live-vad-v1";
@@ -77,8 +81,10 @@ const recentWindow = "2025-07 to 2026-07";
 const TASKS_CACHE_TTL_MS = 10 * 60_000;
 const LISTENING_SCRIPT_CACHE_TTL_MS = 10 * 60_000;
 const REPORT_DOWNLOAD_TTL_MS = 2 * 60 * 60_000;
+const RECORDING_DOWNLOAD_TTL_MS = REPORT_DOWNLOAD_TTL_MS;
 let tasksPayloadCache = null;
 const reportDownloads = new Map();
+const recordingDownloads = new Map();
 const listeningScriptCache = new Map();
 
 const officialSources = [
@@ -987,6 +993,71 @@ function handleReportPdfDownload(req, res) {
   res.end(report.buffer);
 }
 
+function cleanupRecordingDownloads() {
+  const now = Date.now();
+  for (const [id, recording] of recordingDownloads.entries()) {
+    if (!recording?.expiresAt || recording.expiresAt <= now) recordingDownloads.delete(id);
+  }
+}
+
+function audioExtensionForMime(mime, fallback = "webm") {
+  const clean = String(mime || "").toLowerCase();
+  if (clean.includes("mpeg") || clean.includes("mp3")) return "mp3";
+  if (clean.includes("mp4")) return "mp4";
+  if (clean.includes("ogg")) return "ogg";
+  if (clean.includes("wav")) return "wav";
+  if (clean.includes("webm")) return "webm";
+  return fallback;
+}
+
+function safeAudioFileName(fileName, mime) {
+  const ext = audioExtensionForMime(mime, "mp3");
+  const cleaned = path.basename(String(fileName || `ielts-speaking-recording.${ext}`))
+    .replace(/[^\w.-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return /\.(?:mp3|webm|mp4|ogg|wav)$/i.test(cleaned)
+    ? cleaned
+    : `${cleaned || "ielts-speaking-recording"}.${ext}`;
+}
+
+function registerRecordingDownload(buffer, fileName, mime) {
+  if (!Buffer.isBuffer(buffer) || !buffer.length) return "";
+  cleanupRecordingDownloads();
+  const id = crypto.randomUUID();
+  recordingDownloads.set(id, {
+    buffer,
+    fileName: safeAudioFileName(fileName, mime),
+    mime: String(mime || "application/octet-stream"),
+    createdAt: Date.now(),
+    expiresAt: Date.now() + RECORDING_DOWNLOAD_TTL_MS,
+  });
+  return `/api/speaking/recording-download/${encodeURIComponent(id)}`;
+}
+
+function handleSpeakingRecordingDownload(req, res) {
+  cleanupRecordingDownloads();
+  const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+  const id = decodeURIComponent(url.pathname.replace(/^\/api\/speaking\/recording-download\//, ""));
+  const recording = recordingDownloads.get(id);
+  if (!recording) {
+    res.writeHead(404, { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" });
+    res.end("Speaking recording expired. Please finish the speaking test again.");
+    return;
+  }
+  res.writeHead(200, {
+    "content-type": recording.mime || "application/octet-stream",
+    "content-length": recording.buffer.length,
+    "content-disposition": `attachment; filename="${recording.fileName}"`,
+    "cache-control": "private, no-store",
+    "x-content-type-options": "nosniff",
+  });
+  if (req.method === "HEAD") {
+    res.end();
+    return;
+  }
+  res.end(recording.buffer);
+}
+
 function sendCompressedJson(req, res, status, value, cacheControl = "no-store") {
   const json = JSON.stringify(value);
   const acceptsGzip = /\bgzip\b/i.test(req.headers["accept-encoding"] || "");
@@ -1068,6 +1139,24 @@ function readBody(req) {
       }
     });
     req.on("end", () => resolve(body.replace(/^\uFEFF/, "")));
+    req.on("error", reject);
+  });
+}
+
+function readBufferBody(req, limitBytes = 30_000_000) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    let total = 0;
+    req.on("data", (chunk) => {
+      total += chunk.length;
+      if (total > limitBytes) {
+        req.destroy();
+        reject(new Error("Request body is too large."));
+        return;
+      }
+      chunks.push(chunk);
+    });
+    req.on("end", () => resolve(Buffer.concat(chunks)));
     req.on("error", reject);
   });
 }
@@ -1954,6 +2043,107 @@ async function callOpenAI({ system, user, temperature = 0.3, apiKey = OPENAI_API
   return chunks.join("\n").trim();
 }
 
+function chatCompletionTextFromJson(json) {
+  const choices = Array.isArray(json?.choices) ? json.choices : [];
+  const text = choices
+    .map((choice) => choice?.message?.content || choice?.delta?.content || choice?.text || "")
+    .filter(Boolean)
+    .join("");
+  if (text.trim()) return text.trim();
+  if (json?.output_text) return String(json.output_text).trim();
+  const chunks = [];
+  for (const item of json?.output || []) {
+    for (const content of item.content || []) {
+      if ((content.type === "output_text" || content.type === "text") && content.text) chunks.push(content.text);
+    }
+  }
+  return chunks.join("\n").trim();
+}
+
+function chatCompletionTextFromSse(body) {
+  const chunks = [];
+  for (const line of String(body || "").split(/\r?\n/)) {
+    const clean = line.trim();
+    if (!clean.startsWith("data:")) continue;
+    const data = clean.slice(5).trim();
+    if (!data || data === "[DONE]") continue;
+    try {
+      const json = JSON.parse(data);
+      const delta = json.choices?.[0]?.delta?.content
+        || json.choices?.[0]?.message?.content
+        || json.output_text
+        || "";
+      if (delta) chunks.push(delta);
+    } catch {}
+  }
+  return chunks.join("").trim();
+}
+
+function normalizeSpeakingAudioEvidence(evidence = {}) {
+  const dataUrl = String(evidence?.dataUrl || "").trim();
+  const match = dataUrl.match(/^data:([^;,]+)[^,]*;base64,([A-Za-z0-9+/=\r\n]+)$/);
+  if (!match) return { available: false, warning: "No valid MP3 audio evidence was submitted." };
+  const mime = match[1].toLowerCase();
+  const base64 = match[2].replace(/\s+/g, "");
+  if (!/^audio\/(?:mpeg|mp3)$/i.test(mime) && !/\.mp3$/i.test(String(evidence?.fileName || ""))) {
+    return { available: false, warning: `Audio evidence is ${mime}, not MP3, so it was not sent to the audio scoring model.` };
+  }
+  const base64Bytes = Buffer.byteLength(base64, "utf8");
+  if (!base64 || base64Bytes > SPEAKING_AUDIO_MAX_BASE64_BYTES) {
+    return { available: false, warning: `MP3 evidence is too large for scoring (${base64Bytes} base64 bytes).` };
+  }
+  return {
+    available: true,
+    mime,
+    format: "mp3",
+    fileName: String(evidence?.fileName || "ielts-speaking-recording.mp3"),
+    dataUrl: `data:;base64,${base64}`,
+    base64Bytes,
+  };
+}
+
+async function callSpeakingAudioAI({ system, user, audio, temperature = 0.2 }) {
+  if (!SPEAKING_AUDIO_AI_API_KEY || !audio?.available) return null;
+  const response = await fetch(`${SPEAKING_AUDIO_AI_BASE_URL}/chat/completions`, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${SPEAKING_AUDIO_AI_API_KEY}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      model: SPEAKING_AUDIO_AI_MODEL,
+      messages: [
+        { role: "system", content: system },
+        {
+          role: "user",
+          content: [
+            { type: "text", text: user },
+            { type: "input_audio", input_audio: { data: audio.dataUrl, format: audio.format } },
+          ],
+        },
+      ],
+      modalities: ["text"],
+      stream: true,
+      stream_options: { include_usage: false },
+      temperature,
+    }),
+  });
+  const body = await response.text();
+  if (!response.ok) {
+    throw new Error(`Speaking audio AI failed. chat=${response.status}: ${body.slice(0, 500)}`);
+  }
+  let text = chatCompletionTextFromSse(body);
+  if (!text) {
+    try {
+      text = chatCompletionTextFromJson(JSON.parse(body || "{}"));
+    } catch {
+      text = "";
+    }
+  }
+  if (!text.trim()) throw new Error("Speaking audio AI returned empty feedback.");
+  return text.trim();
+}
+
 async function callWritingAI({ system, user, temperature = 0.25 }) {
   return callOpenAI({
     system,
@@ -2640,36 +2830,51 @@ function execFilePromise(file, args) {
 }
 
 async function handleSpeakingRecording(req, res) {
-  const payload = JSON.parse((await readBody(req)) || "{}");
-  const dataUrl = String(payload.dataUrl || "").trim();
-  const match = dataUrl.match(/^data:([^;,]+)[^,]*;base64,(.+)$/);
-  if (!match) {
-    sendJson(res, 400, { error: "Recording data is invalid." });
-    return;
+  const contentType = String(req.headers["content-type"] || "").split(";")[0].trim().toLowerCase();
+  let dataUrl = "";
+  let mime = contentType && contentType !== "application/json" ? contentType : "";
+  let buffer = null;
+  if (contentType === "application/json" || !contentType) {
+    const payload = JSON.parse((await readBody(req)) || "{}");
+    dataUrl = String(payload.dataUrl || "").trim();
+    const match = dataUrl.match(/^data:([^;,]+)[^,]*;base64,(.+)$/);
+    if (!match) {
+      sendJson(res, 400, { error: "Recording data is invalid." });
+      return;
+    }
+    mime = match[1];
+    buffer = Buffer.from(match[2].replace(/\s+/g, ""), "base64");
+  } else {
+    buffer = await readBufferBody(req);
+    dataUrl = `data:${mime};base64,${buffer.toString("base64")}`;
   }
-  const mime = match[1];
-  const buffer = Buffer.from(match[2], "base64");
   if (!buffer.length) {
     sendJson(res, 400, { error: "Recording is empty." });
     return;
   }
   const safeId = crypto.randomUUID();
-  const inputExt = mime.includes("mp4") ? "mp4" : mime.includes("ogg") ? "ogg" : mime.includes("mpeg") ? "mp3" : mime.includes("wav") ? "wav" : "webm";
+  const inputExt = audioExtensionForMime(mime, "webm");
   const inputPath = path.join(os.tmpdir(), `ielts-speaking-${safeId}.${inputExt}`);
   const outputPath = path.join(os.tmpdir(), `ielts-speaking-${safeId}.mp3`);
   await fs.promises.writeFile(inputPath, buffer);
   try {
-    await execFilePromise("ffmpeg", ["-y", "-i", inputPath, "-vn", "-ar", "44100", "-ac", "1", "-b:a", "128k", outputPath]);
+    await execFilePromise("ffmpeg", ["-y", "-i", inputPath, "-vn", "-ar", "24000", "-ac", "1", "-b:a", "64k", outputPath]);
     const mp3 = await fs.promises.readFile(outputPath);
+    const fileName = "ielts-speaking-recording.mp3";
     sendJson(res, 200, {
       mode: "mp3",
-      fileName: "ielts-speaking-recording.mp3",
+      fileName,
+      mime: "audio/mpeg",
+      downloadUrl: registerRecordingDownload(mp3, fileName, "audio/mpeg"),
       dataUrl: `data:audio/mpeg;base64,${mp3.toString("base64")}`,
     });
   } catch (error) {
+    const fileName = `ielts-speaking-recording.${inputExt}`;
     sendJson(res, 200, {
       mode: "original",
-      fileName: `ielts-speaking-recording.${inputExt}`,
+      fileName,
+      mime,
+      downloadUrl: registerRecordingDownload(buffer, fileName, mime),
       dataUrl,
       warning: `MP3 conversion failed: ${error.message}`,
     });
@@ -2858,7 +3063,8 @@ function speakingSystemPrompt() {
     "Lexical Resource Band 5: handles familiar topics, limited vocabulary, repetition, occasional collocation errors. Band 6: enough vocabulary for different topics, some inaccurate choices, can paraphrase. Band 7: flexible vocabulary, less common words/idioms, good collocations, minor errors. Band 8: wide and precise vocabulary, natural style, skillful idiomatic use.",
     "Grammatical Range and Accuracy Band 5: mostly simple sentences, complex attempts often wrong, basic tense errors. Band 6: mix of simple and complex structures, errors in complex sentences but meaning clear. Band 7: varied complex structures, most sentences accurate, errors do not block communication. Band 8: rich sentence range, mostly error-free, only occasional slips.",
     "Pronunciation Band 5: generally understandable but some pronunciation issues cause difficulty, limited intonation. Band 6: understandable throughout, some errors, some intonation control. Band 7: easy to understand, uses stress and intonation though not always consistently, occasional minor issues. Band 8: wide pronunciation features, natural stress/intonation, very few errors.",
-    "Because this app may only have transcript text, state that Pronunciation confidence is limited unless audio evidence is available.",
+    "When realtime examiner notes or MP3 audio evidence are provided, use them to calibrate Pronunciation and Fluency. Do not claim there is no audio evidence if an MP3 is attached.",
+    "If MP3 and transcript disagree, treat the audio as stronger evidence for pronunciation, pauses, rhythm, hesitation and self-correction; use the transcript for vocabulary, grammar and content.",
     "Return English feedback with: score table, exact overall calculation, strengths, weaknesses, top 5 improvement points, corrected sample answers, and next drills. Be strict and examiner-like.",
   ].join("\n");
 }
@@ -2980,10 +3186,26 @@ async function handleSpeaking(req, res) {
   const payload = JSON.parse((await readBody(req)) || "{}");
   const set = String(payload.set || "").trim();
   const transcript = String(payload.transcript || "").trim();
+  const realtimeNote = String(payload.realtimeNote || "").trim();
+  const audioEvidence = normalizeSpeakingAudioEvidence(payload.audioEvidence || {});
   if (!transcript) {
     sendJson(res, 400, { error: "Please complete the speaking response first." });
     return;
   }
+  const evidenceSummary = [
+    `Speaking topic set: ${set || "IELTS Speaking"}`,
+    "",
+    "Candidate transcript:",
+    transcript,
+    "",
+    "Realtime examiner score note:",
+    realtimeNote || "(No realtime note was captured.)",
+    "",
+    "Audio evidence:",
+    audioEvidence.available
+      ? `MP3 attached for pronunciation and fluency calibration. File: ${audioEvidence.fileName}.`
+      : `No usable MP3 attached. ${audioEvidence.warning || ""}`.trim(),
+  ].join("\n");
   const local = [
     `Overall estimate: Band ${wordCount(transcript) > 180 ? "6.5" : "6.0"}`,
     "",
@@ -2991,7 +3213,9 @@ async function handleSpeaking(req, res) {
     "- Fluency and Coherence: The answer length is generally enough, but pauses and repetition should be reduced. Use linking phrases such as first, for example, and as a result.",
     "- Lexical Resource: Topic vocabulary could be more specific. Avoid repeating good, important, and interesting.",
     "- Grammatical Range and Accuracy: Use more reason clauses, relative clauses, and comparison structures.",
-    "- Pronunciation: Only a transcript is available here, so pronunciation cannot be judged reliably. This is only a rough estimate based on transcript flow.",
+    audioEvidence.available
+      ? "- Pronunciation: MP3 evidence was submitted, but AI audio scoring was unavailable, so this local fallback cannot fully judge pronunciation."
+      : "- Pronunciation: No usable MP3 audio evidence was available, so pronunciation cannot be judged reliably in local fallback mode.",
     "",
     "Improvement points:",
     "1. Each answer should include a direct answer, a reason, an example, and an additional result.",
@@ -2999,17 +3223,55 @@ async function handleSpeaking(req, res) {
     "3. Listen back to the recording and mark repeated words and self-corrections.",
   ].join("\n");
   let ai = null;
-  let warning = "";
+  let audioAiUsed = false;
+  const warnings = [];
+  if (!audioEvidence.available && audioEvidence.warning) warnings.push(audioEvidence.warning);
   try {
-    ai = await callOpenAI({
-      system: speakingSystemPrompt(),
-      user: `Speaking topic set: ${set}\n\nCandidate transcript:\n${transcript}`,
-    });
+    if (audioEvidence.available) {
+      ai = await callSpeakingAudioAI({
+        system: speakingSystemPrompt(),
+        user: [
+          evidenceSummary,
+          "",
+          "Use the attached MP3 directly for Pronunciation and Fluency evidence. Produce the final IELTS Speaking score report now.",
+        ].join("\n"),
+        audio: audioEvidence,
+      });
+      audioAiUsed = Boolean(ai);
+    }
   } catch (error) {
-    warning = error.message || "AI unavailable";
+    warnings.push(error.message || "Speaking audio AI unavailable");
+  }
+  if (!ai) {
+    try {
+      ai = await callOpenAI({
+        system: speakingSystemPrompt(),
+        user: [
+          evidenceSummary,
+          "",
+          "No audio-model result is available. Use the realtime examiner note as the best audio-side evidence, and use the transcript for content, vocabulary and grammar.",
+        ].join("\n"),
+      });
+    } catch (error) {
+      warnings.push(error.message || "AI unavailable");
+    }
   }
   const feedback = ai || local;
-  sendJson(res, 200, { mode: ai ? "ai" : "local", feedback, band: extractSpeakingBandStable(feedback), warning });
+  sendJson(res, 200, {
+    mode: ai
+      ? audioAiUsed ? `ai:${SPEAKING_AUDIO_AI_MODEL}:audio` : "ai"
+      : "local",
+    feedback,
+    band: extractSpeakingBandStable(feedback),
+    warning: warnings.filter(Boolean).join("\n"),
+    evidence: {
+      transcript: true,
+      realtimeNote: Boolean(realtimeNote),
+      mp3: audioAiUsed,
+      mp3Submitted: Boolean(audioEvidence.available),
+      mp3Bytes: audioEvidence.available ? audioEvidence.base64Bytes : 0,
+    },
+  });
 }
 
 async function handleFullExam(req, res) {
@@ -3149,6 +3411,10 @@ const server = http.createServer(async (req, res) => {
     }
     if ((req.method === "GET" || req.method === "HEAD") && req.url.startsWith("/api/report/pdf/")) {
       handleReportPdfDownload(req, res);
+      return;
+    }
+    if ((req.method === "GET" || req.method === "HEAD") && req.url.startsWith("/api/speaking/recording-download/")) {
+      handleSpeakingRecordingDownload(req, res);
       return;
     }
     if ((req.method === "GET" || req.method === "HEAD") && req.url === "/cambridge15/pdf") {
@@ -3432,7 +3698,7 @@ qwenWss.on("connection", (client, req) => {
         event_id: `event_${crypto.randomUUID()}`,
         type: "response.create",
         response: {
-          modalities: ["text", "audio"],
+          modalities: Array.isArray(event.modalities) && event.modalities.length ? event.modalities : ["text", "audio"],
           ...(event.instructions ? { instructions: event.instructions } : {}),
         },
       }));
@@ -3682,7 +3948,7 @@ function forwardQwenClientEvent(upstream, event, sendClient, metrics) {
       event_id: `event_${crypto.randomUUID()}`,
       type: "response.create",
       response: {
-        modalities: ["text", "audio"],
+        modalities: Array.isArray(event.modalities) && event.modalities.length ? event.modalities : ["text", "audio"],
         ...(event.instructions ? { instructions: event.instructions } : {}),
       },
     }));

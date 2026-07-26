@@ -5,3 +5,10 @@ node_modules/
 *.log
 tmp*
 .learnings/
+data/*.sqlite
+data/*.sqlite-*
+data/listening-asr-cache.json
+data/listening-asr-cache-errors.json
+data/audio-backups/
+public/generated/audio/
+server-app.remote.tmp.js

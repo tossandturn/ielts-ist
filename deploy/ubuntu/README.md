@@ -8,6 +8,7 @@ It does not change the local Windows setup.
 - `env.example` - server environment variables
 - `ecosystem.config.cjs` - PM2 process config
 - `nginx-ieltsist.conf.template` - Nginx reverse proxy template
+- `nginx-ieltsist-tencent-cert.conf` - current production config for `ieltsist.com`
 - `setup.sh` - bootstrap helper for Ubuntu
 
 ## Target
@@ -16,66 +17,68 @@ It does not change the local Windows setup.
 - Node.js 22+
 - Nginx
 - PM2
-- HTTPS with a real domain
+- Tencent Cloud certificate for `ieltsist.com`
 
-## Quick start
+## Current Production Path
 
-1. Clone the repo to the server, for example:
+```text
+DNSPod -> 43.156.76.217 -> Nginx HTTPS -> 127.0.0.1:4321
+```
+
+The `127.0.0.1:4321` backend is the Node service on the same Ubuntu server.
+It is not the Windows development machine.
+
+Required DNS records:
+
+```text
+@    A      43.156.76.217
+www  CNAME  ieltsist.com
+```
+
+## Server Update
 
 ```bash
-git clone <repo-url> /home/ubuntu/ielts-trainer
 cd /home/ubuntu/ielts-trainer
-```
-
-2. Create the env file:
-
-```bash
-cp deploy/ubuntu/env.example .env
-```
-
-3. Fill in real secrets only on the server.
-
-4. Install dependencies:
-
-```bash
-npm install
-```
-
-5. Start the app with PM2:
-
-```bash
-pm2 start deploy/ubuntu/ecosystem.config.cjs
+npm install --omit=dev
+pm2 start deploy/ubuntu/ecosystem.config.cjs --update-env
 pm2 save
 ```
 
-6. Enable PM2 on boot:
+## Nginx
 
-```bash
-pm2 startup systemd
+Copy the Tencent Cloud certificate files to:
+
+```text
+/etc/nginx/ssl/ieltsist/ieltsist.com_bundle.crt
+/etc/nginx/ssl/ieltsist/ieltsist.com.key
 ```
 
-Run the command PM2 prints, then run:
+Install the production config:
 
 ```bash
-pm2 save
+sudo install -m 0644 deploy/ubuntu/nginx-ieltsist-tencent-cert.conf /etc/nginx/sites-available/ieltsist
+sudo ln -sf /etc/nginx/sites-available/ieltsist /etc/nginx/sites-enabled/ieltsist
+sudo nginx -t
+sudo systemctl reload nginx
 ```
 
-7. Install the Nginx config by replacing `__DOMAIN__` in the template.
-
-8. Issue TLS with certbot:
+## Checks
 
 ```bash
-sudo certbot --nginx -d your-domain.com -d www.your-domain.com
+curl -I http://43.156.76.217/
+curl -I https://ieltsist.com/
+pm2 status
 ```
+
+Expected:
+
+- `http://ieltsist.com` redirects to HTTPS
+- `https://ieltsist.com` returns 200
+- `wss://ieltsist.com/qwen-client` upgrades through Nginx
+- PM2 process `ieltsist` is online
 
 ## Important
 
-- Keep `CAMBRIDGE15_DIR` pointed to the Linux copy of the Cambridge 15 assets.
 - Keep secrets out of Git.
 - Use HTTPS for microphone and realtime voice features.
-- If you use `setup.sh`, run it from the repo root after making it executable:
-
-```bash
-chmod +x deploy/ubuntu/setup.sh
-./deploy/ubuntu/setup.sh your-domain.com
-```
+- Do not use Cloudflare Tunnel, LuYouXia, NASCab, or Windows local tunnel for production.

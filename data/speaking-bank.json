@@ -1,11 +1,1563 @@
 {
-  "generatedAt": "2026-07-18T15:58:53.318Z",
+  "generatedAt": "2026-07-18T19:48:23.074Z",
   "sourcePolicy": "Only OCR speaking tests that passed the strict stability gate are included. Missing, incomplete, or noisy pages are skipped.",
   "speakingSets": [
     {
+      "id": "cam3-s-test1",
+      "module": "speaking",
+      "title": "Teacher who has influenced you in your education. have",
+      "source": "Cambridge IELTS 3 OCR",
+      "period": "Cambridge 3",
+      "book": 3,
+      "test": 1,
+      "page": 33,
+      "part1Topic": "Family",
+      "part1": [
+        "Do you have a large family or a small family?",
+        "Can you tell me something about them?",
+        "How much time do you manage to spend with members of your family?",
+        "What sorts of things do you like to do together?",
+        "Did/Do you get on well with your family? [Why?]"
+      ],
+      "part2": "Describe a teacher\nwho has influenced you in your education. have\nwhat you're going to\nwhere you met them to\nwhat subject they taught\nand explain\nwhy this person influenced you so much.",
+      "part3Topics": [
+        "Developments in education",
+        "A national education system",
+        "Different styles/methods of teaching and learning"
+      ],
+      "part3": [
+        "How has education changed in your country in the last 10 years?",
+        "What changes do you foresee in the next 50 years?",
+        "How do the expectations of today's school leavers compare with those of the previous generation?",
+        "What role do you think extracurricular activities play in education?",
+        "What method of learning works best for you?",
+        "How beneficial do you think it is to group students according to their level of ability?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 33,
+          "url": "/generated/speaking-pages/cam3/test1/page-33.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam3-pdf"
+    },
+    {
+      "id": "cam3-s-test2",
+      "module": "speaking",
+      "title": "Film or a TV programme which has made a strong",
+      "source": "Cambridge IELTS 3 OCR",
+      "period": "Cambridge 3",
+      "book": 3,
+      "test": 2,
+      "page": 57,
+      "part1Topic": "Festivals",
+      "part1": [
+        "What special food and activities are connected with this festival?",
+        "What do you most enjoy about it?",
+        "Do you think festivals are important for a country? [Why?]"
+      ],
+      "part2": "Describe a film or a TV programme\nwhich has made a strong\nYou should say:\nwhat you're going to say.\nwhat kind of film or TV programme it was, e.g. comedy you wish.\nwhen you saw the film or TV programme\nand explain\nwhy this film or TV programme made such an",
+      "part3Topics": [
+        "People's cinema-going habits nowadays",
+        "Making a film or TV drama of real/fictional events",
+        "Censorship and the freedom of the film-maker/TV producer"
+      ],
+      "part3": [
+        "Do you think the cinema has increased or decreased in popularity in recent years?",
+        "What are the advantages and disadvantages of making films of real-life events?",
+        "How important do you think it is for a film-maker to remain true to the original story?",
+        "Should films and television be censored or should we be free to choose what we see?",
+        "How do you think censorship laws will change in the next 20 years?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 57,
+          "url": "/generated/speaking-pages/cam3/test2/page-57.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam3-pdf"
+    },
+    {
+      "id": "cam3-s-test3",
+      "module": "speaking",
+      "title": "Memorable event in your life.",
+      "source": "Cambridge IELTS 3 OCR",
+      "period": "Cambridge 3",
+      "book": 3,
+      "test": 3,
+      "page": 79,
+      "part1Topic": "Visitors",
+      "part1": [
+        "What would you suggest a visitor should see and do in your country?",
+        "Are there any traditional arts or music you would recommend?",
+        "who go to your country. In what ways has tourism changed your country?"
+      ],
+      "part2": "Describe a memorable event in your life.\nYou should say:\nfor 1 to\nwhat you're\nwhen the event took place going to say. You\nwhere the event took place notes to\nwhat happened exactly\nand explain\nwhy this event was memorable for you.",
+      "part3Topics": [
+        "The role of ceremony in our lives",
+        "Attitudes to marriage in your country",
+        "Events of national/global significance"
+      ],
+      "part3": [
+        "How important are ceremonies in our lives?",
+        "Do you see the role of private and public ceremonies changing in the future?",
+        "Have attitudes to marriage changed in recent years?",
+        "In what ways do men and women feel differently about marriage, in your opinion?",
+        "What sort of national events make headlines in your country?",
+        "Does the media in your country pay more attention to global or national events?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 79,
+          "url": "/generated/speaking-pages/cam3/test3/page-79.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam3-pdf"
+    },
+    {
+      "id": "cam3-s-test4",
+      "module": "speaking",
+      "title": "Cambridge IELTS 3 Test 4 Speaking",
+      "source": "Cambridge IELTS 3 OCR",
+      "period": "Cambridge 3",
+      "book": 3,
+      "test": 4,
+      "page": 103,
+      "part1Topic": "Daily Routine",
+      "part1": [
+        "What would you like to change in your daily routine?",
+        "Are all your days the same?",
+        "What is the balance of work/study and free time in your normal day?"
+      ],
+      "part2": "Describe something you own\nwhich is very important to you.\nYou should say:\nwhat\nwhere you got it from you're going to say. You can make\nhow long\nwhat you use it for\nand explain\nwhy it is so important to you.",
+      "part3Topics": [
+        "How values can change",
+        "The consumer society",
+        "The consumer market"
+      ],
+      "part3": [
+        "How values can change Example questions: What kind of possessions show status in your country?",
+        "Do you think it was different for your grandparents?",
+        "is often called 'materialistic'. Why do you think this is?",
+        "Do you think consumerism is a positive or a negative development?",
+        "What is the role of advertising?",
+        "How do you think the Internet will affect buying patterns in the future?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 103,
+          "url": "/generated/speaking-pages/cam3/test4/page-103.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam3-pdf"
+    },
+    {
+      "id": "cam4-s-test1",
+      "module": "speaking",
+      "title": "Interesting historic place.",
+      "source": "Cambridge IELTS 4 OCR",
+      "period": "Cambridge 4",
+      "book": 4,
+      "test": 1,
+      "page": 33,
+      "part1Topic": "Friends",
+      "part1": [
+        "Are your friends mostly your age or different ages? [Why?]",
+        "Do you usually see your friends during the week or at weekends? [Why?]",
+        "what did you do together?",
+        "In what ways are your friends important to you?"
+      ],
+      "part2": "Describe an interesting historic place. minutes.\nYou should say:\nwhat you're\nwhat it is going to say.\nwhere it is located\nwhat you can see there now to\nand explain\nwhy this place is interesting.",
+      "part3Topics": [
+        "Looking after historic places",
+        "The teaching of history at school"
+      ],
+      "part3": [
+        "How do people in your country feel about protecting historic buildings?",
+        "Do you think an area can benefit from having an interesting historic place locally?",
+        "What do you think will happen to historic places or buildings in the future?",
+        "How were you taught history when you were at school?",
+        "Are there other ways people can learn about history, apart from at school?",
+        "Do you think history will still be a school subject in the future?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 33,
+          "url": "/generated/speaking-pages/cam4/test1/page-33.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam4-pdf"
+    },
+    {
+      "id": "cam4-s-test2",
+      "module": "speaking",
+      "title": "Interest or hobby that you enjoy.",
+      "source": "Cambridge IELTS 4 OCR",
+      "period": "Cambridge 4",
+      "book": 4,
+      "test": 2,
+      "page": 56,
+      "part1Topic": "Food and cooking",
+      "part1": [
+        "What kinds of food do you like to eat?",
+        "What kind of new food would you like to try? [Why?]",
+        "Do you like cooking? [Why/Why not?]",
+        "What was the last meal you cooked?",
+        "Do you prefer home-cooked food or food from restaurants? [Why?]"
+      ],
+      "part2": "Describe an interest or hobby that you enjoy. minutes.\nYou should say:\nwhat you're\nhow you became interested in it going to say.\nhow long\nwhy you enjoy it to\nand explain\nwhat benefits you get from this interest or hobby.",
+      "part3Topics": [
+        "The social benefits of hobbies",
+        "Leisure time"
+      ],
+      "part3": [
+        "Do you think having a hobby is good for people's social life?",
+        "Are there any negative effects of a person spending too much time on their hobby?",
+        "What are they?",
+        "Why do you think people need to have an interest or hobby?",
+        "how much time do people spend on work and how much time on leisure?",
+        "Is this a good balance, do you think?",
+        "Would you say the amount of free time has changed much in the last fifty years?",
+        "Do you think people will have more or less free time in the future?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 56,
+          "url": "/generated/speaking-pages/cam4/test2/page-56.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam4-pdf"
+    },
+    {
+      "id": "cam4-s-test3",
+      "module": "speaking",
+      "title": "Useful website",
+      "source": "Cambridge IELTS 4 OCR",
+      "period": "Cambridge 4",
+      "book": 4,
+      "test": 3,
+      "page": 102,
+      "part1Topic": "Your favourite place",
+      "part1": [
+        "What place do you most like to visit?",
+        "How often do you visit this place?",
+        "Why do you like it so much?",
+        "Is it popular with many other people?",
+        "Has it changed very much since you first went there? [In what way?]"
+      ],
+      "part2": "Describe a useful website\nYou should say:\nwhat you're\nwhat the website was going to say.\nhow you found the address for this website\nwhat the website contained to\nand explain\nwhy it was useful to you.",
+      "part3Topics": [
+        "The Internet and communication",
+        "The Internet and shopping"
+      ],
+      "part3": [
+        "What effect has the Internet had on the way people generally communicate with each other?",
+        "Why do you think the Internet is being used more and more for communication?",
+        "How reliable do you think information from the Internet is?",
+        "What about the news on the Internet?",
+        "Why do you think some people use the Internet for shopping?",
+        "Why doesn't everyone use it in this way?",
+        "What kinds of things are easy to buy and sell online?",
+        "Can you give me some examples?",
+        "Do you think shopping on the Internet will be more or less popular in the future?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 102,
+          "url": "/generated/speaking-pages/cam4/test3/page-102.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam4-pdf"
+    },
+    {
+      "id": "cam5-s-test2",
+      "module": "speaking",
+      "title": "Cambridge IELTS 5 Test 2 Speaking",
+      "source": "Cambridge IELTS 5 OCR",
+      "period": "Cambridge 5",
+      "book": 5,
+      "test": 2,
+      "page": 54,
+      "part1Topic": "Colour",
+      "part1": [
+        "What's your favourite colour? [Why?]",
+        "Do you like the same colours now as you did when you were younger?",
+        "Why/Why not?",
+        "What can you learn about a person from the colours they like?",
+        "Do any colours have a special meaning in your culture?"
+      ],
+      "part2": "Describe a song or a piece of music you\nwhat\nYou should say:\nwish.\nwhat the song or music is\nwhat kind of song or music it is\nwhere you first heard it\nand explain\nwhy you like it.",
+      "part3Topics": [
+        "Music and young people",
+        "Music and society",
+        "Tell me about any traditional music in your culture."
+      ],
+      "part3": [
+        "What kinds of music are popular with young people in your culture?",
+        "What do you think influences a young person's taste in music?",
+        "How has technology affected the kinds of music popular with young people?",
+        "How important is it for a culture to have musical traditions?",
+        "Why do you think countries have national anthems or songs?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 54,
+          "url": "/generated/speaking-pages/cam5/test2/page-54.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam5-pdf"
+    },
+    {
+      "id": "cam5-s-test4",
+      "module": "speaking",
+      "title": "Cambridge IELTS 5 Test 4 Speaking",
+      "source": "Cambridge IELTS 5 OCR",
+      "period": "Cambridge 5",
+      "book": 5,
+      "test": 4,
+      "page": 100,
+      "part1Topic": "Clothes",
+      "part1": [
+        "How important are clothes and fashion to you? [Why/Why not?]",
+        "What kind of clothes do yo u dislike? [Why?]",
+        "How different are the clothes yo u wear now from those you wore 10 years ago?",
+        "What do you think the clothes we wear say about us?"
+      ],
+      "part2": "Describe a festival that is important in\nwhat\nYou should say:\nyou wish.\nwhen the festival occurs\nwhat you did during it\nand explain\nwhy this festival is important.",
+      "part3Topics": [
+        "Purpose of festivals and celebrations",
+        "Festivals and the media"
+      ],
+      "part3": [
+        "Why do you think festivals a re important events in the working year?",
+        "Would yo u agree that the original significance of festivals is often lost today?",
+        "Is it good or bad. do you think?",
+        "Do yo u thin k that new festivals will be introduced in the future?",
+        "What role does the media play in festivals, do you think?",
+        "Do you think it's good or bad to watch festivals on TV?",
+        "How may globalisation affect different festivals around the world?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 100,
+          "url": "/generated/speaking-pages/cam5/test4/page-100.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam5-pdf"
+    },
+    {
+      "id": "cam6-s-test1",
+      "module": "speaking",
+      "title": "Someone in your family",
+      "source": "Cambridge IELTS 6 OCR",
+      "period": "Cambridge 6",
+      "book": 6,
+      "test": 1,
+      "page": 33,
+      "part1Topic": "Dancing",
+      "part1": [
+        "Do you enjoy dancing?",
+        "Why/Why not?",
+        "Has anyone ever taught you to dance? [Why/Why not?]"
+      ],
+      "part2": "Describe someone in your family\nwho you\nwhat\nYou should say:\nwish.\nhow this person is related to you\nwhat this person looks like\nand explain\nwhy you like this person.",
+      "part3Topics": [
+        "FamiJy similarities",
+        "Genetic research"
+      ],
+      "part3": [
+        "In what ways can people in a family be similar to each other?",
+        "are always more similar to mothers than to male relatives?",
+        "What abo ut so ns and fathers?",
+        "are people more influenced by their family or by their friends?",
+        "Where can people in your country get information about genetic research?",
+        "How do peo ple in your country feel about genetic research?",
+        "Should this research be funded by governments or private companies?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 33,
+          "url": "/generated/speaking-pages/cam6/test1/page-33.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam6-pdf"
+    },
+    {
+      "id": "cam6-s-test2",
+      "module": "speaking",
+      "title": "Game or sport you enjoy playing.",
+      "source": "Cambridge IELTS 6 OCR",
+      "period": "Cambridge 6",
+      "book": 6,
+      "test": 2,
+      "page": 78,
+      "part1Topic": "Traffic where you live",
+      "part1": [
+        "where you live How do most people travel to work where you live?",
+        "What traffic problems are there in your area? [Why?]",
+        "How do traffic problems affect you?",
+        "How would you reduce the traffic problems in your area?"
+      ],
+      "part2": "Describe a game or sport you enjoy playing.\nwhat\nYou should say:\nwhat kind of game or sport it is wish.\nwho you play it with\nwhere you play it\nand explain\nwhy you enjoy playing it.",
+      "part3Topics": [
+        "Children's games",
+        "Games and competition"
+      ],
+      "part3": [
+        "How have games changed from the time when you were a child?",
+        "Do you think this has been a positive change?",
+        "Why do you think children like playing games?",
+        "Do you think competitive games are good or bad for children?",
+        "How can games sometimes help to unite people?",
+        "Why is competition often seen as important in today's society?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 78,
+          "url": "/generated/speaking-pages/cam6/test2/page-78.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam6-pdf"
+    },
+    {
+      "id": "cam6-s-test4",
+      "module": "speaking",
+      "title": "Cambridge IELTS 6 Test 4 Speaking",
+      "source": "Cambridge IELTS 6 OCR",
+      "period": "Cambridge 6",
+      "book": 6,
+      "test": 4,
+      "page": 101,
+      "part1Topic": "Your friends",
+      "part1": [
+        "Do you prefer to have one particular friend or a group of friends? [Why?]",
+        "What do you like doing most with your friend/s?",
+        "Do you think it's important to keep in coatact with friends you knew as a child? [Why/Why not?]",
+        "What makes a friend into a good friend?"
+      ],
+      "part2": "Describe an important choice you had to\nwhat\nYou should say:\nwish.\nwhen you had to make this choice\nwhat you had to choose between\nand explain\nhow you felt\nwhen you were",
+      "part3Topics": [
+        "Important choices",
+        "Choices in everyday life"
+      ],
+      "part3": [
+        "What are the typical choices people make at different stages of their lives?",
+        "Should important choices be made by parents rather than by young adults?",
+        "Why do some people like to discuss choices with other people?",
+        "What kind of choices do people have to make in their everyday life?",
+        "Why do some people choose to do the same things every day?",
+        "Are there any disadvantages in this?",
+        "Do you think that people today have more choices to make today than in the past?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 101,
+          "url": "/generated/speaking-pages/cam6/test4/page-101.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam6-pdf"
+    },
+    {
+      "id": "cam7-s-test1",
+      "module": "speaking",
+      "title": "Party that you enjoyed.",
+      "source": "Cambridge IELTS 7 OCR",
+      "period": "Cambridge 7",
+      "book": 7,
+      "test": 1,
+      "page": 36,
+      "part1Topic": "Keeping in contact with people",
+      "part1": [
+        "How do you usually contact your friends? [Why?]",
+        "Do you prefer to contact different people in different ways? [Why?]",
+        "Do you find it easy to keep in contact with friends and family? [Why/Why not?]",
+        "did people in the past keep in contact in the same ways as they do today? [Why/Why not?]"
+      ],
+      "part2": "Describe a party that you enjoyed.\nwhat ·\nYou should say:\nwhat it was you wish.\nwhere the party was held and\nwho went to it\nwhat people did during the party\nand explain",
+      "part3Topics": [
+        "Family parties",
+        "National celebrations"
+      ],
+      "part3": [
+        "What are the main reasons why people organise family parties in your country?",
+        "Is this ever true in your country?",
+        "Do you think this is a good trend or a bad trend?",
+        "Are there many differences between family parties and parties given by friends?",
+        "Why do you think this is?",
+        "What kinds of national celebration do you have in your country?",
+        "Who tends to enjoy national celebrations more: young people or old people?",
+        "Why do you think some people think that national celebrations are a waste of government money?",
+        "Would you agree or disagree with this view?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 36,
+          "url": "/generated/speaking-pages/cam7/test1/page-36.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam7-pdf"
+    },
+    {
+      "id": "cam7-s-test2",
+      "module": "speaking",
+      "title": "Cambridge IELTS 7 Test 2 Speaking",
+      "source": "Cambridge IELTS 7 OCR",
+      "period": "Cambridge 7",
+      "book": 7,
+      "test": 2,
+      "page": 59,
+      "part1Topic": "Laughing",
+      "part1": [
+        "What kinds of thing make you laugh?",
+        "Do you like making other people laugh? [Why/Why not?]",
+        "Do you think it's important for people to laugh? [Why/Why not?]",
+        "Is laughing the same as feeling happy, do you think? [Why/Why not?]"
+      ],
+      "part2": "Describe an idea you had for improving\nwhat\nYou should say:\nyou wish.\nwhen and\nwhere you had your idea\nwhat your idea was\nand explain\nwhy you thought your idea would",
+      "part3Topics": [
+        "Ideas and education",
+        "Ideas in the workplace"
+      ],
+      "part3": [
+        "should be about memorising the important ideas of the past. Do you agree or disagree?",
+        "Should education encourage students to have their own new ideas?",
+        "How do you think teachers could help students to develop and share their own ideas?",
+        "Should employers encourage their workers to have new ideas about improving the company?",
+        "Do you think people sometimes dislike ideas just because they are new?",
+        "What is more difficult: having new ideas or putting them into practice?",
+        "Which is more important for a successful company?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 59,
+          "url": "/generated/speaking-pages/cam7/test2/page-59.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam7-pdf"
+    },
+    {
+      "id": "cam7-s-test3",
+      "module": "speaking",
+      "title": "Cambridge IELTS 7 Test 3 Speaking",
+      "source": "Cambridge IELTS 7 OCR",
+      "period": "Cambridge 7",
+      "book": 7,
+      "test": 3,
+      "page": 84,
+      "part1Topic": "Cold weather",
+      "part1": [
+        "Have you ever been in very cold weather? [When?]",
+        "How often is the weather cold where you come from?",
+        "Are some parts of your country colder than others? [Why?]",
+        "Would you prefer to live in a hot place or a cold place? [Why?]"
+      ],
+      "part2": "Describe a competition (e.g. TV, coUege/work or\nYou should say:\nwhat kind of competition it was and\nhow you\nwhat you had to do\nwhat the prizes were\nand explain\nwhy you chose to take part in this",
+      "part3Topics": [
+        "Competitions in school",
+        "Sporting competitions"
+      ],
+      "part3": [
+        "Why do you think some school teachers use competitions as class activities?",
+        "Do you think it is a good thing to give prizes to children who do well at school?",
+        "Would you say that schools for young children have become more or less competitive since you were that age?",
+        "What are the advantages and disadvantages of intensive training for young sportspeople?",
+        "What is your opinion?",
+        "Do you think that it is possible to become too competitive in sport?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 84,
+          "url": "/generated/speaking-pages/cam7/test3/page-84.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam7-pdf"
+    },
+    {
+      "id": "cam7-s-test4",
+      "module": "speaking",
+      "title": "Cambridge IELTS 7 Test 4 Speaking",
+      "source": "Cambridge IELTS 7 OCR",
+      "period": "Cambridge 7",
+      "book": 7,
+      "test": 4,
+      "page": 107,
+      "part1Topic": "Travelling to work or college",
+      "part1": [
+        "How do you usually travel to work or college? [Why?]",
+        "Have you always travelled to work/college in the same way? [Why/Why not?]",
+        "What do you like about travelling to work/college this way?",
+        "What changes would improve the way you travel to work/college?"
+      ],
+      "part2": "Describe a piece of electronic equipment that you\nYou should say:\nwhat it is\nhow you learned to use it\nhow long\nand explain\nwhy you find this piece of electronic",
+      "part3Topics": [
+        "Technology and housework",
+        "Technology in the workplace"
+      ],
+      "part3": [
+        "What kinds of machine are used for housework in modem homes in your country?",
+        "How have these machines benefited people?",
+        "Are there any negative effects of using them?",
+        "Do you think all new homes will be equipped with household machines in the future?",
+        "What kinds of equipment do most workers need to use in offices today?",
+        "How have developments in technology affected employment in your country?",
+        "has brought more stress than benefits to employed people nowadays. Would you agree or disagree?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 107,
+          "url": "/generated/speaking-pages/cam7/test4/page-107.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam7-pdf"
+    },
+    {
+      "id": "cam8-s-test1",
+      "module": "speaking",
+      "title": "Cambridge IELTS 8 Test 1 Speaking",
+      "source": "Cambridge IELTS 8 OCR",
+      "period": "Cambridge 8",
+      "book": 8,
+      "test": 1,
+      "page": 31,
+      "part1Topic": "Neighbours",
+      "part1": [
+        "How well do you know the people who live next door to you?",
+        "How often do you see them? [Why/Why rot?]",
+        "What kinds of problem do people sometimes have with their neighbours?",
+        "How do you think neighbours can help each other?"
+      ],
+      "part2": "Describe a ti h Ked to gi\nwhen you were askec to give ypc for\nwhy you were asked to give your opinions\nwhat opinions you gave\nand explain",
+      "part3Topics": [
+        "Asking questions",
+        "Questionnaires in school"
+      ],
+      "part3": [
+        "What kinds of organisation want to find out about people's opinions?",
+        "Do you think that questionnaires or surveys are good ways of finding out people's opinions?",
+        "What reasons might people have for not wanting to give their opinions?",
+        "Do you think it would be a good idea for schools to ask students their opinions about lessons?",
+        "What would the advantages for schools be if they asked students their opinions?",
+        "Would there be any disadvantages in asking students' opinions?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 31,
+          "url": "/generated/speaking-pages/cam8/test1/page-31.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam8-pdf"
+    },
+    {
+      "id": "cam8-s-test2",
+      "module": "speaking",
+      "title": "Cambridge IELTS 8 Test 2 Speaking",
+      "source": "Cambridge IELTS 8 OCR",
+      "period": "Cambridge 8",
+      "book": 8,
+      "test": 2,
+      "page": 54,
+      "part1Topic": "Newspapers and Magazines",
+      "part1": [
+        "Which magazines and newspapers do you read? [Why?]",
+        "What kinds of article are you most interested in? [Why?]",
+        "Have you ever read a newspaper or magazine in a foreign language? [When/Why?]",
+        "Do you think reading a newspaper or magazine in a foreign language is a good way to learn the language? [Why/Why not?]"
+      ],
+      "part2": "Describe a restaurant that you enjoyed going to.\nYou should say:\nwhat you aie going to\nwhy you chose this restaurant say.\nwhat type of food you ate in this restaurantand\nwhy you enjoyed eating in this restaurant.",
+      "part3Topics": [
+        "Restaurants",
+        "Producing food"
+      ],
+      "part3": [
+        "Why do you think people go to restaurants when they want to celebrate something?",
+        "Which are more popular in your country: fast food restaurants or traditional restaurants?",
+        "Why do you think that is?",
+        "is always better than food in a cheap restaurant - would you agree?",
+        "Do you think there will be a greater choice of food available in shops in the future, or will there be less choice?",
+        "What effects has modern technology had on the way food is produced?",
+        "How important is it for a country to be able to grow all the food it needs, without importing any from other countries?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 54,
+          "url": "/generated/speaking-pages/cam8/test2/page-54.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam8-pdf"
+    },
+    {
+      "id": "cam8-s-test4",
+      "module": "speaking",
+      "title": "Cambridge IELTS 8 Test 4 Speaking",
+      "source": "Cambridge IELTS 8 OCR",
+      "period": "Cambridge 8",
+      "book": 8,
+      "test": 4,
+      "page": 102,
+      "part1Topic": "Television",
+      "part1": [
+        "How often do you watch television? [Why/Why not?]",
+        "Which television channel do you usually watch? [Why?]",
+        "Do you enjoy the advertisements on television? [Why/Why not?]",
+        "Do you think most programmes on television are good? [Why/Why not?]"
+      ],
+      "part2": "Describe a friend of your family you\nYou should say:\nwho the person was i\nhow your family knew this person\nhow often this person visited your family\nand explain\nwhy you remember this person.",
+      "part3Topics": [
+        "Friendship",
+        "Influence of friends"
+      ],
+      "part3": [
+        "What do you think makes someone a good friend to a whole family?",
+        "Do you think we meet different kinds of friend at different stages of our lives?",
+        "In what ways are these types of friend different?",
+        "How easy is it to make friends with people from a different age group?",
+        "Do you think it is possible to be friends with someone if you never meet them in person?",
+        "Is this real friendship?",
+        "What kind of influence can friends have on our lives?",
+        "How important would you say it is to have friends from different cultures?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 102,
+          "url": "/generated/speaking-pages/cam8/test4/page-102.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam8-pdf"
+    },
+    {
+      "id": "cam9-s-test1",
+      "module": "speaking",
+      "title": "Open-air or street",
+      "source": "Cambridge IELTS 9 OCR",
+      "period": "Cambridge 9",
+      "book": 9,
+      "test": 1,
+      "page": 24,
+      "part1Topic": "Games",
+      "part1": [
+        "What games are popular in your country? [Why?]",
+        "Do you play any games? [Why/Why not?]",
+        "How do people learn to play games in your country?",
+        "Do you think it's important for people to play games? [Why/Why not?]"
+      ],
+      "part2": "Describe an open-air or street\nwhich you enjoyed visiting. for\nYou should say:\n'\nwhere the market Is\nwhat the market sells ou\nhow big the market is Ye y:\nand explain\nwhy you enjoyed",
+      "part3Topics": [
+        "Shopping at markets",
+        "Shopping in general"
+      ],
+      "part3": [
+        "Do people in your country enjoy going to open-air markets that sell things like food or clothes or old objects?",
+        "Which type of market is more popular?",
+        "Do you think markets are more suitable places for selling certain types of things?",
+        "Why do you think this is?",
+        "Do you think young people feel the same about shopping at markets as older people?",
+        "Why is that?",
+        "What do you think are the advantages of buying things from shops rather than markets?",
+        "How does advertising influence what people choose to buy?",
+        "Is this true for everyone?",
+        "Do you think that any recent changes in the way people live have affected general shopping habits?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 24,
+          "url": "/generated/speaking-pages/cam9/test1/page-24.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam9-pdf"
+    },
+    {
+      "id": "cam9-s-test2",
+      "module": "speaking",
+      "title": "Cambridge IELTS 9 Test 2 Speaking",
+      "source": "Cambridge IELTS 9 OCR",
+      "period": "Cambridge 9",
+      "book": 9,
+      "test": 2,
+      "page": 47,
+      "part1Topic": "Giving gifts.",
+      "part1": [
+        "When do people give gifts or presents in your country?",
+        "Do you ever take a gift when you visit someone in their home? [Why/Why not?]",
+        "When did you last receive a gift? [What was it?]",
+        "Do you enjoy looking for gifts for people? [Why/Why not?]"
+      ],
+      "part2": "Describe something you did that\nYou should say:\nwhat you di FR 'You\nwhere and\nwhen you did this ou\nwho you shared the activity with -\nand explain\nwhy this activity was",
+      "part3Topics": [
+        "Doing new things",
+        "Learning new things"
+      ],
+      "part3": [
+        "Why do you think some people like doing new things?",
+        "What problems can people have when they try new activities for the first time?",
+        "Do you think it's best to do new things on your own or with other people?",
+        "What kinds of things do children learn to do when they are very young?",
+        "How important are these things?",
+        "Do you think children and adults learn to do new things in the same way?",
+        "How is their learning style different?",
+        "is more important to be able to learn new things now than it was in the past. Do you agree or disagree with that?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 47,
+          "url": "/generated/speaking-pages/cam9/test2/page-47.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam9-pdf"
+    },
+    {
+      "id": "cam9-s-test3",
+      "module": "speaking",
+      "title": "Cambridge IELTS 9 Test 3 Speaking",
+      "source": "Cambridge IELTS 9 OCR",
+      "period": "Cambridge 9",
+      "book": 9,
+      "test": 3,
+      "page": 70,
+      "part1Topic": "Telephoning",
+      "part1": [
+        "How often do you make telephone calls? [Why/Why not?]",
+        "Who do you spend most time talking to on the telephone? [Why?]",
+        "When do you think you'll next make a telephone call? [Why?]",
+        "Do you sometimes prefer to send a text message instead of telephoning? [Why/Why not?]"
+      ],
+      "part2": "Describe a journey [e.g. by car,\nhow you travelled you\nwhy you went on the journey }\nand explain\nwhy you remember this",
+      "part3Topics": [
+        "Reasons for daily travel",
+        "Benefits of international travel"
+      ],
+      "part3": [
+        "Why do people need to travel every day?",
+        "What problems can people have when they are on their daily journey, for example to work or school?",
+        "Why is this?",
+        "Do you agree or disagree?",
+        "What do you think people can learn from travelling to other countries?",
+        "Can travel make a positive difference to the economy of a country?",
+        "Do you think a society can benefit if its members have experience of travelling to other countries?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 70,
+          "url": "/generated/speaking-pages/cam9/test3/page-70.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam9-pdf"
+    },
+    {
+      "id": "cam11-s-test3",
+      "module": "speaking",
+      "title": "Cambridge IELTS 11 Test 3 Speaking",
+      "source": "Cambridge IELTS 11 OCR",
+      "period": "Cambridge 11",
+      "book": 11,
+      "test": 3,
+      "page": 78,
+      "part1Topic": "Photographs",
+      "part1": [
+        "What type of photos do you like taking? [Why/Why not?]",
+        "What do you do with photos you take? [Why/Why not?]",
+        "When you visit other places, do you take photos or buy postcards? [Why/Why not?]",
+        "Do you like people taking photos of you? [Why/Why not?]"
+      ],
+      "part2": "Describe a day\nwhen you thought the\nwhere you were on this day\nwhat the weather was like on this day\nwhat you did during the day\nand explain\nwhy you thought the weather",
+      "part3Topics": [
+        "Types of weather",
+        "Weather forecasts"
+      ],
+      "part3": [
+        "What types of weather do people in your country dislike most?",
+        "Why is that?",
+        "What jobs can be affected by different weather conditions?",
+        "Are there any important festivals in your country that celebrate a season or type of weather?",
+        "How important do you think it is for everyone to check what the next day's weather will be?",
+        "What is the best way to get accurate information about the weather?",
+        "How easy or difficult is it to predict the weather in your country?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 78,
+          "url": "/generated/speaking-pages/cam11/test3/page-78.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam11-pdf"
+    },
+    {
+      "id": "cam11-s-test4",
+      "module": "speaking",
+      "title": "TV documentary you watched",
+      "source": "Cambridge IELTS 11 OCR",
+      "period": "Cambridge 11",
+      "book": 11,
+      "test": 4,
+      "page": 101,
+      "part1Topic": "Names",
+      "part1": [
+        "How did your parents choose your name(s)?",
+        "Does your name have any special meaning?",
+        "Is your name common or unusual in your country?",
+        "If you could change your name, would you? [Why/Why not?]"
+      ],
+      "part2": "Describe a TV documentary you watched\nwhy you decided to watch it\nwhat you learnt during the documentary\nand explain\nwhy the TV documentary was",
+      "part3Topics": [
+        "Different types of TV programmes",
+        "TV advertising"
+      ],
+      "part3": [
+        "What are the most popular kinds of TV programmes in your country?",
+        "Why is this?",
+        "Do you think there are too many game shows on TV nowadays?",
+        "Do you think TV is the main way for people to get the news in your country?",
+        "What other ways are there?",
+        "What types of products are advertised most often on TV?",
+        "Do you think that people pay attention to adverts on TV?",
+        "Why do you think that is?",
+        "How important are regulations on TV advertising?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 101,
+          "url": "/generated/speaking-pages/cam11/test4/page-101.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam11-pdf"
+    },
+    {
+      "id": "cam12-s-test5",
+      "module": "speaking",
+      "title": "Cambridge IELTS 12 Test 5 Speaking",
+      "source": "Cambridge IELTS 12 OCR",
+      "period": "Cambridge 12",
+      "book": 12,
+      "test": 5,
+      "page": 29,
+      "part1Topic": "Health",
+      "part1": [
+        "If you catch a cold, what do you do to help you feel better? [Why?]",
+        "Do you pay attention to public information about health? [Why?/Why not?]",
+        "What could you do to have a healthier lifestyle?"
+      ],
+      "part2": "Describe an occasion\nYou should say:\n'You\nwho or\nwhat you were waiting for\nhow long you had to wait\nwhy you had to wait a long time\nand explain",
+      "part3Topics": [
+        "Arriving early",
+        "Being patient"
+      ],
+      "part3": [
+        "what kinds of situations should people always arrive early?",
+        "How important it is to arrive early in your country?",
+        "How can modern technology help people to arrive early?",
+        "What kinds of jobs require the most patience?",
+        "Is it always better to be patient in work (or studies)?",
+        "Do you agree or disagree that the older people are, the more patient they are?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 29,
+          "url": "/generated/speaking-pages/cam12/test5/page-29.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam12-pdf"
+    },
+    {
+      "id": "cam12-s-test6",
+      "module": "speaking",
+      "title": "Film/movie actor from your country who is very popular.",
+      "source": "Cambridge IELTS 12 OCR",
+      "period": "Cambridge 12",
+      "book": 12,
+      "test": 6,
+      "page": 52,
+      "part1Topic": "Songs and singing",
+      "part1": [
+        "Did you enjoy singing when you were younger? [Why?/Why not?]",
+        "How often do you sing now? [Why?]",
+        "Do you have a favourite song you like listening to? [Why?/Why not?]",
+        "How important is singing in your culture? [Why?]"
+      ],
+      "part2": "Describe a film/movie actor from your country\nwho is very popular.\nwho this actor is\nwhat kinds of films/movies he/she acts in\nand explain\nwhy this actor is so popular.",
+      "part3Topics": [
+        "Watching films/movies",
+        "Theatre"
+      ],
+      "part3": [
+        "What are the most popular types of films in your country?",
+        "What is the difference between watching a film in the cinema and watching a film at home?",
+        "Do you think cinemas will close in the future?",
+        "How important is the theatre in your country's history?",
+        "How strong a tradition is it today in your country to go to the theatre?",
+        "Do you think the theatre should be run as a business or as a public service?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 52,
+          "url": "/generated/speaking-pages/cam12/test6/page-52.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam12-pdf"
+    },
+    {
+      "id": "cam12-s-test7",
+      "module": "speaking",
+      "title": "Cambridge IELTS 12 Test 7 Speaking",
+      "source": "Cambridge IELTS 12 OCR",
+      "period": "Cambridge 12",
+      "book": 12,
+      "test": 7,
+      "page": 73,
+      "part1Topic": "Clothes",
+      "part1": [
+        "Where do you buy most of your clothes? [Why?]",
+        "How often do you buy new clothes for yourself? [Why?]",
+        "How do you decide which clothes to buy? [Why?]",
+        "Have the kinds of clothes you like changed in recent years? [Why?/Why not?]"
+      ],
+      "part2": "Describe an interesting discussion you\nhow you spend your money.\nwho you had the discussion with\nwhy you discussed this topic\nwhat the result of the discussion was\nand explain\nwhy this discussion was",
+      "part3Topics": [
+        "Money and young people",
+        "Money and society",
+        "What disadvantages are there in a society where the gap between rich and poor"
+      ],
+      "part3": [
+        "Why do some parents give their children money to spend each week?",
+        "Do you agree that schools should teach children how to manage money?",
+        "Do you think it is a good idea for students to earn money while studying?",
+        "Do you think it is true that in today's society money cannot buy happiness?",
+        "What disadvantages are there in a society where the gap between rich and poor is very large?",
+        "Do you think richer countries have a responsibility to help poorer countries?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 73,
+          "url": "/generated/speaking-pages/cam12/test7/page-73.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam12-pdf"
+    },
+    {
+      "id": "cam12-s-test8",
+      "module": "speaking",
+      "title": "Cambridge IELTS 12 Test 8 Speaking",
+      "source": "Cambridge IELTS 12 OCR",
+      "period": "Cambridge 12",
+      "book": 12,
+      "test": 8,
+      "page": 94,
+      "part1Topic": "Art",
+      "part1": [
+        "Did you enjoy doing art lessons when you were a child? [Why?/Why not?]",
+        "Do you ever draw or paint pictures now? [Why?/Why not?]",
+        "When was the last time you went to an art gallery or exhibition? [Why?]",
+        "What kind of pictures do you like having in your home? [Why?]"
+      ],
+      "part2": "Describe a time\nwhen you visited a friend\nwho you visited\nwhere this person worked\nwhy you visited this person's\nand explain",
+      "part3Topics": [
+        "Different kinds of workplaces",
+        "The importance of work"
+      ],
+      "part3": [
+        "What things make an office comfortable to work in?",
+        "Why do some people prefer to work outdoors?",
+        "Do you agree that the building people work in is more important than the colleagues they work with?",
+        "What would life be like if people didn't have to work?",
+        "Are all jobs of equal importance?",
+        "Why do some people become workaholics?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 94,
+          "url": "/generated/speaking-pages/cam12/test8/page-94.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam12-pdf"
+    },
+    {
+      "id": "cam13-s-test1",
+      "module": "speaking",
+      "title": "Cambridge IELTS 13 Test 1 Speaking",
+      "source": "Cambridge IELTS 13 OCR",
+      "period": "Cambridge 13",
+      "book": 13,
+      "test": 1,
+      "page": 32,
+      "part1Topic": "Television programmes",
+      "part1": [
+        "Where do you usually watch TV programmes/shows? [Why?/Why not?]",
+        "What's your favourite TV programme/show? [Why?]",
+        "Are there any programmes/shows you don't like watching? [Why?/Why not?]",
+        "Do you think you will watch more TV or fewer TV programmes/shows in the future? [Why?/Why not?]"
+      ],
+      "part2": "Describe someone you know\nwho has started a\nYou should say:\nhave\nwho this person is\nwhat work this person does\nwhy this person decided to start a business\nand explain whether you would like to do the to",
+      "part3Topics": [
+        "Choosing work",
+        "Work-Life balance",
+        "Could you recommend some effective strategies for governments and employers to"
+      ],
+      "part3": [
+        "What kinds of jobs do young people not want to do in your country?",
+        "Who is best at advising young people about choosing a job: teachers or parents?",
+        "Is money always the most important thing when choosing a job?",
+        "Do you agree that many people nowadays are under pressure to work longer hours and take less holiday?",
+        "What is the impact on society of people having a poor work-life balance?",
+        "Could you recommend some effective strategies for governments and employers to ensure people have a good work-life balance?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 32,
+          "url": "/generated/speaking-pages/cam13/test1/page-32.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam13-pdf"
+    },
+    {
+      "id": "cam13-s-test2",
+      "module": "speaking",
+      "title": "Cambridge IELTS 13 Test 2 Speaking",
+      "source": "Cambridge IELTS 13 OCR",
+      "period": "Cambridge 13",
+      "book": 13,
+      "test": 2,
+      "page": 54,
+      "part1Topic": "Age",
+      "part1": [
+        "Are you happy to be the age you are now? [Why/Why not?]",
+        "When you were a child, did you think a lot about your future? [Why/Why not?]",
+        "Do you think you have changed as you have got older? [Why/Why not?]",
+        "What will be different about your life in the future? [Why]"
+      ],
+      "part2": "Describe a time\nwhen you started using a new\nYou should say:\nhave\nwhat device you started using\nwhy you started using this device\nhow easy or difficult it was to use\nand explain\nhow helpful this device was to you. to",
+      "part3Topics": [
+        "Technology and education",
+        "Technology and society",
+        "Do you agree that there are still many more major technological innovations to",
+        "Could you suggest some reasons why some people are deciding to reduce their use"
+      ],
+      "part3": [
+        "What is the best age for children to start computer lessons?",
+        "Do you think that schools should use more technology to help children learn?",
+        "Do you agree or disagree that computers will replace teachers one day?",
+        "How much has technology improved how we communicate with each other?",
+        "Do you agree that there are still many more major technological innovations to be made?",
+        "Could you suggest some reasons why some people are deciding to reduce their use of technology?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 54,
+          "url": "/generated/speaking-pages/cam13/test2/page-54.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam13-pdf"
+    },
+    {
+      "id": "cam13-s-test3",
+      "module": "speaking",
+      "title": "Cambridge IELTS 13 Test 3 Speaking",
+      "source": "Cambridge IELTS 13 OCR",
+      "period": "Cambridge 13",
+      "book": 13,
+      "test": 3,
+      "page": 76,
+      "part1Topic": "Money",
+      "part1": [
+        "When you go shopping, do you prefer to pay for things in cash or by card? [Why?]",
+        "Do you ever save money to buy special things? [Why/Why not?]",
+        "Would you ever take a job which had low pay? [Why/Why not?]",
+        "Would winning a lot of money make a big difference to your life? [Why/Why not?]"
+      ],
+      "part2": "Describe an interesting discussion you had as part of\nYou should say:\nhave\nwhat the subject of the discussion was\nwho you discussed the subject with\nwhat opinions were expressed\nand explain\nwhy you found the discussion interesting. to",
+      "part3Topics": [
+        "Discussing problems with others",
+        "Communication skills at work",
+        "Which communication skills are most important when taking part in meetings",
+        "What do you think will be the future impact of technology on communication in"
+      ],
+      "part3": [
+        "Why is it good to discuss problems with other people?",
+        "Do you think that it's better to talk to friends and not family about problems?",
+        "Is it always a good idea to tell lots of people about a problem?",
+        "Which communication skills are most important when taking part in meetings with colleagues?",
+        "What are the possible effects of poor written communication skills at work?",
+        "What do you think will be the future impact of technology on communication in the workplace?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 76,
+          "url": "/generated/speaking-pages/cam13/test3/page-76.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam13-pdf"
+    },
+    {
+      "id": "cam14-s-test1",
+      "module": "speaking",
+      "title": "Book that you enjoyed reading",
+      "source": "Cambridge IELTS 14 OCR",
+      "period": "Cambridge 14",
+      "book": 14,
+      "test": 1,
+      "page": 31,
+      "part1Topic": "Future",
+      "part1": [
+        "What job would you like to have ten years from now? [Why?]",
+        "How useful will English be for your future? [Why/Why not?]",
+        "How much travelling do you hope to do in the future? [Why/Why not?]",
+        "How do you think your life will change in the future? [Why/Why not?]"
+      ],
+      "part2": "Describe a book that you enjoyed reading because\nwhat this book was\nwhy you decided to read it\nand explain\nwhy you enjoyed reading this book. to",
+      "part3Topics": [
+        "Children and reading",
+        "Electronic books",
+        "What are the advantages of parents reading electronic books (compared to"
+      ],
+      "part3": [
+        "What are the most popular types of children's books in your country?",
+        "What are the benefits of parents reading books to their children?",
+        "Should parents always let children choose the books they read?",
+        "How popular are electronic books are in your country?",
+        "What are the advantages of parents reading electronic books (compared to printed books)?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 31,
+          "url": "/generated/speaking-pages/cam14/test1/page-31.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam14-pdf"
+    },
+    {
+      "id": "cam14-s-test2",
+      "module": "speaking",
+      "title": "Something you liked very much",
+      "source": "Cambridge IELTS 14 OCR",
+      "period": "Cambridge 14",
+      "book": 14,
+      "test": 2,
+      "page": 52,
+      "part1Topic": "Social media",
+      "part1": [
+        "Which social media websites do you use?",
+        "How much time do you spend on social media sites? [Why/Why not?]",
+        "What kind of information about yourself have you put on social media? [Why/Why not?]",
+        "Is there anything you don't like about social media? [Why?]"
+      ],
+      "part2": "Describe something you liked very much\nwhich\nYou should say:\nhave\nwhat you bought FE\nwhen and\nwhere you bought it\nwhy you chose this particular\nand explain\nwhy you liked it so much. to",
+      "part3Topics": [
+        "Creating a nice home",
+        "Different types of home"
+      ],
+      "part3": [
+        "Why do some people buy lots of things for their home?",
+        "Do you think it is very expensive to make a home look nice?",
+        "Why don't some people care about how their home looks?",
+        "In what ways is living in a flat/apartment better than living in a house?",
+        "Do you think homes will look different in the future?",
+        "Do you agree that the kinds of homes people prefer change as they get older?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 52,
+          "url": "/generated/speaking-pages/cam14/test2/page-52.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam14-pdf"
+    },
+    {
+      "id": "cam14-s-test3",
+      "module": "speaking",
+      "title": "Very difficult task that you succeeded",
+      "source": "Cambridge IELTS 14 OCR",
+      "period": "Cambridge 14",
+      "book": 14,
+      "test": 3,
+      "page": 74,
+      "part1Topic": "Neighbours",
+      "part1": [
+        "How often do you see your neighbours? [Why/Why not?]",
+        "Do you invite your neighbours to your home? [Why/Why not?]",
+        "Do you think you are a good neighbour? [Why/Why not?]",
+        "Has a neighbour ever helped you? [Why/Why not?]"
+      ],
+      "part2": "Describe a very difficult task that you succeeded\nYou should say:\n= phoned, Te\nwhat task you did Hk rod t ee 0\nwhy this task was very difficult nea ol Ws! Nou\nhow you worked on this task\nand explain\nhow you felt\nwhen you had to",
+      "part3Topics": [
+        "Difficult jobs",
+        "Personal and career success"
+      ],
+      "part3": [
+        "What are the most difficult jobs that people do?",
+        "Why do you think some people choose to do difficult jobs?",
+        "Do you agree or disagree that all jobs are difficult sometimes?",
+        "How important is it for everyone to have a goal in their personal life?",
+        "Is it always necessary to work hard in order to achieve career success?",
+        "Do you think that successful people are always happy people?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 74,
+          "url": "/generated/speaking-pages/cam14/test3/page-74.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam14-pdf"
+    },
+    {
+      "id": "cam14-s-test4",
+      "module": "speaking",
+      "title": "Cambridge IELTS 14 Test 4 Speaking",
+      "source": "Cambridge IELTS 14 OCR",
+      "period": "Cambridge 14",
+      "book": 14,
+      "test": 4,
+      "page": 96,
+      "part1Topic": "Your neighbourhood",
+      "part1": [
+        "Do you like the neighbourhood you live in? [Why/Why not?]",
+        "What do you do in your neighbourhood in your free time? [Why/Why not?]",
+        "What new things would you like to have in your neighbourhood? [Why/Why not?]",
+        "Would you like to live in another neighbourhood in your town or city? [Why/Why not?]"
+      ],
+      "part2": "Describe a website\nYou should say:\nhe\nwhat the website is 2\nhow satisfied you were with\nwhat you bought. you\nand explain",
+      "part3Topics": [
+        "Shopping online",
+        "Online retail businesses"
+      ],
+      "part3": [
+        "What kinds of things do people in your country often buy from online shops?",
+        "Why has online shopping become so popular in many countries?",
+        "What are some possible disadvantages of buying things from online shops?",
+        "Do you agree that the prices of all goods should be lower on internet shopping sites than in shops?",
+        "Do you think that some businesses (e.g. banks and travel agents) will only operate online in the future?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 96,
+          "url": "/generated/speaking-pages/cam14/test4/page-96.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam14-pdf"
+    },
+    {
+      "id": "cam15-s-test1",
+      "module": "speaking",
+      "title": "Hotel that you know.",
+      "source": "Cambridge IELTS 15 OCR",
+      "period": "Cambridge 15",
+      "book": 15,
+      "test": 1,
+      "page": 32,
+      "part1Topic": "Email",
+      "part1": [
+        "What kinds of emails do you receive about your work or studies?",
+        "Do you prefer to email, phone or text your friends? [Why?]",
+        "Do you reply to emails and messages as soon as you receive them? [Why/Why not?]",
+        "Are you happy to receive emails that are advertising things? [Why/Why not?]"
+      ],
+      "part2": "Describe a hotel that you know.\nYou should say:\na y\nwhere this hotel is wo minutes. You\nwhat this hotel looks like oe\nwhat vor\nwhat facilities this hotel has\nand explain whether you think this is a nice hotel",
+      "part3Topics": [
+        "Staying in hotels",
+        "Working in a hotel"
+      ],
+      "part3": [
+        "What things are important when people are choosing a hotel?",
+        "Why do some people not like staying in hotels?",
+        "Do you think staying in a luxury hotel is a waste of money?",
+        "Do you think hotel work is a good career for life?",
+        "How does working in a big hotel compare with working in a small hotel?",
+        "What skills are needed to be a successful hotel manager?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 32,
+          "url": "/generated/speaking-pages/cam15/test1/page-32.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge15/pdf"
+    },
+    {
+      "id": "cam15-s-test2",
+      "module": "speaking",
+      "title": "Website that you bought something from.",
+      "source": "Cambridge IELTS 15 OCR",
+      "period": "Cambridge 15",
+      "book": 15,
+      "test": 2,
+      "page": 53,
+      "part1Topic": "i",
+      "part1": [
+        "How many languages can you speak? [Why/Why not?]",
+        "How useful will English be to you in your future? [Why/Why not?]",
+        "What do you remember about learning languages at school? [Why/Why not?]",
+        "What do you think would be the hardest language for you to learn? [Why?]"
+      ],
+      "part2": "Describe a website that you bought something from.\nYou should say:\nFA- to\nwhat the website is n\nwhat you bought from this website\nhow satisfied you were with\nwhat you bought tin al out\nwhat you ]\nand explain",
+      "part3Topics": [
+        "Shopping online",
+        "The culture of consumerism"
+      ],
+      "part3": [
+        "What kinds of things do people in your country often buy from online shops?",
+        "Why do you think online shopping has become so popular nowadays?",
+        "What are some possible disadvantages of buying things from online shops?",
+        "Why do many people today keep buying things which they do not need?",
+        "Do you believe the benefits of a consumer society outweigh the disadvantages?",
+        "How possible is it to avoid the culture of consumerism?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 53,
+          "url": "/generated/speaking-pages/cam15/test2/page-53.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge15/pdf"
+    },
+    {
+      "id": "cam15-s-test3",
+      "module": "speaking",
+      "title": "Famous business person that you know",
+      "source": "Cambridge IELTS 15 OCR",
+      "period": "Cambridge 15",
+      "book": 15,
+      "test": 3,
+      "page": 75,
+      "part1Topic": "Swimming",
+      "part1": [
+        "Did you learn to swim when you were a child? [Why/Why not?]",
+        "How often do you go swimming now? [Why/Why not?]",
+        "What places are there for swimming where you live? [Why?]",
+        "Do you think it would be more enjoyable to go swimming outdoors or at an indoor pool? [Why?]"
+      ],
+      "part2": "Describe a famous business person that you know\nYou should say:\nto\nwho this person Is\nwhat kind of business this person is involved in y\nand explain\nwhat you think of this business person. to",
+      "part3Topics": [
+        "Famous people today i",
+        "Advantages of being famous"
+      ],
+      "part3": [
+        "What kinds of people are most famous in your country today?",
+        "Why are there so many stories about famous people in the news?",
+        "Do you agree or disagree that many young people today want to be famous?",
+        "Do you think it is easy for famous people to earn a lot of money?",
+        "Why might famous people enjoy having fans?",
+        "In what ways could famous people use their influence to do good things in the world?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 75,
+          "url": "/generated/speaking-pages/cam15/test3/page-75.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge15/pdf"
+    },
+    {
+      "id": "cam15-s-test4",
+      "module": "speaking",
+      "title": "Interesting TV programme you watched",
+      "source": "Cambridge IELTS 15 OCR",
+      "period": "Cambridge 15",
+      "book": 15,
+      "test": 4,
+      "page": 97,
+      "part1Topic": "Jewellery",
+      "part1": [
+        "How often do you wear jewellery? [Why/Why not?]",
+        "What type of jewellery do you like best? [Why/Why not?]",
+        "When do people like to give jewellery in your country [Why?",
+        "Have you ever given jewellery to someone as a gift? [Why/Why not?]"
+      ],
+      "part2": "Describe an interesting TV programme you watched\nYou should say:\nwhat science topic this TV programme was to\nwhen you saw this TV programme\nwhat you learnt from this TV programme\nand explain",
+      "part3Topics": [
+        "Science and the public",
+        "Scientific discoveries"
+      ],
+      "part3": [
+        "How interested are most people in your country in science?",
+        "Why do you think children today might be better at science than their parents?",
+        "How do you suggest the public can learn more about scientific developments?",
+        "What do you think are the most important scientific discoveries in the last 100 years?",
+        "Do you agree or disagree that there are no more major scientific discoveries left to make?",
+        "Who should pay for scientific research - governments or private companies?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 97,
+          "url": "/generated/speaking-pages/cam15/test4/page-97.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge15/pdf"
+    },
+    {
+      "id": "cam16-s-test1",
+      "module": "speaking",
+      "title": "Tourist attraction you enjoyed visiting.",
+      "source": "Cambridge IELTS 16 OCR",
+      "period": "Cambridge 16",
+      "book": 16,
+      "test": 1,
+      "page": 31,
+      "part1Topic": "People you study/work with",
+      "part1": [
+        "Who do you spend most time studyingMorking with?",
+        "What kinds of things do you studyiwork on with other people? [Why?]",
+        "Are there times when you study/work better by yourself?",
+        "Why Why not?",
+        "Is it important to lie the people you study/work with?",
+        "Why/Why not?"
+      ],
+      "part2": "Describe a tourist attraction you enjoyed visiting.\nYou should say:\nwhat this tourist attraction is\nwhen and\nwhy you visited it\nwhat you did there\nand explain\nwhy you enjoyed visiting this tourist",
+      "part3Topics": [
+        "Different kinds of tourist attractions",
+        "The importance of international tourism"
+      ],
+      "part3": [
+        "What are the most popular tourist attractions in your country?",
+        "How do the types of tourist aftractions that younger people like to visit compare with those that older people like to visit?",
+        "Do you agree that some tourist altractions (e.g. national museums/galleries) should be free to visit?",
+        "Why is tourism important to a country?",
+        "What are the benefits to individuals of visiting another country as tourists?",
+        "How necessary is it for tourists to learn the language of the country they re visiting?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 31,
+          "url": "/generated/speaking-pages/cam16/test1/page-31.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam16-pdf"
+    },
+    {
+      "id": "cam16-s-test2",
+      "module": "speaking",
+      "title": "Some technology",
+      "source": "Cambridge IELTS 16 OCR",
+      "period": "Cambridge 16",
+      "book": 16,
+      "test": 2,
+      "page": 97,
+      "part1Topic": "Fast food",
+      "part1": [
+        "What kinds of fast food have you tried? [Why/Why not?) Do you ever use a microwave to cook food quickly? [Why/Why not?) How popular are fast food restaurants where you live? [Why/Why not?]",
+        "When would you go to a fast-food restaurant? [WhyWhy not?]"
+      ],
+      "part2": "Describe some technology (e.g. an app, phone, You\nYou should say:\nto\nwhen and\nwhere you got this technology have\nwhy you started using this technology\nwhy you decided to stop using it\nand explain",
+      "part3Topics": [
+        "Computer games.",
+        "Examplo questions:",
+        "Technology in the classroom"
+      ],
+      "part3": [
+        "What kinds of computer games do people play in your country?",
+        "Why do people enjoy playing computer games?",
+        "Do you think that all computer games should have a minimum age for players?",
+        "In what ways can technology in the classroom be helpful?",
+        "Do you agree that students are often better at using technology than their teachers?",
+        "Do you believe that computers will ever replace human teachers?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 97,
+          "url": "/generated/speaking-pages/cam16/test2/page-97.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam16-pdf"
+    },
+    {
       "id": "cam17-s-test1",
       "module": "speaking",
-      "title": "Neighbourhood you lived in",
+      "title": "Cambridge IELTS 17 Test 1 Speaking",
       "source": "Cambridge IELTS 17 OCR",
       "period": "Cambridge 17",
       "book": 17,
@@ -27,12 +1579,19 @@
         "Which facilities are most important to people living in cities?",
         "How does shopping in small local shops differ from shopping in large city centre shops?",
         "Do you think that children should always go to the school nearest to where they live?"
-      ]
+      ],
+      "speakingPageImages": [
+        {
+          "page": 30,
+          "url": "/generated/speaking-pages/cam17/test1/page-30.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam17-pdf"
     },
     {
       "id": "cam17-s-test2",
       "module": "speaking",
-      "title": "Big city you would like to visit",
+      "title": "Big city you would like to visit.",
       "source": "Cambridge IELTS 17 OCR",
       "period": "Cambridge 17",
       "book": 17,
@@ -54,12 +1613,19 @@
         "Why have cities increased in size in recent years?",
         "What are the challenges created by ever-growing cities?",
         "In what ways do you think cities of the future will be different to cities today?"
-      ]
+      ],
+      "speakingPageImages": [
+        {
+          "page": 52,
+          "url": "/generated/speaking-pages/cam17/test2/page-52.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam17-pdf"
     },
     {
       "id": "cam17-s-test3",
       "module": "speaking",
-      "title": "Monument",
+      "title": "Monument (e.g., a statue or sculpture) that you like.",
       "source": "Cambridge IELTS 17 OCR",
       "period": "Cambridge 17",
       "book": 17,
@@ -81,99 +1647,631 @@
         "Why is architecture such a popular university subject?",
         "In what ways has the design of homes changed in recent years?",
         "To what extent does the design of buildings affect people's moods?"
-      ]
+      ],
+      "speakingPageImages": [
+        {
+          "page": 74,
+          "url": "/generated/speaking-pages/cam17/test3/page-74.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam17-pdf"
+    },
+    {
+      "id": "cam17-s-test4",
+      "module": "speaking",
+      "title": "Cambridge IELTS 17 Test 4 Speaking",
+      "source": "Cambridge IELTS 17 OCR",
+      "period": "Cambridge 17",
+      "book": 17,
+      "test": 4,
+      "page": 95,
+      "part1Topic": "Maps",
+      "part1": [
+        "Do you think it's better to use a paper map or a map on your phone? [Why?]",
+        "When was the last time you needed to use a map? [Why/Why not?]",
+        "If you visit a new city, do you always use a map to find your way around? [Why/Why not?]",
+        "do you find it easy to read maps? [Why/Why not?]"
+      ],
+      "part2": "Describe an occasion\nwhen you had to do something in a hurry.\nYou should say:\nwhat you had to do\nwhy you had to do this in a hurry\nhow well you did this\nand explain",
+      "part3Topics": [],
+      "part3": [
+        "Do you think it's OK to arrive late when meeting a friend?",
+        "What should happen to people who arrive late for work?",
+        "Can you suggest how people can make sure they don't arrive late?",
+        "Is it better to study for long periods or in shorter blocks of time?",
+        "What are the likely effects of students not managing their study time well?",
+        "How important is it for students to have enough leisure time?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 95,
+          "url": "/generated/speaking-pages/cam17/test4/page-95.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam17-pdf"
+    },
+    {
+      "id": "cam18-s-test1",
+      "module": "speaking",
+      "title": "Cambridge IELTS 18 Test 1 Speaking",
+      "source": "Cambridge IELTS 18 OCR",
+      "period": "Cambridge 18",
+      "book": 18,
+      "test": 1,
+      "page": 33,
+      "part1Topic": "Paying bills",
+      "part1": [
+        "What kinds of bills do you have to pay?",
+        "How do you usually pay your bills - in cash or by another method?",
+        "Have you ever forgotten to pay a bill? [Why/Why not?) Is there anything you could do to make your bills cheaper? [Why/\\Why not?]"
+      ],
+      "part2": "Describe some food or drink that you learned to\nYou should say:\nEE\nwhat food or drink you leamed to prepare\nwhat be\nwhen and\nwhere you leamed to prepare this are going to 53. Le\nhow you leamed to prepare this\nand explain",
+      "part3Topics": [
+        "Young people and cooking",
+        "Working as a chef"
+      ],
+      "part3": [
+        "What kinds of things can children learn to cook?",
+        "Do you think itis important for children to learn to cook?",
+        "Do you think young people should learn to cook at home or at school?",
+        "How enjoyable do you think it would be to work as a professional chef?",
+        "What skills does a person need to be a great chef?",
+        "How much influence do celebrity/TV chefs have on what ordinary people cook?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 33,
+          "url": "/generated/speaking-pages/cam18/test1/page-33.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam18-pdf"
+    },
+    {
+      "id": "cam18-s-test2",
+      "module": "speaking",
+      "title": "Cambridge IELTS 18 Test 2 Speaking",
+      "source": "Cambridge IELTS 18 OCR",
+      "period": "Cambridge 18",
+      "book": 18,
+      "test": 2,
+      "page": 56,
+      "part1Topic": "Science",
+      "part1": [
+        "Did you like studying science when you were at school? [Why/Why not?]",
+        "What do you remember about your science teachers at school?",
+        "How interested are you in science now? [Why/Why not?) What do you think has been an important recent scientific development? [Why?]"
+      ],
+      "part2": "Describe a tourist attraction in your country that\nYou should say:\nhave\nwhat the tourist attraction is ee\nwhere in your country this tourist attraction is i py 4\nand explain\nwhy you would recommend this tourist",
+      "part3Topics": [
+        "Museums and art galleries",
+        "The holiday industry",
+        "Why, do you think, do some people book package holidays rather than travelling"
+      ],
+      "part3": [
+        "What are the most popular museums and art galleries in... / where you live?",
+        "Do you believe that all museums and art galleries should be free?",
+        "What kinds of things make a museur or art gallery an interesting piace to visit?",
+        "Why, do you think, do some people book package holidays rather than travelling independently?",
+        "Would you say that large numbers of tourists cause problems for local people?",
+        "What sort of impact can large holiday resorts have on the environment?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 56,
+          "url": "/generated/speaking-pages/cam18/test2/page-56.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam18-pdf"
+    },
+    {
+      "id": "cam18-s-test4",
+      "module": "speaking",
+      "title": "Cambridge IELTS 18 Test 4 Speaking",
+      "source": "Cambridge IELTS 18 OCR",
+      "period": "Cambridge 18",
+      "book": 18,
+      "test": 4,
+      "page": 100,
+      "part1Topic": "Sleep",
+      "part1": [
+        "How many hours do you usually sleep at night?",
+        "Do you sometimes sleep during the day? [Why/Why not?]",
+        "What do you do if you can't get to sleep at night? [Why?]",
+        "Do you ever remember the dreams you've had while you were asleep?"
+      ],
+      "part2": "Describe a time\nwhen you met someone\nwho you\nYou should say:\nwho you met ps\nwhen and\nwhere you met this person\nand explain\nwhy you think you became good 10",
+      "part3Topics": [
+        "Friends at school",
+        "Making new friends",
+        "Ed"
+      ],
+      "part3": [
+        "How important is it for children to have lots of friends at school?",
+        "Do you think tis wrong for parents to influence which friends their chicren have?",
+        "Why do you think children often choose different friends as they get older?",
+        "If a person is moving to a new town, what is a good way for them to make friends?",
+        "Can you think of any disadvantages of making new friends online?",
+        "Would you say itis harder for people to make new friends as they get older?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 100,
+          "url": "/generated/speaking-pages/cam18/test4/page-100.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam18-pdf"
+    },
+    {
+      "id": "cam19-s-test1",
+      "module": "speaking",
+      "title": "Law that was introduced in your country",
+      "source": "Cambridge IELTS 19 OCR",
+      "period": "Cambridge 19",
+      "book": 19,
+      "test": 1,
+      "page": 34,
+      "part1Topic": "International food",
+      "part1": [
+        "Can you find food from many different countries where you live?",
+        "Why/Why not?",
+        "How often do you eat typical food from other countries?",
+        "Have you ever tried making food from another country?",
+        "What food from your country would you recommend to people from olher countries?"
+      ],
+      "part2": "Describe a law that was introduced in your country\nYou should say:\noo minutes. You\nwhat the law was\nwho introduced it oa\nwhen and\nand explain\nwhy you thought this law was sucha 10",
+      "part3Topics": [
+        "School rules",
+        "Working in the legal profession"
+      ],
+      "part3": [
+        "What kinds of rules are common in a school?",
+        "How important is it to have rules in a school?",
+        "What do you recommend should happen f children break school rules?",
+        "Can you suggest why many students decide to study law at university?",
+        "What are the key personal qualities needed lo be a successful lawyer?",
+        "Do you agree that working in the legal profession is very stressful?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 34,
+          "url": "/generated/speaking-pages/cam19/test1/page-34.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam19-pdf"
+    },
+    {
+      "id": "cam19-s-test2",
+      "module": "speaking",
+      "title": "Cambridge IELTS 19 Test 2 Speaking",
+      "source": "Cambridge IELTS 19 OCR",
+      "period": "Cambridge 19",
+      "book": 19,
+      "test": 2,
+      "page": 56,
+      "part1Topic": "Travelling by plane",
+      "part1": [
+        "Have you travelled a lot by plane? [To where?Why not?]",
+        "Why do you think some people enjoy travelling by plane?",
+        "Would you like to live near an airport? [WhyMhy not7]",
+        "do you think that you will travel by plane more often?"
+      ],
+      "part2": "Describe a person from your country\nwho has won\nYou should say:\n10\nwho this person is\nwhat vor\nwhich prize, award or medal they received eine to en You\nwhat they did to win this",
+      "part3Topics": [
+        "Rewards for children at school",
+        "Rewards for sportspeople"
+      ],
+      "part3": [
+        "What lypes of school prizes do children in your country receive?",
+        "What do you think are the advantages of rewarding schoolchildren for good work?",
+        "Do you agree that it's more important for children Lo receive rewards from their parents than from teachers?",
+        "Do you think that some sportspeople (e.g., top footballers) are paid too much money?",
+        "Should everyone on a team gel the same prize money when they win?",
+        "Do you agree with the view thal, in sport, taking part is more important than winning?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 56,
+          "url": "/generated/speaking-pages/cam19/test2/page-56.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam19-pdf"
+    },
+    {
+      "id": "cam19-s-test3",
+      "module": "speaking",
+      "title": "Car journey you made that took longer",
+      "source": "Cambridge IELTS 19 OCR",
+      "period": "Cambridge 19",
+      "book": 19,
+      "test": 3,
+      "page": 79,
+      "part1Topic": "Holidays",
+      "part1": [
+        "Do you prefer spending holidays with friends or with family? [Why?) What kind of holiday accommodation do you ike fo stay in? [Why?]",
+        "What plans do you have for your next holiday?"
+      ],
+      "part2": "Describe a car journey you made that took longer\nwho you wero with ett >\nhow you felt during the journey aro gong tose. You\nand explain\nwhy this car journey took longer 0",
+      "part3Topics": [
+        "Driving a car",
+        "Electric cars"
+      ],
+      "part3": [
+        "How interested are young people in your country in learning to drive?",
+        "What are the diferences between driving in the countryside and diving in the city?",
+        "Do you consider most drivers where you live to be good drivers?",
+        "How popular are electric cars in your country?",
+        "In what ways could more people be persuaded to buy electric cars?",
+        "Do you think all cars will be electric one day?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 79,
+          "url": "/generated/speaking-pages/cam19/test3/page-79.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam19-pdf"
+    },
+    {
+      "id": "cam19-s-test4",
+      "module": "speaking",
+      "title": "Cambridge IELTS 19 Test 4 Speaking",
+      "source": "Cambridge IELTS 19 OCR",
+      "period": "Cambridge 19",
+      "book": 19,
+      "test": 4,
+      "page": 100,
+      "part1Topic": "Cafés",
+      "part1": [
+        "Do you have a favourite café?",
+        "Do you often go to cafés by yourself?",
+        "What do you think helps lo make a calé very popular?",
+        "Why do some people prefer cafés that are part of large chains, rather than small, local cafés?"
+      ],
+      "part2": "Describe a place you visited that has.\nYou should say:\n10\nwhere this place is have\nwhen and\nwhy you visited it\nwhat views you can sea from this place\nand explain\nwhy you think these views are can mar",
+      "part3Topics": [
+        "The beauty industry",
+        "What do you think of the view that beauty products should not be advertised",
+        "Beauty and culture"
+      ],
+      "part3": [
+        "Do you agree that most beauty products are a waste of money?",
+        "How does the beauty industry advertise its products so successfully?",
+        "What do you think of the view that beauty products should not be advertised o children?",
+        "Why do many people equate youth with beauty?",
+        "Do you think thal being beauliful could affect a person's success in life?",
+        "Why might society's ideas about beauty change over time?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 100,
+          "url": "/generated/speaking-pages/cam19/test4/page-100.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam19-pdf"
+    },
+    {
+      "id": "cam20-s-test1",
+      "module": "speaking",
+      "title": "Play or a film",
+      "source": "Cambridge IELTS 20 OCR",
+      "period": "Cambridge 20",
+      "book": 20,
+      "test": 1,
+      "page": 33,
+      "part1Topic": "'Walking",
+      "part1": [
+        "How much walking do you do in your daily life?",
+        "Did you walk more when you were at school than now?",
+        "What places are there to go for a walk near where you live?",
+        "Would you ever like to go on a walking holiday?"
+      ],
+      "part2": "Describe a play or a film\nand explain\nwhy you would like to see this play or to",
+      "part3Topics": [
+        "Theatres today",
+        "Actors"
+      ],
+      "part3": [
+        "What are the most popular kinds of plays or shows at theatres in your country?",
+        "How easy is it to get tickets to the theatre?",
+        "Do you think theatres need to do more to attract younger audiences?",
+        "What do you think attracts people to working as an actor?",
+        "What are some of the qualities that a person needs to have if they want to become an actor?",
+        "Can you think of any disadvantages of working as an actor?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 33,
+          "url": "/generated/speaking-pages/cam20/test1/page-33.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam20-pdf"
+    },
+    {
+      "id": "cam20-s-test2",
+      "module": "speaking",
+      "title": "Cambridge IELTS 20 Test 2 Speaking",
+      "source": "Cambridge IELTS 20 OCR",
+      "period": "Cambridge 20",
+      "book": 20,
+      "test": 2,
+      "page": 54,
+      "part1Topic": "Fruit",
+      "part1": [
+        "What's your favourite fruit?",
+        "Are there any kinds of fruit that you don't like eating?",
+        "Do you like eating cooked food that has fruit in it?",
+        "Where's the best place to buy fruit where you live?"
+      ],
+      "part2": "Describe a time\nwhen you changed a plan you\nYou should say:\nthe\nwhat your original plan was. minutes.\nwhy you changed it minute to\nwhat new plan you made\nand explain",
+      "part3Topics": [
+        "Making plans with friends",
+        "Planning a career"
+      ],
+      "part3": [
+        "What kinds of plans do friends make together?",
+        "Do you think its better to discuss future plans with friends or with family?",
+        "When making plans for the future, is it important not to copy friends?",
+        "When people are choosing what to study, how important s it that their course should lead directly to a career?",
+        "Why is it a good idea to get some work experience before deciding on a future career?",
+        "How easy do you think it is for people to change from one career to another?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 54,
+          "url": "/generated/speaking-pages/cam20/test2/page-54.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam20-pdf"
+    },
+    {
+      "id": "cam20-s-test3",
+      "module": "speaking",
+      "title": "Piece of work you did for your job",
+      "source": "Cambridge IELTS 20 OCR",
+      "period": "Cambridge 20",
+      "book": 20,
+      "test": 3,
+      "page": 76,
+      "part1Topic": "Museums.",
+      "part1": [
+        "Did you enjoy going to museums when you were a child?",
+        "Are there any interesting museums near where you live now?",
+        "Do you think it is best to go to museums by yourself or with friends?",
+        "When you visit another city or country, do you think it's important to go to a museum there?"
+      ],
+      "part2": "Describe a piece of work you did for your job or.\nYou should say:\nto\nwhat this piece of work was have\nwhy you did this piece of work\nwho or\nwhat helped you to do this work\nand explain\nwhy you felt so satisfied with this piece 21 Make some notes",
+      "part3Topics": [
+        "Being satisfied in life",
+        "Job satisfaction"
+      ],
+      "part3": [
+        "What are some aspects of people's lives that they can often be dissatisfied with?",
+        "Would you say that having ambitions in life is always a positive thing?",
+        "What do you believe the most important components are of a satisfying life?",
+        "What makes a job more satisfying: a high salary or having good colleagues?",
+        "Do you think peaple need to change jobs regularly if they want to stay satisfied at work?",
+        "Is it possible to find job satisfaction in all types of work?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 76,
+          "url": "/generated/speaking-pages/cam20/test3/page-76.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam20-pdf"
+    },
+    {
+      "id": "cam20-s-test4",
+      "module": "speaking",
+      "title": "Cambridge IELTS 20 Test 4 Speaking",
+      "source": "Cambridge IELTS 20 OCR",
+      "period": "Cambridge 20",
+      "book": 20,
+      "test": 4,
+      "page": 98,
+      "part1Topic": "Personal qualities",
+      "part1": [
+        "What do you think your best personal qualities are? [Why? Do you have the same personal qualities as your parents? [Why/Why not?]",
+        "What personal qualities are impartant to you in a friend? [Why?]",
+        "Do you think you have the personal qualities to be a good/successful leader? [Why/Why not?]"
+      ],
+      "part2": "Describe atime\nwhen you ha long discussion\nYou should say:\nto\nwho you discussed this news story with\nwhat people's opinions were\nand explain\nwhy you had such a long discussion an mal",
+      "part3Topics": [
+        "The news",
+        "Discussion programmes on TV and radio",
+        "Why are discussion programmes involving members of the public popular [on TV"
+      ],
+      "part3": [
+        "How do most people find out about the news in your country?",
+        "Are people more interested in local news than national news?",
+        "How important is it to know about international news?",
+        "Why are discussion programmes involving members of the public popular [on TV and radiof?",
+        "What kinds of people want to take part in discussion programmes?",
+        "Do discussion programmes influence people in a good or bad way?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 98,
+          "url": "/generated/speaking-pages/cam20/test4/page-98.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam20-pdf"
+    },
+    {
+      "id": "cam21-s-test1",
+      "module": "speaking",
+      "title": "Cambridge IELTS 21 Test 1 Speaking",
+      "source": "Cambridge IELTS 21 OCR",
+      "period": "Cambridge 21",
+      "book": 21,
+      "test": 1,
+      "page": 32,
+      "part1Topic": "Hairstyles",
+      "part1": [
+        "Where do you go to get a haircut?",
+        "Have you changed your hairstyle recently?",
+        "Would you ever change the colour of your hair?",
+        "Do you enjoy going to the hairdresser/barber?"
+      ],
+      "part2": "Describe a time\nwhen you used information for\nYou should say:\nwhere you got this information\nwhat you are going to\nwhat information you got say. You\nand explain whether this information was very [ne",
+      "part3Topics": [
+        "Different types of holidays",
+        "Do you think most people prefer to have a holiday abroad rather than in their",
+        "Tourist attractions"
+      ],
+      "part3": [
+        "What are the most popular kinds of holidays for people from your country to go on?",
+        "Do you think most people prefer to have a holiday abroad rather than in their own country?",
+        "Why do some people want to do absolutely nothing when they go away on holiday?",
+        "What are the kinds of tourist attraction that visitors to your country like to see?",
+        "Do you think tourist attractions such as museums should be free for local people to visit?",
+        "What can make a tourist attraction disappointing for visitors?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 32,
+          "url": "/generated/speaking-pages/cam21/test1/page-32.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam21-pdf"
+    },
+    {
+      "id": "cam21-s-test2",
+      "module": "speaking",
+      "title": "Cambridge IELTS 21 Test 2 Speaking",
+      "source": "Cambridge IELTS 21 OCR",
+      "period": "Cambridge 21",
+      "book": 21,
+      "test": 2,
+      "page": 54,
+      "part1Topic": "Cities.",
+      "part1": [
+        "How well do you know the capital city of your country?",
+        "Do you think cities are exciting places to live?",
+        "Why do some people dislike living in a city?",
+        "If you could visit any city in the world, where would you go?"
+      ],
+      "part2": "Describe a time\nwhen you read or heard something\nYou should say:\nwhere you read/heard this\nwhat you read/heard\nwhat you are going to\nwhy you thought it was not true say. You\nand explain",
+      "part3Topics": [
+        "Honesty and children",
+        "Honesty and advertising",
+        "Why do people still buy things even when they know advertisements aren't"
+      ],
+      "part3": [
+        "Do you think children are more honest than adits?",
+        "Why do adults tell children i's important to be honest?",
+        "Do you think there are sometimes good reasons for adults not to tell children the truth?",
+        "Are there any claims in advertisements that are sometimes not true?",
+        "Why do people still buy things even when they know advertisements aren't completely accurate?",
+        "Do you think advertisements that are dishonest should be banned?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 54,
+          "url": "/generated/speaking-pages/cam21/test2/page-54.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam21-pdf"
+    },
+    {
+      "id": "cam21-s-test3",
+      "module": "speaking",
+      "title": "Interesting garden or park",
+      "source": "Cambridge IELTS 21 OCR",
+      "period": "Cambridge 21",
+      "book": 21,
+      "test": 3,
+      "page": 75,
+      "part1Topic": "Spending and saving money",
+      "part1": [
+        "When you go shopping, do you usually pay for things by cash or by card?",
+        "Are you generally careful about how much money you spend?",
+        "Have you ever spent money on something you didn't need?",
+        "How important is it to you to save money for the future?"
+      ],
+      "part2": "Describe an Interesting garden or pak\nYou should say:\nwhere this garden or park is\nhow big it is\nwhat you are going to\nwhat you saw in this garden/park say. You\nand explain\nwhy you think this garden/park is notes to",
+      "part3Topics": [
+        "Homes and gardens",
+        "Gardening as a hobby"
+      ],
+      "part3": [
+        "What are the advantages of having a home with a garden?",
+        "How could people living in apartment blocks grow plants and vegetables?",
+        "How interested are people in your country in TV shows and magazines about gardens?",
+        "Do you think that gardening is a hobby mainly for older people?",
+        "What are the benefits for people of gardening as a hobby?"
+      ],
+      "speakingPageImages": [
+        {
+          "page": 75,
+          "url": "/generated/speaking-pages/cam21/test3/page-75.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam21-pdf"
     }
   ],
   "skipped": [
     {
-      "book": 4,
+      "book": 1,
       "test": 1,
       "page": null,
+      "file": "data\\extracted-text\\cam1.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 3,
+      "test": 1,
+      "page": 7,
+      "file": "data\\extracted-text\\cam3.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 4,
+      "test": 1,
+      "page": 6,
       "file": "data\\extracted-text\\cam4.txt",
       "reason": "unstable OCR block"
     },
     {
       "book": 5,
       "test": 1,
-      "page": null,
+      "page": 6,
       "file": "data\\extracted-text\\cam5.txt",
-      "reason": "unstable OCR block"
-    },
-    {
-      "book": 5,
-      "test": 2,
-      "page": null,
-      "file": "data\\extracted-text\\cam5.txt",
-      "reason": "unstable OCR block"
-    },
-    {
-      "book": 5,
-      "test": 4,
-      "page": null,
-      "file": "data\\extracted-text\\cam5.txt",
-      "reason": "unstable OCR block"
-    },
-    {
-      "book": 6,
-      "test": 1,
-      "page": null,
-      "file": "data\\extracted-text\\cam6.txt",
-      "reason": "unstable OCR block"
-    },
-    {
-      "book": 6,
-      "test": 2,
-      "page": null,
-      "file": "data\\extracted-text\\cam6.txt",
-      "reason": "unstable OCR block"
-    },
-    {
-      "book": 6,
-      "test": 4,
-      "page": null,
-      "file": "data\\extracted-text\\cam6.txt",
       "reason": "unstable OCR block"
     },
     {
       "book": 7,
       "test": 1,
-      "page": null,
-      "file": "data\\extracted-text\\cam7.txt",
-      "reason": "unstable OCR block"
-    },
-    {
-      "book": 7,
-      "test": 1,
-      "page": null,
-      "file": "data\\extracted-text\\cam7.txt",
-      "reason": "unstable OCR block"
-    },
-    {
-      "book": 7,
-      "test": 3,
-      "page": null,
+      "page": 10,
       "file": "data\\extracted-text\\cam7.txt",
       "reason": "unstable OCR block"
     },
     {
       "book": 10,
       "test": 1,
-      "page": null,
+      "page": 25,
       "file": "data\\extracted-text\\cam10.txt",
       "reason": "unstable OCR block"
     },
     {
-      "book": 8,
+      "book": 10,
       "test": 1,
-      "page": 31,
-      "file": "data\\ocr-reading-writing\\cam8-test1-reading-writing.txt",
+      "page": 49,
+      "file": "data\\extracted-text\\cam10.txt",
       "reason": "unstable OCR block"
     },
     {
-      "book": 8,
-      "test": 2,
-      "page": 54,
-      "file": "data\\ocr-reading-writing\\cam8-test2-reading-writing.txt",
+      "book": 10,
+      "test": 1,
+      "page": 72,
+      "file": "data\\extracted-text\\cam10.txt",
+      "reason": "unstable OCR block"
+    },
+    {
+      "book": 10,
+      "test": 1,
+      "page": 96,
+      "file": "data\\extracted-text\\cam10.txt",
       "reason": "unstable OCR block"
     },
     {
@@ -184,135 +2282,9 @@
       "reason": "unstable OCR block"
     },
     {
-      "book": 9,
-      "test": 1,
-      "page": 24,
-      "file": "data\\ocr-reading-writing\\cam9-test1-reading-writing.txt",
-      "reason": "unstable OCR block"
-    },
-    {
-      "book": 9,
-      "test": 2,
-      "page": 47,
-      "file": "data\\ocr-reading-writing\\cam9-test2-reading-writing.txt",
-      "reason": "unstable OCR block"
-    },
-    {
-      "book": 9,
-      "test": 3,
-      "page": 70,
-      "file": "data\\ocr-reading-writing\\cam9-test3-reading-writing.txt",
-      "reason": "unstable OCR block"
-    },
-    {
-      "book": 11,
-      "test": 4,
-      "page": 101,
-      "file": "data\\ocr-reading-writing\\cam11-test4-reading-writing.txt",
-      "reason": "unstable OCR block"
-    },
-    {
-      "book": 13,
-      "test": 1,
-      "page": 32,
-      "file": "data\\ocr-reading-writing\\cam13-test1-reading-writing.txt",
-      "reason": "unstable OCR block"
-    },
-    {
-      "book": 13,
-      "test": 2,
-      "page": 54,
-      "file": "data\\ocr-reading-writing\\cam13-test2-reading-writing.txt",
-      "reason": "unstable OCR block"
-    },
-    {
-      "book": 13,
-      "test": 3,
-      "page": 76,
-      "file": "data\\ocr-reading-writing\\cam13-test3-reading-writing.txt",
-      "reason": "unstable OCR block"
-    },
-    {
-      "book": 14,
-      "test": 1,
-      "page": 31,
-      "file": "data\\ocr-reading-writing\\cam14-test1-reading-writing.txt",
-      "reason": "unstable OCR block"
-    },
-    {
-      "book": 14,
-      "test": 2,
-      "page": 52,
-      "file": "data\\ocr-reading-writing\\cam14-test2-reading-writing.txt",
-      "reason": "unstable OCR block"
-    },
-    {
-      "book": 14,
-      "test": 3,
-      "page": 74,
-      "file": "data\\ocr-reading-writing\\cam14-test3-reading-writing.txt",
-      "reason": "unstable OCR block"
-    },
-    {
-      "book": 14,
-      "test": 4,
-      "page": 96,
-      "file": "data\\ocr-reading-writing\\cam14-test4-reading-writing.txt",
-      "reason": "unstable OCR block"
-    },
-    {
-      "book": 15,
-      "test": 1,
-      "page": 32,
-      "file": "data\\ocr-reading-writing\\cam15-test1-reading-writing.txt",
-      "reason": "unstable OCR block"
-    },
-    {
-      "book": 15,
-      "test": 2,
-      "page": 53,
-      "file": "data\\ocr-reading-writing\\cam15-test2-reading-writing.txt",
-      "reason": "unstable OCR block"
-    },
-    {
-      "book": 15,
-      "test": 4,
-      "page": 97,
-      "file": "data\\ocr-reading-writing\\cam15-test4-reading-writing.txt",
-      "reason": "unstable OCR block"
-    },
-    {
-      "book": 12,
-      "test": 5,
-      "page": 29,
-      "file": "data\\ocr-reading-writing\\cam12-test5-reading-writing.txt",
-      "reason": "unstable OCR block"
-    },
-    {
-      "book": 12,
-      "test": 8,
-      "page": 94,
-      "file": "data\\ocr-reading-writing\\cam12-test8-reading-writing.txt",
-      "reason": "unstable OCR block"
-    },
-    {
-      "book": 16,
-      "test": 1,
-      "page": 31,
-      "file": "data\\ocr-cambridge-16-21\\cam16-pages.txt",
-      "reason": "unstable OCR block"
-    },
-    {
       "book": 16,
       "test": 2,
       "page": 54,
-      "file": "data\\ocr-cambridge-16-21\\cam16-pages.txt",
-      "reason": "unstable OCR block"
-    },
-    {
-      "book": 16,
-      "test": 3,
-      "page": 97,
       "file": "data\\ocr-cambridge-16-21\\cam16-pages.txt",
       "reason": "unstable OCR block"
     },
@@ -324,151 +2296,11 @@
       "reason": "unstable OCR block"
     },
     {
-      "book": 17,
-      "test": 5,
-      "page": 95,
-      "file": "data\\extracted-text\\cam17-pages.txt",
-      "reason": "unstable OCR block"
-    },
-    {
-      "book": 18,
-      "test": 1,
-      "page": 33,
-      "file": "data\\ocr-cambridge-16-21\\cam18-pages.txt",
-      "reason": "unstable OCR block"
-    },
-    {
-      "book": 18,
-      "test": 3,
-      "page": 100,
-      "file": "data\\ocr-cambridge-16-21\\cam18-pages.txt",
-      "reason": "unstable OCR block"
-    },
-    {
-      "book": 19,
-      "test": 1,
-      "page": 34,
-      "file": "data\\ocr-cambridge-16-21\\cam19-pages.txt",
-      "reason": "unstable OCR block"
-    },
-    {
-      "book": 19,
-      "test": 2,
-      "page": 56,
-      "file": "data\\ocr-cambridge-16-21\\cam19-pages.txt",
-      "reason": "unstable OCR block"
-    },
-    {
-      "book": 19,
-      "test": 3,
-      "page": 79,
-      "file": "data\\ocr-cambridge-16-21\\cam19-pages.txt",
-      "reason": "unstable OCR block"
-    },
-    {
-      "book": 19,
-      "test": 4,
-      "page": 100,
-      "file": "data\\ocr-cambridge-16-21\\cam19-pages.txt",
-      "reason": "unstable OCR block"
-    },
-    {
-      "book": 20,
-      "test": 1,
-      "page": 33,
-      "file": "data\\ocr-cambridge-16-21\\cam20-pages.txt",
-      "reason": "unstable OCR block"
-    },
-    {
-      "book": 20,
-      "test": 2,
-      "page": 54,
-      "file": "data\\ocr-cambridge-16-21\\cam20-pages.txt",
-      "reason": "unstable OCR block"
-    },
-    {
-      "book": 20,
-      "test": 3,
-      "page": 76,
-      "file": "data\\ocr-cambridge-16-21\\cam20-pages.txt",
-      "reason": "unstable OCR block"
-    },
-    {
-      "book": 20,
-      "test": 4,
-      "page": 98,
-      "file": "data\\ocr-cambridge-16-21\\cam20-pages.txt",
-      "reason": "unstable OCR block"
-    },
-    {
-      "book": 21,
-      "test": 2,
-      "page": 54,
-      "file": "data\\ocr-cambridge-16-21\\cam21-pages.txt",
-      "reason": "unstable OCR block"
-    },
-    {
-      "book": 21,
-      "test": 3,
-      "page": 75,
-      "file": "data\\ocr-cambridge-16-21\\cam21-pages.txt",
-      "reason": "unstable OCR block"
-    },
-    {
       "book": 21,
       "test": 4,
       "page": 97,
       "file": "data\\ocr-cambridge-16-21\\cam21-pages.txt",
       "reason": "unstable OCR block"
-    },
-    {
-      "book": 8,
-      "test": 4,
-      "page": 102,
-      "file": "Cambridge IELTS 8 OCR",
-      "reason": "filtered out by strict OCR stability gate"
-    },
-    {
-      "book": 11,
-      "test": 3,
-      "page": 78,
-      "file": "Cambridge IELTS 11 OCR",
-      "reason": "filtered out by strict OCR stability gate"
-    },
-    {
-      "book": 12,
-      "test": 6,
-      "page": 52,
-      "file": "Cambridge IELTS 12 OCR",
-      "reason": "filtered out by strict OCR stability gate"
-    },
-    {
-      "book": 12,
-      "test": 7,
-      "page": 73,
-      "file": "Cambridge IELTS 12 OCR",
-      "reason": "filtered out by strict OCR stability gate"
-    },
-    {
-      "book": 15,
-      "test": 3,
-      "page": 75,
-      "file": "Cambridge IELTS 15 OCR",
-      "reason": "filtered out by strict OCR stability gate"
-    },
-    {
-      "book": 18,
-      "test": 2,
-      "page": 56,
-      "file": "Cambridge IELTS 18 OCR",
-      "reason": "filtered out by strict OCR stability gate"
-    },
-    {
-      "book": 21,
-      "test": 1,
-      "page": 32,
-      "file": "Cambridge IELTS 21 OCR",
-      "reason": "filtered out by strict OCR stability gate"
     }
   ]
 }

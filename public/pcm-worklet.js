@@ -1,7 +1,10 @@
 class PcmWorkletProcessor extends AudioWorkletProcessor {
-  constructor() {
+  constructor(options = {}) {
     super();
-    this.targetRate = 16000;
+    const processorOptions = options.processorOptions || {};
+    this.targetRate = Number(processorOptions.targetRate) || 16000;
+    this.chunkMs = Number(processorOptions.chunkMs) || 20;
+    this.chunkSamples = Math.max(160, Math.round((this.targetRate * this.chunkMs) / 1000));
     this.sourceRate = sampleRate;
     this.buffer = [];
     this.ratio = this.sourceRate / this.targetRate;
@@ -27,8 +30,8 @@ class PcmWorkletProcessor extends AudioWorkletProcessor {
     }
     this.position -= input.length;
 
-    while (this.buffer.length >= 320) {
-      const chunk = new Int16Array(320);
+    while (this.buffer.length >= this.chunkSamples) {
+      const chunk = new Int16Array(this.chunkSamples);
       for (let i = 0; i < chunk.length; i += 1) {
         chunk[i] = this.buffer.shift();
       }

@@ -8,10 +8,10 @@
       "period": "Cambridge 15",
       "minutes": 30,
       "audioUrls": [
-        "/cambridge15/audio/IELTS15_test1_audio1.mp3",
-        "/cambridge15/audio/IELTS15_test1_audio2.mp3",
-        "/cambridge15/audio/IELTS15_test1_audio3.mp3",
-        "/cambridge15/audio/IELTS15_test1_audio4.mp3"
+        "/generated/audio/cam15-l-test1-audio1.mp3",
+        "/generated/audio/cam15-l-test1-audio2.mp3",
+        "/generated/audio/cam15-l-test1-audio3.mp3",
+        "/generated/audio/cam15-l-test1-audio4.mp3"
       ],
       "sourceUrl": "/cambridge15/pdf",
       "transcript": "Full listening question paper was OCR'd from the local PDF. Use the audio sections above and answer Questions 1-40.",
@@ -258,10 +258,10 @@
       "period": "Cambridge 15",
       "minutes": 30,
       "audioUrls": [
-        "/cambridge15/audio/IELTS15_test2_audio1.mp3",
-        "/cambridge15/audio/IELTS15_test2_audio2.mp3",
-        "/cambridge15/audio/IELTS15_test2_audio3.mp3",
-        "/cambridge15/audio/IELTS15_test2_audio4.mp3"
+        "/generated/audio/cam15-l-test2-audio1.mp3",
+        "/generated/audio/cam15-l-test2-audio2.mp3",
+        "/generated/audio/cam15-l-test2-audio3.mp3",
+        "/generated/audio/cam15-l-test2-audio4.mp3"
       ],
       "sourceUrl": "/cambridge15/pdf",
       "transcript": "Full listening question paper was OCR'd from the local PDF. Use the audio sections above and answer Questions 1-40.",
@@ -508,10 +508,10 @@
       "period": "Cambridge 15",
       "minutes": 30,
       "audioUrls": [
-        "/cambridge15/audio/IELTS15_test3_audio1.mp3",
-        "/cambridge15/audio/IELTS15_test3_audio2.mp3",
-        "/cambridge15/audio/IELTS15_test3_audio3.mp3",
-        "/cambridge15/audio/IELTS15_test3_audio4.mp3"
+        "/generated/audio/cam15-l-test3-audio1.mp3",
+        "/generated/audio/cam15-l-test3-audio2.mp3",
+        "/generated/audio/cam15-l-test3-audio3.mp3",
+        "/generated/audio/cam15-l-test3-audio4.mp3"
       ],
       "sourceUrl": "/cambridge15/pdf",
       "transcript": "Full listening question paper was OCR'd from the local PDF. Use the audio sections above and answer Questions 1-40.",
@@ -758,10 +758,10 @@
       "period": "Cambridge 15",
       "minutes": 30,
       "audioUrls": [
-        "/cambridge15/audio/IELTS15_test4_audio1.mp3",
-        "/cambridge15/audio/IELTS15_test4_audio2.mp3",
-        "/cambridge15/audio/IELTS15_test4_audio3.mp3",
-        "/cambridge15/audio/IELTS15_test4_audio4.mp3"
+        "/generated/audio/cam15-l-test4-audio1.mp3",
+        "/generated/audio/cam15-l-test4-audio2.mp3",
+        "/generated/audio/cam15-l-test4-audio3.mp3",
+        "/generated/audio/cam15-l-test4-audio4.mp3"
       ],
       "sourceUrl": "/cambridge15/pdf",
       "transcript": "Full listening question paper was OCR'd from the local PDF. Use the audio sections above and answer Questions 1-40.",

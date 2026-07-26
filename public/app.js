@@ -26,6 +26,7 @@
   speakingSessions: {},
   speakingTimers: {},
   qwenSpeaking: {},
+  qwenWakeLockEventsBound: false,
   qwenRuntime: null,
   qwenRuntimeLoadedAt: 0,
   authToken: "",
@@ -62,6 +63,8 @@
     activeHandle: "",
     originRect: null,
   },
+  bankTopicPage: 1,
+  bankTopicPageSize: 24,
 };
 
 const $ = (id) => document.getElementById(id);
@@ -69,6 +72,7 @@ const storeKey = "ieltsTrainerUserBank";
 const sidebarStoreKey = "ieltsTrainerSidebarCollapsed";
 const authStoreKey = "ieltsistAuthToken";
 const draftStoreKey = "ieltsistDeviceDrafts";
+const likedTopicStoreKey = "ieltsistLikedSpeakingTopics";
 const annotationStoreKey = "ieltsistPdfAnnotations";
 const listeningAudioGraphs = new WeakMap();
 const listeningAsrCacheSource = "qwen-asr-live-vad-v1";
@@ -337,6 +341,315 @@ const builtInPublicSpeakingTopics = [
   },
 ];
 
+const publicSpeakingTopicSeeds = [
+  ["Friends", "👥", "people", "relationships, social, trust"],
+  ["Food", "🍽️", "lifestyle", "cooking, eating, healthy"],
+  ["Favourite", "💗", "lifestyle", "like, best, preferences"],
+  ["Colour", "🎨", "media", "art, design, preferences"],
+  ["Clothes", "👕", "lifestyle", "fashion, shopping, style"],
+  ["Music", "🎵", "media", "songs, instruments, concerts"],
+  ["Family", "👨‍👩‍👧", "people", "home, parents, siblings"],
+  ["Travel", "✈️", "lifestyle", "trip, journey, holiday"],
+  ["Sport", "🏟️", "lifestyle", "exercise, games, athletes"],
+  ["Work", "💼", "work", "job, career, company"],
+  ["Education", "🎓", "education", "study, school, learning"],
+  ["Technology", "🖥️", "technology", "computer, internet, apps"],
+  ["Health", "💗", "lifestyle", "fitness, medicine, diet"],
+  ["Environment", "🌿", "nature", "nature, pollution, planet"],
+  ["News", "📰", "media", "events, media, information"],
+  ["Hometown", "🏠", "place", "city, village, place"],
+  ["Books", "📘", "education", "reading, novels, authors"],
+  ["Films", "🎬", "media", "movies, cinema, actors"],
+  ["Shopping", "🛍️", "lifestyle", "mall, buying, markets"],
+  ["Transport", "🚗", "place", "driving, public, vehicles"],
+  ["House", "🏡", "place", "apartment, room, living"],
+  ["Weather", "🌦️", "nature", "seasons, climate, temperature"],
+  ["Animals", "🐾", "nature", "pets, wildlife, animals"],
+  ["Celebrations", "🎁", "society", "festivals, holidays, parties"],
+  ["Childhood", "🧸", "people", "memories, games, school"],
+  ["Neighbours", "🏘️", "society", "community, nearby, support"],
+  ["Teachers", "👩‍🏫", "education", "lessons, advice, influence"],
+  ["Languages", "🗣️", "education", "English, communication, learning"],
+  ["Dreams", "🌙", "lifestyle", "goals, sleep, imagination"],
+  ["Gifts", "🎀", "society", "giving, receiving, occasions"],
+  ["Photography", "📷", "media", "photos, memories, camera"],
+  ["History", "🏛️", "education", "past, museum, culture"],
+  ["Art", "🖼️", "media", "painting, galleries, creativity"],
+  ["Apps", "📱", "technology", "phone, tools, online"],
+  ["Museums", "🏺", "place", "exhibitions, history, learning"],
+  ["Science", "🔬", "education", "research, experiments, discovery"],
+  ["Sleep", "🛌", "lifestyle", "rest, dreams, routine"],
+  ["Gardens", "🌷", "nature", "plants, flowers, relaxing"],
+  ["Maps", "🗺️", "place", "directions, travel, location"],
+  ["Money", "💳", "society", "saving, spending, budgeting"],
+  ["Emails", "✉️", "technology", "messages, work, communication"],
+  ["Internet", "🌐", "technology", "online, websites, information"],
+  ["Media", "📺", "media", "television, news, social"],
+  ["Games", "🎮", "lifestyle", "play, competition, fun"],
+  ["Parks", "🌳", "place", "green space, exercise, families"],
+  ["Beaches", "🏖️", "place", "sea, holiday, swimming"],
+  ["Mountains", "⛰️", "nature", "hiking, scenery, adventure"],
+  ["Restaurants", "🍜", "lifestyle", "service, food, friends"],
+  ["Cafes", "☕", "lifestyle", "coffee, study, meeting"],
+  ["Cooking", "🍳", "lifestyle", "recipes, kitchen, family"],
+  ["Snacks", "🍪", "lifestyle", "taste, convenience, health"],
+  ["Water", "💧", "nature", "drinking, rivers, conservation"],
+  ["Flowers", "🌸", "nature", "gardens, gifts, beauty"],
+  ["Trees", "🌲", "nature", "parks, shade, environment"],
+  ["Libraries", "📚", "education", "books, quiet, study"],
+  ["Bicycles", "🚲", "place", "cycling, transport, exercise"],
+  ["Cars", "🚙", "place", "driving, traffic, safety"],
+  ["Trains", "🚆", "place", "journeys, stations, public"],
+  ["Planes", "🛫", "place", "flights, airports, travel"],
+  ["Hotels", "🏨", "place", "travel, service, accommodation"],
+  ["Tourism", "🧳", "society", "visitors, culture, economy"],
+  ["Culture", "🏮", "society", "traditions, identity, values"],
+  ["Volunteering", "🤝", "society", "help, community, charity"],
+  ["Teamwork", "👥", "work", "cooperation, roles, success"],
+  ["Leadership", "⭐", "work", "management, responsibility, decisions"],
+  ["Decisions", "🧭", "society", "choices, pressure, advice"],
+  ["Advice", "💬", "people", "support, experience, guidance"],
+  ["Mistakes", "🧩", "education", "learning, improvement, experience"],
+  ["Success", "🏆", "work", "achievement, effort, goals"],
+  ["Patience", "🧘", "lifestyle", "waiting, calm, practice"],
+  ["Memory", "🧠", "education", "remembering, childhood, study"],
+  ["Focus", "🎯", "education", "concentration, distraction, study"],
+  ["Noise", "🔊", "society", "cities, neighbours, concentration"],
+  ["Crowds", "🚶", "society", "public places, events, transport"],
+  ["Handwriting", "✍️", "education", "letters, school, notes"],
+  ["Puzzles", "🧩", "lifestyle", "thinking, games, challenge"],
+  ["Birthdays", "🎂", "society", "parties, gifts, family"],
+  ["Weddings", "💍", "society", "tradition, family, celebration"],
+  ["Uniforms", "🧥", "education", "school, work, identity"],
+  ["Shoes", "👟", "lifestyle", "comfort, fashion, sports"],
+  ["Bags", "🎒", "lifestyle", "school, travel, design"],
+  ["Furniture", "🪑", "place", "home, comfort, design"],
+  ["Decoration", "🖼️", "place", "style, home, festivals"],
+  ["Light", "💡", "place", "home, mood, energy"],
+  ["Rain", "🌧️", "nature", "weather, plans, mood"],
+  ["Snow", "❄️", "nature", "winter, travel, childhood"],
+  ["Summer", "☀️", "nature", "holiday, heat, activities"],
+  ["Winter", "🧣", "nature", "cold, festivals, clothes"],
+  ["Weekends", "📅", "lifestyle", "relaxing, friends, plans"],
+  ["Mornings", "🌅", "lifestyle", "routine, energy, breakfast"],
+  ["Evenings", "🌆", "lifestyle", "relaxing, dinner, study"],
+  ["Holidays", "🏝️", "lifestyle", "travel, rest, family"],
+  ["Jobs", "🧑‍💼", "work", "career, salary, skills"],
+  ["Salaries", "💰", "work", "money, motivation, fairness"],
+  ["Interviews", "🎙️", "work", "jobs, confidence, questions"],
+  ["Office", "🏢", "work", "colleagues, meetings, routine"],
+  ["School", "🏫", "education", "classes, teachers, friends"],
+  ["University", "🎓", "education", "major, campus, future"],
+  ["Exams", "📝", "education", "pressure, preparation, results"],
+  ["Robots", "🤖", "technology", "automation, future, jobs"],
+  ["Privacy", "🔒", "technology", "data, internet, safety"],
+  ["Advertising", "📣", "media", "shopping, brands, influence"],
+  ["Influencers", "📲", "media", "social media, fame, trust"],
+  ["Newspapers", "🗞️", "media", "news, reading, information"],
+  ["Television", "📺", "media", "programmes, family, entertainment"],
+  ["Podcasts", "🎧", "media", "listening, stories, learning"],
+  ["Concerts", "🎤", "media", "music, crowds, performance"],
+  ["Dancing", "💃", "media", "music, exercise, culture"],
+  ["Singing", "🎙️", "media", "songs, confidence, performance"],
+  ["Painting", "🖌️", "media", "art, creativity, colour"],
+  ["Writing", "✒️", "education", "stories, notes, expression"],
+  ["Poetry", "📜", "media", "language, emotion, culture"],
+  ["Fashion", "👗", "lifestyle", "clothes, trends, identity"],
+  ["Beauty", "💄", "lifestyle", "appearance, confidence, media"],
+  ["Exercise", "🏃", "lifestyle", "fitness, health, routine"],
+  ["Doctors", "🩺", "society", "healthcare, advice, hospitals"],
+  ["Safety", "🛡️", "society", "rules, cities, children"],
+  ["Rules", "📏", "society", "school, work, fairness"],
+  ["Queues", "🧍", "society", "waiting, public, patience"],
+  ["Promises", "🤞", "people", "trust, responsibility, friendship"],
+  ["Apologies", "🙏", "people", "mistakes, manners, relationships"],
+  ["Creativity", "✨", "education", "ideas, art, problem-solving"],
+  ["Innovation", "🚀", "technology", "ideas, business, future"],
+  ["Energy", "⚡", "nature", "electricity, conservation, future"],
+  ["Space", "🪐", "science", "planets, exploration, future"],
+  ["Farming", "🌾", "nature", "food, countryside, technology"],
+  ["Markets", "🏪", "society", "shopping, local, bargaining"],
+  ["Banks", "🏦", "society", "money, saving, service"],
+  ["Police", "🚓", "society", "safety, law, community"],
+  ["Hospitals", "🏥", "society", "health, doctors, public"],
+  ["Bridges", "🌉", "place", "cities, transport, design"],
+  ["Rivers", "🏞️", "nature", "water, cities, pollution"],
+  ["Lakes", "🚣", "nature", "relaxing, scenery, sports"],
+  ["Villages", "🏘️", "place", "countryside, community, quiet"],
+  ["Cities", "🌆", "place", "traffic, jobs, buildings"],
+  ["Teenagers", "🧑", "people", "school, friends, independence"],
+  ["Parents", "👪", "people", "support, rules, advice"],
+  ["Children", "🧒", "people", "games, learning, family"],
+  ["Elders", "🧓", "people", "experience, respect, support"],
+];
+
+function slugifyPublicTopic(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function publicTopicOneWord(value) {
+  const first = String(value || "Speaking").split(/\s*[·|:/|,-]\s*|\s+/).find(Boolean) || "Speaking";
+  return first.slice(0, 1).toUpperCase() + first.slice(1, 24);
+}
+
+function generatePublicSpeakingTopics() {
+  const existing = new Set(builtInPublicSpeakingTopics.map((item) => publicTopicOneWord(item.displayTitle || item.title || item.part1Topic).toLowerCase()));
+  const seen = new Set(existing);
+  return publicSpeakingTopicSeeds.filter(([title]) => {
+    const key = publicTopicOneWord(title).toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).map(([title, emoji, category, keywordText], index) => {
+    const keywords = keywordText.split(",").map((item) => item.trim()).filter(Boolean);
+    const lower = title.toLowerCase();
+    return {
+      id: `public-speaking-expanded-${slugifyPublicTopic(title)}`,
+      module: "speaking",
+      title,
+      displayTitle: title,
+      emoji,
+      category,
+      source: "Public topics",
+      period: "Public topics",
+      topicKeywords: keywords.join(", "),
+      popularity: publicSpeakingTopicSeeds.length - index,
+      part1Topic: title,
+      part1: [
+        `Do you often talk about ${lower}?`,
+        `Was ${lower} important to you when you were younger?`,
+        `Would you like to learn more about ${lower} in the future?`,
+      ],
+      part2: `Describe something related to ${lower}. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.`,
+      part3Topics: keywords,
+      part3: [
+        `How has modern life changed people's attitude towards ${lower}?`,
+        `Do young people and older people think differently about ${lower}?`,
+        `What problems or benefits can ${lower} bring to society?`,
+      ],
+    };
+  });
+}
+
+const expandedPublicSpeakingTopics = generatePublicSpeakingTopics();
+
+const speakingTopicCatalog = [
+  ["Friends", "👥", "people", ["friends", "friendship", "relationships", "social", "important friends"], ["relationships", "trust", "social"]],
+  ["Family", "👨‍👩‍👧", "people", ["family", "parents", "siblings", "children", "relatives"], ["parents", "siblings", "home"]],
+  ["Teachers", "👩‍🏫", "education", ["teacher", "teachers", "tutor", "education influence"], ["lessons", "advice", "influence"]],
+  ["People", "🧑", "people", ["person", "people", "someone", "famous person", "old person", "teenagers", "elders"], ["personality", "experience", "support"]],
+  ["Hometown", "🏠", "place", ["hometown", "local area", "where you live"], ["city", "local area", "community"]],
+  ["Home", "🏡", "place", ["home", "room", "living place", "apartment", "house"], ["room", "living place", "comfort"]],
+  ["Place", "📍", "place", ["place", "historic place", "interesting place", "quiet place", "public place", "building", "park"], ["location", "public", "visit"]],
+  ["Cities", "🌆", "place", ["city", "cities", "urban", "buildings", "architecture"], ["traffic", "jobs", "buildings"]],
+  ["Travel", "✈️", "lifestyle", ["travel", "journey", "trip", "plane", "tourism", "holiday abroad"], ["journey", "tourism", "holiday"]],
+  ["Transport", "🚗", "place", ["transport", "traffic", "commuting", "bus", "train", "car", "bicycle"], ["public", "vehicles", "traffic"]],
+  ["Food", "🍽️", "lifestyle", ["food", "meal", "cooking", "restaurant", "snack", "cafe"], ["cooking", "restaurants", "healthy"]],
+  ["Health", "💗", "lifestyle", ["health", "fitness", "exercise", "doctor", "hospital", "diet"], ["fitness", "medicine", "diet"]],
+  ["Sport", "🏟️", "lifestyle", ["sport", "sports", "game", "competition", "athlete"], ["games", "competition", "teamwork"]],
+  ["Routine", "📅", "lifestyle", ["daily routine", "routine", "time", "habit", "weekday", "morning", "evening"], ["time", "habits", "schedule"]],
+  ["Hobbies", "🎯", "lifestyle", ["hobby", "hobbies", "free time", "leisure", "interest"], ["free time", "interests", "relaxing"]],
+  ["Shopping", "🛍️", "lifestyle", ["shopping", "market", "buying", "online stores", "clothes", "fashion"], ["buying", "markets", "style"]],
+  ["Money", "💳", "society", ["money", "salary", "bank", "saving", "spending", "bills"], ["saving", "spending", "budgeting"]],
+  ["Work", "💼", "work", ["work study routine", "work study", "work or study", "work", "job", "career", "office", "company", "interview"], ["job", "career", "company"]],
+  ["Study", "🎓", "education", ["study", "school", "university", "subject", "student"], ["school", "learning", "subject"]],
+  ["Exams", "📝", "education", ["exam", "exams", "test", "homework", "marks"], ["pressure", "preparation", "results"]],
+  ["Books", "📘", "education", ["reading", "book", "books", "story", "novel", "library"], ["reading", "novels", "authors"]],
+  ["Languages", "🗣️", "education", ["language", "languages", "english", "communication"], ["English", "communication", "learning"]],
+  ["Technology", "🖥️", "technology", ["technology", "computer", "internet", "smartphone", "phone", "app", "digital"], ["computer", "internet", "apps"]],
+  ["Internet", "🌐", "technology", ["internet", "online", "website", "websites", "social media"], ["online", "websites", "information"]],
+  ["Robots", "🤖", "technology", ["robot", "robots", "automation", "ai", "artificial intelligence"], ["automation", "future", "jobs"]],
+  ["Privacy", "🔒", "technology", ["privacy", "data", "security", "password"], ["data", "internet", "safety"]],
+  ["Music", "🎵", "media", ["music", "song", "songs", "concert", "instrument", "singing"], ["songs", "instruments", "concerts"]],
+  ["Films", "🎬", "media", ["film", "films", "movie", "movies", "cinema", "tv programme", "television"], ["movies", "cinema", "actors"]],
+  ["News", "📰", "media", ["news", "newspaper", "media", "information", "current events"], ["events", "media", "information"]],
+  ["Art", "🖼️", "media", ["art", "painting", "drawing", "gallery", "museum", "creative"], ["painting", "galleries", "creativity"]],
+  ["Photography", "📷", "media", ["photo", "photos", "photography", "camera", "picture"], ["photos", "memories", "camera"]],
+  ["Environment", "🌿", "nature", ["environment", "pollution", "recycling", "climate", "planet"], ["recycling", "pollution", "planet"]],
+  ["Weather", "🌦️", "nature", ["weather", "season", "seasons", "rain", "snow", "summer", "winter"], ["seasons", "climate", "temperature"]],
+  ["Animals", "🐾", "nature", ["animal", "animals", "pet", "pets", "wildlife"], ["pets", "wildlife", "animals"]],
+  ["Nature", "🌳", "nature", ["nature", "garden", "flowers", "trees", "river", "lake", "mountain", "beach"], ["plants", "scenery", "relaxing"]],
+  ["Science", "🔬", "education", ["science", "research", "experiment", "space", "farming"], ["research", "experiments", "discovery"]],
+  ["Festivals", "🎁", "society", ["festival", "festivals", "celebration", "celebrations", "holiday", "birthday", "wedding"], ["festivals", "holidays", "parties"]],
+  ["Culture", "🏮", "society", ["culture", "tradition", "traditions", "history", "museum"], ["traditions", "identity", "values"]],
+  ["Society", "🌍", "society", ["society", "community", "government", "rules", "safety", "police"], ["community", "rules", "public"]],
+  ["Plans", "🧭", "society", ["future plans", "plans", "goals", "ambition", "success", "decision"], ["goals", "choices", "future"]],
+  ["Gifts", "🎀", "society", ["gift", "gifts", "present", "presents"], ["giving", "receiving", "occasions"]],
+  ["Fashion", "👗", "lifestyle", ["fashion", "beauty", "appearance", "shoes", "bags", "uniforms"], ["clothes", "trends", "identity"]],
+  ["Sleep", "🛌", "lifestyle", ["sleep", "dreams", "rest"], ["rest", "dreams", "routine"]],
+  ["Memory", "🧠", "education", ["memory", "memories", "remember", "childhood"], ["remembering", "childhood", "study"]],
+  ["Communication", "💬", "people", ["communication", "email", "messages", "advice", "apologies", "promises"], ["messages", "support", "manners"]],
+];
+
+function topicRegex(value) {
+  const escaped = String(value || "")
+    .trim()
+    .split(/\s+/)
+    .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+    .join("\\s+");
+  return new RegExp(`(?:^|[^a-z])${escaped}(?:$|[^a-z])`, "i");
+}
+
+function deriveSpeakingTopicMeta(item) {
+  if (item.displayTitle && item.emoji) {
+    return {
+      title: publicTopicOneWord(item.displayTitle),
+      emoji: item.emoji,
+      category: item.category || "lifestyle",
+      related: explicitTopicKeywords(item).slice(0, 3),
+    };
+  }
+  const compact = (value) => compactDialogueText(value || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const primaryFields = [
+    item.displayTitle,
+    item.part1Topic,
+    isPublicSpeakingTopic(item) ? item.title : "",
+    item.topicKeywords,
+    item.keywords,
+  ].filter(Boolean).map(compact);
+  const secondaryFields = [
+    item.title,
+    item.part2,
+    Array.isArray(item.part1) ? item.part1.join(" ") : item.part1,
+    Array.isArray(item.part3Topics) ? item.part3Topics.join(" ") : item.part3Topics,
+    Array.isArray(item.part3) ? item.part3.join(" ") : item.part3,
+  ].filter(Boolean).map(compact);
+  const findMatch = (text) => {
+    let best = null;
+    speakingTopicCatalog.forEach((entry, index) => {
+      const aliases = entry[3] || [];
+      aliases.forEach((alias) => {
+        if (!topicRegex(alias).test(text)) return;
+        const score = String(alias).length * 1000 - index;
+        if (!best || score > best.score) best = { entry, score };
+      });
+    });
+    return best?.entry || null;
+  };
+  const matched = primaryFields.map(findMatch).find(Boolean) || secondaryFields.map(findMatch).find(Boolean);
+  if (matched) {
+    const [title, emoji, category, , related] = matched;
+    return { title, emoji, category, related };
+  }
+  const fallbackTitle = publicTopicOneWord(item.displayTitle || item.part1Topic || item.title || "Speaking");
+  const fallbackCategory = item.category || "lifestyle";
+  const fallbackEmoji = {
+    people: "👥",
+    place: "📍",
+    lifestyle: "✨",
+    education: "🎓",
+    technology: "🖥️",
+    media: "🎵",
+    nature: "🌿",
+    work: "💼",
+    society: "🌍",
+  }[fallbackCategory] || "✨";
+  return { title: fallbackTitle, emoji: fallbackEmoji, category: fallbackCategory, related: explicitTopicKeywords(item).slice(0, 3) };
+}
+
 function countWords(text) {
   return String(text || "").trim().split(/\s+/).filter(Boolean).length;
 }
@@ -388,6 +701,33 @@ function membershipLabel(user = state.currentUser) {
   return `${membership.plan || "member"} · ${membership.active ? "active until" : "expired"} ${date.toLocaleDateString()}`;
 }
 
+function membershipPlanTitle(user = state.currentUser) {
+  const membership = user?.membership;
+  if (!membership?.active || !membership?.expiresAt) return "Free Plan";
+  const plan = String(membership.plan || "member").trim();
+  if (!plan) return "Premium Plan";
+  return `${plan.slice(0, 1).toUpperCase()}${plan.slice(1)} Plan`;
+}
+
+function membershipExpiryTitle(user = state.currentUser) {
+  const membership = user?.membership;
+  if (!membership?.expiresAt) return "Upgrade to unlock all premium features.";
+  const date = new Date(membership.expiresAt);
+  if (Number.isNaN(date.getTime())) return "Membership date unavailable.";
+  const prefix = membership.active ? "Plan valid until" : "Plan expired on";
+  return `${prefix} ${date.toLocaleDateString()}`;
+}
+
+function uniqueDrafts(drafts) {
+  const seen = new Set();
+  return drafts.filter((draft) => {
+    const key = draft.key || draft.draft_key || `${draft.title || "draft"}:${draft.updatedAt || draft.updated_at || ""}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 function updateUserChrome() {
   const avatar = $("brandAvatar");
   const info = $("brandUserInfo");
@@ -431,10 +771,18 @@ function renderMine() {
   const node = $("mineContent");
   if (!node) return;
   const localDrafts = readLocalDrafts();
+  const allDrafts = uniqueDrafts([...state.serverDrafts, ...localDrafts]);
+  const vocabItems = state.vocabItems || [];
+  const likedTopics = likedSpeakingTopicGroups();
   if (!state.currentUser) {
     node.innerHTML = `
-      <section class="panel auth-panel">
-        <div class="panel-head"><h3>Login or register</h3></div>
+      <section class="panel auth-panel mine-auth-card">
+        <div class="panel-head">
+          <div>
+            <h3>Login or register</h3>
+            <p>Keep drafts, vocabulary and membership on this device.</p>
+          </div>
+        </div>
         <form id="authForm" class="auth-form">
           <input id="authUsername" class="text-input" autocomplete="username" placeholder="Username: 3-24 lowercase letters/numbers/_" />
           <input id="authPassword" class="text-input spaced" type="password" autocomplete="current-password" placeholder="Password" />
@@ -445,56 +793,114 @@ function renderMine() {
         </form>
         <div id="authMessage" class="compact-notice"></div>
       </section>
-      <section class="panel">
-        <div class="panel-head"><h3>Device drafts</h3></div>
+      <section class="panel mine-card mine-draft-card">
+        <div class="mine-section-head"><h3>Device Draft Box</h3><span>${localDrafts.length} items</span></div>
         ${renderDraftList(localDrafts, "local")}
       </section>`;
     bindMineControls();
     return;
   }
   node.innerHTML = `
-    <section class="panel auth-panel">
-      <div class="panel-head">
-        <h3>${escapeHtml(state.currentUser.username)}</h3>
-        <button id="logoutUser" class="secondary small-button">Logout</button>
-      </div>
-      <div class="membership-card">
-        <strong>${escapeHtml(membershipLabel())}</strong>
-        <span>Redeem a weekly, monthly or yearly code to extend access.</span>
-      </div>
-      <div class="redeem-row">
-        <input id="redeemCode" class="text-input" placeholder="Redemption code" />
-        <button id="redeemCodeButton" class="primary">Redeem</button>
-      </div>
-      <div id="redeemMessage" class="compact-notice"></div>
-      <div class="mine-vocab-section">
-        <div class="panel-head compact-head"><h3>Vocabulary notebook</h3></div>
-        ${renderVocabularyList(state.vocabItems)}
-      </div>
+    <section class="mine-workspace-main">
+      <section class="panel mine-card mine-account-card">
+        <div class="mine-section-head">
+          <h3>Account Overview</h3>
+          <button id="logoutUser" class="secondary small-button">Logout</button>
+        </div>
+        <div class="membership-card workspace-plan-card">
+          <div class="mine-plan-row">
+            <div class="mine-plan-icon">I</div>
+            <div>
+              <span>Active Plan</span>
+              <strong>${escapeHtml(membershipPlanTitle())}</strong>
+              <p>${escapeHtml(membershipLabel())}</p>
+            </div>
+            <button class="secondary small-button mine-quick-action" type="button" data-mine-action="plans">View Plans</button>
+          </div>
+          <div class="mine-plan-validity">
+            <span>Membership</span>
+            <strong>${escapeHtml(membershipExpiryTitle())}</strong>
+          </div>
+        </div>
+        <label class="mine-redeem-label" for="redeemCode">Redemption Code</label>
+        <div class="redeem-row">
+          <input id="redeemCode" class="text-input" placeholder="Enter redemption code" />
+          <button id="redeemCodeButton" class="primary">Redeem</button>
+        </div>
+        <div id="redeemMessage" class="compact-notice"></div>
+      </section>
+      <section class="panel mine-card mine-vocab-card">
+        <div class="mine-section-head"><h3>Vocabulary Notebook</h3><span>${vocabItems.length} items</span></div>
+        ${renderVocabularyList(vocabItems)}
+      </section>
+      <section class="panel mine-card mine-like-card">
+        <div class="mine-section-head"><h3>Like Topics</h3><span>${likedTopics.length} items</span></div>
+        ${renderLikedTopicList(likedTopics)}
+      </section>
     </section>
-    <section class="panel">
-      <div class="panel-head"><h3>Draft box</h3><button id="syncDraftsNow" class="secondary small-button">Sync</button></div>
-      ${renderDraftList([...state.serverDrafts, ...localDrafts], "mixed")}
+    <aside class="panel mine-card mine-draft-card">
+      <div class="mine-section-head">
+        <h3>Draft Box</h3>
+        <div class="mine-head-actions">
+          <span>${allDrafts.length} items</span>
+          <button id="syncDraftsNow" class="secondary small-button">Sync Now</button>
+        </div>
+      </div>
+      ${renderDraftList(allDrafts, "mixed")}
+    </aside>
+    <section class="panel mine-card mine-quick-actions">
+      <div>
+        <h3>Quick Actions</h3>
+        <p>Jump back into practice or review saved study materials.</p>
+      </div>
+      <div class="mine-action-grid">
+        ${renderMineAction("AI Speaking Test", "Practice with AI examiner", "single-speaking", "purple")}
+        ${renderMineAction("Writing Feedback", "Get AI feedback on your writing", "writing-upload", "blue")}
+        ${renderMineAction("Speaking Topics", "Browse common topics", "bank", "green")}
+        ${renderMineAction("Vocabulary Notebook", "Review saved vocabulary", "vocabulary", "orange")}
+      </div>
     </section>`;
   bindMineControls();
 }
 
+function renderLikedTopicList(items) {
+  if (!items.length) return `<div class="empty-list compact-empty">No liked topics yet. Tap the heart on a speaking topic card.</div>`;
+  return `<div class="liked-topic-list">${items.slice(0, 12).map((group) => {
+    const chips = group.related.slice(0, 2).map((keyword) => `<span>${escapeHtml(keyword)}</span>`).join("");
+    return `<article class="liked-topic-item">
+      <div class="topic-icon topic-emoji topic-accent-${escapeHtml(group.accent)}" aria-hidden="true">${escapeHtml(group.emoji)}</div>
+      <div>
+        <strong>${escapeHtml(group.title)}</strong>
+        <div class="topic-keywords">${chips}</div>
+        <small>${escapeHtml(group.items.length)} sets</small>
+      </div>
+      <button class="primary small-button practice-liked-topic" type="button" data-group-id="${escapeHtml(group.id)}">Choose</button>
+    </article>`;
+  }).join("")}</div>`;
+}
+
+function renderMineAction(title, subtitle, action, tone) {
+  return `<button class="mine-action-card mine-action-${escapeHtml(tone)}" type="button" data-mine-action="${escapeHtml(action)}">
+    <span>${escapeHtml(title.slice(0, 1).toUpperCase())}</span>
+    <strong>${escapeHtml(title)}</strong>
+    <em>${escapeHtml(subtitle)}</em>
+  </button>`;
+}
+
 function renderDraftList(drafts, mode) {
   if (!drafts.length) return `<div class="empty-list">No saved drafts yet.</div>`;
-  const seen = new Set();
-  return `<div class="draft-list">${drafts
-    .filter((draft) => {
-      const key = draft.key || draft.draft_key;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    })
+  return `<div class="draft-list">${uniqueDrafts(drafts)
     .map((draft) => {
       const key = draft.key || draft.draft_key;
+      const moduleName = draft.module || "practice";
+      const title = draft.title || "Untitled draft";
+      const initial = String(title || moduleName || "D").match(/[A-Za-z0-9]/)?.[0]?.toUpperCase() || "D";
+      const tone = ["purple", "teal", "orange", "blue", "pink", "green"][Math.abs(String(key || title).length) % 6];
       return `<article class="draft-item">
+        <div class="draft-icon draft-icon-${tone}">${escapeHtml(initial)}</div>
         <div>
-          <strong>${escapeHtml(draft.title || "Untitled draft")}</strong>
-          <span>${escapeHtml(draft.module || "practice")} · ${escapeHtml(new Date(draft.updatedAt || draft.updated_at || Date.now()).toLocaleString())}</span>
+          <strong>${escapeHtml(title)}</strong>
+          <span>${escapeHtml(moduleName)} · ${escapeHtml(new Date(draft.updatedAt || draft.updated_at || Date.now()).toLocaleString())}</span>
         </div>
         <div class="draft-actions">
           <button class="secondary small-button restore-draft" data-draft-key="${escapeHtml(key)}" data-draft-mode="${escapeHtml(mode)}">Restore</button>
@@ -534,7 +940,9 @@ function renderVocabularyItem(item, label) {
     `<div><span>Type</span><p>${escapeHtml(label)}</p></div>`,
     `<div><span>Saved</span><p>${escapeHtml(date)}</p></div>`,
   ].filter(Boolean).join("");
+  const initial = String(title || label || "V").match(/[A-Za-z0-9]/)?.[0]?.toUpperCase() || "V";
   return `<article class="vocab-item">
+    <div class="vocab-icon">${escapeHtml(initial)}</div>
     <div>
       <details class="vocab-details">
         <summary class="vocab-title-row">
@@ -644,6 +1052,40 @@ function bindMineControls() {
   document.querySelectorAll(".delete-vocab").forEach((button) => {
     button.onclick = () => deleteVocabulary(button.dataset.vocabId);
   });
+  document.querySelectorAll(".practice-liked-topic").forEach((button) => {
+    button.onclick = () => {
+      activateView("bank", true);
+      activateSpeakingTopicGroupFromBank(button.dataset.groupId);
+    };
+  });
+  document.querySelectorAll(".mine-quick-action, .mine-action-card").forEach((button) => {
+    button.onclick = () => runMineAction(button.dataset.mineAction);
+  });
+}
+
+function runMineAction(action) {
+  if (action === "single-speaking") {
+    state.activeModule = "speaking";
+    document.querySelectorAll(".module-btn").forEach((item) => item.classList.toggle("active", item.dataset.module === "speaking"));
+    activateView("single", true);
+    renderSingle();
+    return;
+  }
+  if (action === "writing-upload") {
+    activateView("writing-upload", true);
+    return;
+  }
+  if (action === "bank") {
+    activateView("bank", true);
+    return;
+  }
+  if (action === "vocabulary") {
+    document.querySelector(".mine-vocab-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    return;
+  }
+  if (action === "plans") {
+    $("redeemCode")?.focus();
+  }
 }
 
 function draftFieldKey(field) {
@@ -972,7 +1414,7 @@ function mergedItems(moduleName) {
             ? data.speakingSets
             : [];
   const builtIn = moduleName === "speaking"
-    ? [...(Array.isArray(builtInRaw) ? builtInRaw : []), ...builtInPublicSpeakingTopics]
+    ? [...(Array.isArray(builtInRaw) ? builtInRaw : []), ...builtInPublicSpeakingTopics, ...expandedPublicSpeakingTopics]
     : builtInRaw;
   return [...user, ...(Array.isArray(builtIn) ? builtIn : [])];
 }
@@ -1139,15 +1581,38 @@ async function getJson(url) {
   return parseJsonResponse(response);
 }
 
-async function postJson(url, payload) {
+async function postJson(url, payload, options = {}) {
   const headers = { "content-type": "application/json" };
   if (state.authToken) headers.authorization = `Bearer ${state.authToken}`;
   const response = await fetch(url, {
     method: "POST",
     headers,
     body: JSON.stringify(payload),
+    signal: options.signal,
   });
   return parseJsonResponse(response);
+}
+
+async function postBlobWithTimeout(url, blob, timeoutMs = 0) {
+  const headers = {};
+  if (blob?.type) headers["content-type"] = blob.type;
+  if (state.authToken) headers.authorization = `Bearer ${state.authToken}`;
+  const controller = timeoutMs && typeof AbortController !== "undefined" ? new AbortController() : null;
+  const timer = controller ? window.setTimeout(() => controller.abort(), timeoutMs) : null;
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers,
+      body: blob,
+      signal: controller?.signal,
+    });
+    return await parseJsonResponse(response);
+  } catch (error) {
+    if (error?.name === "AbortError") throw new Error("Recording upload timed out. Scoring will continue without MP3 evidence.");
+    throw error;
+  } finally {
+    if (timer) window.clearTimeout(timer);
+  }
 }
 
 async function deleteJson(url) {
@@ -1705,6 +2170,158 @@ function extractSpeakingBandFromText(text) {
     return normalizeSpeakingBand(avg);
   }
   return "";
+}
+
+function extractSpeakingCriterionScores(text) {
+  const clean = String(text || "");
+  const entries = [
+    ["Fluency & Coherence", /(?:fluency\s*(?:and|&)\s*coherence|\bfc\b)[^\n|:：=]{0,40}(?:band|score)?\s*(?:is|=|:|：|-|\|)?\s*\*{0,2}([0-9](?:\.\d)?)\*{0,2}/i],
+    ["Lexical Resource", /(?:lexical\s*resource|\blr\b)[^\n|:：=]{0,40}(?:band|score)?\s*(?:is|=|:|：|-|\|)?\s*\*{0,2}([0-9](?:\.\d)?)\*{0,2}/i],
+    ["Grammar", /(?:grammatical\s*range\s*(?:and|&)\s*accuracy|grammar|\bgra\b)[^\n|:：=]{0,40}(?:band|score)?\s*(?:is|=|:|：|-|\|)?\s*\*{0,2}([0-9](?:\.\d)?)\*{0,2}/i],
+    ["Pronunciation", /(?:pronunciation|\bp\b)[^\n|:：=]{0,40}(?:band|score)?\s*(?:is|=|:|：|-|\|)?\s*\*{0,2}([0-9](?:\.\d)?)\*{0,2}/i],
+  ];
+  return entries.map(([label, pattern]) => {
+    const score = normalizeSpeakingBand(clean.match(pattern)?.[1]);
+    return score ? { label, score } : null;
+  }).filter(Boolean);
+}
+
+function speakingOverallFromCriteria(criteria) {
+  if (!Array.isArray(criteria) || criteria.length !== 4) return "";
+  const values = criteria.map((item) => Number.parseFloat(item.score)).filter(Number.isFinite);
+  if (values.length !== 4) return "";
+  return normalizeSpeakingBand(values.reduce((sum, score) => sum + score, 0) / 4);
+}
+
+function cleanSpeakingFeedbackForDisplay(text) {
+  let clean = String(text || "")
+    .replace(/^Final Speaking Band:[^\n]*(?:\n+)?/i, "")
+    .replace(/[“”]/g, "\"")
+    .replace(/[‘’]/g, "'")
+    .replace(/[–—]/g, "-")
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n");
+  clean = clean.replace(/\\\[\s*\\frac\{([^}]+)\}\{4\}\s*=\s*([0-9.]+)[\s\S]*?\\\]/g, "Overall calculation: ($1) / 4 = $2");
+  clean = clean.replace(/\\\[\s*([\s\S]*?)\s*\\\]/g, (_, body) => body.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, "($1) / $2"));
+  clean = clean
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => {
+      if (!line) return true;
+      if (/^-{3,}$/.test(line)) return false;
+      if (/^\|?\s*-{2,}\s*\|/.test(line)) return false;
+      if (/^\|?\s*:?-{2,}:?\s*(?:\|\s*:?-{2,}:?\s*)+\|?$/.test(line)) return false;
+      if (/^\|\s*(?:criterion|band|examiner comment)/i.test(line)) return false;
+      return true;
+    })
+    .map((line) => line
+      .replace(/^#{1,6}\s*/g, "")
+      .replace(/\*\*/g, "")
+      .replace(/`/g, "")
+      .replace(/^\|\s*/g, "")
+      .replace(/\s*\|\s*$/g, "")
+      .replace(/\s*\|\s*/g, " - ")
+      .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, "($1) / $2")
+      .replace(/\\[()[\]]/g, "")
+      .replace(/\s{2,}/g, " ")
+      .trim())
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+  return clean;
+}
+
+function speakingBandFromFeedbackPayload(feedback, fallbackBand = "") {
+  const criteriaOverall = speakingOverallFromCriteria(extractSpeakingCriterionScores(feedback));
+  return criteriaOverall || normalizeSpeakingBand(fallbackBand) || extractSpeakingBandFromText(feedback);
+}
+
+function speakingBandLabel(score) {
+  const value = Number.parseFloat(score);
+  if (!Number.isFinite(value)) return "Score ready";
+  if (value >= 8) return "Very Good User";
+  if (value >= 7) return "Good User";
+  if (value >= 6) return "Competent User";
+  if (value >= 5) return "Modest User";
+  return "Developing User";
+}
+
+function renderSpeakingResultHtml(text, json = {}, bandValue = "") {
+  const feedback = String(text || json.feedback || "").trim();
+  const criteria = extractSpeakingCriterionScores(feedback);
+  const criteriaOverall = speakingOverallFromCriteria(criteria);
+  const band = criteriaOverall || normalizeSpeakingBand(bandValue) || normalizeSpeakingBand(json.band) || extractSpeakingBandFromText(feedback) || "";
+  const scoreNumber = Number.parseFloat(band);
+  const scorePercent = Number.isFinite(scoreNumber) ? Math.max(0, Math.min(100, (scoreNumber / 9) * 100)) : 0;
+  const metricRows = (criteria.length ? criteria : [
+    { label: "Fluency & Coherence", score: "--" },
+    { label: "Lexical Resource", score: "--" },
+    { label: "Grammar", score: "--" },
+    { label: "Pronunciation", score: "--" },
+  ]).map((item) => {
+    const score = normalizeSpeakingBand(item.score);
+    const percent = score ? Math.max(0, Math.min(100, (Number(score) / 9) * 100)) : 0;
+    return `<div class="speaking-result-metric">
+      <div><span>${escapeHtml(item.label)}</span><strong>${escapeHtml(score || "--")}</strong></div>
+      <i style="--score-width:${percent.toFixed(1)}%"></i>
+    </div>`;
+  }).join("");
+  const criterionScores = criteria.length ? criteria : [];
+  const strongest = criterionScores.reduce((best, item) => {
+    const score = Number.parseFloat(item.score);
+    return Number.isFinite(score) && (!best || score > Number.parseFloat(best.score)) ? item : best;
+  }, null);
+  const weakest = criterionScores.reduce((lowest, item) => {
+    const score = Number.parseFloat(item.score);
+    return Number.isFinite(score) && (!lowest || score < Number.parseFloat(lowest.score)) ? item : lowest;
+  }, null);
+  const cleanFeedback = cleanSpeakingFeedbackForDisplay(feedback);
+  const pdfLink = pdfDownloadLink(json, "ielts-speaking-report.pdf").replace(/\n/g, "");
+  return `<article class="speaking-result-report">
+    <header class="speaking-result-hero">
+      <div>
+        <span class="speaking-result-kicker">IELTS Speaking Result</span>
+        <h3>Your IELTS Speaking Result</h3>
+        <p>${escapeHtml(speakingBandLabel(band))}</p>
+      </div>
+      <div class="speaking-result-score" style="--score-percent:${scorePercent.toFixed(1)}%">
+        <span>Overall</span>
+        <strong>${escapeHtml(band || "--")}</strong>
+        <em>Band Score</em>
+      </div>
+    </header>
+    <section class="speaking-result-summary">
+      <div>
+        <span>Mode</span>
+        <strong>${escapeHtml(json.mode || "AI Examiner")}</strong>
+      </div>
+      <div>
+        <span>Strongest area</span>
+        <strong>${escapeHtml(strongest ? strongest.label : "Ready to review")}</strong>
+      </div>
+      <div>
+        <span>Priority focus</span>
+        <strong>${escapeHtml(weakest ? weakest.label : "Complete answers")}</strong>
+      </div>
+    </section>
+    <section class="speaking-result-grid">
+      <div class="speaking-result-card">
+        <h4>Band Breakdown</h4>
+        ${metricRows}
+      </div>
+      <div class="speaking-result-card speaking-result-feedback">
+        <h4>AI Examiner Feedback</h4>
+        <div>${escapeHtml(cleanFeedback || "Your speaking score is ready. Keep practising with more complete answers.").replace(/\n/g, "<br>")}</div>
+      </div>
+    </section>
+    <footer class="speaking-result-footer">
+      <div>
+        <strong>Next practice goal</strong>
+        <span>Give one clear answer, add one reason, then one short example before moving on.</span>
+      </div>
+      ${pdfLink ? `<div class="speaking-result-actions">${pdfLink}</div>` : ""}
+    </footer>
+  </article>`;
 }
 
 function parseAnswers(raw) {
@@ -4547,9 +5164,16 @@ function renderRealtimeSpeakingPanel(item, prefix, options = {}) {
       <input id="${prefix}-speaking-score" class="text-input band-input" inputmode="decimal" placeholder="Enter band score" />
     </label>
     ${transcriptHtml}
+    <div id="${prefix}-scoring-progress" class="speaking-scoring-progress" hidden aria-live="polite">
+      <div class="speaking-scoring-row">
+        <span id="${prefix}-scoring-label">Preparing scoring...</span>
+        <strong id="${prefix}-scoring-percent">0%</strong>
+      </div>
+      <div class="speaking-scoring-track"><span id="${prefix}-scoring-bar"></span></div>
+    </div>
     <div id="${prefix}-recording-download" class="recording-download"></div>
     <div class="actions">
-      <button class="primary start-qwen-speaking" data-prefix="${prefix}" data-topic="${escapeHtml(item.title)}">Start speaking test</button>
+      <button class="primary start-qwen-speaking" data-prefix="${prefix}" data-topic="${escapeHtml(item.title)}">Start</button>
       <button class="secondary qwen-disconnect" data-prefix="${prefix}" disabled>Disconnect</button>
     </div>
   </div>`;
@@ -4577,6 +5201,7 @@ function buildIeltsSpeakingPrompt(set) {
     "Candidate questions are usually about the previous examiner question. Interpret their question from the immediate context, not as a standalone dictionary question.",
     "If the candidate asks for a repeat or clarification, explain the confusing word or phrase in the context of the last examiner question, then repeat or paraphrase that question instead of moving on.",
     "The app may provide a scheduled IELTS item, but after the candidate speaks it is a reference, not a command. Use it only if it is the most natural next move.",
+    "For the full 15-minute session, treat the topic-bank questions as anchor points, not a script. Between anchor points, freely develop non-repeating follow-ups from the candidate's own answers, then smoothly return to the planned IELTS topic when the test timing or section requires it.",
     "Throughout the test, ask exactly one question at a time and wait. Never read the whole topic set aloud.",
     "Wait patiently after the student pauses. Do not interrupt unfinished answers, false starts, or thinking pauses. Give the candidate roughly 1 to 1.5 seconds of silence before deciding the answer has ended.",
     "Maintain a private ledger of every question you have asked and every topic the student has answered.",
@@ -4584,9 +5209,13 @@ function buildIeltsSpeakingPrompt(set) {
     "Never ask the same question twice. Before asking, compare it with your private ledger and the Already asked list; if it is similar, ask a different follow-up or move to a fresh IELTS-style angle instead.",
     "You may follow up on concrete details from what the student just said, such as people, places, reasons, examples, problems, feelings, or comparisons, when that feels natural.",
     "You may also move to a fresh IELTS-style angle from the topic bank, but only if it is not similar to anything already asked.",
+    "Free development does not mean random topic switching: branch from the answer, ask a deeper why/how/example/comparison question, and later bring the conversation back to the scheduled Part 1, Part 2, or Part 3 anchor.",
+    "In Part 2 and Part 3, you may first explore a meaningful detail from the candidate's answer, then smoothly bring the discussion back to the broader IELTS topic. This should sound like a human examiner, not a rigid script.",
     "If you notice you are about to ask the same question again, switch immediately to a different IELTS-style angle.",
     "If the student's answer is short, ask one gentle follow-up such as 'Could you tell me a little more about that?' instead of switching topics too quickly.",
-    "Run the IELTS format naturally: Part 1 interview, Part 2 cue card with 1 minute preparation and 1-2 minutes speaking, then Part 3 discussion. Timing is guidance, not a reason to cut the student off.",
+    "Run the IELTS format naturally: Part 1 interview, Part 2 cue card with 1 minute preparation and 1-2 minutes speaking, then Part 3 discussion. The whole session must target a full 15 minutes.",
+    "Do not end the test, score, or give final feedback early. Continue with natural follow-up questions until the app explicitly sends the scheduled End/Score instruction.",
+    "If the provided topic-bank questions run out before the full 15 minutes, keep asking deeper IELTS-style follow-ups around the same broad topic and the candidate's answers.",
     "After the student ends the test, score Fluency and Coherence, Lexical Resource, Grammatical Range and Accuracy, and Pronunciation from 0 to 9. The first scoring line must be exactly like: Overall Band: 6.5.",
     "After scoring, give concise English feedback with 3 specific weaknesses and 3 drills.",
     "",
@@ -4811,9 +5440,9 @@ async function finishSpeakingScore(prefix, setTitle, feedbackId = "singleFeedbac
   try {
     const transcript = getSpeakingTranscript(prefix);
     const json = await postJson("/api/speaking/feedback", { set: setTitle, transcript });
-    setFeedback(feedbackId, json.feedback, modeId, json.mode);
-    const band = normalizeSpeakingBand(json.band) || extractSpeakingBandFromText(json.feedback);
+    const band = speakingBandFromFeedbackPayload(json.feedback, json.band);
     if (band) fillSpeakingBandFromText(prefix, band);
+    setFeedbackHtml(feedbackId, renderSpeakingResultHtml(json.feedback, json, band), modeId, json.mode);
   } catch (error) {
     setFeedback(feedbackId, `Submission failed: ${error.message}`, modeId, "error");
   }
@@ -4822,6 +5451,7 @@ async function finishSpeakingScore(prefix, setTitle, feedbackId = "singleFeedbac
 function speakingFeedbackTargets(prefix) {
   if (prefix === "exam") return { feedbackId: "examFeedback", modeId: "examMode" };
   if (prefix === "sequence") return { feedbackId: "sequenceFeedback", modeId: "sequenceMode" };
+  if (prefix === "bank") return { feedbackId: "bankFeedback", modeId: "bankMode" };
   return { feedbackId: "singleFeedback", modeId: "singleMode" };
 }
 
@@ -4838,9 +5468,9 @@ async function scoreSpeakingText(prefix, setTitle, feedbackId, modeId) {
   }
   setFeedback(targets.feedbackId, "Scoring speaking text...", targets.modeId, "");
   const json = await postJson("/api/speaking/feedback", { set: setTitle || "", transcript });
-  setFeedback(targets.feedbackId, json.feedback, targets.modeId, json.mode);
-  const band = normalizeSpeakingBand(json.band) || extractSpeakingBandFromText(json.feedback);
+  const band = speakingBandFromFeedbackPayload(json.feedback, json.band);
   if (band) fillSpeakingBandFromText(prefix, band);
+  setFeedbackHtml(targets.feedbackId, renderSpeakingResultHtml(json.feedback, json, band), targets.modeId, json.mode);
   return json;
 }
 
@@ -4855,6 +5485,17 @@ function qwenSession(prefix) {
       webrtcControlTimer: null,
       webrtcSessionTimer: null,
       webRtcSubmitWatchdogTimer: null,
+      proactiveRenewalTimer: null,
+      proactiveRenewalInFlight: false,
+      realtimeSegmentStartedAt: 0,
+      connectionRecoveryTimer: null,
+      connectionRecovering: false,
+      connectionRecoveryAttempts: 0,
+      suppressConnectionRecovery: false,
+      lastDisconnectReason: "",
+      wakeLock: null,
+      wakeLockRequested: false,
+      wakeLockReleaseHandler: null,
       webrtcAudioSender: null,
       webrtcAudioTrack: null,
       webrtcAudioSending: false,
@@ -4885,7 +5526,10 @@ function qwenSession(prefix) {
       recorder: null,
       recordingChunks: [],
       recordingMime: "",
+      recordingBlob: null,
+      recordingDataUrl: "",
       recordingReady: null,
+      recordingResult: null,
       connected: false,
       userDisconnected: false,
       openingRequested: false,
@@ -4909,12 +5553,14 @@ function qwenSession(prefix) {
       askedQuestions: [],
       candidateAnswers: [],
       candidateQuestions: [],
+      dialogueTurns: [],
       adaptiveFollowUpCount: 0,
       lastAdaptiveAnswerFp: "",
       lastCandidateQuestionFp: "",
       lastCandidateTurnText: "",
       lastCandidateTurnKind: "",
       lastActionKind: "",
+      sessionStartedAt: 0,
       speakingPlan: null,
       scheduledAction: null,
       part1Index: 0,
@@ -4939,6 +5585,12 @@ function qwenSession(prefix) {
       awaitingScore: false,
       scoreFilled: false,
       scoringText: "",
+      realtimeScoreNote: "",
+      realtimeScoreNoteResolve: null,
+      scoreNoteInFlight: false,
+      scoreNoteTimedOut: false,
+      scoringProgressTimer: null,
+      scoringProgressValue: 0,
       currentAssistantText: "",
       pendingAssistantText: "",
       assistantTextSource: "",
@@ -4986,6 +5638,14 @@ const QWEN_PLAYBACK_SAMPLE_RATE = 24000;
 const QWEN_PLAYBACK_LEAD_SECONDS = 0.24;
 const QWEN_PLAYBACK_BATCH_CHUNKS = 28;
 const QWEN_PLAYBACK_INITIAL_JITTER_MS = 120;
+const QWEN_SPEAKING_TARGET_MS = 15 * 60 * 1000;
+const QWEN_SPEAKING_MIN_AUTO_FINISH_MS = QWEN_SPEAKING_TARGET_MS;
+const QWEN_REALTIME_FLASH_CONTEXT_LIMIT_MS = 480 * 1000;
+const QWEN_REALTIME_PLUS_CONTEXT_LIMIT_MS = 600 * 1000;
+const QWEN_REALTIME_CONTEXT_SAFETY_MS = 70 * 1000;
+const QWEN_REALTIME_RENEWAL_RETRY_MS = 2500;
+const QWEN_RECORDING_UPLOAD_TIMEOUT_MS = 15_000;
+const QWEN_RECORDING_DOWNLOAD_RETRY_TIMEOUT_MS = 30_000;
 
 function qwenMicConstraints() {
   return {
@@ -5029,9 +5689,93 @@ function qwenApplyLowBandwidthAudioSdp(sdp) {
 
 function qwenSetStatus(prefix, text, active = false) {
   const node = $(`${prefix}-qwen-status`);
-  if (!node) return;
-  node.textContent = text;
-  node.classList.toggle("active", active);
+  if (node) {
+    node.textContent = text;
+    node.classList.toggle("active", active);
+  }
+  const normalized = String(text || "").toLowerCase();
+  if (normalized.includes("examiner speaking") || normalized.includes("preparing response")) {
+    qwenSetSpeakingVisualState(prefix, "assistant");
+  } else if (normalized.includes("listening")) {
+    qwenSetSpeakingVisualState(prefix, "candidate");
+  } else if (normalized.includes("disconnected") || normalized.includes("not started") || normalized.includes("connected")) {
+    qwenSetSpeakingVisualState(prefix, "idle");
+  }
+}
+
+function qwenClearScoringProgressTimer(prefix) {
+  const session = qwenSession(prefix);
+  if (session.scoringProgressTimer) clearInterval(session.scoringProgressTimer);
+  session.scoringProgressTimer = null;
+}
+
+function qwenScoringStageForPercent(percent) {
+  const value = Number(percent) || 0;
+  if (value < 20) return "Preparing transcript...";
+  if (value < 42) return "Reading the full answer...";
+  if (value < 62) return "Checking FC, LR, GRA and pronunciation...";
+  if (value < 82) return "Calculating the final band...";
+  if (value < 96) return "Writing feedback...";
+  return "Score ready";
+}
+
+function qwenSetScoringProgress(prefix, percent, label = "", visible = true) {
+  const session = qwenSession(prefix);
+  const value = Math.max(0, Math.min(100, Number(percent) || 0));
+  session.scoringProgressValue = value;
+  const progress = $(`${prefix}-scoring-progress`);
+  if (progress) {
+    progress.hidden = !visible;
+    progress.classList.toggle("active", !!visible);
+  }
+  const bar = $(`${prefix}-scoring-bar`);
+  if (bar) bar.style.width = `${value.toFixed(1)}%`;
+  const percentNode = $(`${prefix}-scoring-percent`);
+  if (percentNode) percentNode.textContent = `${Math.round(value)}%`;
+  const labelNode = $(`${prefix}-scoring-label`);
+  if (labelNode) labelNode.textContent = label || qwenScoringStageForPercent(value);
+}
+
+function qwenHideScoringProgress(prefix) {
+  qwenClearScoringProgressTimer(prefix);
+  qwenSetScoringProgress(prefix, 0, "Preparing scoring...", false);
+}
+
+function qwenStartFakeScoringProgress(prefix) {
+  qwenClearScoringProgressTimer(prefix);
+  qwenSetScoringProgress(prefix, 8, "Preparing transcript...", true);
+  const session = qwenSession(prefix);
+  const startedAt = Date.now();
+  session.scoringProgressTimer = window.setInterval(() => {
+    const elapsedMs = Date.now() - startedAt;
+    const ceiling = elapsedMs < 2600 ? 46 : elapsedMs < 7000 ? 74 : 91;
+    const current = Number(session.scoringProgressValue || 0);
+    const next = Math.min(91, current + Math.max(0.7, (ceiling - current) * 0.08));
+    qwenSetScoringProgress(prefix, next, qwenScoringStageForPercent(next), true);
+  }, 650);
+}
+
+function qwenStopFakeScoringProgress(prefix, label = "Score ready") {
+  qwenClearScoringProgressTimer(prefix);
+  qwenSetScoringProgress(prefix, 100, label, true);
+}
+
+function qwenSetSpeakingVisualState(prefix, mode = "idle") {
+  const panel = document.querySelector(`.qwen-speaking[data-prefix="${prefix}"]`);
+  const assistant = mode === "assistant";
+  const candidate = mode === "candidate";
+  if (panel) {
+    panel.classList.toggle("assistant-speaking", assistant);
+    panel.classList.toggle("candidate-speaking", candidate);
+    panel.classList.toggle("voice-idle", !assistant && !candidate);
+  }
+  const orb = $(`${prefix}-speaking-orb`);
+  if (orb) {
+    orb.classList.toggle("assistant-speaking", assistant);
+    orb.classList.toggle("candidate-speaking", candidate);
+    if (assistant) orb.style.setProperty("--voice-level", "0.72");
+    else if (!candidate) orb.style.setProperty("--voice-level", "0");
+  }
 }
 
 function qwenHasMinimumWsTurn(session) {
@@ -5131,7 +5875,7 @@ async function qwenRuntimeConfig() {
 async function qwenShouldTryWebRtc(prefix = "") {
   // Single-module practice needs visible transcript and reliable turn-taking.
   // Use the Singapore WebSocket realtime path there; full exams can still prefer WebRTC.
-  if (prefix === "single") return false;
+  if (prefix === "single" || prefix === "bank") return false;
   const config = await qwenRuntimeConfig();
   return config.webrtcEnabled !== false && config.webrtcMode !== "off";
 }
@@ -5149,6 +5893,13 @@ function qwenSetControls(prefix, connected) {
     }
     if (button.classList.contains("qwen-finish-score")) button.disabled = !connected;
     if (button.classList.contains("qwen-disconnect")) button.disabled = !connected;
+  });
+}
+
+function qwenSetRecoveringControls(prefix) {
+  qwenSetControls(prefix, false);
+  document.querySelectorAll(`.qwen-disconnect[data-prefix="${prefix}"]`).forEach((button) => {
+    button.disabled = false;
   });
 }
 
@@ -5174,6 +5925,223 @@ function startQwenHeartbeat(prefix) {
       }).catch(() => {});
     }
   }, 10_000);
+}
+
+function qwenRealtimeContextLimitMs() {
+  const model = String(state.qwenRuntime?.realtimeModel || "").toLowerCase();
+  if (model.includes("plus")) return QWEN_REALTIME_PLUS_CONTEXT_LIMIT_MS;
+  if (model.includes("flash")) return QWEN_REALTIME_FLASH_CONTEXT_LIMIT_MS;
+  return QWEN_REALTIME_FLASH_CONTEXT_LIMIT_MS;
+}
+
+function qwenRealtimeRenewalDelayMs() {
+  return Math.max(3 * 60 * 1000, qwenRealtimeContextLimitMs() - QWEN_REALTIME_CONTEXT_SAFETY_MS);
+}
+
+function stopQwenProactiveRenewal(prefix) {
+  const session = qwenSession(prefix);
+  if (session.proactiveRenewalTimer) clearTimeout(session.proactiveRenewalTimer);
+  session.proactiveRenewalTimer = null;
+  session.proactiveRenewalInFlight = false;
+}
+
+function qwenSegmentRenewalBusy(prefix) {
+  const session = qwenSession(prefix);
+  const now = Date.now();
+  const recentHumanVoice = session.lastHumanVoiceAt && now - session.lastHumanVoiceAt < 5000;
+  return Boolean(
+    session.waitingForResponse
+    || session.turnCommitted
+    || session.responseActive
+    || session.awaitingScore
+    || qwenOutputBusy(prefix)
+    || session.voiceStarted
+    || (session.currentTurnBytes || 0) > 0
+    || recentHumanVoice
+  );
+}
+
+function scheduleQwenProactiveRenewal(prefix, delayMs = qwenRealtimeRenewalDelayMs()) {
+  const session = qwenSession(prefix);
+  if (session.userDisconnected || session.finalScoreInFlight || session.autoFinishStarted) return;
+  if (session.proactiveRenewalTimer) clearTimeout(session.proactiveRenewalTimer);
+  session.proactiveRenewalTimer = window.setTimeout(() => {
+    qwenMaybeRenewRealtimeSegment(prefix);
+  }, Math.max(1500, delayMs));
+}
+
+function markQwenRealtimeSegmentStarted(prefix) {
+  const session = qwenSession(prefix);
+  session.realtimeSegmentStartedAt = Date.now();
+  session.proactiveRenewalInFlight = false;
+  scheduleQwenProactiveRenewal(prefix);
+}
+
+function qwenMaybeRenewRealtimeSegment(prefix) {
+  const session = qwenSession(prefix);
+  session.proactiveRenewalTimer = null;
+  if (!qwenShouldRecoverConnection(session) || !session.connected || session.transport === "http") return;
+  if (qwenSegmentRenewalBusy(prefix)) {
+    scheduleQwenProactiveRenewal(prefix, QWEN_REALTIME_RENEWAL_RETRY_MS);
+    return;
+  }
+  session.proactiveRenewalInFlight = true;
+  scheduleQwenConnectionRecovery(prefix, "Realtime context refresh before provider audio limit", { proactive: true });
+}
+
+function qwenCanRequestWakeLock() {
+  return Boolean(navigator.wakeLock?.request)
+    && document.visibilityState === "visible"
+    && window.isSecureContext !== false;
+}
+
+function qwenWakeLockSessionActive(session) {
+  return Boolean(session)
+    && !session.userDisconnected
+    && (
+      session.connected
+      || session.micActive
+      || session.openingRequested
+      || session.connectionRecovering
+      || session.finalScoreInFlight
+      || Boolean(session.transport)
+    );
+}
+
+async function requestQwenWakeLock(prefix) {
+  const session = qwenSession(prefix);
+  session.wakeLockRequested = true;
+  if (session.userDisconnected || !qwenCanRequestWakeLock()) return false;
+  if (session.wakeLock && !session.wakeLock.released) return true;
+  try {
+    const lock = await navigator.wakeLock.request("screen");
+    const handleRelease = () => {
+      if (session.wakeLock === lock) {
+        session.wakeLock = null;
+        session.wakeLockReleaseHandler = null;
+      }
+    };
+    session.wakeLock = lock;
+    session.wakeLockReleaseHandler = handleRelease;
+    lock.addEventListener?.("release", handleRelease, { once: true });
+    return true;
+  } catch {
+    session.wakeLock = null;
+    session.wakeLockReleaseHandler = null;
+    return false;
+  }
+}
+
+async function releaseQwenWakeLock(prefix) {
+  const session = qwenSession(prefix);
+  session.wakeLockRequested = false;
+  const lock = session.wakeLock;
+  const releaseHandler = session.wakeLockReleaseHandler;
+  session.wakeLock = null;
+  session.wakeLockReleaseHandler = null;
+  if (!lock) return;
+  try {
+    if (releaseHandler) lock.removeEventListener?.("release", releaseHandler);
+    if (!lock.released) await lock.release?.();
+  } catch {
+    // Wake Lock can already be released by the browser when the tab is hidden.
+  }
+}
+
+function refreshQwenWakeLocksOnVisibility() {
+  if (document.visibilityState !== "visible") return;
+  Object.keys(state.qwenSpeaking || {}).forEach((prefix) => {
+    const session = state.qwenSpeaking[prefix];
+    if (session?.wakeLockRequested && qwenWakeLockSessionActive(session)) {
+      void requestQwenWakeLock(prefix);
+    }
+  });
+}
+
+function bindQwenWakeLockEvents() {
+  if (state.qwenWakeLockEventsBound) return;
+  state.qwenWakeLockEventsBound = true;
+  document.addEventListener("visibilitychange", refreshQwenWakeLocksOnVisibility);
+}
+
+function qwenShouldRecoverConnection(session) {
+  return Boolean(session)
+    && !session.userDisconnected
+    && !session.finalScoreInFlight
+    && !session.autoFinishStarted
+    && !session.connectionRecovering
+    && !session.suppressConnectionRecovery;
+}
+
+function qwenRecoveryInstructions(prefix, reason = "connection lost") {
+  const session = qwenSession(prefix);
+  const time = qwenSpeakingTimeStatus(prefix);
+  const transcript = qwenBuildAutoScoreTranscript(prefix);
+  const asked = session.askedQuestions?.length
+    ? session.askedQuestions.map((item, index) => `${index + 1}. ${item}`).join("\n")
+    : "None yet.";
+  const scheduled = session.scheduledAction
+    ? `${session.scheduledAction.part || "Unknown"} · ${session.scheduledAction.label || ""}: ${compactDialogueText(session.scheduledAction.text || "").slice(0, 320)}`
+    : "No scheduled anchor is active.";
+  return [
+    $(`${prefix}-qwen-prompt`)?.value || "You are a professional IELTS Speaking examiner.",
+    "",
+    "Technical reconnection context. Continue the same IELTS Speaking test; do not restart the test.",
+    `Reconnect reason: ${reason}.`,
+    `Elapsed speaking time: ${time.elapsedLabel}. Target: 15:00.`,
+    `Current IELTS anchor: ${scheduled}`,
+    "Do not greet again. Do not ask 'How are you?' or 'Are you ready?'.",
+    "Do not repeat the opening, candidate identity checks, or any previous IELTS question.",
+    "Preserve the previous context and never repeat a question already asked.",
+    "When the candidate speaks again, continue naturally from the transcript and the planned Part 1/2/3 anchor.",
+    "",
+    "Already asked questions:",
+    asked,
+    "",
+    "Conversation transcript so far:",
+    transcript || "(No reliable transcript yet.)",
+  ].join("\n");
+}
+
+function scheduleQwenConnectionRecovery(prefix, reason = "connection lost", options = {}) {
+  const session = qwenSession(prefix);
+  if (!qwenShouldRecoverConnection(session)) return false;
+  const proactive = Boolean(options.proactive);
+  session.connectionRecovering = true;
+  session.connected = false;
+  session.lastDisconnectReason = reason;
+  session.connectionRecoveryAttempts = proactive ? 0 : Math.min((session.connectionRecoveryAttempts || 0) + 1, 8);
+  const delay = proactive ? 250 : Math.min(6000, 900 + session.connectionRecoveryAttempts * 450);
+  qwenSetRecoveringControls(prefix);
+  qwenSetStatus(prefix, proactive ? "Refreshing speaking connection..." : "Connection interrupted. Reconnecting...", true);
+  if (!proactive && session.connectionRecoveryAttempts === 1) {
+    qwenAddBubble(prefix, "system", "Connection interrupted. Reconnecting automatically; keep this page open.");
+  }
+  stopQwenHeartbeat(prefix);
+  if (session.connectionRecoveryTimer) clearTimeout(session.connectionRecoveryTimer);
+  session.connectionRecoveryTimer = window.setTimeout(async () => {
+    session.connectionRecoveryTimer = null;
+    if (session.userDisconnected || session.finalScoreInFlight || session.autoFinishStarted) {
+      session.connectionRecovering = false;
+      return;
+    }
+    try {
+      await stopQwenMic(prefix, false);
+      qwenCloseWebRtc(prefix);
+      if (session.ws?.readyState === WebSocket.OPEN || session.ws?.readyState === WebSocket.CONNECTING) {
+        session.ws.close(1000, "recovering connection");
+      }
+      session.ws = null;
+      session.httpSessionId = "";
+      session.transport = "";
+      session.openingRequested = true;
+      startQwenWebSocket(prefix, qwenRecoveryInstructions(prefix, reason), { recovery: true });
+    } catch (error) {
+      session.connectionRecovering = false;
+      qwenSetStatus(prefix, `Reconnect failed: ${error.message}`, false);
+    }
+  }, delay);
+  return true;
 }
 
 function clearQwenCommitWatchdog(prefix) {
@@ -5343,8 +6311,19 @@ function qwenAutoScoreSetTitle(prefix) {
 
 function qwenBuildAutoScoreTranscript(prefix) {
   const session = qwenSession(prefix);
-  const answers = [...(session.candidateAnswers || [])];
+  const turns = Array.isArray(session.dialogueTurns) ? [...session.dialogueTurns] : [];
   const currentAnswer = compactDialogueText(session.currentCandidateText || session.lastCandidateText || "");
+  if (currentAnswer && !qwenTurnAlreadyRecorded(turns, "Candidate", currentAnswer)) {
+    turns.push({ role: "Candidate", text: currentAnswer, at: Date.now() });
+  }
+  if (turns.length) {
+    return turns
+      .filter((turn) => turn?.role && compactDialogueText(turn.text))
+      .map((turn) => `${turn.role}: ${compactDialogueText(turn.text)}`)
+      .join("\n")
+      .trim();
+  }
+  const answers = [...(session.candidateAnswers || [])];
   if (currentAnswer
     && !qwenCandidateQuestionKind(currentAnswer)
     && !answers.some((item) => dialogueFingerprint(item) === dialogueFingerprint(currentAnswer))) {
@@ -5365,6 +6344,25 @@ function qwenAutoScoreKey(prefix) {
   return dialogueFingerprint(transcript).slice(-240);
 }
 
+function qwenAudioEvidenceIsMp3(evidence) {
+  const dataUrl = String(evidence?.dataUrl || "");
+  const mime = String(evidence?.mime || "").toLowerCase();
+  const fileName = String(evidence?.fileName || "").toLowerCase();
+  return Boolean(dataUrl)
+    && (evidence?.mode === "mp3" || mime.includes("mpeg") || fileName.endsWith(".mp3"))
+    && /^data:audio\/(?:mpeg|mp3)[^,]*;base64,/i.test(dataUrl);
+}
+
+function qwenAudioEvidenceForScoring(evidence) {
+  if (!evidence) return null;
+  if (qwenAudioEvidenceIsMp3(evidence)) return evidence;
+  return {
+    mode: evidence.mode || "unavailable",
+    fileName: evidence.fileName || "",
+    warning: evidence.warning || "MP3 evidence is unavailable; scoring continues with transcript and realtime note.",
+  };
+}
+
 function scheduleQwenAutoScore(prefix, delayMs = 1800) {
   const session = qwenSession(prefix);
   if (session.autoScoreTimer) clearTimeout(session.autoScoreTimer);
@@ -5374,28 +6372,38 @@ function scheduleQwenAutoScore(prefix, delayMs = 1800) {
 async function qwenRunAutoScore(prefix, options = {}) {
   const session = qwenSession(prefix);
   const transcript = qwenBuildAutoScoreTranscript(prefix);
-  if (qwenWordCount(transcript) < 12) return null;
+  if (qwenWordCount(transcript) < 12) {
+    if (options.showProgress) qwenSetScoringProgress(prefix, 100, "Not enough speech to score yet.", true);
+    return null;
+  }
   const key = qwenAutoScoreKey(prefix);
   if (!options.force && (session.autoScoreInFlight || key === session.lastAutoScoreKey)) return null;
   session.autoScoreInFlight = true;
   session.lastAutoScoreKey = key;
   if (options.showStatus) qwenSetStatus(prefix, "Scoring speaking band...", true);
+  if (options.showProgress) qwenSetScoringProgress(prefix, Math.max(session.scoringProgressValue || 0, 18), "Preparing transcript...", true);
+  const audioEvidence = qwenAudioEvidenceForScoring(options.audioEvidence || session.recordingResult || null);
   try {
+    if (options.showProgress) qwenSetScoringProgress(prefix, Math.max(session.scoringProgressValue || 0, 34), qwenAudioEvidenceIsMp3(audioEvidence) ? "Sending transcript, realtime note and MP3..." : "Sending transcript and realtime note...", true);
     const json = await postJson("/api/speaking/feedback", {
       set: qwenAutoScoreSetTitle(prefix),
       transcript,
+      realtimeNote: options.realtimeNote || session.realtimeScoreNote || "",
+      audioEvidence,
     });
-    const band = normalizeSpeakingBand(json.band) || extractSpeakingBandFromText(json.feedback);
+    if (options.showProgress) qwenSetScoringProgress(prefix, Math.max(session.scoringProgressValue || 0, 86), "Formatting feedback...", true);
+    const band = speakingBandFromFeedbackPayload(json.feedback, json.band);
     if (band && options.fillScore) fillSpeakingBandFromText(prefix, band);
     if (options.showFeedback) {
       const targets = speakingFeedbackTargets(prefix);
       const finalLine = band ? `Final Speaking Band: ${band}` : "Final Speaking Band: unavailable";
       const feedbackText = [finalLine, json.feedback || ""].filter(Boolean).join("\n\n");
-      setFeedback(targets.feedbackId, feedbackText || `Speaking band: ${band || ""}`, targets.modeId, json.mode || "");
+      setFeedbackHtml(targets.feedbackId, renderSpeakingResultHtml(feedbackText || `Speaking band: ${band || ""}`, json, band), targets.modeId, json.mode || "");
     }
     if (options.showStatus) qwenSetStatus(prefix, band ? `Final Speaking Band: ${band}` : "Scoring complete", true);
     return json;
   } catch (error) {
+    if (options.showProgress) qwenSetScoringProgress(prefix, 100, "Scoring failed. Please try again.", true);
     if (options.showStatus) qwenSetStatus(prefix, `Scoring failed: ${error.message}`, false);
     return null;
   } finally {
@@ -5537,6 +6545,119 @@ function qwenResetExaminerSchedule(prefix) {
   session.finalScoreInFlight = false;
 }
 
+function qwenSpeakingElapsedMs(prefix) {
+  const startedAt = Number(qwenSession(prefix).sessionStartedAt || 0);
+  return startedAt ? Math.max(0, Date.now() - startedAt) : 0;
+}
+
+function qwenSpeakingMinimumReached(prefix) {
+  return qwenSpeakingElapsedMs(prefix) >= QWEN_SPEAKING_MIN_AUTO_FINISH_MS;
+}
+
+function qwenSpeakingTimeStatus(prefix) {
+  const elapsedMs = qwenSpeakingElapsedMs(prefix);
+  const remainingMs = Math.max(0, QWEN_SPEAKING_TARGET_MS - elapsedMs);
+  const elapsedMinutes = Math.floor(elapsedMs / 60000);
+  const elapsedSeconds = Math.floor((elapsedMs % 60000) / 1000);
+  const remainingMinutes = Math.ceil(remainingMs / 60000);
+  return {
+    elapsedMs,
+    remainingMs,
+    elapsedLabel: `${elapsedMinutes}:${String(elapsedSeconds).padStart(2, "0")}`,
+    remainingMinutes,
+  };
+}
+
+function qwenBuildExtensionAction(prefix, plan) {
+  const session = qwenSession(prefix);
+  const time = qwenSpeakingTimeStatus(prefix);
+  session.lastActionKind = "extension-follow-up";
+  session.fallbackQuestionIndex += 1;
+  const previousQuestion = qwenLastExaminerQuestion(session);
+  const recentAnswer = session.lastCandidateTurnText || qwenLatestTurnCandidateText(session) || session.candidateAnswers?.at(-1) || "";
+  session.scheduledAction = {
+    part: "Part 3",
+    kind: "extension-follow-up",
+    label: `Extended Part 3 follow-up ${session.fallbackQuestionIndex}`,
+    previousQuestion,
+    text: [
+      "The imported topic-bank questions have been used, but the speaking test is not long enough yet.",
+      `Elapsed speaking time: ${time.elapsedLabel}. Target: about 15:00. Continue until at least 15:00 before ending.`,
+      "",
+      "Topic set:",
+      plan.title || "IELTS Speaking",
+      "",
+      "Candidate's latest answer:",
+      recentAnswer ? recentAnswer.slice(0, 420) : "(not available)",
+      "",
+      "Ask one deeper IELTS Part 3 style follow-up. You may branch from a concrete detail in the candidate's answer, then pull the discussion back to the broader Part 3 theme.",
+      "Do not repeat any previous question. Do not score or close the test yet.",
+    ].join("\n"),
+  };
+  return session.scheduledAction;
+}
+
+function qwenPeekNextScheduledAction(prefix, plan) {
+  const session = qwenSession(prefix);
+  if (session.part1Index < Math.min(4, plan.part1.length)) {
+    return {
+      part: "Part 1",
+      kind: "question",
+      label: `Part 1 question ${session.part1Index + 1}`,
+      text: plan.part1[session.part1Index],
+    };
+  }
+  if (!session.part2Delivered) {
+    return { part: "Part 2", kind: "cue-card", label: "Part 2 cue card", text: plan.part2 };
+  }
+  if (session.part3Index < Math.min(6, plan.part3.length)) {
+    return {
+      part: "Part 3",
+      kind: "question",
+      label: `Part 3 question ${session.part3Index + 1}`,
+      text: plan.part3[session.part3Index],
+    };
+  }
+  if (!qwenSpeakingMinimumReached(prefix)) {
+    const time = qwenSpeakingTimeStatus(prefix);
+    const recentAnswer = session.lastCandidateTurnText || qwenLatestTurnCandidateText(session) || session.candidateAnswers?.at(-1) || "";
+    return {
+      part: "Part 3",
+      kind: "extension-follow-up",
+      label: `Extended Part 3 follow-up ${session.fallbackQuestionIndex + 1}`,
+      previousQuestion: qwenLastExaminerQuestion(session),
+      text: [
+        "The imported topic-bank questions have been used, but the speaking test is not long enough yet.",
+        `Elapsed speaking time: ${time.elapsedLabel}. Target: about 15:00. Continue until at least 15:00 before ending.`,
+        "",
+        "Topic set:",
+        plan.title || "IELTS Speaking",
+        "",
+        "Candidate's latest answer:",
+        recentAnswer ? recentAnswer.slice(0, 420) : "(not available)",
+        "",
+        "Ask one deeper IELTS Part 3 style follow-up. You may branch from a concrete detail in the candidate's answer, then pull the discussion back to the broader Part 3 theme.",
+        "Do not repeat any previous question. Do not score or close the test yet.",
+      ].join("\n"),
+    };
+  }
+  return {
+    part: "End",
+    kind: "auto-finish",
+    label: "End speaking test",
+    text: "That is the end of the speaking test. Thank you.",
+  };
+}
+
+function qwenShouldReturnToScheduledAnchor(prefix, nextAction) {
+  const session = qwenSession(prefix);
+  const elapsedMs = qwenSpeakingElapsedMs(prefix);
+  if (!nextAction || nextAction.kind === "auto-finish") return true;
+  if (nextAction.kind === "cue-card" && elapsedMs >= 4 * 60 * 1000) return true;
+  if (nextAction.part === "Part 3" && session.part2Delivered && elapsedMs >= 7 * 60 * 1000) return true;
+  return session.adaptiveFollowUpCount >= 2;
+}
+
 function qwenAdvanceScheduledAction(prefix, options = {}) {
   const session = qwenSession(prefix);
   const plan = session.speakingPlan || qwenBuildSpeakingPlan(prefix);
@@ -5549,9 +6670,14 @@ function qwenAdvanceScheduledAction(prefix, options = {}) {
     && lastTurnFp
     && lastTurnFp !== session.lastAdaptiveAnswerFp) {
     const previousQuestion = qwenLastExaminerQuestion(session);
-    const suggestedNext = qwenTakeNextScheduledAction(prefix, plan);
-    if (suggestedNext.kind === "auto-finish") return suggestedNext;
+    const suggestedNext = qwenPeekNextScheduledAction(prefix, plan);
+    if (suggestedNext.kind === "auto-finish") return qwenTakeNextScheduledAction(prefix, plan);
+    if (qwenShouldReturnToScheduledAnchor(prefix, suggestedNext)) {
+      session.adaptiveFollowUpCount = 0;
+      return qwenTakeNextScheduledAction(prefix, plan);
+    }
     session.lastAdaptiveAnswerFp = lastTurnFp;
+    session.adaptiveFollowUpCount += 1;
     session.lastActionKind = "ai-context-turn";
     session.scheduledAction = {
       part: suggestedNext.part || (session.part2Delivered ? "Part 3" : "Part 1"),
@@ -5571,12 +6697,14 @@ function qwenAdvanceScheduledAction(prefix, options = {}) {
         suggestedNext.text || "(none)",
         "",
         "Choose the most human next move from context: answer a candidate question, clarify the previous question, ask a natural follow-up, gently redirect an off-topic answer, or use the suggested next IELTS item.",
-        "The suggested item is optional after a candidate turn. Use it only if it fits the conversation.",
+        "The suggested IELTS item is an unconsumed anchor, not a script line. Use it only if it fits now; otherwise ask a non-repeating follow-up from the candidate's answer and return to this anchor later.",
+        "If the time or section feels ready for the anchor, smoothly bring the conversation back to it instead of continuing to drift.",
         "Keep IELTS examiner discipline: one clear question at the end unless you are only repeating/clarifying the same question.",
       ].join("\n"),
     };
     return session.scheduledAction;
   }
+  session.adaptiveFollowUpCount = 0;
   return qwenTakeNextScheduledAction(prefix, plan);
 }
 
@@ -5586,12 +6714,14 @@ function qwenTakeNextScheduledAction(prefix, plan) {
     const text = plan.part1[session.part1Index];
     session.part1Index += 1;
     session.lastActionKind = "question";
+    qwenRememberUnique(session.askedQuestions, text, 18);
     session.scheduledAction = { part: "Part 1", kind: "question", label: `Part 1 question ${session.part1Index}`, text };
     return session.scheduledAction;
   }
   if (!session.part2Delivered) {
     session.part2Delivered = true;
     session.lastActionKind = "cue-card";
+    qwenRememberUnique(session.askedQuestions, `Part 2 cue card: ${plan.part2}`, 18);
     session.scheduledAction = { part: "Part 2", kind: "cue-card", label: "Part 2 cue card", text: plan.part2 };
     return session.scheduledAction;
   }
@@ -5599,8 +6729,12 @@ function qwenTakeNextScheduledAction(prefix, plan) {
     const text = plan.part3[session.part3Index];
     session.part3Index += 1;
     session.lastActionKind = "question";
+    qwenRememberUnique(session.askedQuestions, text, 18);
     session.scheduledAction = { part: "Part 3", kind: "question", label: `Part 3 question ${session.part3Index}`, text };
     return session.scheduledAction;
+  }
+  if (!qwenSpeakingMinimumReached(prefix)) {
+    return qwenBuildExtensionAction(prefix, plan);
   }
   session.autoFinishPending = true;
   session.lastActionKind = "auto-finish";
@@ -5635,6 +6769,26 @@ function qwenRememberUnique(list, text, limit = 10) {
   if (!fp || list.some((item) => dialogueFingerprint(item) === fp)) return false;
   list.push(clean);
   while (list.length > limit) list.shift();
+  return true;
+}
+
+function qwenTurnAlreadyRecorded(turns, role, text) {
+  const clean = compactDialogueText(text);
+  const fp = dialogueFingerprint(clean);
+  if (!fp) return true;
+  const last = turns[turns.length - 1];
+  if (last?.role === role && dialogueFingerprint(last.text) === fp) return true;
+  return turns.slice(-3).some((turn) => turn.role === role && dialogueFingerprint(turn.text) === fp);
+}
+
+function qwenRememberDialogueTurn(prefix, role, text) {
+  const session = qwenSession(prefix);
+  const clean = compactDialogueText(text);
+  if (!clean) return false;
+  session.dialogueTurns ||= [];
+  if (qwenTurnAlreadyRecorded(session.dialogueTurns, role, clean)) return false;
+  session.dialogueTurns.push({ role, text: clean, at: Date.now() });
+  while (session.dialogueTurns.length > 80) session.dialogueTurns.shift();
   return true;
 }
 
@@ -5705,6 +6859,7 @@ function qwenRememberCandidateAnswer(prefix, text) {
   const questionKind = qwenCandidateQuestionKind(clean);
   session.lastCandidateTurnText = clean;
   session.lastCandidateTurnKind = questionKind ? "possible candidate question" : "candidate turn";
+  qwenRememberDialogueTurn(prefix, "Candidate", clean);
   if (questionKind) {
     qwenRememberUnique(session.candidateQuestions, clean, 6);
     return true;
@@ -5716,7 +6871,10 @@ function qwenRememberCandidateAnswer(prefix, text) {
 function qwenRememberExaminerQuestion(prefix, text) {
   const session = qwenSession(prefix);
   if (session.awaitingScore) return;
-  qwenRememberUnique(session.askedQuestions, qwenExtractQuestion(text), 12);
+  const clean = compactDialogueText(text);
+  if (!clean) return;
+  qwenRememberDialogueTurn(prefix, "Examiner", clean);
+  qwenRememberUnique(session.askedQuestions, qwenExtractQuestion(clean), 18);
 }
 
 function qwenTurnControlInstructions(prefix, mode = "next-question") {
@@ -5736,18 +6894,19 @@ function qwenTurnControlInstructions(prefix, mode = "next-question") {
   const lastExaminerQuestion = qwenLastExaminerQuestion(session);
   const lastCandidateTurn = session.lastCandidateTurnText || latestAnswer || "";
   const lastCandidateTurnKind = session.lastCandidateTurnKind || (lastCandidateTurn ? "answer" : "none");
+  const timeStatus = qwenSpeakingTimeStatus(prefix);
   if (mode === "score") {
     return [
       prompt,
       "",
-      "End the speaking test now. Do not ask another question.",
-      "First line must be exactly: Overall Band: X.X",
-      "Then give FC, LR, GRA and Pronunciation scores, each from 0 to 9.",
-      "Round the overall band to the nearest 0.5.",
+      "Create a private realtime examiner score note for the backend. Do not ask another question.",
+      "Do not address the candidate. Do not include a greeting, closing message, or markdown.",
+      "Return compact JSON only with these keys: fc, lr, gra, pronunciation, provisionalOverall, fluencyEvidence, pronunciationEvidence, repeatedProblems, strongPoints, scoringCautions.",
+      "Scores must be numbers from 0 to 9. provisionalOverall is the average rounded to the nearest 0.5.",
       "Use IELTS Speaking criteria: Fluency and Coherence, Lexical Resource, Grammatical Range and Accuracy, and Pronunciation.",
-      "Judge fluency by sustained speech, hesitation, repetition and coherence; judge vocabulary by range, precision and paraphrase; judge grammar by range and accuracy; judge pronunciation by intelligibility, stress and intonation.",
-      "Keep the spoken feedback brief: no more than 3 weaknesses and 3 drills.",
-      "Use the full conversation so far; if pronunciation evidence is limited, still provide the best audio-based estimate.",
+      "Judge fluency from sustained speech, hesitation, repetition, self-correction and coherence.",
+      "Judge pronunciation from what you heard during realtime audio: intelligibility, stress, rhythm, intonation and problematic sounds.",
+      "Use the full conversation so far. If audio evidence is limited, say so in scoringCautions.",
     ].join("\n");
   }
   const scheduledBlock = action
@@ -5781,6 +6940,8 @@ function qwenTurnControlInstructions(prefix, mode = "next-question") {
       "Do not rely on a fixed front-end classification. Decide naturally whether the candidate answered, asked for help, misunderstood, corrected themselves, or continued an earlier answer.",
       "If the candidate asked something, answer briefly in context, then return to the speaking task.",
       "If the candidate answered, choose either a natural follow-up based on their answer or a fresh IELTS-style angle. The hard rule is: do not repeat.",
+      "When it helps, briefly branch from one concrete detail in the candidate's answer, then pull the next question back to the broader IELTS Part 2 or Part 3 theme.",
+      "During the 15-minute target, prefer human free development from the candidate's ideas, but keep the scheduled item as an anchor to return to when timing or section flow requires it.",
       "If the candidate misunderstood or drifted off topic, briefly clarify and invite a relevant answer.",
       "The suggested IELTS item is optional after a candidate turn; do not force it if it would sound robotic.",
       "Do not repeat the previous question or any question in the Already asked list. If your next sentence sounds similar to an old question, change angle immediately.",
@@ -5809,6 +6970,16 @@ function qwenTurnControlInstructions(prefix, mode = "next-question") {
       "Do not praise at length, summarize the whole answer, score, or explain your reasoning.",
       "Stop immediately after one clear question and wait.",
     ];
+  } else if (action?.kind === "extension-follow-up") {
+    deliveryRules = [
+      "The normal imported question list is exhausted, but the 15-minute speaking session is not complete.",
+      "Continue as a real IELTS Part 3 examiner with one deeper follow-up question.",
+      "Use the candidate's latest answer if it provides a natural angle, then bring the discussion back to the same broad Part 3 topic area.",
+      "Do not repeat a previous question just to fill time. If the obvious question has already been asked, branch to causes, consequences, comparison, examples, policy, technology, culture, or future change.",
+      "Good angles include causes, effects, comparisons, older vs younger people, public policy, technology, culture, and future change.",
+      "Do not say that the question bank has run out. Do not score, summarize, or close the test yet.",
+      "Ask exactly one clear question and wait.",
+    ];
   } else {
     deliveryRules = [
       mode === "opening"
@@ -5817,7 +6988,8 @@ function qwenTurnControlInstructions(prefix, mode = "next-question") {
           ? "The opening has already finished. If it sounds natural, briefly acknowledge the candidate's last answer before the question."
           : "The opening has already finished. Ask only the scheduled question.",
       "Then ask exactly one scheduled IELTS question. You may lightly paraphrase for natural spoken English, but keep the IELTS section and topic.",
-      "If the scheduled question would repeat something already asked, ask a deeper why/how angle connected to the same topic instead.",
+      "This scheduled question is the anchor that brings the conversation back after free development.",
+      "If the scheduled question would repeat something already asked, ask a deeper why/how/example/comparison angle connected to the same topic instead.",
       "Stop after the question and wait for the candidate.",
     ];
   }
@@ -5830,6 +7002,11 @@ function qwenTurnControlInstructions(prefix, mode = "next-question") {
     latestAnswer ? latestAnswer.slice(0, 360) : "No reliable text transcript; use the just-finished audio if available.",
     "",
     "Live turn control for the next examiner response:",
+    `Timing: elapsed ${timeStatus.elapsedLabel}. Target length about 15:00. Remaining target time about ${timeStatus.remainingMinutes} minute(s).`,
+    qwenSpeakingMinimumReached(prefix)
+      ? "The minimum auto-finish time has been reached; only close if the scheduled item is End."
+      : "The minimum auto-finish time has not been reached. Do not end, score, or give final feedback.",
+    "",
     "Immediate conversation context:",
     `Last examiner question: ${lastExaminerQuestion || "None yet."}`,
     `Candidate latest turn type: ${lastCandidateTurnKind}`,
@@ -5848,6 +7025,7 @@ function qwenTurnControlInstructions(prefix, mode = "next-question") {
     "Do not repeat or paraphrase any listed question or topic unless this is the scheduled short-answer follow-up.",
     "Do not return to a topic the candidate has already answered unless you ask a clearly deeper why/how follow-up.",
     "A good next move can follow the candidate's latest answer or use a fresh topic-bank prompt, but it must not repeat an old question.",
+    "For the 15-minute target, freely develop the discussion from the candidate's meaning, then return to the planned IELTS anchor when appropriate; never fill time by recycling old questions.",
     "Do not invent an unrelated topic.",
     action?.kind === "cue-card"
       ? "Keep the cue-card delivery concise and clear."
@@ -5855,12 +7033,15 @@ function qwenTurnControlInstructions(prefix, mode = "next-question") {
         ? "Keep the closing message under 12 words."
       : action?.kind === "candidate-question" || action?.kind === "ai-context-turn"
         ? "Keep the response natural and usually under 45 words total."
+        : action?.kind === "extension-follow-up"
+          ? "Keep the response natural and usually under 35 words total."
         : "Keep the response natural and usually under 28 words total.",
   ].join("\n");
 }
 
 function qwenBeginAssistantResponse(prefix, source) {
   const session = qwenSession(prefix);
+  qwenSetSpeakingVisualState(prefix, "assistant");
   if (!session.responseActive) {
     qwenRememberCandidateAnswer(prefix, qwenLatestTurnCandidateText(session));
     session.currentAssistantText = "";
@@ -6034,6 +7215,7 @@ function qwenStopOutputPlayback(prefix) {
     session.outputUnlocked = false;
     context.close?.().catch(() => {});
   }
+  qwenSetSpeakingVisualState(prefix, "idle");
 }
 
 function qwenAppendAssistant(prefix, text) {
@@ -6150,7 +7332,7 @@ function qwenRealtimeEventFromPayload(payload) {
       event_id: qwenEventId(),
       type: "response.create",
       response: {
-        modalities: ["text", "audio"],
+        modalities: Array.isArray(payload.modalities) && payload.modalities.length ? payload.modalities : ["text", "audio"],
         ...(payload.instructions ? { instructions: payload.instructions } : {}),
       },
     };
@@ -6307,6 +7489,13 @@ function attachQwenRemoteAudio(prefix, stream) {
   session.remoteAudio.autoplay = true;
   session.remoteAudio.playsInline = true;
   session.remoteAudio.srcObject = stream;
+  session.remoteAudio.onplaying = () => qwenSetSpeakingVisualState(prefix, "assistant");
+  session.remoteAudio.onpause = () => {
+    if (!qwenOutputBusy(prefix)) qwenSetSpeakingVisualState(prefix, session.micActive ? "candidate" : "idle");
+  };
+  session.remoteAudio.onended = () => {
+    if (!qwenOutputBusy(prefix)) qwenSetSpeakingVisualState(prefix, session.micActive ? "candidate" : "idle");
+  };
   session.remoteAudio.play().catch(() => {
     qwenSetStatus(prefix, "Tap the page once to allow audio playback", true);
   });
@@ -6347,6 +7536,7 @@ function qwenCloseWebRtc(prefix) {
   session.webrtcAudioTrack = null;
   session.webrtcAudioSending = false;
   session.webrtcMediaUngated = false;
+  qwenSetSpeakingVisualState(prefix, "idle");
 }
 
 function lockQwenWebRtcControls(prefix) {
@@ -6405,6 +7595,8 @@ async function startQwenWebRtc(prefix, openingInstructions) {
     }
     if (["failed", "closed"].includes(pc.connectionState)) {
       if (session.transport === "webrtc") {
+        if (session.connectionRecovering) return;
+        if (scheduleQwenConnectionRecovery(prefix, `WebRTC ${pc.connectionState}`)) return;
         session.connected = false;
         stopQwenHeartbeat(prefix);
         qwenSetControls(prefix, false);
@@ -6430,6 +7622,7 @@ async function startQwenWebRtc(prefix, openingInstructions) {
       session.connected = true;
       session.transport = "webrtc";
       qwenSetStatus(prefix, "Connected · WebRTC", true);
+      markQwenRealtimeSegmentStarted(prefix);
     };
   };
   dc.onopen = () => {
@@ -6437,6 +7630,7 @@ async function startQwenWebRtc(prefix, openingInstructions) {
     session.transport = "webrtc";
     qwenSetStatus(prefix, "Connected · WebRTC, waiting for session...", true);
     qwenSetControls(prefix, true);
+    markQwenRealtimeSegmentStarted(prefix);
     lockQwenWebRtcControls(prefix);
     session.webrtcSessionTimer = setTimeout(() => {
       if (session.webrtcMediaUngated || session.transport !== "webrtc") return;
@@ -6452,6 +7646,8 @@ async function startQwenWebRtc(prefix, openingInstructions) {
   dc.onerror = () => qwenSetStatus(prefix, "WebRTC data channel error", false);
   dc.onclose = () => {
     if (session.transport === "webrtc" || session.pc) {
+      if (session.connectionRecovering) return;
+      if (scheduleQwenConnectionRecovery(prefix, "WebRTC data channel closed")) return;
       session.connected = false;
       qwenSetControls(prefix, false);
       qwenSetStatus(prefix, "WebRTC disconnected", false);
@@ -6485,7 +7681,7 @@ async function startQwenWebRtc(prefix, openingInstructions) {
   await pc.setRemoteDescription({ type: "answer", sdp: normalizedAnswerSdp });
 }
 
-function startQwenWebSocket(prefix, openingInstructions) {
+function startQwenWebSocket(prefix, openingInstructions, options = {}) {
   const session = qwenSession(prefix);
   const wsUrl = `${location.origin.replace(/^http/, "ws")}/qwen-client`;
   session.ws = new WebSocket(wsUrl);
@@ -6497,10 +7693,16 @@ function startQwenWebSocket(prefix, openingInstructions) {
       voice: "Ethan",
       turnDetection: "manual",
     });
-    qwenAddBubble(prefix, "system", "WebSocket connected.");
+    qwenAddBubble(prefix, "system", options.recovery ? "Connection restored through WebSocket." : "WebSocket connected.");
   });
   session.ws.addEventListener("message", (event) => handleQwenMessage(prefix, JSON.parse(event.data)));
   session.ws.addEventListener("close", () => {
+    if (session.connectionRecovering && !options.recovery) return;
+    if (session.connectionRecovering && options.recovery) {
+      session.connectionRecovering = false;
+      scheduleQwenConnectionRecovery(prefix, "Recovery WebSocket closed");
+      return;
+    }
     if (session.userDisconnected) {
       session.connected = false;
       session.transport = "";
@@ -6513,6 +7715,7 @@ function startQwenWebSocket(prefix, openingInstructions) {
       startQwenHttpFallback(prefix, openingInstructions);
       return;
     }
+    if (scheduleQwenConnectionRecovery(prefix, "WebSocket closed")) return;
     session.connected = false;
     stopQwenHeartbeat(prefix);
     stopQwenMic(prefix, false);
@@ -6520,6 +7723,12 @@ function startQwenWebSocket(prefix, openingInstructions) {
     qwenSetControls(prefix, false);
   });
   session.ws.addEventListener("error", () => {
+    if (session.connectionRecovering && !options.recovery) return;
+    if (session.connectionRecovering && options.recovery) {
+      session.connectionRecovering = false;
+      scheduleQwenConnectionRecovery(prefix, "Recovery WebSocket error");
+      return;
+    }
     if (session.userDisconnected) {
       session.connected = false;
       session.transport = "";
@@ -6532,6 +7741,7 @@ function startQwenWebSocket(prefix, openingInstructions) {
       startQwenHttpFallback(prefix, openingInstructions);
       return;
     }
+    if (scheduleQwenConnectionRecovery(prefix, "WebSocket error")) return;
     stopQwenHeartbeat(prefix);
     qwenSetStatus(prefix, "Connection error", false);
     qwenAddBubble(prefix, "system", "Connection error.");
@@ -6541,9 +7751,19 @@ function startQwenWebSocket(prefix, openingInstructions) {
 async function startQwenSpeaking(prefix) {
   const session = qwenSession(prefix);
   if (session.connected || session.ws?.readyState === WebSocket.OPEN) return;
+  qwenHideScoringProgress(prefix);
   session.userDisconnected = false;
+  void requestQwenWakeLock(prefix);
+  stopQwenProactiveRenewal(prefix);
+  if (session.connectionRecoveryTimer) clearTimeout(session.connectionRecoveryTimer);
+  session.connectionRecoveryTimer = null;
+  session.connectionRecovering = false;
+  session.connectionRecoveryAttempts = 0;
+  session.lastDisconnectReason = "";
   stopQwenHeartbeat(prefix);
+  session.suppressConnectionRecovery = true;
   qwenCloseWebRtc(prefix);
+  session.suppressConnectionRecovery = false;
   const log = $(`${prefix}-speaking-log`);
   if (log) log.textContent = "";
   session.assistantNode = null;
@@ -6574,12 +7794,20 @@ async function startQwenSpeaking(prefix) {
   session.finalScoreInFlight = false;
   session.scoreFilled = false;
   session.scoringText = "";
+  session.realtimeScoreNote = "";
+  session.realtimeScoreNoteResolve = null;
+  session.scoreNoteInFlight = false;
+  session.scoreNoteTimedOut = false;
+  session.scoringProgressValue = 0;
   session.turnCommitted = false;
   session.inputPaused = false;
   session.waitingForResponse = false;
   session.responseRetryCount = 0;
   session.askedQuestions = [];
   session.candidateAnswers = [];
+  session.candidateQuestions = [];
+  session.dialogueTurns = [];
+  session.sessionStartedAt = Date.now();
   qwenResetExaminerSchedule(prefix);
   qwenAdvanceScheduledAction(prefix);
   session.voiceStarted = false;
@@ -6635,7 +7863,10 @@ async function startQwenSpeaking(prefix) {
   session.playbackBlockedUntil = 0;
   session.recordingChunks = [];
   session.recordingMime = "";
+  session.recordingBlob = null;
+  session.recordingDataUrl = "";
   session.recordingReady = null;
+  session.recordingResult = null;
   session.recordingPlaybackCursor = 0;
   session.recordingMicSource = null;
   session.recordingDestination = null;
@@ -6646,6 +7877,7 @@ async function startQwenSpeaking(prefix) {
   unlockQwenOutput(prefix);
   qwenSetStatus(prefix, "Connecting...", false);
   qwenSetControls(prefix, false);
+  await qwenRuntimeConfig();
   const tryWebRtc = await qwenShouldTryWebRtc(prefix);
   if (!tryWebRtc) {
     startQwenWebSocket(prefix, openingInstructions);
@@ -6701,11 +7933,12 @@ async function pollQwenHttpEvents(prefix) {
     for (const event of json.events || []) handleQwenMessage(prefix, event);
   } catch (error) {
     if (session.transport === "http") {
+      if (scheduleQwenConnectionRecovery(prefix, `HTTP fallback polling failed: ${error.message}`)) return;
       qwenSetStatus(prefix, "Connection error", false);
       qwenAddBubble(prefix, "system", `Live voice polling failed: ${error.message}`);
     }
   } finally {
-    if (session.transport === "http" && session.httpSessionId) {
+    if (session.transport === "http" && session.httpSessionId && !session.connectionRecovering) {
       session.pollTimer = setTimeout(() => pollQwenHttpEvents(prefix), 60);
     }
   }
@@ -6717,14 +7950,29 @@ function handleQwenMessage(prefix, message) {
   if (message.type === "status") {
     if (message.status === "qwen-open") {
       session.connected = true;
-      qwenSetStatus(prefix, session.transport === "http" ? "Connected · HTTP fallback" : "Connected · WebSocket", true);
+      const wasRecovering = session.connectionRecovering;
+      session.connectionRecovering = false;
+      session.connectionRecoveryAttempts = 0;
+      session.lastDisconnectReason = "";
+      qwenSetStatus(prefix, wasRecovering ? "Reconnected. Continue speaking." : session.transport === "http" ? "Connected · HTTP fallback" : "Connected · WebSocket", true);
       qwenSetControls(prefix, true);
       initQwenOutput(prefix);
+      void requestQwenWakeLock(prefix);
+      markQwenRealtimeSegmentStarted(prefix);
       startQwenHeartbeat(prefix);
-      qwenAddBubble(prefix, "system", "Live speaking session ready.");
+      qwenAddBubble(prefix, "system", wasRecovering ? "Reconnected. Please continue the same speaking answer or wait for the examiner." : "Live speaking session ready.");
       startQwenMic(prefix);
     }
     if (message.status === "qwen-closed") {
+      if (session.connectionRecovering) return;
+      if (session.userDisconnected) {
+        session.connected = false;
+        stopQwenHeartbeat(prefix);
+        qwenSetControls(prefix, false);
+        qwenSetStatus(prefix, "Disconnected", false);
+        return;
+      }
+      if (scheduleQwenConnectionRecovery(prefix, message.reason ? `Qwen closed: ${message.reason}` : "Qwen closed")) return;
       session.connected = false;
       stopQwenHeartbeat(prefix);
       qwenSetControls(prefix, false);
@@ -6734,6 +7982,7 @@ function handleQwenMessage(prefix, message) {
     return;
   }
   if (message.type === "error") {
+    if (session.transport && scheduleQwenConnectionRecovery(prefix, message.message || "Realtime connection error")) return;
     qwenSetStatus(prefix, "Error", false);
     qwenSetControls(prefix, false);
     stopQwenHeartbeat(prefix);
@@ -6788,8 +8037,9 @@ function handleQwenMessage(prefix, message) {
     clearQwenCommitWatchdog(prefix);
     clearQwenWebRtcTurnTimer(prefix);
     clearQwenWebRtcFallbackTimer(prefix);
-    if (session.awaitingScore && delta) {
+    if ((session.awaitingScore || session.scoreNoteInFlight) && delta) {
       session.scoringText = mergeQwenTextValue(session.scoringText, delta);
+      return;
     }
     if (session.assistantTextSource !== "audio") {
       qwenBeginAssistantResponse(prefix, "text");
@@ -6843,11 +8093,12 @@ function handleQwenMessage(prefix, message) {
     session.webRtcTurnPreparedForAnswer = false;
     clearQwenWebRtcTurnTimer(prefix);
     clearQwenWebRtcFallbackTimer(prefix);
-    qwenSetStatus(prefix, "Examiner preparing response...", true);
+    qwenSetStatus(prefix, session.awaitingScore ? "Collecting realtime evidence..." : "Examiner preparing response...", true);
   }
   if (type === "response.done" || type === "response.audio.done" || type === "response.text.done" || type === "response.output_text.done" || type === "response.audio_transcript.done") {
     const finalText = compactDialogueText(qwenTextFromPayload(payload));
     const shouldUseFinalText = finalText
+      && !session.awaitingScore
       && !session.currentAssistantText
       && !(session.assistantTextSource === "audio" && (type === "response.output_text.done" || type === "response.text.done" || type === "response.done"));
     if (shouldUseFinalText) {
@@ -6862,8 +8113,19 @@ function handleQwenMessage(prefix, message) {
     clearQwenWebRtcTurnTimer(prefix);
     clearQwenWebRtcFallbackTimer(prefix);
     const responseText = session.scoringText || session.pendingAssistantText || session.currentAssistantText || finalText;
-    if (session.awaitingScore) qwenSetStatus(prefix, "Scoring complete", true);
-    if (!session.awaitingScore) {
+    const wasScoreNote = session.awaitingScore || session.scoreNoteInFlight;
+    if (wasScoreNote) {
+      session.realtimeScoreNote = compactDialogueText(responseText || session.scoringText || session.realtimeScoreNote);
+      if (session.realtimeScoreNoteResolve) {
+        session.realtimeScoreNoteResolve(session.realtimeScoreNote);
+        session.realtimeScoreNoteResolve = null;
+      }
+      session.awaitingScore = false;
+      session.scoreNoteInFlight = false;
+      session.scoreNoteTimedOut = false;
+      qwenSetStatus(prefix, "Realtime evidence ready", true);
+    }
+    if (!wasScoreNote) {
       qwenRememberCandidateAnswer(prefix, qwenLatestTurnCandidateText(session));
       qwenRememberExaminerQuestion(prefix, responseText);
       session.nextQuestionPrepared = false;
@@ -6894,6 +8156,7 @@ function handleQwenMessage(prefix, message) {
     session.pendingAssistantText = "";
     session.assistantNode = null;
     session.assistantTextSource = "";
+    if (!qwenOutputBusy(prefix)) qwenSetSpeakingVisualState(prefix, session.micActive ? "candidate" : "idle");
     qwenMaybeAutoFinish(prefix);
   }
 }
@@ -7161,6 +8424,7 @@ async function stopQwenMic(prefix, commit = false) {
   if (bar) bar.style.width = "0%";
   if (meter) meter.textContent = "0.00";
   if (orb) orb.style.setProperty("--voice-level", "0");
+  if (!qwenOutputBusy(prefix)) qwenSetSpeakingVisualState(prefix, "idle");
   const button = document.querySelector(`.qwen-mic-toggle[data-prefix="${prefix}"]`);
   if (button) button.textContent = "Toggle mic";
   if (commit && wasActive) commitQwenAnswer(prefix);
@@ -7215,10 +8479,62 @@ async function waitForQwenIdle(prefix, timeoutMs = 12000) {
   return false;
 }
 
+async function requestQwenRealtimeScoreNote(prefix) {
+  const session = qwenSession(prefix);
+  if (!session.connected || session.userDisconnected) return "";
+  await waitForQwenIdle(prefix, 4500);
+  if (!session.connected || session.userDisconnected) return "";
+  session.awaitingScore = true;
+  session.scoreNoteInFlight = true;
+  session.scoreNoteTimedOut = false;
+  session.scoringText = "";
+  session.realtimeScoreNote = "";
+  qwenSetScoringProgress(prefix, 26, "Collecting realtime examiner evidence...", true);
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = (value = "", options = {}) => {
+      if (settled) return;
+      settled = true;
+      if (!options.keepInFlight) {
+        session.awaitingScore = false;
+        session.scoreNoteInFlight = false;
+        session.scoreNoteTimedOut = false;
+      } else {
+        session.awaitingScore = false;
+        session.scoreNoteTimedOut = true;
+      }
+      session.waitingForResponse = false;
+      const note = compactDialogueText(value || session.scoringText || session.realtimeScoreNote || "");
+      session.realtimeScoreNote = note;
+      if (!options.keepInFlight) session.realtimeScoreNoteResolve = null;
+      resolve(note);
+    };
+    session.realtimeScoreNoteResolve = finish;
+    try {
+      session.waitingForResponse = true;
+      qwenSend(prefix, {
+        type: "response.create",
+        modalities: ["text"],
+        instructions: qwenTurnControlInstructions(prefix, "score"),
+      });
+    } catch {
+      finish("");
+      return;
+    }
+    window.setTimeout(() => finish(session.scoringText, { keepInFlight: true }), 8000);
+  });
+}
+
 function qwenMaybeAutoFinish(prefix) {
   const session = qwenSession(prefix);
   if (session.awaitingScore || session.finalScoreInFlight || session.autoFinishStarted) return;
   if (session.scheduledAction?.kind !== "auto-finish" && session.lastActionKind !== "auto-finish") return;
+  if (!qwenSpeakingMinimumReached(prefix)) {
+    session.scheduledAction = null;
+    session.lastActionKind = "";
+    qwenAdvanceScheduledAction(prefix, { allowAdaptive: true });
+    return;
+  }
   if (qwenWordCount(qwenBuildAutoScoreTranscript(prefix)) < 12) return;
   session.autoFinishStarted = true;
   qwenSetStatus(prefix, "Speaking test complete. Scoring now...", true);
@@ -7236,6 +8552,7 @@ async function finishQwenSpeaking(prefix) {
   session.finalScoreInFlight = true;
   try {
     qwenSetStatus(prefix, "Ending speaking test...", true);
+    qwenStartFakeScoringProgress(prefix);
     await waitForQwenIdle(prefix, 5000);
     await stopQwenMic(prefix, false);
     session.awaitingScore = false;
@@ -7245,16 +8562,37 @@ async function finishQwenSpeaking(prefix) {
     session.scoreFilled = false;
     clearQwenCommitWatchdog(prefix);
     qwenSetStatus(prefix, "Scoring speaking band...", true);
-    const result = await qwenRunAutoScore(prefix, { force: true, fillScore: true, showFeedback: true, showStatus: true });
+    qwenSetScoringProgress(prefix, 18, "Preparing transcript...", true);
+    const realtimeNote = await requestQwenRealtimeScoreNote(prefix);
+    qwenSetScoringProgress(prefix, 36, "Preparing MP3 evidence...", true);
+    const audioEvidence = await createQwenRecordingDownload(prefix, { timeoutMs: QWEN_RECORDING_UPLOAD_TIMEOUT_MS });
+    qwenSetScoringProgress(prefix, 48, qwenAudioEvidenceIsMp3(audioEvidence) ? "Scoring with transcript and MP3..." : "Scoring with transcript evidence...", true);
+    const result = await qwenRunAutoScore(prefix, {
+      force: true,
+      fillScore: true,
+      showFeedback: true,
+      showStatus: true,
+      showProgress: true,
+      realtimeNote,
+      audioEvidence,
+    });
     if (!result) {
       qwenSetStatus(prefix, "No complete speaking answer to score yet", false);
+      qwenStopFakeScoringProgress(prefix, "Not enough speech to score yet.");
+      window.setTimeout(() => qwenHideScoringProgress(prefix), 3500);
       return;
     }
     const band = normalizeSpeakingBand(result.band) || extractSpeakingBandFromText(result.feedback);
+    qwenSetScoringProgress(prefix, 94, "Preparing final voice closing...", true);
     qwenSetStatus(prefix, band ? `Speaking ended. Final Band: ${band}. Saying goodbye...` : "Speaking ended. Score ready. Saying goodbye...", true);
     await qwenSayGoodbyeAndDisconnect(prefix, band);
-    await createQwenRecordingDownload(prefix);
+    qwenSetScoringProgress(prefix, 98, "Preparing recording download...", true);
+    createQwenRecordingDownload(prefix, { forceUpload: true, timeoutMs: QWEN_RECORDING_DOWNLOAD_RETRY_TIMEOUT_MS }).catch(() => {});
+    qwenStopFakeScoringProgress(prefix, band ? `Score ready: Band ${band}` : "Score ready");
+    window.setTimeout(() => qwenHideScoringProgress(prefix), 5000);
   } catch (error) {
+    qwenStopFakeScoringProgress(prefix, "Scoring failed. Please try again.");
+    window.setTimeout(() => qwenHideScoringProgress(prefix), 5000);
     qwenSetStatus(prefix, `Speaking scoring failed: ${error.message}`, false);
   } finally {
     session.finalScoreInFlight = false;
@@ -7270,6 +8608,7 @@ async function qwenSayGoodbyeAndDisconnect(prefix, band) {
     return;
   }
   try {
+    if (session.scoreNoteInFlight) await waitForQwenIdle(prefix, 3500);
     session.waitingForResponse = true;
     qwenSend(prefix, {
       type: "response.create",
@@ -7299,7 +8638,7 @@ function startQwenRecording(prefix) {
   if (typeof MediaRecorder === "undefined" || !stream) return;
   try {
     const mimeType = preferredRecordingMime();
-    session.recordingChunks = [];
+    session.recordingChunks ||= [];
     session.recordingMime = mimeType || "audio/webm";
     session.recordingReady = null;
     session.recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
@@ -7329,24 +8668,88 @@ function stopQwenRecording(prefix) {
   });
 }
 
-async function createQwenRecordingDownload(prefix) {
-  const session = qwenSession(prefix);
-  const target = $(`${prefix}-recording-download`);
+function qwenRecordingDownloadHref(result) {
+  return result?.downloadUrl || result?.url || result?.dataUrl || "";
+}
+
+function renderQwenRecordingDownload(target, result, warningText = "") {
   if (!target) return;
-  if (!session.recordingChunks.length) {
-    target.innerHTML = `<span class="notice-inline">This browser did not produce a recording file.</span>`;
+  const href = qwenRecordingDownloadHref(result);
+  if (!href) {
+    target.innerHTML = `<span class="notice-inline">${escapeHtml(warningText || "Recording download is not ready yet.")}</span>`;
     return;
   }
-  target.innerHTML = `<span class="notice-inline">Generating speaking recording MP3...</span>`;
-  const blob = new Blob(session.recordingChunks, { type: session.recordingMime || "audio/webm" });
-  const dataUrl = await blobToDataUrl(blob);
+  const label = result?.mode === "mp3" ? "Download speaking MP3" : "Download speaking recording";
+  const fileName = result?.fileName || "ielts-speaking-recording.mp3";
+  const warning = warningText || result?.warning || "";
+  target.innerHTML = `<a class="download-link" href="${escapeHtml(href)}" download="${escapeHtml(fileName)}" target="_blank" rel="noreferrer">${label}</a>${warning ? `<span class="notice-inline">${escapeHtml(warning)}</span>` : ""}`;
+}
+
+async function qwenRecordingDataUrl(prefix) {
+  const session = qwenSession(prefix);
+  if (session.recordingDataUrl) return session.recordingDataUrl;
+  const blob = qwenRecordingBlob(prefix);
+  if (!blob) return "";
+  session.recordingDataUrl = await blobToDataUrl(blob);
+  return session.recordingDataUrl;
+}
+
+function qwenRecordingBlob(prefix) {
+  const session = qwenSession(prefix);
+  if (session.recordingBlob) return session.recordingBlob;
+  if (!session.recordingChunks.length) return null;
+  session.recordingBlob = new Blob(session.recordingChunks, { type: session.recordingMime || "audio/webm" });
+  return session.recordingBlob;
+}
+
+function qwenOriginalRecordingFallback(session, dataUrl, warning = "") {
+  const ext = (session.recordingMime || "").includes("mp4")
+    ? "mp4"
+    : (session.recordingMime || "").includes("ogg")
+      ? "ogg"
+      : (session.recordingMime || "").includes("wav")
+        ? "wav"
+        : "webm";
+  return {
+    mode: "original",
+    fileName: `ielts-speaking-recording.${ext}`,
+    mime: session.recordingMime || "audio/webm",
+    dataUrl,
+    warning,
+  };
+}
+
+async function createQwenRecordingDownload(prefix, options = {}) {
+  const session = qwenSession(prefix);
+  const target = $(`${prefix}-recording-download`);
+  const forceUpload = Boolean(options.forceUpload);
+  const timeoutMs = Number(options.timeoutMs || 0);
+  if (session.recordingResult?.dataUrl && (!forceUpload || session.recordingResult.downloadUrl)) {
+    renderQwenRecordingDownload(target, session.recordingResult);
+    return session.recordingResult;
+  }
+  if (!session.recordingChunks.length) {
+    if (target) target.innerHTML = `<span class="notice-inline">This browser did not produce a recording file.</span>`;
+    return null;
+  }
+  if (target) target.innerHTML = `<span class="notice-inline">Generating speaking recording MP3...</span>`;
+  const blob = qwenRecordingBlob(prefix);
+  if (!blob) {
+    if (target) target.innerHTML = `<span class="notice-inline">This browser did not produce a recording file.</span>`;
+    return null;
+  }
   try {
-    const json = await postJson("/api/speaking/recording", { dataUrl });
-    const label = json.mode === "mp3" ? "Download speaking MP3" : "Download speaking recording";
-    target.innerHTML = `<a class="download-link" href="${json.dataUrl}" download="${escapeHtml(json.fileName || "ielts-speaking-recording.mp3")}">${label}</a>`;
+    const json = await postBlobWithTimeout("/api/speaking/recording", blob, timeoutMs);
+    if (!json.dataUrl) json.dataUrl = await qwenRecordingDataUrl(prefix);
+    session.recordingResult = json;
+    renderQwenRecordingDownload(target, json);
+    return json;
   } catch (error) {
-    const ext = (session.recordingMime || "").includes("mp4") ? "mp4" : (session.recordingMime || "").includes("ogg") ? "ogg" : "webm";
-    target.innerHTML = `<a class="download-link" href="${dataUrl}" download="ielts-speaking-recording.${ext}">Download speaking recording</a><span class="notice-inline">MP3 conversion failed: ${escapeHtml(error.message)}</span>`;
+    const dataUrl = await qwenRecordingDataUrl(prefix);
+    const fallback = qwenOriginalRecordingFallback(session, dataUrl, `MP3 conversion failed: ${error.message}`);
+    session.recordingResult = fallback;
+    renderQwenRecordingDownload(target, fallback);
+    return fallback;
   }
 }
 
@@ -7391,14 +8794,86 @@ function fillSpeakingBandFromText(prefix, text) {
   qwenSession(prefix).scoreFilled = true;
 }
 
+function ensureQwenDisconnectConfirmDialog() {
+  let overlay = $("qwenDisconnectConfirm");
+  if (overlay) return overlay;
+  overlay = document.createElement("div");
+  overlay.id = "qwenDisconnectConfirm";
+  overlay.className = "qwen-disconnect-confirm";
+  overlay.hidden = true;
+  overlay.innerHTML = `
+    <div class="qwen-disconnect-card" role="dialog" aria-modal="true" aria-labelledby="qwenDisconnectTitle">
+      <div>
+        <h3 id="qwenDisconnectTitle">Keep speaking?</h3>
+        <p>Your IELTS Speaking test is still running. Continue the conversation or disconnect now.</p>
+      </div>
+      <div class="qwen-disconnect-actions">
+        <button id="qwenContinueSpeaking" class="primary" type="button">Continue speaking</button>
+        <button id="qwenConfirmDisconnect" class="secondary danger-button" type="button">Disconnect</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener("click", (event) => {
+    if (event.target === overlay) continueQwenSpeakingFromConfirm();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !overlay.hidden) continueQwenSpeakingFromConfirm();
+  });
+  $("qwenContinueSpeaking")?.addEventListener("click", continueQwenSpeakingFromConfirm);
+  $("qwenConfirmDisconnect")?.addEventListener("click", () => {
+    const prefix = overlay.dataset.prefix || "";
+    overlay.hidden = true;
+    if (prefix) disconnectQwenSpeaking(prefix);
+  });
+  return overlay;
+}
+
+function requestQwenDisconnect(prefix) {
+  const session = qwenSession(prefix);
+  if (!session.connected && !session.micActive && !session.transport) {
+    disconnectQwenSpeaking(prefix);
+    return;
+  }
+  const overlay = ensureQwenDisconnectConfirmDialog();
+  overlay.dataset.prefix = prefix;
+  overlay.hidden = false;
+  window.setTimeout(() => $("qwenContinueSpeaking")?.focus(), 0);
+}
+
+function continueQwenSpeakingFromConfirm() {
+  const overlay = $("qwenDisconnectConfirm");
+  if (!overlay || overlay.hidden) return;
+  const prefix = overlay.dataset.prefix || "";
+  overlay.hidden = true;
+  overlay.dataset.prefix = "";
+  if (!prefix) return;
+  const session = qwenSession(prefix);
+  unlockQwenOutput(prefix);
+  if (session.connected || session.micActive || session.transport) {
+    qwenSetControls(prefix, true);
+    qwenSetStatus(prefix, qwenOutputBusy(prefix) ? "Examiner speaking..." : "Continue speaking.", true);
+  }
+}
+
 function disconnectQwenSpeaking(prefix) {
   const session = qwenSession(prefix);
   session.userDisconnected = true;
+  void releaseQwenWakeLock(prefix);
+  stopQwenProactiveRenewal(prefix);
+  if (session.connectionRecoveryTimer) clearTimeout(session.connectionRecoveryTimer);
+  session.connectionRecoveryTimer = null;
+  session.connectionRecovering = false;
+  session.connectionRecoveryAttempts = 0;
+  session.lastDisconnectReason = "";
   session.connected = false;
   session.inputPaused = false;
   session.waitingForResponse = false;
   session.responseActive = false;
   session.turnCommitted = false;
+  session.awaitingScore = false;
+  session.scoreNoteInFlight = false;
+  session.scoreNoteTimedOut = false;
+  session.realtimeScoreNoteResolve = null;
   qwenStopOutputPlayback(prefix);
   stopQwenMic(prefix, false);
   if (session.micAudioFlushTimer) clearTimeout(session.micAudioFlushTimer);
@@ -7416,6 +8891,7 @@ function disconnectQwenSpeaking(prefix) {
   session.pollTimer = null;
   session.autoScoreTimer = null;
   qwenCloseWebRtc(prefix);
+  if (!session.finalScoreInFlight) qwenHideScoringProgress(prefix);
   session.transport = "";
   session.httpSessionId = "";
   session.ws?.close(1000, "user disconnected");
@@ -8067,7 +9543,7 @@ function bindDynamicControls() {
     button.onclick = () => finishQwenSpeaking(button.dataset.prefix);
   });
   document.querySelectorAll(".qwen-disconnect").forEach((button) => {
-    button.onclick = () => disconnectQwenSpeaking(button.dataset.prefix);
+    button.onclick = () => requestQwenDisconnect(button.dataset.prefix);
   });
   document.querySelectorAll(".score-speaking-text").forEach((button) => {
     button.onclick = () => scoreSpeakingText(button.dataset.prefix, button.dataset.topic);
@@ -8090,6 +9566,153 @@ function loadBank() {
 function saveBank() {
   localStorage.setItem(storeKey, JSON.stringify(state.userBank));
   renderBankList();
+}
+
+function readLikedTopicIds() {
+  try {
+    const ids = JSON.parse(localStorage.getItem(likedTopicStoreKey) || "[]");
+    return Array.isArray(ids) ? ids.filter(Boolean) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeLikedTopicIds(ids) {
+  localStorage.setItem(likedTopicStoreKey, JSON.stringify([...new Set(ids.filter(Boolean))].slice(0, 500)));
+}
+
+function isTopicLiked(id) {
+  return readLikedTopicIds().includes(id);
+}
+
+function toggleLikedTopic(id) {
+  if (!id) return;
+  const ids = readLikedTopicIds();
+  const next = ids.includes(id) ? ids.filter((item) => item !== id) : [id, ...ids];
+  writeLikedTopicIds(next);
+  renderBankList();
+  if ($("mine")?.classList.contains("active")) renderMine();
+}
+
+function getSpeakingTopicItems() {
+  return mergedItems("speaking").map(normalizeItem);
+}
+
+function speakingTopicGroupId(title, category) {
+  return `speaking-topic-group-${slugifyPublicTopic(`${category || "topic"}-${title || "speaking"}`) || "speaking"}`;
+}
+
+function speakingTopicGroupKey(item) {
+  const keywords = speakingTopicKeywords(item);
+  const title = speakingTopicTitle(item, keywords);
+  return `${speakingTopicCategory(item)}:${title}`.toLowerCase();
+}
+
+function speakingSetSourceLabel(item) {
+  if (isPublicSpeakingTopic(item)) {
+    return item.period === "Student upload" ? "Public · Student upload" : "Public topic";
+  }
+  return [
+    itemBook(item) ? `Cambridge ${itemBook(item)}` : item.source,
+    itemTest(item) ? `Test ${itemTest(item)}` : "",
+  ].filter(Boolean).join(" · ") || "Cambridge speaking";
+}
+
+function speakingSetPreview(item) {
+  const part1 = item.part1Topic
+    ? `Part 1: ${item.part1Topic}`
+    : Array.isArray(item.part1) && item.part1[0]
+      ? `Part 1: ${item.part1[0]}`
+      : "";
+  const part2 = item.part2 ? `Part 2: ${compactDialogueText(item.part2).slice(0, 150)}` : "";
+  const part3 = item.part3Topics
+    ? `Part 3: ${Array.isArray(item.part3Topics) ? item.part3Topics.join(", ") : item.part3Topics}`
+    : "";
+  return [part1, part2, part3].filter(Boolean).join(" · ");
+}
+
+function sortSpeakingTopicSets(items) {
+  return [...items].sort((a, b) => {
+    const sourceA = isPublicSpeakingTopic(a) ? 1 : 0;
+    const sourceB = isPublicSpeakingTopic(b) ? 1 : 0;
+    if (sourceA !== sourceB) return sourceA - sourceB;
+    const bookA = itemBook(a) || 999;
+    const bookB = itemBook(b) || 999;
+    if (bookA !== bookB) return bookA - bookB;
+    const testA = itemTest(a) || 999;
+    const testB = itemTest(b) || 999;
+    if (testA !== testB) return testA - testB;
+    return String(a.title || "").localeCompare(String(b.title || ""), undefined, { numeric: true });
+  });
+}
+
+function buildSpeakingTopicGroups(items) {
+  const groups = new Map();
+  items.forEach((item, index) => {
+    const keywords = speakingTopicKeywords(item);
+    const title = speakingTopicTitle(item, keywords);
+    const category = speakingTopicCategory(item);
+    const key = `${category}:${title}`.toLowerCase();
+    if (!groups.has(key)) {
+      const related = relatedTopicKeywords(item, title, keywords).slice(0, 3);
+      groups.set(key, {
+        id: speakingTopicGroupId(title, category),
+        key,
+        title,
+        emoji: speakingTopicEmoji(item, title),
+        category,
+        accent: speakingTopicAccent(item),
+        related,
+        items: [],
+        firstIndex: index,
+      });
+    }
+    const group = groups.get(key);
+    group.items.push(item);
+    const searchText = speakingTopicSearchText(item);
+    group.searchText = [group.searchText, searchText].filter(Boolean).join(" ");
+  });
+  return [...groups.values()]
+    .map((group) => ({
+      ...group,
+      items: sortSpeakingTopicSets(group.items),
+      sources: [...new Set(group.items.map((item) => (isPublicSpeakingTopic(item) ? "Public" : "Cambridge")))],
+    }))
+    .sort((a, b) => a.firstIndex - b.firstIndex || a.title.localeCompare(b.title, undefined, { numeric: true }));
+}
+
+function findSpeakingTopicGroupById(groupId, items = getSpeakingTopicItems()) {
+  return buildSpeakingTopicGroups(items).find((group) => group.id === groupId) || null;
+}
+
+function isSpeakingTopicGroupLiked(group, likedIds = new Set(readLikedTopicIds())) {
+  return Boolean(group?.items?.some((item) => likedIds.has(item.id)));
+}
+
+function toggleLikedTopicGroup(groupId) {
+  const group = findSpeakingTopicGroupById(groupId);
+  if (!group) return;
+  const current = readLikedTopicIds();
+  const currentSet = new Set(current);
+  const groupIds = group.items.map((item) => item.id).filter(Boolean);
+  const shouldUnlike = groupIds.some((id) => currentSet.has(id));
+  const next = shouldUnlike
+    ? current.filter((id) => !groupIds.includes(id))
+    : [...groupIds, ...current];
+  writeLikedTopicIds(next);
+  renderBankList();
+  if ($("mine")?.classList.contains("active")) renderMine();
+}
+
+function likedSpeakingTopicGroups() {
+  const ids = readLikedTopicIds();
+  if (!ids.length) return [];
+  const likedIds = new Set(ids);
+  return buildSpeakingTopicGroups(getSpeakingTopicItems().filter((item) => likedIds.has(item.id)));
+}
+
+function likedSpeakingTopics() {
+  return likedSpeakingTopicGroups().map((group) => group.items[0]).filter(Boolean);
 }
 
 function speakingTopicSummary(item) {
@@ -8130,6 +9753,23 @@ function speakingTopicKeywords(item) {
   return keywords.slice(0, 6);
 }
 
+function explicitTopicKeywords(item) {
+  const rawValues = [item.topicKeywords, item.keywords].filter(Boolean);
+  const values = rawValues.flatMap((value) => {
+    if (Array.isArray(value)) return value;
+    return String(value).split(/[,，;]+/);
+  });
+  const seen = new Set();
+  return values
+    .map((value) => compactDialogueText(value).toLowerCase())
+    .filter((value) => value && value.length >= 2)
+    .filter((value) => {
+      if (seen.has(value)) return false;
+      seen.add(value);
+      return true;
+    });
+}
+
 function speakingTopicSearchText(item) {
   return [
     item.title,
@@ -8151,7 +9791,7 @@ function renderSpeakingTopicFilters(items) {
   const books = [...new Set(items.filter((item) => !isPublicSpeakingTopic(item)).map(itemBook).filter((value) => value !== null && value !== undefined))]
     .sort((a, b) => Number(a) - Number(b));
   select.innerHTML = [
-    `<option value="all">All Cambridge</option>`,
+    `<option value="all">All sources</option>`,
     `<option value="public">Public topics</option>`,
     ...books.map((book) => `<option value="${escapeHtml(book)}">Cambridge ${escapeHtml(book)}</option>`),
   ].join("");
@@ -8162,67 +9802,314 @@ function isPublicSpeakingTopic(item) {
   return item?.source === "Public topics" || String(item?.id || "").startsWith("public-speaking-");
 }
 
+function speakingTopicCategory(item) {
+  return deriveSpeakingTopicMeta(item).category || "lifestyle";
+}
+
+function speakingTopicTitle(item, keywords = []) {
+  return deriveSpeakingTopicMeta(item).title || publicTopicOneWord(item.part1Topic || item.title || keywords[0] || "Speaking");
+}
+
+function relatedTopicKeywords(item, title, keywords = []) {
+  const main = String(title || "").toLowerCase();
+  const meta = deriveSpeakingTopicMeta(item);
+  if (Array.isArray(meta.related) && meta.related.length) return meta.related.slice(0, 3);
+  const explicit = explicitTopicKeywords(item);
+  const source = explicit.length ? explicit : (keywords.length ? keywords : speakingTopicKeywords(item));
+  const filtered = source.filter((keyword) => {
+    const clean = String(keyword || "").toLowerCase();
+    return clean && clean !== main && !main.includes(clean) && !clean.includes(main);
+  });
+  return (filtered.length ? filtered : source).slice(0, 3);
+}
+
+function speakingTopicAccent(item) {
+  const category = speakingTopicCategory(item);
+  const map = {
+    people: "people",
+    place: "place",
+    lifestyle: "lifestyle",
+    education: "education",
+    technology: "technology",
+    media: "media",
+    nature: "nature",
+    work: "work",
+    society: "society",
+  };
+  return map[category] || "lifestyle";
+}
+
+function speakingTopicInitial(title) {
+  const match = String(title || "").match(/[A-Za-z0-9]/);
+  return match ? match[0].toUpperCase() : "S";
+}
+
+function speakingTopicEmoji(item, title = "") {
+  return deriveSpeakingTopicMeta(item).emoji || item.emoji || "✨";
+}
+
+function renderBankPracticeTopic(topic, { autoStart = false } = {}) {
+  const root = $("bankPracticePanel");
+  if (!root || !topic) return;
+  disconnectQwenSpeaking("bank");
+  const keywords = speakingTopicKeywords(topic);
+  const displayTitle = speakingTopicTitle(topic, keywords);
+  const emoji = speakingTopicEmoji(topic, displayTitle);
+  const chips = relatedTopicKeywords(topic, displayTitle, keywords).slice(0, 5).map((keyword) => `<span>${escapeHtml(keyword)}</span>`).join("");
+  const source = topic.source === "Public topics"
+    ? "Public topics"
+    : [itemBook(topic) ? `Cambridge ${itemBook(topic)}` : topic.source, itemTest(topic) ? `Test ${itemTest(topic)}` : ""].filter(Boolean).join(" · ");
+  root.hidden = false;
+  root.closest(".panel")?.classList.add("bank-practice-active");
+  root.innerHTML = `<div class="bank-practice-shell">
+    <header class="bank-practice-head">
+      <div>
+        <span>${escapeHtml(source || "Speaking topic")}</span>
+        <h3>${escapeHtml(topic.title || "Speaking practice")}</h3>
+      </div>
+      <button id="closeBankPractice" class="secondary small-button" type="button">Back to topics</button>
+    </header>
+    <div class="bank-practice-grid">
+      <section class="bank-practice-topic-card">
+        <div class="topic-icon topic-emoji topic-accent-${escapeHtml(speakingTopicAccent(topic))}" aria-hidden="true">${escapeHtml(emoji)}</div>
+        <h4>${escapeHtml(displayTitle || "Speaking")}</h4>
+        <div class="topic-keywords">${chips}</div>
+        ${topic.part1Topic ? `<p><strong>Part 1</strong>${escapeHtml(topic.part1Topic)}</p>` : ""}
+        ${topic.part2 ? `<p><strong>Part 2</strong>${escapeHtml(compactDialogueText(topic.part2).slice(0, 220))}</p>` : ""}
+        ${topic.part3Topics ? `<p><strong>Part 3</strong>${escapeHtml(Array.isArray(topic.part3Topics) ? topic.part3Topics.join(", ") : topic.part3Topics)}</p>` : ""}
+      </section>
+      <aside class="bank-practice-chat">
+        ${renderRealtimeSpeakingPanel(topic, "bank", { showTranscript: true })}
+      </aside>
+    </div>
+    <section class="bank-practice-result">
+      <div class="panel-head">
+        <h3>Speaking Result</h3>
+        <span id="bankMode" class="mode-pill"></span>
+      </div>
+      <div id="bankFeedback" class="feedback-output empty">Complete the speaking test to see your result.</div>
+    </section>
+  </div>`;
+  bindDynamicControls();
+  $("closeBankPractice")?.addEventListener("click", () => {
+    disconnectQwenSpeaking("bank");
+    root.closest(".panel")?.classList.remove("bank-practice-active");
+    root.hidden = true;
+    root.innerHTML = "";
+  });
+  root.scrollIntoView({ behavior: "smooth", block: "start" });
+  if (autoStart) {
+    startQwenSpeaking("bank").catch((error) => {
+      qwenSetStatus("bank", `Start failed: ${error.message}`, false);
+    });
+  }
+}
+
 function activateSpeakingTopicFromBank(id) {
   const topic = mergedItems("speaking").map(normalizeItem).find((item) => item.id === id);
   if (!topic) return;
   syncCurrentDraftNow();
-  state.activeModule = "speaking";
-  state.activeSingle = topic;
-  ["singleBookFilter", "singleTestFilter", "singleTaskFilter"].forEach((id) => {
-    if ($(id)) $(id).value = "all";
+  renderBankPracticeTopic(topic, { autoStart: true });
+}
+
+function renderTopicSetChooser(group) {
+  const root = $("bankPracticePanel");
+  if (!root || !group) return;
+  disconnectQwenSpeaking("bank");
+  const chips = group.related.slice(0, 5).map((keyword) => `<span>${escapeHtml(keyword)}</span>`).join("");
+  const sourceLabel = group.sources.length > 1 ? "Cambridge + Public" : (group.sources[0] || "Speaking");
+  root.hidden = false;
+  root.closest(".panel")?.classList.add("bank-practice-active");
+  root.innerHTML = `<div class="topic-set-chooser">
+    <header class="bank-practice-head topic-set-chooser-head">
+      <div class="topic-set-title-row">
+        <div class="topic-icon topic-emoji topic-accent-${escapeHtml(group.accent)}" aria-hidden="true">${escapeHtml(group.emoji)}</div>
+        <div>
+          <span>${escapeHtml(sourceLabel)} · ${escapeHtml(group.items.length)} ${group.items.length === 1 ? "set" : "sets"}</span>
+          <h3>${escapeHtml(group.title)}</h3>
+          <div class="topic-keywords">${chips}</div>
+        </div>
+      </div>
+      <button id="closeBankPractice" class="secondary small-button" type="button">Back to topics</button>
+    </header>
+    <div class="topic-set-list" role="list">
+      ${group.items.map((item, index) => {
+        const source = speakingSetSourceLabel(item);
+        const preview = speakingSetPreview(item);
+        const setTitle = item.title && !String(item.title).toLowerCase().includes("speaking")
+          ? item.title
+          : source;
+        return `<article class="topic-set-row" role="listitem">
+          <div class="topic-set-index">${index + 1}</div>
+          <div class="topic-set-main">
+            <div class="topic-set-source">${escapeHtml(source)}</div>
+            <h4>${escapeHtml(setTitle)}</h4>
+            <p>${escapeHtml(preview || "IELTS Speaking Part 1, Part 2 and Part 3 practice set.")}</p>
+          </div>
+          <button class="primary small-button choose-speaking-set" type="button" data-id="${escapeHtml(item.id)}">Practice</button>
+        </article>`;
+      }).join("")}
+    </div>
+  </div>`;
+  $("closeBankPractice")?.addEventListener("click", () => {
+    root.closest(".panel")?.classList.remove("bank-practice-active");
+    root.hidden = true;
+    root.innerHTML = "";
   });
-  document.querySelectorAll(".module-btn").forEach((item) => item.classList.toggle("active", item.dataset.module === "speaking"));
-  activateView("single", true);
-  resetSingleTimer("speaking");
-  renderSingle();
-  setSingleImmersive("speaking");
+  document.querySelectorAll(".choose-speaking-set").forEach((button) => {
+    button.onclick = () => activateSpeakingTopicFromBank(button.dataset.id);
+  });
+  root.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function activateSpeakingTopicGroupFromBank(groupId) {
+  const group = findSpeakingTopicGroupById(groupId);
+  if (!group) return;
+  syncCurrentDraftNow();
+  renderTopicSetChooser(group);
+}
+
+function renderBankPagination(total, page, pageSize) {
+  const root = $("bankPagination");
+  if (!root) return;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  if (!total) {
+    root.hidden = true;
+    root.innerHTML = "";
+    return;
+  }
+  if (totalPages <= 1) {
+    root.hidden = false;
+    root.innerHTML = `<div class="topic-pagination-summary">Showing ${total} topics</div>`;
+    return;
+  }
+  const pages = new Set([1, totalPages, page - 1, page, page + 1].filter((value) => value >= 1 && value <= totalPages));
+  const ordered = [...pages].sort((a, b) => a - b);
+  const pageButtons = [];
+  ordered.forEach((value, index) => {
+    if (index && value - ordered[index - 1] > 1) pageButtons.push(`<span class="topic-pagination-gap">…</span>`);
+    pageButtons.push(`<button class="topic-page-button${value === page ? " active" : ""}" type="button" data-topic-page="${value}" aria-current="${value === page ? "page" : "false"}">${value}</button>`);
+  });
+  const start = (page - 1) * pageSize + 1;
+  const end = Math.min(total, page * pageSize);
+  root.hidden = false;
+  root.innerHTML = `
+    <div class="topic-pagination-summary">Showing ${start}-${end} of ${total} topics</div>
+    <div class="topic-pagination-controls">
+      <button class="topic-page-button" type="button" data-topic-page="${page - 1}" ${page <= 1 ? "disabled" : ""}>Prev</button>
+      ${pageButtons.join("")}
+      <button class="topic-page-button" type="button" data-topic-page="${page + 1}" ${page >= totalPages ? "disabled" : ""}>Next</button>
+    </div>`;
+  root.querySelectorAll("[data-topic-page]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const nextPage = Number(button.dataset.topicPage);
+      if (!Number.isFinite(nextPage) || nextPage < 1 || nextPage > totalPages || nextPage === state.bankTopicPage) return;
+      state.bankTopicPage = nextPage;
+      renderBankList();
+      $("bankList")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
 }
 
 function renderBankList() {
   const root = $("bankList");
   if (!root) return;
-  const topics = mergedItems("speaking").map(normalizeItem);
+  const topics = getSpeakingTopicItems();
   renderSpeakingTopicFilters(topics);
   const query = ($("bankTopicSearch")?.value || "").trim().toLowerCase();
   const book = $("bankTopicBook")?.value || "all";
+  const category = document.querySelector(".topic-category-pill.active")?.dataset.topicCategory || "all";
+  const likedIds = new Set(readLikedTopicIds());
   const filtered = topics.filter((item) => {
     const publicTopic = isPublicSpeakingTopic(item);
-    const bookOk = book === "public"
+    const bookOk = category === "liked"
+      ? true
+      : book === "public"
       ? publicTopic
       : book === "all"
-        ? !publicTopic
+        ? true
         : !publicTopic && String(itemBook(item)) === book;
+    const categoryOk = category === "all"
+      || (category === "liked" ? likedIds.has(item.id) : speakingTopicCategory(item) === category);
     const searchOk = !query || speakingTopicSearchText(item).includes(query);
-    return bookOk && searchOk;
+    return bookOk && categoryOk && searchOk;
   });
-  if (!filtered.length) {
+  const groups = buildSpeakingTopicGroups(filtered);
+  if (!groups.length) {
+    renderBankPagination(0, 1, state.bankTopicPageSize);
     root.innerHTML = `<div class="notice">No speaking topics match this search.</div>`;
     return;
   }
-  root.innerHTML = filtered
+  const totalPages = Math.max(1, Math.ceil(groups.length / state.bankTopicPageSize));
+  state.bankTopicPage = Math.min(Math.max(1, state.bankTopicPage || 1), totalPages);
+  const start = (state.bankTopicPage - 1) * state.bankTopicPageSize;
+  const displayGroups = groups.slice(start, start + state.bankTopicPageSize);
+  root.innerHTML = displayGroups
     .map(
-      (item) => {
-        const keywords = speakingTopicKeywords(item);
-        const fallbackKeyword = itemBook(item) ? `cambridge ${itemBook(item)}` : "ielts";
-        const chips = (keywords.length ? keywords : [fallbackKeyword])
+      (group) => {
+        const chips = group.related
+          .slice(0, 3)
           .map((keyword) => `<span>${escapeHtml(keyword)}</span>`)
           .join("");
-        const origin = item.source === "Public topics"
-          ? "Public topic"
-          : [itemBook(item) ? `Cam ${itemBook(item)}` : "", itemTest(item) ? `Test ${itemTest(item)}` : ""].filter(Boolean).join(" · ");
+        const liked = isSpeakingTopicGroupLiked(group, likedIds);
+        const sourceLabel = group.sources.length > 1 ? "Cambridge + Public" : (group.sources[0] || "Speaking");
+        const origin = `${group.items.length} ${group.items.length === 1 ? "set" : "sets"} · ${sourceLabel}`;
         return `
-      <div class="bank-item speaking-topic-card">
+      <div class="bank-item speaking-topic-card topic-accent-${escapeHtml(group.accent)}" data-group-id="${escapeHtml(group.id)}" role="button" tabindex="0">
         <div class="topic-card-head">
-          <div class="topic-keywords">${chips}</div>
-          <button class="primary small-button practice-speaking-topic" data-id="${escapeHtml(item.id)}">Practice</button>
+          <div class="topic-icon topic-emoji" aria-hidden="true">${escapeHtml(group.emoji)}</div>
+          <button class="topic-favourite${liked ? " liked" : ""}" type="button" data-topic-group="${escapeHtml(group.id)}" aria-label="${liked ? "Remove from likes" : "Like topic"}">${liked ? "♥" : "♡"}</button>
         </div>
-        <div class="topic-origin">${escapeHtml(origin || "Speaking")}</div>
+        <h3>${escapeHtml(group.title)}</h3>
+        <div class="topic-card-body">
+          <div class="topic-keywords">${chips}</div>
+        </div>
+        <div class="topic-card-foot">
+          <div class="topic-origin">${escapeHtml(origin || "Speaking")}</div>
+          <button class="primary small-button practice-speaking-topic" type="button" data-group-id="${escapeHtml(group.id)}">Choose →</button>
+        </div>
       </div>`;
       },
     )
     .join("");
+  renderBankPagination(groups.length, state.bankTopicPage, state.bankTopicPageSize);
+  document.querySelectorAll(".speaking-topic-card[data-group-id]").forEach((card) => {
+    card.onclick = (event) => {
+      if (event.target.closest("button")) return;
+      activateSpeakingTopicGroupFromBank(card.dataset.groupId);
+    };
+    card.onkeydown = (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      activateSpeakingTopicGroupFromBank(card.dataset.groupId);
+    };
+  });
   document.querySelectorAll(".practice-speaking-topic").forEach((button) => {
-    button.onclick = () => activateSpeakingTopicFromBank(button.dataset.id);
+    button.onclick = () => activateSpeakingTopicGroupFromBank(button.dataset.groupId);
+  });
+  document.querySelectorAll(".topic-favourite").forEach((button) => {
+    const stopCardActivation = (event) => {
+      event.stopPropagation();
+    };
+    button.onpointerdown = stopCardActivation;
+    button.ontouchstart = stopCardActivation;
+    button.onclick = (event) => {
+      event.stopPropagation();
+      event.preventDefault();
+      toggleLikedTopicGroup(button.dataset.topicGroup);
+    };
+  });
+}
+
+function uniqueSpeakingTopicCards(items) {
+  const seen = new Set();
+  return items.filter((item) => {
+    const keywords = speakingTopicKeywords(item);
+    const title = speakingTopicTitle(item, keywords);
+    const key = `${speakingTopicCategory(item)}:${title}`.toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
   });
 }
 
@@ -8253,6 +10140,7 @@ function savePublicTopic() {
     return;
   }
   const title = keywords.length ? keywords.slice(0, 4).join(" / ") : (part2 || part1[0] || part3[0] || "Public speaking topic").slice(0, 80);
+  state.bankTopicPage = 1;
   state.userBank.unshift({
     id: `public-speaking-${Date.now()}`,
     module: "speaking",
@@ -8422,7 +10310,10 @@ function activateView(viewId, updateHash = false) {
 
 function applyInitialHash() {
   const hash = location.hash.replace("#", "");
-  if (!hash) return;
+  if (!hash) {
+    if (window.matchMedia("(max-width: 680px)").matches) activateView("bank", false);
+    return;
+  }
   const sectionMatch = hash.match(/^(exam|sequence)-(listening|reading|writing|speaking)-section$/);
   if (sectionMatch) {
     activateView(sectionMatch[1], false);
@@ -8434,6 +10325,7 @@ function applyInitialHash() {
 }
 
 function bindEvents() {
+  bindQwenWakeLockEvents();
   bindHelpControls();
   $("helpCaptureAgain")?.addEventListener("click", beginHelpCapture);
   $("helpAttachImage")?.addEventListener("click", () => beginHelpCapture("attach"));
@@ -8604,8 +10496,22 @@ function bindEvents() {
       renderSingle();
     }
   });
-  $("bankTopicSearch")?.addEventListener("input", renderBankList);
-  $("bankTopicBook")?.addEventListener("change", renderBankList);
+  $("bankTopicSearch")?.addEventListener("input", () => {
+    state.bankTopicPage = 1;
+    renderBankList();
+  });
+  $("bankTopicBook")?.addEventListener("change", () => {
+    state.bankTopicPage = 1;
+    renderBankList();
+  });
+  document.querySelectorAll(".topic-category-pill").forEach((button) => {
+    button.addEventListener("click", () => {
+      document.querySelectorAll(".topic-category-pill").forEach((item) => item.classList.remove("active"));
+      button.classList.add("active");
+      state.bankTopicPage = 1;
+      renderBankList();
+    });
+  });
   $("togglePublicTopicForm")?.addEventListener("click", () => {
     const form = $("publicTopicForm");
     if (form) form.hidden = !form.hidden;

@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>IELTS-ist</title>
-    <link rel="stylesheet" href="/styles.css?v=20260726-public-topics-20-1" />
+    <link rel="stylesheet" href="/styles.css?v=20260726-speaking-progress-1" />
   </head>
   <body>
     <div class="app-shell">
@@ -165,8 +165,8 @@
         <section id="mine" class="view">
           <div class="view-head">
             <div>
-              <h2>Mine</h2>
-              <p>Account, membership, drafts and vocabulary notebook.</p>
+              <h2>My Workspace</h2>
+              <p>Your account, membership, drafts and vocabulary notebook.</p>
             </div>
           </div>
           <div id="mineContent" class="mine-layout"></div>
@@ -184,6 +184,19 @@
               <input id="bankTopicSearch" class="text-input" placeholder="Search topics, Cambridge book, or Part 2 cue cards..." />
               <select id="bankTopicBook"></select>
               <button id="togglePublicTopicForm" class="secondary small-button" type="button">Create public topic</button>
+            </div>
+            <div id="topicCategoryBar" class="topic-category-bar" aria-label="Speaking topic categories">
+              <button class="topic-category-pill active" type="button" data-topic-category="all">All Topics</button>
+              <button class="topic-category-pill" type="button" data-topic-category="liked">My Likes</button>
+              <button class="topic-category-pill" type="button" data-topic-category="people">People</button>
+              <button class="topic-category-pill" type="button" data-topic-category="place">Place</button>
+              <button class="topic-category-pill" type="button" data-topic-category="lifestyle">Lifestyle</button>
+              <button class="topic-category-pill" type="button" data-topic-category="education">Education</button>
+              <button class="topic-category-pill" type="button" data-topic-category="technology">Technology</button>
+              <button class="topic-category-pill" type="button" data-topic-category="media">Media</button>
+              <button class="topic-category-pill" type="button" data-topic-category="nature">Nature</button>
+              <button class="topic-category-pill" type="button" data-topic-category="work">Work</button>
+              <button class="topic-category-pill" type="button" data-topic-category="society">Society</button>
             </div>
             <form id="publicTopicForm" class="public-topic-form" hidden>
               <div class="public-topic-grid">
@@ -210,6 +223,8 @@
               </div>
             </form>
             <div id="bankList" class="bank-list speaking-topic-list"></div>
+            <div id="bankPagination" class="topic-pagination" hidden></div>
+            <section id="bankPracticePanel" class="bank-practice-panel" hidden></section>
           </section>
         </section>
       </main>
@@ -258,6 +273,6 @@
       <button id="toggleEraser" class="icon-btn" type="button">Erase</button>
       <button id="clearAnnotation" class="icon-btn" type="button">Clear paper</button>
     </div>
-    <script src="/app.js?v=20260726-public-topics-20-1"></script>
+    <script src="/app.js?v=20260726-speaking-progress-1"></script>
   </body>
 </html>

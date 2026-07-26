@@ -1,0 +1,31 @@
+﻿{
+    "source":  "C:\\Users\\10604\\.codex\\sessions\\2026\\07\\13\\rollout-2026-07-13T22-05-33-019f5bcc-259c-7da3-8d57-47e11ae9de38.jsonl",
+    "bytes":  152252772,
+    "lines":  55920,
+    "user_messages":  428,
+    "assistant_messages":  5570,
+    "function_calls":  8041,
+    "first_timestamp":  "2026-07-13T14:05:54.990Z",
+    "last_timestamp":  "2026-07-25T09:10:56.193Z",
+    "topic_hits":  {
+                       "listening":  12,
+                       "skill":  7,
+                       "caption":  6,
+                       "server":  4,
+                       "subagent":  10,
+                       "writing":  8,
+                       "speaking":  19,
+                       "pdf":  29,
+                       "random":  1,
+                       "speaker":  5,
+                       "Singapore":  3,
+                       "github":  4,
+                       "乱码":  8,
+                       "asr":  14,
+                       "reading":  10,
+                       "single module":  6,
+                       "database":  1,
+                       "help":  8,
+                       "login":  1
+                   }
+}

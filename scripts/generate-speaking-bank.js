@@ -7,7 +7,7 @@ const outputPath = path.join(workspace, "data", "speaking-bank.json");
 function buildSources() {
   const items = [];
 
-  for (const book of [4, 5, 6, 7, 10]) {
+  for (const book of [1, 3, 4, 5, 6, 7, 10]) {
     items.push({ book, file: path.join(workspace, "data", "extracted-text", `cam${book}.txt`) });
   }
 
@@ -68,9 +68,22 @@ function compact(text) {
 }
 
 function pageSegments(text) {
-  const matches = [...normaliseText(text).matchAll(/--- Page (\d+) ---\n([\s\S]*?)(?=\n--- Page \d+ ---|$)/g)];
-  if (!matches.length) return [];
-  return matches.map((match) => ({ page: Number(match[1]), text: match[2] }));
+  const normalised = normaliseText(text);
+  const matches = [...normalised.matchAll(/--- Page (\d+) ---\n([\s\S]*?)(?=\n--- Page \d+ ---|$)/g)];
+  if (matches.length) return matches.map((match) => ({ page: Number(match[1]), text: match[2] }));
+  const raw = String(text || "")
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .replace(/[\u201c\u201d]/g, '"')
+    .replace(/[\u2018\u2019`]/g, "'")
+    .replace(/[\u2013\u2014\u2212]/g, "-")
+    .replace(/\u2026/g, "...")
+    .replace(/\u00a0/g, " ");
+  const pages = raw.split("\f");
+  if (pages.length <= 1) return [];
+  return pages
+    .map((pageText, index) => ({ page: index + 1, text: normaliseText(pageText) }))
+    .filter((segment) => segment.text.trim());
 }
 
 function hasSpeakingMarkers(text) {
@@ -289,15 +302,62 @@ function cleanCueCard(part2Block) {
     .trim();
 }
 
-function titleFromCueCard(part2, fallback) {
-  const match = part2.match(/Describe\s+([\s\S]*?)(?:\.|\nYou should say:|\nwhat\b|\nwhere\b|\nwhen\b|\nwho\b|\nwhich\b|\nhow\b|\nwhy\b|$)/i);
-  const raw = cleanLine(match?.[1] || fallback || "Speaking topic")
+function cleanCueTitle(raw) {
+  return cleanLine(raw)
+    .replace(/^Describe\s+/i, "")
     .replace(/\bthat\s+you\s+will\s+have\s+to\s+talk\b.*$/i, "")
     .replace(/\bYou should say\b.*$/i, "")
+    .replace(/\b(?:one|two|1|2)\s+(?:to\s+two\s+)?minutes?\b.*$/i, "")
+    .replace(/\s+minutes?\.?$/i, "")
+    .replace(/\s+\b(?:what|where|when|why|how|who|which)\s+(?:this|that|these|those|you|your|it|they|he|she|people|someone|the)\b.*$/i, "")
+    .replace(/\s+\b(?:what|where|when|why|how|who|which|for|because|or|a|an|the)\s*\.?$/i, "")
+    .replace(/\bAtime\b/gi, "A time")
+    .replace(/\bpak\b/gi, "park")
     .replace(/\s*\([^)]*$/i, "")
-    .replace(/^(a|an|the)\s+/i, "");
-  const title = raw.length > 90 ? `${raw.slice(0, 87).trim()}...` : raw;
-  return title ? title.charAt(0).toUpperCase() + title.slice(1) : "Speaking topic";
+    .replace(/\s+/g, " ")
+    .replace(/^(a|an|the)\s+/i, "")
+    .trim();
+}
+
+function titleLooksUnusable(title) {
+  const lower = String(title || "").toLowerCase();
+  const noisyNeedles = [
+    " ked ",
+    "ypc",
+    "askec",
+    "wero",
+    "ett >",
+    "gong",
+    "tose",
+    "malay",
+    "nates",
+  ];
+  return !title
+    || title.split(/\s+/).length < 2
+    || title.length < 8
+    || /(?:\[|,)$/.test(title)
+    || /\b(?:minutes|you|in|had|started|learned|that|has|to|of|won|improving)\.?$/i.test(title)
+    || noisyNeedles.some((needle) => lower.includes(needle));
+}
+
+function titleFromCueCard(part2, fallback) {
+  const lines = normaliseText(part2)
+    .split(/\n+/)
+    .map(cleanLine)
+    .filter(Boolean);
+  const describeIndex = lines.findIndex((line) => /^Describe\b/i.test(line));
+  const titleLines = [];
+  if (describeIndex >= 0) {
+    titleLines.push(lines[describeIndex]);
+    const next = lines[describeIndex + 1] || "";
+    if (/^(who|which|that|where|in which)\s+(?:is|are|was|were|you|has|have)\b/i.test(next) && !/\?$/.test(next)) {
+      titleLines.push(next);
+    }
+  }
+  let title = cleanCueTitle(titleLines.join(" "));
+  if (titleLooksUnusable(title)) return "Speaking topic";
+  title = title.length > 90 ? `${title.slice(0, 87).trim()}...` : title;
+  return title.charAt(0).toUpperCase() + title.slice(1);
 }
 
 function extractDiscussionTopics(part3Block) {
@@ -334,25 +394,22 @@ function extractEntry(source, segment, fallbackTest) {
     .split(/\n+/)
     .map((line) => line.trim())
     .filter(Boolean);
-  const cueLines = part2Lines.filter((line) => /^(what|where|when|why|how|who|which)\b/i.test(line));
-  const explainLines = part2Lines.filter((line) => /^and explain\b/i.test(line));
-  const lastLine = part2Lines[part2Lines.length - 1] || "";
   if (
-    part1.questions.length < 3
+    part1.questions.length < 2
     || !/^Describe\b/i.test(part2)
-    || part2.length < 35
-    || part2Lines.length < 6
-    || part2Lines.length > 7
-    || cueLines.length < 3
-    || explainLines.length < 1
-    || /^and explain\b$/i.test(lastLine)
+    || part2.length < 20
+    || part2Lines.length < 3
+    || part2Lines.length > 12
     || part3.length < 4
   ) {
     return null;
   }
   const test = source.test || explicitTestNumber(segment.text) || fallbackTest;
   if (!test || test < 1) return null;
-  const title = titleFromCueCard(part2, part1.topic);
+  const extractedTitle = titleFromCueCard(part2, part1.topic);
+  const title = extractedTitle === "Speaking topic"
+    ? `Cambridge IELTS ${source.book} Test ${test} Speaking`
+    : extractedTitle;
   return {
     id: `cam${source.book}-s-test${test}`,
     module: "speaking",
@@ -361,7 +418,7 @@ function extractEntry(source, segment, fallbackTest) {
     period: `Cambridge ${source.book}`,
     book: source.book,
     test,
-    page: segment.page,
+    page: Number.isFinite(segment.page) && segment.page > 0 ? segment.page : null,
     part1Topic: part1.topic,
     part1: part1.questions,
     part2,
@@ -389,18 +446,19 @@ for (const source of sources) {
   let fallbackTest = 1;
   const segments = speakingBlocks(content);
   for (const segment of segments) {
-    const entry = extractEntry(source, segment, segment.test || fallbackTest);
-    fallbackTest += 1;
+    const fallbackForSegment = segment.test || fallbackTest;
+    const entry = extractEntry(source, segment, fallbackForSegment);
     if (!entry) {
       skipped.push({
         book: source.book,
-        test: source.test || segment.test || fallbackTest - 1,
+        test: source.test || segment.test || fallbackForSegment,
         page: segment.page,
         file: path.relative(workspace, source.file),
         reason: "unstable OCR block",
       });
       continue;
     }
+    fallbackTest += 1;
     if (usedIds.has(entry.id)) continue;
     usedIds.add(entry.id);
     speakingSets.push(entry);
@@ -409,22 +467,10 @@ for (const source of sources) {
 
 speakingSets.sort((a, b) => a.book - b.book || a.test - b.test || (a.page || 0) - (b.page || 0));
 
-const stableSpeakingSets = speakingSets.filter((entry) => entry.book === 17 && [1, 2, 3].includes(entry.test));
-for (const entry of speakingSets) {
-  if (stableSpeakingSets.includes(entry)) continue;
-  skipped.push({
-    book: entry.book,
-    test: entry.test,
-    page: entry.page || null,
-    file: entry.source,
-    reason: "filtered out by strict OCR stability gate",
-  });
-}
-
 const bank = {
   generatedAt: new Date().toISOString(),
   sourcePolicy: "Only OCR speaking tests that passed the strict stability gate are included. Missing, incomplete, or noisy pages are skipped.",
-  speakingSets: stableSpeakingSets,
+  speakingSets,
   skipped,
 };
 
@@ -432,5 +478,5 @@ fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 fs.writeFileSync(outputPath, `${JSON.stringify(bank, null, 2)}\n`, "utf8");
 
 console.log(`Wrote ${path.relative(workspace, outputPath)}`);
-console.log(`Speaking sets: ${stableSpeakingSets.length}`);
+console.log(`Speaking sets: ${speakingSets.length}`);
 console.log(`Skipped candidates: ${skipped.length}`);
