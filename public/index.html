@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>IELTS-ist</title>
-    <link rel="stylesheet" href="/styles.css?v=20260726-speaking-result-1" />
+    <link rel="stylesheet" href="/styles.css?v=20260730-unified-practice-45" />
   </head>
   <body>
     <div class="app-shell">
@@ -18,18 +18,41 @@
           </div>
         </div>
         <div id="aiStatus" class="status-pill">Checking AI</div>
-        <nav class="tabs" aria-label="Main navigation">
-          <button class="tab active" data-view="single" data-short="One">Single module</button>
+        <nav class="tabs nav-groups" aria-label="Main navigation">
+          <div class="nav-group-label">Home</div>
+          <button class="tab active" data-view="home" data-short="Home">Dashboard</button>
+
+          <div class="nav-group-label">Practice</div>
+          <button class="tab" data-view="single" data-module-target="listening" data-short="Listen">Listening with AI</button>
+          <button class="tab" data-view="single" data-module-target="reading" data-short="Read">Reading with AI</button>
+          <button class="tab" data-view="writing-upload" data-short="Write">Writing with AI</button>
+          <button class="tab" data-view="bank" data-short="Speak">Speaking with AI</button>
+
+          <div class="nav-group-label">Simulation</div>
+          <button class="tab" data-view="sequence" data-short="Test">Same test</button>
           <button class="tab" data-view="exam" data-short="Exam">Random exam</button>
-          <button class="tab" data-view="sequence" data-short="Seq">Same test</button>
-          <button class="tab" data-view="writing-upload" data-short="Write">Writing feedback</button>
-          <button class="tab" data-view="mine" data-short="Mine">Mine</button>
-          <button class="tab" data-view="bank" data-short="Topics">Speaking topics</button>
+
+          <div class="nav-group-label">Library</div>
+          <button class="tab" data-view="vocabulary" data-short="Vocab">Vocabulary</button>
+
+          <div class="nav-group-label">Account</div>
+          <button class="tab" data-view="subscription" data-short="Pro">Subscription</button>
         </nav>
+        <button id="sidebarAccountEntry" class="tab sidebar-account-entry" data-view="mine" data-short="Mine" type="button">
+          <span id="sidebarAccountAvatar" class="sidebar-account-avatar">I</span>
+          <span class="sidebar-account-copy">
+            <strong id="sidebarAccountName">Guest</strong>
+            <em id="sidebarAccountPlan">Free account</em>
+          </span>
+        </button>
       </aside>
 
       <main>
         <button id="globalSidebarToggle" class="inline-sidebar-toggle global-sidebar-toggle" type="button" aria-label="Open sidebar">&gt;</button>
+
+        <section id="home" class="view active">
+          <div id="dashboardContent" class="dashboard-shell"></div>
+        </section>
 
         <section id="exam" class="view">
           <div class="view-head">
@@ -38,7 +61,6 @@
               <p>Randomly combine listening, reading, writing and speaking practice from the local question bank.</p>
             </div>
             <div class="timer">
-              <button class="help-capture-button" type="button" data-help-trigger>Help</button>
               <span id="examTimer">02:44:00</span>
               <button id="examTimerToggle" class="icon-btn">Start</button>
               <button id="examTimerReset" class="icon-btn">Reset</button>
@@ -64,7 +86,6 @@
               <p>Choose one Cambridge IELTS book and test, then practise the complete set in order.</p>
             </div>
             <div class="timer">
-              <button class="help-capture-button" type="button" data-help-trigger>Help</button>
               <span id="sequenceTimer">02:44:00</span>
               <button id="sequenceTimerToggle" class="icon-btn">Start</button>
               <button id="sequenceTimerReset" class="icon-btn">Reset</button>
@@ -87,21 +108,16 @@
           </section>
         </section>
 
-        <section id="single" class="view active">
+        <section id="single" class="view">
           <div class="view-head">
-            <div>
+            <div class="single-view-title">
               <h2>Single Module</h2>
             </div>
             <div class="segmented">
               <button class="inline-sidebar-toggle" type="button" aria-label="Open sidebar">&gt;</button>
-              <button class="module-btn active" data-module="listening">Listening</button>
-              <button class="module-btn" data-module="reading">Reading</button>
-              <button class="module-btn" data-module="writing">Writing</button>
-              <button class="module-btn" data-module="speaking">Speaking</button>
               <button id="singleBackSubmit" class="back-submit-button" type="button" data-submit-target="submitSingle">Back and submit</button>
             </div>
             <div class="timer single-sticky-timer">
-              <button class="help-capture-button" type="button" data-help-trigger>Help</button>
               <span id="singleTimer">00:30:00</span>
               <button id="singleTimerToggle" class="icon-btn">Start</button>
               <button id="singleTimerReset" class="icon-btn">Reset</button>
@@ -113,7 +129,7 @@
           </div>
           <section class="panel">
             <div class="panel-head">
-              <h3 id="singleTitle">Listening</h3>
+              <h3 id="singleTitle">Listening with AI</h3>
               <select id="singleSelect"></select>
             </div>
             <div class="single-filters">
@@ -138,52 +154,157 @@
         <section id="writing-upload" class="view">
           <div class="view-head">
             <div>
-              <h2>Writing Feedback</h2>
-              <p>Paste an IELTS Writing Task 1 or Task 2 prompt and your essay for Amber-style feedback.</p>
+              <h2>Writing with AI</h2>
+              <p>Choose one route, write in a focused workspace, then revise from AI feedback.</p>
             </div>
           </div>
-          <section class="panel writing-upload-panel">
-            <label class="field-label" for="uploadPrompt">Writing prompt</label>
-            <textarea id="uploadPrompt" class="short-textarea" placeholder="Paste the IELTS Writing Task 1 or Task 2 prompt here..."></textarea>
-            <label class="field-label" for="uploadEssay">Your essay</label>
-            <textarea id="uploadEssay" placeholder="Paste your essay here..."></textarea>
-            <div class="word-count"><span id="uploadEssayWords">0</span> words</div>
-            <div class="actions">
-              <button id="submitUploadedWriting" class="primary">Submit writing feedback</button>
-              <button id="clearUploadedWriting" class="secondary">Clear</button>
+          <section id="writingEntry" class="panel writing-entry writing-topic-panel" aria-label="Choose Writing with AI practice">
+            <div class="writing-library-switch" role="tablist" aria-label="Writing task library">
+              <button type="button" role="tab" data-writing-library-task="1" aria-selected="false">Task 1 charts</button>
+              <button type="button" role="tab" data-writing-library-task="2" aria-selected="true" class="active">Task 2 topics</button>
             </div>
-          </section>
-          <section class="panel feedback">
-            <div class="panel-head">
-              <h3>Writing feedback result</h3>
-              <span id="uploadWritingMode" class="mode-pill"></span>
+            <div id="writingResumeStrip" class="writing-resume-strip" hidden>
+              <div><span>Continue draft</span><strong id="writingResumeTitle">Your latest Writing practice</strong><em id="writingResumeMeta">Saved on this device</em></div>
+              <button id="continueWritingDraft" class="secondary small-button" type="button">Resume</button>
             </div>
-            <div id="uploadWritingFeedback" class="feedback-output empty">Submit a prompt and essay to see feedback.</div>
+            <div class="topic-toolbar writing-topic-toolbar">
+              <input id="writingTopicSearch" class="text-input" type="search" autocomplete="off" placeholder="Search Task 2 topics or questions..." />
+              <select id="writingTopicBook" class="text-input" aria-label="Filter Writing topics by source"></select>
+              <button id="openCustomWriting" class="secondary small-button" type="button">Custom essay</button>
+            </div>
+            <div id="writingTopicCategoryBar" class="topic-category-bar" aria-label="Writing topic categories">
+              <button class="topic-category-pill active" type="button" data-writing-topic-category="all">All topics</button>
+              <button class="topic-category-pill" type="button" data-writing-topic-category="recommended">AI pick</button>
+              <button class="topic-category-pill" type="button" data-writing-topic-category="education-learning">Education &amp; learning</button>
+              <button class="topic-category-pill" type="button" data-writing-topic-category="technology-digital">Digital technology</button>
+              <button class="topic-category-pill" type="button" data-writing-topic-category="work-career">Work &amp; careers</button>
+              <button class="topic-category-pill" type="button" data-writing-topic-category="environment-climate">Environment &amp; climate</button>
+              <button class="topic-category-pill" type="button" data-writing-topic-category="transport-mobility">Transport &amp; mobility</button>
+              <button class="topic-category-pill" type="button" data-writing-topic-category="cities-housing">Cities &amp; housing</button>
+              <button class="topic-category-pill" type="button" data-writing-topic-category="health-lifestyle">Health &amp; lifestyle</button>
+              <button class="topic-category-pill" type="button" data-writing-topic-category="family-children">Family &amp; children</button>
+              <button class="topic-category-pill" type="button" data-writing-topic-category="crime-law">Crime &amp; law</button>
+              <button class="topic-category-pill" type="button" data-writing-topic-category="government-public">Government &amp; public services</button>
+              <button class="topic-category-pill" type="button" data-writing-topic-category="culture-traditions">Culture &amp; traditions</button>
+              <button class="topic-category-pill" type="button" data-writing-topic-category="media-advertising">Media &amp; advertising</button>
+              <button class="topic-category-pill" type="button" data-writing-topic-category="globalisation-language">Globalisation &amp; language</button>
+              <button class="topic-category-pill" type="button" data-writing-topic-category="consumerism-money">Consumerism &amp; money</button>
+              <button class="topic-category-pill" type="button" data-writing-topic-category="science-research">Science &amp; research</button>
+            </div>
+            <p id="writingRecommendedReason" class="writing-ai-reason">Loading recommendation reason...</p>
+            <div id="writingTopicList" class="bank-list speaking-topic-list writing-topic-list"></div>
+            <div id="writingTopicPagination" class="topic-pagination" hidden></div>
           </section>
+
+          <section id="writingSetupPanel" class="panel unified-setup-host" hidden></section>
+
+          <section id="writingWorkspace" class="writing-focused-workspace" hidden>
+            <header class="writing-workspace-bar">
+              <div>
+                <h3 id="writingWorkspaceTitle">Writing with AI</h3>
+              </div>
+              <div class="unified-practice-status" aria-live="polite">
+                <span id="writingModeStatus">Coach mode</span>
+                <strong data-writing-timer>00:00</strong>
+              </div>
+              <div class="actions">
+                <button id="toggleWritingPrompt" class="secondary small-button" type="button" hidden>Hide task</button>
+                <button id="changeWritingTask" class="secondary small-button" type="button">Change task</button>
+              </div>
+            </header>
+
+            <section id="writingCustomWorkspace" class="writing-custom-workspace" hidden>
+              <div class="writing-custom-prompt">
+                <label class="field-label" for="uploadPrompt">Writing prompt</label>
+                <textarea id="uploadPrompt" class="short-textarea" placeholder="Paste the IELTS Writing Task 1 or Task 2 prompt here..."></textarea>
+              </div>
+              <div class="writing-custom-editor">
+                <label class="field-label" for="uploadEssay">Your essay</label>
+                <textarea id="uploadEssay" data-word-target="250" placeholder="Write or paste your essay here..."></textarea>
+                <div class="writing-editor-meta">
+                  <div class="word-count"><span id="uploadEssayWords">0</span> / <span id="uploadEssayTarget">250</span> words</div>
+                  <span class="writing-autosave-status" data-writing-autosave-status data-state="saved">Saved</span>
+                </div>
+                <div id="writingCustomDetection" class="writing-task-detection" aria-live="polite">Task 2 · Academic · target 250 words</div>
+                <div class="actions">
+                  <button id="submitUploadedWriting" class="primary" disabled>Finish &amp; get feedback</button>
+                  <button id="clearUploadedWriting" class="secondary">Clear</button>
+                </div>
+              </div>
+            </section>
+
+            <section id="writingSystemWorkspace" class="writing-system-workspace" hidden>
+              <div class="writing-system-grid">
+                <article class="writing-system-option recommended">
+                  <span>AI recommended</span>
+                  <strong id="writingRecommendedTitle">Loading Writing task...</strong>
+                  <p id="writingSystemReason">Loading recommendation reason...</p>
+                  <button id="startRecommendedWriting" class="primary" type="button">Start recommended task</button>
+                </article>
+                <article class="writing-system-option">
+                  <span>Choose yourself</span>
+                  <select id="writingSystemSelect" class="text-input"></select>
+                  <button id="startSelectedWriting" class="secondary" type="button">Start selected task</button>
+                </article>
+              </div>
+              <div id="writingSystemContent" class="writing-system-content"></div>
+              <div id="writingSystemActions" class="actions" hidden>
+                <button id="submitSystemWriting" class="primary" type="button">Finish &amp; get feedback</button>
+              </div>
+            </section>
+
+            <section class="panel feedback writing-focused-feedback">
+              <div class="panel-head">
+                <h3>Writing feedback result</h3>
+                <span id="uploadWritingMode" class="mode-pill"></span>
+              </div>
+              <div id="uploadWritingFeedback" class="feedback-output empty">Submit a prompt and essay to see feedback.</div>
+            </section>
+          </section>
+        </section>
+
+        <section id="vocabulary" class="view">
+          <div class="view-head">
+            <div>
+              <h2>Vocabulary</h2>
+              <p>Review IELTS core words with flashcards before practice.</p>
+            </div>
+          </div>
+          <div id="vocabularyContent" class="vocabulary-trainer"></div>
         </section>
 
         <section id="mine" class="view">
           <div class="view-head">
             <div>
-              <h2>My Workspace</h2>
-              <p>Your account, membership, drafts and vocabulary notebook.</p>
+              <h2>Account</h2>
+              <p>Your membership, drafts, liked topics and saved notebook.</p>
             </div>
           </div>
           <div id="mineContent" class="mine-layout"></div>
         </section>
 
+        <section id="subscription" class="view">
+          <div class="view-head subscription-head">
+            <div>
+              <span class="eyebrow">Subscription</span>
+              <h2>Choose the IELTSist plan</h2>
+              <p>Free practice stays available. Pro unlocks unlimited AI speaking, writing feedback, coaching and study reports.</p>
+            </div>
+          </div>
+          <div id="subscriptionContent" class="subscription-grid"></div>
+        </section>
+
         <section id="bank" class="view">
           <div class="view-head">
             <div>
-              <h2>Speaking Topics</h2>
-              <p>Choose a common IELTS speaking topic and start a practice conversation.</p>
+              <h2>Speaking with AI</h2>
+              <p>Pick a topic card and start a 15-minute IELTS speaking conversation.</p>
             </div>
           </div>
           <section class="panel">
             <div class="topic-toolbar">
               <input id="bankTopicSearch" class="text-input" placeholder="Search topics, Cambridge book, or Part 2 cue cards..." />
               <select id="bankTopicBook"></select>
-              <button id="togglePublicTopicForm" class="secondary small-button" type="button">Create public topic</button>
             </div>
             <div id="topicCategoryBar" class="topic-category-bar" aria-label="Speaking topic categories">
               <button class="topic-category-pill active" type="button" data-topic-category="all">All Topics</button>
@@ -198,6 +319,9 @@
               <button class="topic-category-pill" type="button" data-topic-category="work">Work</button>
               <button class="topic-category-pill" type="button" data-topic-category="society">Society</button>
             </div>
+            <details class="my-topics-panel">
+              <summary>My topics</summary>
+              <button id="togglePublicTopicForm" class="secondary small-button" type="button">Create a topic</button>
             <form id="publicTopicForm" class="public-topic-form" hidden>
               <div class="public-topic-grid">
                 <label class="field-label" for="publicTopicKeywords">
@@ -222,6 +346,7 @@
                 <button id="clearPublicTopic" class="secondary small-button" type="button">Clear</button>
               </div>
             </form>
+            </details>
             <div id="bankList" class="bank-list speaking-topic-list"></div>
             <div id="bankPagination" class="topic-pagination" hidden></div>
             <section id="bankPracticePanel" class="bank-practice-panel" hidden></section>
@@ -229,6 +354,10 @@
         </section>
       </main>
     </div>
+    <button id="globalHelpButton" class="global-help-button" type="button" aria-label="Open AI Coach">
+      <i data-lucide="sparkles" aria-hidden="true"></i>
+      <strong>AI Coach</strong>
+    </button>
     <div id="helpCaptureOverlay" class="help-capture-overlay" hidden>
       <div class="help-capture-hint">Drag on the PDF, then adjust the box and tap Explain</div>
       <div id="helpCaptureSelection" class="help-capture-selection">
@@ -243,10 +372,10 @@
         <button id="helpCaptureCancel" class="secondary" type="button">Cancel</button>
       </div>
     </div>
-    <aside id="helpChatPanel" class="help-chat-panel" aria-label="Help chat" hidden>
+    <aside id="helpChatPanel" class="help-chat-panel" aria-label="AI Coach chat" hidden>
       <div class="help-chat-head">
         <div>
-          <strong>Help</strong>
+          <strong>AI Coach</strong>
           <span id="helpChatStatus">Ready</span>
         </div>
         <div class="help-chat-actions">
@@ -255,6 +384,8 @@
           <button id="helpChatClose" class="icon-btn" type="button">Close</button>
         </div>
       </div>
+      <div id="helpCoachContext" class="help-coach-context" aria-label="Current IELTSist context"></div>
+      <div id="helpCoachActions" class="help-coach-actions" aria-label="AI Coach agent actions"></div>
       <div id="helpChatLog" class="help-chat-log"></div>
       <form id="helpChatForm" class="help-chat-form">
         <div class="help-chat-composer">
@@ -262,17 +393,18 @@
             <span>Screenshot attached</span>
             <button id="helpAttachmentClear" class="icon-btn" type="button" aria-label="Remove screenshot">Remove</button>
           </div>
-          <textarea id="helpChatInput" rows="2" placeholder="Ask about this question..."></textarea>
+          <textarea id="helpChatInput" rows="3" placeholder="Ask AI Coach about a question, screenshot, or where to practise next..."></textarea>
           <button id="helpAttachImage" class="icon-btn help-attach-button" type="button" aria-label="Attach screenshot">Capture</button>
         </div>
         <button class="primary" type="submit">Send</button>
       </form>
     </aside>
     <div id="annotationToolbar" class="annotation-toolbar" aria-label="PDF annotation tools">
-      <button id="toggleAnnotation" class="icon-btn" type="button">Draw</button>
-      <button id="toggleEraser" class="icon-btn" type="button">Erase</button>
+      <button id="toggleAnnotation" class="icon-btn" type="button" aria-pressed="false">Draw</button>
+      <button id="toggleEraser" class="icon-btn" type="button" aria-pressed="false">Erase</button>
       <button id="clearAnnotation" class="icon-btn" type="button">Clear paper</button>
     </div>
-    <script src="/app.js?v=20260726-speaking-result-1"></script>
+  <script src="/vendor/lucide.min.js?v=20260730-1"></script>
+  <script src="/app.js?v=20260730-unified-practice-45"></script>
   </body>
 </html>

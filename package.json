@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@napi-rs/canvas": "^1.0.2",
+    "lucide": "^1.27.0",
     "pdfjs-dist": "^6.1.200",
     "pdfkit": "^0.19.1",
     "tesseract.js": "^7.0.0",

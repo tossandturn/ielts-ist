@@ -11,4 +11,5 @@ data/listening-asr-cache.json
 data/listening-asr-cache-errors.json
 data/audio-backups/
 public/generated/audio/
+artifacts/
 server-app.remote.tmp.js

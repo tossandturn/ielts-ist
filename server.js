@@ -35,6 +35,7 @@ const QUESTION_BANK_PATH = path.join(__dirname, "data", "cambridge15-bank.json")
 const CAMBRIDGE_LOCAL_BANK_PATH = path.join(__dirname, "data", "cambridge-local-bank.json");
 const SPEAKING_BANK_PATH = path.join(__dirname, "data", "speaking-bank.json");
 const LISTENING_ASR_CACHE_PATH = path.join(__dirname, "data", "listening-asr-cache.json");
+const READING_OCR_CACHE_PATH = path.join(__dirname, "data", "reading-ocr-page-cache.json");
 const MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
 const OPENAI_BASE_URL = (process.env.OPENAI_BASE_URL || process.env.UUAPI_BASE_URL || "https://api.openai.com/v1").replace(/\/+$/, "");
@@ -86,6 +87,8 @@ let tasksPayloadCache = null;
 const reportDownloads = new Map();
 const recordingDownloads = new Map();
 const listeningScriptCache = new Map();
+const readingOcrInFlight = new Map();
+let readingOcrPageCache = null;
 
 const officialSources = [
   {
@@ -480,14 +483,113 @@ function slimPageImages(images) {
     : [];
 }
 
-function slimQuestions(questions) {
+function slimQuestions(questions, metadata = new Map()) {
   return Array.isArray(questions)
-    ? questions.map((question, index) => ({
-        id: question.id || `q${index + 1}`,
-        text: question.text || `Question ${index + 1}`,
-        answer: question.answer || "",
-      }))
+    ? questions.map((question, index) => {
+        const number = Number(String(question.id || question.text || index + 1).match(/\d{1,2}/)?.[0] || index + 1);
+        const meta = metadata.get(number) || {};
+        return {
+          id: question.id || `q${index + 1}`,
+          text: question.text || `Question ${index + 1}`,
+          answer: question.answer || "",
+          type: question.type || meta.type || "unknown",
+          typeLabel: question.typeLabel || meta.typeLabel || "Question",
+          questionPage: question.questionPage || meta.questionPage || null,
+        };
+      })
     : [];
+}
+
+function parseReadingPaperPages(paper) {
+  const pages = new Map();
+  for (const match of String(paper || "").matchAll(/--- Page (\d+) ---\n([\s\S]*?)(?=\n--- Page \d+ ---|$)/g)) {
+    pages.set(Number(match[1]), match[2]);
+  }
+  return pages;
+}
+
+function readingQuestionHeadingLine(text) {
+  const lines = String(text || "").split(/\r?\n/).map((line) => line.replace(/\s+/g, " ").trim());
+  return lines.findIndex((line) => /^Questions?\s+\d{1,2}\b/i.test(line));
+}
+
+function readingQuestionHeadingOffset(text) {
+  const source = String(text || "");
+  for (const match of source.matchAll(/Questions?\s+\d{1,2}\s*(?:-|\u2013|\u2014|to|and)\s*\d{1,2}\b/gi)) {
+    const trailing = source.slice((match.index || 0) + match[0].length, (match.index || 0) + match[0].length + 80);
+    if (/^\s*,?\s*which are based on Reading\s+Passage/i.test(trailing)) continue;
+    return match.index || 0;
+  }
+  return -1;
+}
+
+function readingPassageHeadingLine(text) {
+  const lines = String(text || "").split(/\r?\n/).map((line) => line.replace(/\s+/g, " ").trim());
+  return lines.findIndex((line) => /^READING PASSAGE\s+\d\b/i.test(line));
+}
+
+function readingPageRoles(images, paper) {
+  const pages = parseReadingPaperPages(paper);
+  const passage = [];
+  const questions = [];
+  for (const image of slimPageImages(images)) {
+    const text = pages.get(Number(image.page)) || "";
+    const questionLine = readingQuestionHeadingLine(text);
+    const questionOffset = questionLine >= 0 ? 0 : readingQuestionHeadingOffset(text);
+    const hasQuestions = questionLine >= 0 || questionOffset >= 0;
+    const passageLine = readingPassageHeadingLine(text);
+    const lines = text.split(/\r?\n/).map((line) => line.replace(/\s+/g, " ").trim()).filter(Boolean);
+    const textBeforeQuestions = questionLine > 0
+      ? lines.slice(0, questionLine).join(" ")
+      : questionOffset > 0
+        ? text.slice(0, questionOffset)
+        : "";
+    const hasPassage = passageLine >= 0 || !hasQuestions || textBeforeQuestions.length > 500;
+    if (hasPassage) passage.push(image);
+    if (hasQuestions) questions.push(image);
+  }
+  return { passage, questions };
+}
+
+function readingQuestionType(instructions) {
+  const text = String(instructions || "").replace(/\s+/g, " ").toLowerCase();
+  if (/true\s*\/\s*false\s*\/\s*not given|true if .*false if .*not given/i.test(text)) return ["true_false_not_given", "True / False / Not Given"];
+  if (/yes\s*\/\s*no\s*\/\s*not given|yes if .*no if .*not given/i.test(text)) return ["yes_no_not_given", "Yes / No / Not Given"];
+  if (/list of headings|choose the correct heading/i.test(text)) return ["matching_headings", "Matching headings"];
+  if (/which paragraph contains|match each statement with the correct paragraph|information given in paragraphs/i.test(text)) return ["matching_information", "Matching information"];
+  if (/match each statement|match each person|list of people|correct person|correct researcher|correct expert/i.test(text)) return ["matching_features", "Matching features"];
+  if (/choose (?:two|three|four) letters|choose (?:two|three|four) answers/i.test(text)) return ["multiple_choice_multiple", "Multiple choice (multiple answers)"];
+  if (/choose the correct (?:letter|answer)/i.test(text)) return ["multiple_choice", "Multiple choice"];
+  if (/complete the summary/i.test(text)) return ["summary_completion", "Summary completion"];
+  if (/complete the table/i.test(text)) return ["table_completion", "Table completion"];
+  if (/complete the notes/i.test(text)) return ["note_completion", "Note completion"];
+  if (/complete the sentences/i.test(text)) return ["sentence_completion", "Sentence completion"];
+  if (/answer the questions/i.test(text)) return ["short_answer", "Short answer"];
+  if (/complete the (?:flow-chart|flow chart|diagram)/i.test(text)) return ["diagram_completion", "Diagram completion"];
+  return ["unknown", "Question"];
+}
+
+function readingQuestionMetadata(paper) {
+  const metadata = new Map();
+  for (const [page, text] of parseReadingPaperPages(paper)) {
+    const headings = [...String(text).matchAll(/Questions?\s+(\d{1,2})\s*(?:-|\u2013|\u2014|to|and)\s*(\d{1,2})\b/gim)]
+      .filter((heading) => {
+        const trailing = String(text).slice((heading.index || 0) + heading[0].length, (heading.index || 0) + heading[0].length + 80);
+        return !/^\s*,?\s*which are based on Reading\s+Passage/i.test(trailing);
+      });
+    headings.forEach((heading, index) => {
+      const start = Number(heading[1]);
+      const end = Number(heading[2]);
+      if (start < 1 || end > 40 || end < start) return;
+      const nextIndex = headings[index + 1]?.index ?? String(text).length;
+      const instructions = String(text).slice(heading.index, Math.min(nextIndex, heading.index + 1000));
+      const [type, typeLabel] = readingQuestionType(instructions);
+      for (let number = start; number <= end; number += 1) {
+        metadata.set(number, { type, typeLabel, questionPage: page });
+      }
+    });
+  }
+  return metadata;
 }
 
 function slimListeningTest(test) {
@@ -507,6 +609,9 @@ function slimListeningTest(test) {
 }
 
 function slimReadingTest(test) {
+  const pageRoles = readingPageRoles(test.readingPageImages, test.readingPaper);
+  const questionMetadata = readingQuestionMetadata(test.readingPaper);
+  const passageStartPages = Object.fromEntries(readingPassageStartPages(test));
   return {
     id: test.id,
     module: test.module,
@@ -517,7 +622,171 @@ function slimReadingTest(test) {
     sourceUrl: test.sourceUrl,
     analysisUrl: test.analysisUrl,
     readingPageImages: slimPageImages(test.readingPageImages),
-    questions: slimQuestions(test.questions),
+    readingPassagePageImages: pageRoles.passage,
+    readingQuestionPageImages: pageRoles.questions,
+    readingPassageStartPages: passageStartPages,
+    questions: slimQuestions(test.questions, questionMetadata),
+  };
+}
+
+function readingPassageNumber(questionNumber) {
+  const number = Number(questionNumber || 0);
+  if (number >= 1 && number <= 13) return 1;
+  if (number >= 14 && number <= 26) return 2;
+  if (number >= 27 && number <= 40) return 3;
+  return 0;
+}
+
+function readingPassageStartPages(test) {
+  const images = slimPageImages(test?.readingPageImages).sort((a, b) => Number(a.page) - Number(b.page));
+  const pages = parseReadingPaperPages(test?.readingPaper);
+  const starts = new Map();
+  for (const image of images) {
+    const text = pages.get(Number(image.page)) || "";
+    const passage = Number(text.match(/^\s*READING PASSAGE\s+([123])\b/im)?.[1] || 0);
+    if (passage && !starts.has(passage)) starts.set(passage, Number(image.page));
+  }
+  if (images.length && !starts.has(1)) starts.set(1, Number(images[0].page));
+  return starts;
+}
+
+function readReadingOcrPageCache() {
+  if (readingOcrPageCache) return readingOcrPageCache;
+  try {
+    const parsed = JSON.parse(fs.readFileSync(READING_OCR_CACHE_PATH, "utf8"));
+    readingOcrPageCache = parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    readingOcrPageCache = {};
+  }
+  return readingOcrPageCache;
+}
+
+function writeReadingOcrPageCache() {
+  fs.mkdirSync(path.dirname(READING_OCR_CACHE_PATH), { recursive: true });
+  const tempPath = `${READING_OCR_CACHE_PATH}.${process.pid}.tmp`;
+  fs.writeFileSync(tempPath, `${JSON.stringify(readReadingOcrPageCache(), null, 2)}\n`, "utf8");
+  fs.renameSync(tempPath, READING_OCR_CACHE_PATH);
+}
+
+function cleanReadingOcrText(value) {
+  return String(value || "")
+    .replace(/\r\n?/g, "\n")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+async function recognizeReadingPage(testId, image) {
+  const page = Number(image?.page || 0);
+  const cacheKey = `${testId}:page-${page}`;
+  const cache = readReadingOcrPageCache();
+  if (cache[cacheKey]?.text) return cache[cacheKey].text;
+  if (readingOcrInFlight.has(cacheKey)) return readingOcrInFlight.get(cacheKey);
+  const job = (async () => {
+    const filePath = listeningPageUrlToPath(image?.url || "");
+    if (!filePath || !fs.existsSync(filePath)) return "";
+    const worker = await createWorker("eng");
+    try {
+      const result = await worker.recognize(fs.readFileSync(filePath));
+      const text = cleanReadingOcrText(result?.data?.text || "");
+      if (text) {
+        cache[cacheKey] = { page, text, updatedAt: new Date().toISOString() };
+        writeReadingOcrPageCache();
+      }
+      return text;
+    } finally {
+      await worker.terminate();
+    }
+  })();
+  readingOcrInFlight.set(cacheKey, job);
+  try {
+    return await job;
+  } finally {
+    readingOcrInFlight.delete(cacheKey);
+  }
+}
+
+async function readingContextPayload(id, requestedQuestion = 0) {
+  const test = realReadingTests().find((item) => String(item.id || "") === String(id || ""));
+  if (!test) return null;
+  const paperText = String(test.readingPaper || "").trim();
+  const questionNumber = Math.max(0, Math.min(40, Number(requestedQuestion || 0)));
+  if (!questionNumber) {
+    return {
+      id: test.id,
+      title: test.title || "",
+      source: test.source || "",
+      period: test.period || "",
+      evidenceAvailable: Boolean(paperText),
+      paperText,
+    };
+  }
+
+  const passage = readingPassageNumber(questionNumber);
+  const starts = readingPassageStartPages(test);
+  const passageStartPage = starts.get(passage) || null;
+  const nextPassageStart = starts.get(passage + 1) || Number.POSITIVE_INFINITY;
+  const pageRoles = readingPageRoles(test.readingPageImages, test.readingPaper);
+  const passageImages = pageRoles.passage.filter((image) => {
+    const page = Number(image.page);
+    return page >= passageStartPage && page < nextPassageStart;
+  });
+  const questionMetadata = readingQuestionMetadata(test.readingPaper);
+  const question = slimQuestions(test.questions, questionMetadata)
+    .find((item, index) => Number(String(item.id || index + 1).match(/\d{1,2}/)?.[0] || index + 1) === questionNumber);
+  const questionPage = Number(question?.questionPage || 0) || null;
+  const paperPages = parseReadingPaperPages(test.readingPaper);
+  const passageChunks = [];
+
+  for (const image of passageImages) {
+    const page = Number(image.page);
+    const cachedText = String(paperPages.get(page) || "").trim();
+    passageChunks.push({ page, text: cachedText });
+  }
+
+  const expectedAnswer = String(question?.answer || "").trim();
+  const initialPassageText = passageChunks.map((item) => item.text).join("\n\n");
+  const needsVerbatimEvidence = readingQuestionNeedsVerbatimEvidence({
+    expectedAnswer,
+    type: question?.type,
+    typeLabel: question?.typeLabel,
+  });
+  const needsFreshOcr = !initialPassageText
+    || (needsVerbatimEvidence && !readingQuestionHasVerbatimEvidence({ expectedAnswer }, initialPassageText));
+  if (needsFreshOcr) {
+    for (const image of passageImages) {
+      const chunk = passageChunks.find((item) => item.page === Number(image.page));
+      if (chunk?.text && readingQuestionHasVerbatimEvidence({ expectedAnswer }, chunk.text)) continue;
+      const recognized = await recognizeReadingPage(test.id, image);
+      if (recognized && chunk) chunk.text = recognized;
+    }
+  }
+
+  const passageText = passageChunks
+    .filter((item) => item.text)
+    .map((item) => `--- Page ${item.page} ---\n${item.text}`)
+    .join("\n\n");
+  let questionText = questionPage ? String(paperPages.get(questionPage) || "").trim() : "";
+  if (!questionText && questionPage) {
+    const questionImage = slimPageImages(test.readingPageImages).find((image) => Number(image.page) === questionPage);
+    if (questionImage) questionText = await recognizeReadingPage(test.id, questionImage);
+  }
+  const scopedPaperText = [
+    passageText,
+    questionText ? `--- Question Page ${questionPage} ---\n${questionText}` : "",
+  ].filter(Boolean).join("\n\n");
+  return {
+    id: test.id,
+    title: test.title || "",
+    source: test.source || "",
+    period: test.period || "",
+    question: questionNumber,
+    passage,
+    passageStartPage,
+    passagePages: passageChunks.map((item) => item.page),
+    questionPage,
+    evidenceAvailable: Boolean(passageText),
+    paperText: scopedPaperText,
   };
 }
 
@@ -1236,7 +1505,63 @@ function getAppDb() {
       updated_at TEXT NOT NULL,
       UNIQUE(user_id, term, source)
     );
+    CREATE TABLE IF NOT EXISTS learner_profiles (
+      user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      target_band REAL,
+      current_band REAL,
+      exam_date TEXT,
+      daily_minutes INTEGER,
+      onboarding_completed_at TEXT,
+      updated_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS practice_sessions (
+      session_id TEXT PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      module TEXT NOT NULL,
+      item_id TEXT NOT NULL,
+      practice_kind TEXT NOT NULL,
+      mode TEXT NOT NULL,
+      status TEXT NOT NULL,
+      state_json TEXT NOT NULL,
+      origin_weak_area_id TEXT,
+      revision INTEGER NOT NULL DEFAULT 1,
+      started_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      completed_at TEXT
+    );
+    CREATE INDEX IF NOT EXISTS idx_practice_sessions_user_status ON practice_sessions(user_id, status, updated_at DESC);
+    CREATE TABLE IF NOT EXISTS practice_attempts (
+      attempt_id TEXT PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      session_id TEXT,
+      module TEXT NOT NULL,
+      item_id TEXT NOT NULL,
+      mode TEXT NOT NULL,
+      score_json TEXT NOT NULL,
+      result_json TEXT NOT NULL,
+      feedback_json TEXT NOT NULL,
+      duration_seconds INTEGER NOT NULL DEFAULT 0,
+      submitted_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_practice_attempts_user_submitted ON practice_attempts(user_id, submitted_at DESC);
+    CREATE TABLE IF NOT EXISTS weak_areas (
+      weak_area_id TEXT PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      module TEXT NOT NULL,
+      skill_key TEXT,
+      question_id TEXT,
+      source_attempt_id TEXT,
+      summary TEXT NOT NULL,
+      evidence_json TEXT NOT NULL,
+      status TEXT NOT NULL,
+      retest_attempt_id TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_weak_areas_user_status ON weak_areas(user_id, status, updated_at DESC);
   `);
+  const profileColumns = new Set(appDb.prepare("PRAGMA table_info(learner_profiles)").all().map((column) => column.name));
+  if (!profileColumns.has("current_band")) appDb.exec("ALTER TABLE learner_profiles ADD COLUMN current_band REAL");
   return appDb;
 }
 
@@ -1556,6 +1881,329 @@ async function handleVocabularyApi(req, res) {
   sendJson(res, 405, { error: "Method not allowed" });
 }
 
+const LEARNING_MODULES = new Set(["listening", "reading", "writing", "speaking", "exam", "sequence"]);
+const PRACTICE_STATUSES = new Set(["in_progress", "completed", "abandoned"]);
+const WEAK_AREA_STATUSES = new Set(["active", "retested", "resolved"]);
+
+function parseStoredJson(value, fallback) {
+  try {
+    return JSON.parse(value || "");
+  } catch {
+    return fallback;
+  }
+}
+
+function assertLearningValue(condition, message, statusCode = 400) {
+  if (condition) return;
+  const error = new Error(message);
+  error.statusCode = statusCode;
+  throw error;
+}
+
+function normalizeLearningModule(value) {
+  const moduleName = String(value || "").trim().toLowerCase();
+  assertLearningValue(LEARNING_MODULES.has(moduleName), "Invalid learning module.");
+  return moduleName;
+}
+
+function safeLearningJson(value, label) {
+  const json = JSON.stringify(value ?? {});
+  assertLearningValue(Buffer.byteLength(json) <= 600_000, `${label} is too large.`);
+  return json;
+}
+
+function publicPracticeSession(row) {
+  if (!row) return null;
+  return {
+    sessionId: row.session_id,
+    module: row.module,
+    itemId: row.item_id,
+    practiceKind: row.practice_kind,
+    mode: row.mode,
+    status: row.status,
+    state: parseStoredJson(row.state_json, {}),
+    originWeakAreaId: row.origin_weak_area_id || "",
+    revision: row.revision,
+    startedAt: row.started_at,
+    updatedAt: row.updated_at,
+    completedAt: row.completed_at || "",
+  };
+}
+
+function publicPracticeAttempt(row) {
+  if (!row) return null;
+  return {
+    attemptId: row.attempt_id,
+    sessionId: row.session_id || "",
+    module: row.module,
+    itemId: row.item_id,
+    mode: row.mode,
+    score: parseStoredJson(row.score_json, {}),
+    result: parseStoredJson(row.result_json, {}),
+    feedback: parseStoredJson(row.feedback_json, {}),
+    durationSeconds: row.duration_seconds,
+    submittedAt: row.submitted_at,
+  };
+}
+
+function publicWeakArea(row) {
+  if (!row) return null;
+  return {
+    id: row.weak_area_id,
+    module: row.module,
+    skillKey: row.skill_key || "",
+    questionId: row.question_id || "",
+    sourceAttemptId: row.source_attempt_id || "",
+    summary: row.summary,
+    evidence: parseStoredJson(row.evidence_json, {}),
+    status: row.status,
+    retestAttemptId: row.retest_attempt_id || "",
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function learnerProfileForUser(userId) {
+  const row = getAppDb().prepare("SELECT * FROM learner_profiles WHERE user_id = ?").get(userId);
+  return row ? {
+    targetBand: row.target_band,
+    currentBand: row.current_band,
+    examDate: row.exam_date || "",
+    dailyMinutes: row.daily_minutes,
+    onboardingCompletedAt: row.onboarding_completed_at || "",
+    updatedAt: row.updated_at,
+  } : null;
+}
+
+async function handleLearningProfile(req, res) {
+  const user = requireUser(req);
+  if (req.method === "GET") {
+    sendJson(res, 200, { profile: learnerProfileForUser(user.id) });
+    return;
+  }
+  if (req.method === "PATCH") {
+    const payload = await readJsonBody(req);
+    const existing = learnerProfileForUser(user.id) || {};
+    const targetBandRaw = payload.targetBand ?? existing.targetBand;
+    const currentBandRaw = payload.currentBand ?? existing.currentBand;
+    const dailyMinutesRaw = payload.dailyMinutes ?? existing.dailyMinutes;
+    const targetBand = targetBandRaw === null || targetBandRaw === undefined || targetBandRaw === "" ? null : Number(targetBandRaw);
+    const currentBand = currentBandRaw === null || currentBandRaw === undefined || currentBandRaw === "" ? null : Number(currentBandRaw);
+    const dailyMinutes = dailyMinutesRaw === null || dailyMinutesRaw === undefined || dailyMinutesRaw === "" ? null : Number(dailyMinutesRaw);
+    assertLearningValue(targetBand === null || (Number.isFinite(targetBand) && targetBand >= 4 && targetBand <= 9), "Target band must be between 4 and 9.");
+    assertLearningValue(currentBand === null || (Number.isFinite(currentBand) && currentBand >= 3 && currentBand <= 9), "Current band must be between 3 and 9.");
+    assertLearningValue(dailyMinutes === null || (Number.isInteger(dailyMinutes) && dailyMinutes >= 5 && dailyMinutes <= 360), "Daily minutes must be between 5 and 360.");
+    const examDate = String(payload.examDate ?? existing.examDate ?? "").slice(0, 40);
+    const onboardingCompletedAt = payload.onboardingCompleted === true
+      ? existing.onboardingCompletedAt || nowIso()
+      : String(existing.onboardingCompletedAt || "");
+    const updatedAt = nowIso();
+    getAppDb().prepare(`
+      INSERT INTO learner_profiles (user_id, target_band, current_band, exam_date, daily_minutes, onboarding_completed_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(user_id) DO UPDATE SET target_band = excluded.target_band, current_band = excluded.current_band, exam_date = excluded.exam_date,
+        daily_minutes = excluded.daily_minutes, onboarding_completed_at = excluded.onboarding_completed_at, updated_at = excluded.updated_at
+    `).run(user.id, targetBand, currentBand, examDate || null, dailyMinutes, onboardingCompletedAt || null, updatedAt);
+    sendJson(res, 200, { profile: learnerProfileForUser(user.id) });
+    return;
+  }
+  sendJson(res, 405, { error: "Method not allowed" });
+}
+
+async function handleLearningSession(req, res, sessionId) {
+  const user = requireUser(req);
+  assertLearningValue(req.method === "PUT", "Method not allowed", 405);
+  assertLearningValue(/^[A-Za-z0-9_-]{8,100}$/.test(sessionId), "Invalid session id.");
+  const payload = await readJsonBody(req);
+  const db = getAppDb();
+  const existing = db.prepare("SELECT * FROM practice_sessions WHERE session_id = ? AND user_id = ?").get(sessionId, user.id);
+  if (existing) assertLearningValue(Number(payload.revision) === Number(existing.revision), "Practice session changed on another device.", 409);
+  const moduleName = normalizeLearningModule(payload.module);
+  const status = String(payload.status || "in_progress");
+  assertLearningValue(PRACTICE_STATUSES.has(status), "Invalid practice session status.");
+  const now = nowIso();
+  const nextRevision = existing ? Number(existing.revision) + 1 : 1;
+  db.prepare(`
+    INSERT INTO practice_sessions (session_id, user_id, module, item_id, practice_kind, mode, status, state_json, origin_weak_area_id, revision, started_at, updated_at, completed_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(session_id) DO UPDATE SET module = excluded.module, item_id = excluded.item_id, practice_kind = excluded.practice_kind,
+      mode = excluded.mode, status = excluded.status, state_json = excluded.state_json, origin_weak_area_id = excluded.origin_weak_area_id,
+      revision = excluded.revision, updated_at = excluded.updated_at, completed_at = excluded.completed_at
+  `).run(
+    sessionId, user.id, moduleName, String(payload.itemId || "").slice(0, 180), String(payload.practiceKind || "single").slice(0, 40),
+    String(payload.mode || "practice").slice(0, 60), status, safeLearningJson(payload.state, "Practice state"),
+    String(payload.originWeakAreaId || "").slice(0, 100) || null, nextRevision, existing?.started_at || now, now,
+    status === "completed" ? existing?.completed_at || now : null,
+  );
+  const row = db.prepare("SELECT * FROM practice_sessions WHERE session_id = ? AND user_id = ?").get(sessionId, user.id);
+  sendJson(res, 200, { session: publicPracticeSession(row) });
+}
+
+async function handleLearningAttempts(req, res) {
+  const user = requireUser(req);
+  assertLearningValue(req.method === "POST", "Method not allowed", 405);
+  const payload = await readJsonBody(req);
+  const attemptId = String(payload.attemptId || "").trim();
+  assertLearningValue(/^[A-Za-z0-9_-]{8,100}$/.test(attemptId), "Invalid attempt id.");
+  const db = getAppDb();
+  const existing = db.prepare("SELECT * FROM practice_attempts WHERE attempt_id = ? AND user_id = ?").get(attemptId, user.id);
+  if (existing) {
+    sendJson(res, 200, { attempt: publicPracticeAttempt(existing), idempotent: true });
+    return;
+  }
+  const moduleName = normalizeLearningModule(payload.module);
+  const submittedAt = nowIso();
+  db.prepare(`
+    INSERT INTO practice_attempts (attempt_id, user_id, session_id, module, item_id, mode, score_json, result_json, feedback_json, duration_seconds, submitted_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(attemptId, user.id, String(payload.sessionId || "").slice(0, 100) || null, moduleName,
+    String(payload.itemId || "").slice(0, 180), String(payload.mode || "practice").slice(0, 60),
+    safeLearningJson(payload.score, "Attempt score"), safeLearningJson(payload.result, "Attempt result"),
+    safeLearningJson(payload.feedback, "Attempt feedback"), Math.max(0, Math.min(100000, Number(payload.durationSeconds) || 0)), submittedAt);
+  const row = db.prepare("SELECT * FROM practice_attempts WHERE attempt_id = ? AND user_id = ?").get(attemptId, user.id);
+  sendJson(res, 200, { attempt: publicPracticeAttempt(row), idempotent: false });
+}
+
+async function handleLearningWeakAreas(req, res, weakAreaId = "") {
+  const user = requireUser(req);
+  const db = getAppDb();
+  const payload = await readJsonBody(req);
+  if (req.method === "POST" && !weakAreaId) {
+    const id = String(payload.id || "").trim();
+    assertLearningValue(/^[A-Za-z0-9_-]{8,100}$/.test(id), "Invalid weak area id.");
+    const moduleName = normalizeLearningModule(payload.module);
+    const status = String(payload.status || "active");
+    assertLearningValue(WEAK_AREA_STATUSES.has(status), "Invalid weak area status.");
+    const now = nowIso();
+    db.prepare(`
+      INSERT INTO weak_areas (weak_area_id, user_id, module, skill_key, question_id, source_attempt_id, summary, evidence_json, status, retest_attempt_id, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(weak_area_id) DO UPDATE SET summary = excluded.summary, evidence_json = excluded.evidence_json, status = excluded.status, updated_at = excluded.updated_at
+    `).run(id, user.id, moduleName, String(payload.skillKey || "").slice(0, 100) || null,
+      String(payload.questionId || "").slice(0, 100) || null, String(payload.sourceAttemptId || "").slice(0, 100) || null,
+      String(payload.summary || "Weak area").slice(0, 1000), safeLearningJson(payload.evidence, "Weak-area evidence"), status,
+      String(payload.retestAttemptId || "").slice(0, 100) || null, now, now);
+    sendJson(res, 200, { weakArea: publicWeakArea(db.prepare("SELECT * FROM weak_areas WHERE weak_area_id = ? AND user_id = ?").get(id, user.id)) });
+    return;
+  }
+  if (req.method === "PATCH" && weakAreaId) {
+    const row = db.prepare("SELECT * FROM weak_areas WHERE weak_area_id = ? AND user_id = ?").get(weakAreaId, user.id);
+    assertLearningValue(row, "Weak area not found.", 404);
+    const status = String(payload.status || row.status);
+    assertLearningValue(WEAK_AREA_STATUSES.has(status), "Invalid weak area status.");
+    db.prepare("UPDATE weak_areas SET status = ?, retest_attempt_id = ?, updated_at = ? WHERE weak_area_id = ? AND user_id = ?")
+      .run(status, String(payload.retestAttemptId || row.retest_attempt_id || "").slice(0, 100) || null, nowIso(), weakAreaId, user.id);
+    sendJson(res, 200, { weakArea: publicWeakArea(db.prepare("SELECT * FROM weak_areas WHERE weak_area_id = ? AND user_id = ?").get(weakAreaId, user.id)) });
+    return;
+  }
+  sendJson(res, 405, { error: "Method not allowed" });
+}
+
+function attemptBandSignal(row) {
+  const score = parseStoredJson(row?.score_json, {});
+  const result = parseStoredJson(row?.result_json, {});
+  const candidates = [score.band, score.overall, score.scores?.overall, result.band, result.scores?.overall, result.scores?.Overall];
+  const band = candidates.map(Number).find((value) => Number.isFinite(value) && value >= 0 && value <= 9);
+  return Number.isFinite(band) ? band : null;
+}
+
+function recentWeakestSkillPlan(db, userId, profile) {
+  const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const rows = db.prepare("SELECT * FROM practice_attempts WHERE user_id = ? ORDER BY submitted_at DESC LIMIT 40").all(userId)
+    .filter((row) => ["listening", "reading", "writing", "speaking"].includes(row.module))
+    .filter((row) => !Number.isFinite(Date.parse(row.submitted_at)) || Date.parse(row.submitted_at) >= cutoff);
+  const grouped = new Map();
+  rows.forEach((row) => {
+    const band = attemptBandSignal(row);
+    if (!Number.isFinite(band)) return;
+    const group = grouped.get(row.module) || { module: row.module, bands: [], attemptIds: [], latest: row };
+    group.bands.push(band);
+    group.attemptIds.push(row.attempt_id);
+    grouped.set(row.module, group);
+  });
+  const weakest = [...grouped.values()]
+    .map((group) => ({ ...group, average: group.bands.reduce((sum, value) => sum + value, 0) / group.bands.length }))
+    .sort((a, b) => a.average - b.average || b.bands.length - a.bands.length)[0];
+  if (!weakest) return null;
+  const target = Number(profile?.targetBand) || 7.5;
+  const mode = weakest.module === "listening" ? "training"
+    : weakest.module === "reading" ? "evidence"
+      : "practice";
+  return {
+    kind: "practice",
+    task: { module: weakest.module, itemId: weakest.latest.item_id, mode },
+    reason: {
+      code: "seven_day_weakest_skill",
+      sourceIds: weakest.attemptIds,
+      text: `${weakest.module} averages Band ${weakest.average.toFixed(1)} across ${weakest.bands.length} recent attempt${weakest.bands.length === 1 ? "" : "s"}; target is ${target.toFixed(1)}.`,
+    },
+    algorithmVersion: "rules-v2",
+  };
+}
+
+function todayPlanForUser(userId) {
+  const db = getAppDb();
+  const profile = learnerProfileForUser(userId);
+  const activeSession = db.prepare("SELECT * FROM practice_sessions WHERE user_id = ? AND status = 'in_progress' ORDER BY updated_at DESC LIMIT 1").get(userId);
+  if (activeSession) return {
+    kind: "resume",
+    task: { module: activeSession.module, itemId: activeSession.item_id, mode: activeSession.mode, sessionId: activeSession.session_id },
+    reason: { code: "unfinished_session", sourceIds: [activeSession.session_id], text: "Continue the unfinished practice from your last device." },
+    algorithmVersion: "rules-v1",
+  };
+  if (!profile?.onboardingCompletedAt) return {
+    kind: "onboarding", task: null,
+    reason: { code: "profile_required", sourceIds: [], text: "Set your target band, exam date and daily study time before IELTSist recommends a task." },
+    algorithmVersion: "rules-v1",
+  };
+  const weak = db.prepare("SELECT * FROM weak_areas WHERE user_id = ? AND status = 'active' ORDER BY updated_at ASC LIMIT 1").get(userId);
+  if (weak) return {
+    kind: "retest",
+    task: { module: weak.module, itemId: "", mode: "review", originWeakAreaId: weak.weak_area_id },
+    reason: { code: "unresolved_weak_area", sourceIds: [weak.weak_area_id, weak.source_attempt_id].filter(Boolean), text: weak.summary },
+    algorithmVersion: "rules-v1",
+  };
+  const trendPlan = recentWeakestSkillPlan(db, userId, profile);
+  if (trendPlan) return trendPlan;
+  const attempt = db.prepare("SELECT * FROM practice_attempts WHERE user_id = ? ORDER BY submitted_at DESC LIMIT 1").get(userId);
+  if (attempt) return {
+    kind: "practice",
+    task: { module: attempt.module, itemId: attempt.item_id, mode: "practice" },
+    reason: { code: "latest_attempt_follow_up", sourceIds: [attempt.attempt_id], text: `Follow up the latest ${attempt.module} attempt and compare the result.` },
+    algorithmVersion: "rules-v1",
+  };
+  return {
+    kind: "diagnostic", task: null,
+    reason: { code: "no_attempt_evidence", sourceIds: [], text: "Choose one skill for a first diagnostic; IELTSist does not have enough evidence to rank your skills yet." },
+    algorithmVersion: "rules-v1",
+  };
+}
+
+async function handleLearningApi(req, res) {
+  const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+  if (url.pathname === "/api/learning/profile") return handleLearningProfile(req, res);
+  if (url.pathname === "/api/learning/state" && req.method === "GET") {
+    const user = requireUser(req);
+    const db = getAppDb();
+    const activeSession = db.prepare("SELECT * FROM practice_sessions WHERE user_id = ? AND status = 'in_progress' ORDER BY updated_at DESC LIMIT 1").get(user.id);
+    const attempts = db.prepare("SELECT * FROM practice_attempts WHERE user_id = ? ORDER BY submitted_at DESC LIMIT 20").all(user.id);
+    const weakAreas = db.prepare("SELECT * FROM weak_areas WHERE user_id = ? AND status != 'resolved' ORDER BY updated_at DESC LIMIT 50").all(user.id);
+    sendJson(res, 200, { profile: learnerProfileForUser(user.id), activeSession: publicPracticeSession(activeSession), attempts: attempts.map(publicPracticeAttempt), weakAreas: weakAreas.map(publicWeakArea), todayPlan: todayPlanForUser(user.id) });
+    return;
+  }
+  if (url.pathname === "/api/learning/today-plan" && req.method === "GET") {
+    const user = requireUser(req);
+    sendJson(res, 200, { plan: todayPlanForUser(user.id) });
+    return;
+  }
+  const sessionMatch = url.pathname.match(/^\/api\/learning\/sessions\/([^/]+)$/);
+  if (sessionMatch) return handleLearningSession(req, res, decodeURIComponent(sessionMatch[1]));
+  if (url.pathname === "/api/learning/attempts") return handleLearningAttempts(req, res);
+  const weakMatch = url.pathname.match(/^\/api\/learning\/weak-areas(?:\/([^/]+))?$/);
+  if (weakMatch) return handleLearningWeakAreas(req, res, weakMatch[1] ? decodeURIComponent(weakMatch[1]) : "");
+  sendJson(res, 404, { error: "Learning endpoint not found" });
+}
+
 function resolveReportFont() {
   const candidates = [
     process.env.IELTSIST_REPORT_FONT,
@@ -1873,8 +2521,8 @@ function serveStatic(req, res) {
       serveFile(req, res, filePath, type);
       return;
     }
-    const cacheControl = ext === ".html"
-      ? "no-store"
+    const cacheControl = [".html", ".css", ".js", ".json"].includes(ext)
+      ? "no-cache"
       : "public, max-age=31536000, immutable";
     const acceptsGzip = /\bgzip\b/i.test(req.headers["accept-encoding"] || "");
     const gzipEligible = [".html", ".css", ".js", ".json", ".svg"].includes(ext) && data.length > 1024;
@@ -2205,15 +2853,51 @@ function compactHelpText(value, maxLength = 12000) {
   return clean.length > maxLength ? `${clean.slice(0, maxLength)}\n...[truncated]` : clean;
 }
 
+function indexedReadingPassageText(value, maxLength = 18000) {
+  const clean = compactHelpText(value, maxLength * 2)
+    .split(/---\s*Question Page\b/i)[0]
+    .replace(/^\s*(?:READING PASSAGE\s*\d+|You should spend about \d+ minutes on Questions[^\n]*|Questions?\s+\d+(?:\s*[-–]\s*\d+)?)[^\n]*$/gim, "")
+    .trim();
+  if (!clean) return "";
+  const pageParts = clean.split(/(?=---\s*Page\s+\d+\s*---)/i);
+  const rows = [];
+  let paragraphNumber = 0;
+  for (const pagePart of pageParts) {
+    const page = pagePart.match(/---\s*Page\s+(\d+)\s*---/i)?.[1] || "";
+    const pageText = pagePart.replace(/---\s*Page\s+\d+\s*---/i, "").trim();
+    const blocks = pageText.split(/\n\s*\n+/).map((block) => block.replace(/\s*\n\s*/g, " ").trim()).filter(Boolean);
+    for (const block of blocks) {
+      if (block.length < 12) continue;
+      paragraphNumber += 1;
+      const sentences = block.match(/[^.!?]+(?:[.!?]+["')\]]*|$)/g)
+        ?.map((sentence) => sentence.replace(/\s+/g, " ").trim())
+        .filter(Boolean) || [block];
+      sentences.forEach((sentence, index) => {
+        rows.push(`[P${paragraphNumber} S${index + 1}${page ? ` Page ${page}` : ""}] ${sentence}`);
+      });
+    }
+  }
+  return compactHelpText(rows.join("\n"), maxLength);
+}
+
 function normalizeHelpContext(value) {
   if (!value || typeof value !== "object") return {};
   const reading = value.reading && typeof value.reading === "object" ? value.reading : null;
   const listening = value.listening && typeof value.listening === "object" ? value.listening : null;
+  const surface = value.surface && typeof value.surface === "object" ? value.surface : null;
+  const rawFocusedQuestion = value.coach?.focusedQuestion || surface?.focusedQuestion || null;
+  const focusedQuestion = rawFocusedQuestion && typeof rawFocusedQuestion === "object" ? {
+    module: String(rawFocusedQuestion.module || "").slice(0, 40),
+    number: Number(rawFocusedQuestion.number || String(rawFocusedQuestion.id || "").match(/\d{1,2}/)?.[0] || 0),
+    id: String(rawFocusedQuestion.id || "").slice(0, 40),
+  } : null;
   const normalizeQuestions = (questions) => Array.isArray(questions)
     ? questions.slice(0, 40).map((question, index) => ({
         number: Number(question.number || index + 1),
         id: String(question.id || `q${index + 1}`).slice(0, 40),
         question: String(question.question || "").slice(0, 300),
+        type: String(question.type || "").slice(0, 80),
+        typeLabel: String(question.typeLabel || "").slice(0, 120),
         expectedAnswer: String(question.expectedAnswer || "").slice(0, 160),
         studentAnswer: String(question.studentAnswer || "").slice(0, 160),
       }))
@@ -2221,6 +2905,19 @@ function normalizeHelpContext(value) {
   return {
     activeView: String(value.activeView || "").slice(0, 40),
     activeModule: String(value.activeModule || "").slice(0, 40),
+    focusedQuestion,
+    surface: surface ? {
+      view: String(surface.view || "").slice(0, 60),
+      viewLabel: String(surface.viewLabel || "").slice(0, 120),
+      module: String(surface.module || "").slice(0, 60),
+      moduleLabel: String(surface.moduleLabel || "").slice(0, 120),
+      title: String(surface.title || "").slice(0, 240),
+      source: String(surface.source || "").slice(0, 180),
+      mode: String(surface.mode || "").slice(0, 80),
+      isImmersive: Boolean(surface.isImmersive),
+      answerCount: Number.isFinite(Number(surface.answerCount)) ? Number(surface.answerCount) : 0,
+      path: String(surface.path || "").slice(0, 80),
+    } : null,
     reading: reading ? {
       module: "reading",
       mode: String(reading.mode || "").slice(0, 40),
@@ -2249,7 +2946,24 @@ function normalizeHelpContext(value) {
 
 function helpContextBlock(helpContext) {
   const context = normalizeHelpContext(helpContext);
-  if (!context.reading && !context.listening) return "Structured app context: no current Reading or Listening paper context was detected.";
+  const surfaceLines = context.surface ? [
+    "Current IELTS-ist surface:",
+    `Screen: ${context.surface.viewLabel || context.surface.view || "(unknown)"}`,
+    context.surface.moduleLabel ? `Module: ${context.surface.moduleLabel}` : "",
+    context.surface.title ? `Visible context: ${context.surface.title}` : "",
+    context.surface.source ? `Source: ${context.surface.source}` : "",
+    context.surface.mode ? `Mode: ${context.surface.mode}` : "",
+    context.surface.isImmersive ? "Student is in immersive practice mode." : "",
+    context.surface.answerCount ? `Current answered count: ${context.surface.answerCount}` : "",
+    "",
+  ].filter(Boolean) : [];
+  if (!context.reading && !context.listening) {
+    return [
+      "Structured app context:",
+      ...surfaceLines,
+      "No current Reading or Listening paper context was detected.",
+    ].filter(Boolean).join("\n");
+  }
   if (context.listening && (!context.reading || context.activeModule === "listening")) {
     const listening = context.listening;
     const listeningQuestionLines = listening.questions
@@ -2257,6 +2971,7 @@ function helpContextBlock(helpContext) {
       .join("\n");
     return [
       "Structured app context:",
+      ...surfaceLines,
       "Current module: Listening",
       `Paper: ${[listening.title, listening.source, listening.period].filter(Boolean).join(" - ") || listening.id || "(unknown)"}`,
       listening.activeSection ? `Active section: ${listening.activeSection}` : "",
@@ -2278,20 +2993,28 @@ function helpContextBlock(helpContext) {
     .join("\n");
   return [
     "Structured app context:",
+    ...surfaceLines,
     `Current module: Reading`,
     `Paper: ${[reading.title, reading.source, reading.period].filter(Boolean).join(" · ") || reading.id || "(unknown)"}`,
     "",
     "Answer key and student answers:",
     questionLines || "(no question table available)",
     "",
-    "Reading paper / passage OCR text:",
-    reading.paperText || "(no passage text available)",
+    "Indexed Reading passage OCR text (P = paragraph, S = sentence; use these labels for Hint locations):",
+    indexedReadingPassageText(reading.paperText) || "(no passage text available)",
   ].join("\n");
 }
 
 async function buildHelpExplanation(ocrText, helpContext = {}) {
   const clean = String(ocrText || "").trim();
   if (!clean) return { mode: "local", answer: localHelpExplanation(clean) };
+  const evidenceGuard = readingEvidenceGuard({
+    helpContext,
+    imageOcrText: clean,
+    message: clean,
+    requireEvidence: readingSelectionLooksLikeQuestion(helpContext, clean),
+  });
+  if (evidenceGuard) return evidenceGuard;
   let ai = null;
   let warning = "";
   try {
@@ -2302,9 +3025,10 @@ async function buildHelpExplanation(ocrText, helpContext = {}) {
         "The student is Chinese, so use Chinese for explanations and translations, but keep IELTS keywords in English.",
         "The structured Reading/Listening context is authoritative app data. Use it even if the screenshot OCR is short, partial, or noisy.",
         "If it is a Reading question or the student asks why an answer is correct, use the structured Reading context: identify the question number, correct answer, student's answer if present, source sentence/paragraph, keyword-paraphrase link, and why wrong options or wrong answers fail.",
+        "For a Reading Hint, begin with exactly one location line in Chinese: 位置：第X段，第Y句. Resolve X and Y from the indexed [P# S#] passage labels. If the indexed passage cannot verify the location, write 位置：暂无法确认 and do not guess.",
         "If it is a Listening question, use the structured Listening context: identify the question number, correct answer, student's answer if present, relevant question-paper wording, audioscript/ASR evidence, distractors, spelling/plural/number issues, and what the student should listen for.",
         "For Reading/Listening answer explanations, do not just translate. Give evidence logic: question focus -> locating/listening keywords -> matching/paraphrase -> answer conclusion.",
-        "Do not guess beyond the OCR/context. If the exact source sentence is not visible, say what is missing and explain from the available answer key and recognized text only.",
+        "Do not guess beyond the OCR/context. An answer key is not passage evidence. If the exact source sentence is not visible, state what is missing and ask for the relevant passage screenshot; never reconstruct source wording from the answer key or question type.",
         "Keep the answer compact and student-facing. Avoid raw Markdown decorations like ### headings or excessive **bold**. Use short labeled sections and simple bullets only when useful.",
       ].join("\n"),
       user: [
@@ -2347,6 +3071,87 @@ async function handleHelpExplain(req, res) {
   });
 }
 
+function readingQuestionFromMessage(readingContext, message, focusedQuestion = null) {
+  const requestedNumber = String(message || "").match(/(?:question|q|\u9898)\s*#?\s*(\d{1,2})/i)?.[1]
+    || (focusedQuestion?.module === "reading" ? String(focusedQuestion.number || "") : "");
+  if (!requestedNumber) return null;
+  return (readingContext?.questions || []).find((question) => String(question.number) === requestedNumber) || null;
+}
+
+function normalizedEvidenceText(value) {
+  return String(value || "")
+    .normalize("NFKC")
+    .toLocaleLowerCase("en")
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .trim();
+}
+
+function readingQuestionNeedsVerbatimEvidence(question) {
+  const type = String(question?.type || question?.typeLabel || "").toLowerCase();
+  if (/(?:completion|short.answer)/.test(type)) return true;
+  const answer = normalizedEvidenceText(question?.expectedAnswer);
+  return Boolean(answer && !/^(?:true|false|not given|yes|no|a|b|c|d|e|f|g)$/.test(answer));
+}
+
+function readingQuestionHasVerbatimEvidence(question, sourceText) {
+  const answer = normalizedEvidenceText(question?.expectedAnswer);
+  const evidence = normalizedEvidenceText(sourceText);
+  if (!answer || !evidence) return false;
+  return ` ${evidence} `.includes(` ${answer} `);
+}
+
+function readingSelectionLooksLikeQuestion(helpContext, selectionText) {
+  const readingContext = helpContext?.reading;
+  const question = readingQuestionFromMessage(readingContext, selectionText, helpContext?.focusedQuestion);
+  if (!question) return false;
+  const selection = normalizedEvidenceText(selectionText);
+  const questionTerms = normalizedEvidenceText(question.question)
+    .split(" ")
+    .filter((term) => term.length >= 3 && !/^(?:the|and|for|with|are|was|were|from|that|this)$/.test(term));
+  const overlap = questionTerms.filter((term) => ` ${selection} `.includes(` ${term} `)).length;
+  return overlap >= Math.min(2, questionTerms.length)
+    || /(?:_{2,}|\.{3,}|one\s+(?:word|letter)|no\s+more\s+than|questions?\s*\d+)/i.test(selectionText);
+}
+
+function readingEvidenceGuard({ helpContext = {}, message = "", imageOcrText = "", requireEvidence = false } = {}) {
+  const readingContext = helpContext?.reading;
+  if (!readingContext) return null;
+  const asksForEvidence = requireEvidence
+    || /(?:why|explain|evidence|source|passage|paragraph|correct answer|show me|\u4e3a\u4ec0\u4e48|\u89e3\u91ca|\u8bc1\u636e|\u539f\u6587|\u5b9a\u4f4d|\u7b54\u6848)/i.test(message);
+  if (!asksForEvidence) return null;
+
+  const keyedQuestion = readingQuestionFromMessage(
+    readingContext,
+    `${message}\n${imageOcrText}`,
+    helpContext.focusedQuestion,
+  );
+  const passageText = String(readingContext.paperText || "").trim();
+  const screenshotText = String(imageOcrText || "").trim();
+  const sourceText = `${passageText}\n${screenshotText}`.trim();
+  const needsVerbatimEvidence = readingQuestionNeedsVerbatimEvidence(keyedQuestion);
+  const screenshotLooksDerived = /(?:answer\s*key|correct\s*answer|final\s*answer|evidence\s*chain|\u7b54\u6848\u8868|\u6b63\u786e\u7b54\u6848|\u7b54\u6848\u662f|\u63a8\u7406\u94fe)/i.test(screenshotText);
+  const hasVerbatimEvidence = !needsVerbatimEvidence
+    || readingQuestionHasVerbatimEvidence(keyedQuestion, passageText)
+    || (!screenshotLooksDerived && readingQuestionHasVerbatimEvidence(keyedQuestion, screenshotText));
+  if (sourceText && hasVerbatimEvidence) return null;
+
+  const questionLabel = keyedQuestion?.number ? `Q${keyedQuestion.number}` : "\u5f53\u524d\u9898";
+  const missingDetail = sourceText
+    ? "\u5f53\u524d OCR \u6587\u672c\u6ca1\u6709\u5305\u542b\u80fd\u591f\u6838\u9a8c\u8be5\u7b54\u6848\u7684\u539f\u6587\u53e5\u5b50\u3002"
+    : "\u5f53\u524d\u6ca1\u6709\u53ef\u6838\u9a8c\u7684 passage \u539f\u6587\u6216\u622a\u56fe\u6587\u5b57\u3002";
+  return {
+    mode: "evidence-required",
+    answer: `${questionLabel} \u6682\u65f6\u4e0d\u80fd\u5b8c\u6210 evidence chain\u3002${missingDetail}\n\n\u7b54\u6848\u8868\u53ea\u80fd\u7528\u6765\u6838\u5bf9\u7ed3\u679c\uff0c\u4e0d\u80fd\u5f53\u4f5c\u539f\u6587\u8bc1\u636e\u3002\u6211\u4e0d\u4f1a\u6839\u636e\u9898\u578b\u6216\u7b54\u6848\u8868\u53cd\u63a8\u539f\u6587\u3002\u8bf7\u622a\u53d6\u5bf9\u5e94\u7684\u6587\u7ae0\u6bb5\u843d\u548c\u9898\u76ee\uff0c\u6211\u518d\u6309\u201c\u9898\u76ee\u5173\u952e\u8bcd -> \u539f\u6587\u8bc1\u636e -> \u540c\u4e49\u66ff\u6362 -> \u7ed3\u8bba\u201d\u89e3\u91ca\u3002`,
+  };
+}
+
+function ensureReadingHintLocation(answer, helpContext, message) {
+  const text = String(answer || "").trim();
+  const isReadingHint = Boolean(helpContext?.reading) && /\bHint\s*[1-4]\b/i.test(String(message || ""));
+  if (!isReadingHint || /^位置：(第\d+段，第\d+句|暂无法确认)(?:\s|$)/u.test(text)) return text;
+  return `位置：暂无法确认${text ? `\n${text}` : ""}`;
+}
+
 async function handleHelpChat(req, res) {
   const payload = JSON.parse((await readBody(req)) || "{}");
   const message = String(payload.message || "").trim();
@@ -2369,18 +3174,36 @@ async function handleHelpChat(req, res) {
   }
   let ai = null;
   let warning = "";
+  const evidenceGuard = readingEvidenceGuard({ helpContext, message, imageOcrText });
+  if (evidenceGuard) {
+    sendJson(res, 200, {
+      ...evidenceGuard,
+      answer: ensureReadingHintLocation(evidenceGuard.answer, helpContext, message),
+      ocrText: imageOcrText,
+      warning: imageOcrWarning,
+    });
+    return;
+  }
   try {
     ai = await callOpenAI({
       system: [
         "You are an IELTS tutor helping inside an IELTS practice web app.",
         "Answer the student's follow-up based on the OCR context, structured app context, and conversation.",
         "Use Chinese explanations by default. Keep IELTS terms and quoted question words in English.",
+        "If the student asks how to use IELTS-ist or what to practise next, guide them through the product workflow first using the Current IELTS-ist surface. Dashboard/AI Coach recommends today's task, Practice has single Listening/Reading/Writing/AI Speaking topics, Simulation has Same test and Random exam, Writing supports custom tasks and Cambridge sets, Mine stores drafts/vocabulary/membership, and AI Coach explains screenshots or typed questions globally.",
+        "If the student asks where they are, which screen is open, or what the current page is for, answer from the Current IELTS-ist surface before giving advice.",
+        "When the student wants to start a practice area, answer as an agentic coach: briefly confirm the best module, explain why it fits, and tell them IELTS-ist will open the matching practice area.",
+        "Recommended IELTSist workflow: start the recommended practice -> submit or finish -> read the AI explanation/report -> save vocabulary or weak area -> retest that skill.",
+        "When useful, end with executable IELTSist next steps using these exact action labels: Save vocabulary, Add to weak area, Retest this skill, Generate similar question, Explain in Chinese, Show evidence.",
+        "Treat AI Coach as the product brain across all modules, not a generic Help popup. Use the current screen, current question, student answer, correct answer, paper/audio evidence, writing text, speaking transcript, recent weak areas and vocabulary whenever they are present.",
         "The structured Reading/Listening context is authoritative app data. Use it even if the screenshot OCR is short, partial, or noisy.",
         "Be direct and practical; explain vocabulary, paraphrase, question type, strategy, and answer-location logic when relevant.",
         "If the student asks why a Reading answer is correct or why their answer is wrong, identify the relevant question number from their message/OCR/history, then use the Reading answer key and passage OCR text to explain: correct answer, source evidence, keyword-paraphrase chain, and why alternatives fail.",
+        "For every Reading Hint request, the first line must be 位置：第X段，第Y句, where X and Y come from the indexed [P# S#] passage labels. If no exact indexed location is supported, begin with 位置：暂无法确认 and ask for the relevant passage screenshot instead of guessing.",
         "If the student asks a Listening question, identify the relevant question number from their message/OCR/history, then use the Listening answer key, question paper OCR, and audioscript/ASR text to explain: correct answer, audio evidence, distractors, paraphrase, spelling/plural/number format, and how to catch it next time.",
         "If options A/B/C/D or True/False/Not Given are involved, explain option-by-option only when the option text is available. Otherwise state that the option text is not visible and ask for a screenshot of the options.",
-        "Never invent evidence. If the passage sentence is unavailable, say so and explain from the answer key plus visible OCR only.",
+        "Never invent evidence. An answer key is not source evidence. If the passage sentence or audioscript is unavailable, do not infer the missing wording from the answer key or question type, do not claim a final answer is justified, and ask for the relevant screenshot instead.",
+        "Never continue with phrases such as 'based on the answer key and question structure, the reasoning is' after admitting that source evidence is missing.",
         "Keep the answer compact and student-facing. Avoid raw Markdown decorations like ### headings or excessive **bold**. Use short labeled sections and simple bullets only when useful.",
       ].join("\n"),
       user: [
@@ -2402,9 +3225,10 @@ async function handleHelpChat(req, res) {
   } catch (error) {
     warning = error.message || "AI unavailable";
   }
+  const answer = ai || localHelpExplanation([contextText, imageOcrText].filter(Boolean).join("\n\n"), warning || imageOcrWarning);
   sendJson(res, 200, {
     mode: ai ? "ai" : "local",
-    answer: ai || localHelpExplanation([contextText, imageOcrText].filter(Boolean).join("\n\n"), warning || imageOcrWarning),
+    answer: ensureReadingHintLocation(answer, helpContext, message),
     ocrText: imageOcrText,
     warning: warning || imageOcrWarning,
   });
@@ -2440,6 +3264,7 @@ async function handleListeningScripts(req, res) {
     sourceLabel: scripts.source || "",
     text: scripts.text || "",
     sections: scripts.sections || [],
+    questionPaper: test.questionPaper || test.prompt || "",
   });
 }
 
@@ -2649,22 +3474,6 @@ function localWritingFeedback(prompt, essay, warning = "") {
   ].join("\n");
 }
 
-function writingSystemPrompt() {
-  return [
-    "You must mark IELTS Writing by following the Amber IELTS Writing Feedback Skill exactly.",
-    "The full skill file is included below. Treat it as mandatory grading instructions.",
-    AMBER_WRITING_SKILL || [
-      "Fallback if the local skill file is unavailable:",
-      "Copy the prompt. Keep each original student paragraph before its Chinese feedback.",
-      "Give integer category scores only, then a rounded overall band ending in .0 or .5.",
-      "Write a realistic band-7.5 model answer preserving the student's position where possible.",
-      "Add Chinese translations comparing original paragraphs with the revised model answer.",
-      "For Task 2, first category is Task Response. For Task 1, first category is Task Achievement.",
-      "Use direct, practical Chinese teacher feedback. Do not be vague.",
-    ].join("\n"),
-  ].join("\n");
-}
-
 function speakingSystemPrompt() {
   return [
     "You are a professional IELTS Speaking examiner and coach.",
@@ -2818,7 +3627,7 @@ async function handleTts(req, res) {
 
 function execFilePromise(file, args) {
   return new Promise((resolve, reject) => {
-    execFile(file, args, { windowsHide: true, timeout: 60_000 }, (error, stdout, stderr) => {
+    execFile(file, args, { windowsHide: true, timeout: 60_000, maxBuffer: 16 * 1024 * 1024 }, (error, stdout, stderr) => {
       if (error) {
         error.stderr = stderr;
         reject(error);
@@ -2858,7 +3667,7 @@ async function handleSpeakingRecording(req, res) {
   const outputPath = path.join(os.tmpdir(), `ielts-speaking-${safeId}.mp3`);
   await fs.promises.writeFile(inputPath, buffer);
   try {
-    await execFilePromise("ffmpeg", ["-y", "-i", inputPath, "-vn", "-ar", "24000", "-ac", "1", "-b:a", "64k", outputPath]);
+    await execFilePromise("ffmpeg", ["-hide_banner", "-loglevel", "error", "-y", "-i", inputPath, "-vn", "-ar", "24000", "-ac", "1", "-b:a", "64k", outputPath]);
     const mp3 = await fs.promises.readFile(outputPath);
     const fileName = "ielts-speaking-recording.mp3";
     sendJson(res, 200, {
@@ -2876,7 +3685,7 @@ async function handleSpeakingRecording(req, res) {
       mime,
       downloadUrl: registerRecordingDownload(buffer, fileName, mime),
       dataUrl,
-      warning: `MP3 conversion failed: ${error.message}`,
+      warning: "MP3 conversion was unavailable. The original recording is ready to download.",
     });
   } finally {
     fs.promises.unlink(inputPath).catch(() => {});
@@ -3040,15 +3849,21 @@ function localWritingFeedback(prompt, essay, warning = "") {
 function writingSystemPrompt() {
   return [
     "You must mark IELTS Writing by following the Amber IELTS Writing Feedback Skill exactly.",
-    "The full skill file is included below. Treat it as mandatory grading instructions.",
+    "Return exactly one valid JSON object with no markdown fence and no text outside the object.",
+    "Use this schema: {\"overall\":6.5,\"criteria\":[{\"label\":\"Task Response\",\"score\":6,\"feedback\":\"...\"},{\"label\":\"Coherence & Cohesion\",\"score\":6,\"feedback\":\"...\"},{\"label\":\"Lexical Resource\",\"score\":6,\"feedback\":\"...\"},{\"label\":\"Grammatical Range & Accuracy\",\"score\":6,\"feedback\":\"...\"}],\"highestImpact\":{\"criterion\":\"...\",\"score\":6,\"issue\":\"...\",\"evidence\":\"an exact verbatim sentence from the student's essay\",\"rewriteInstruction\":\"...\"},\"phrases\":[{\"from\":\"...\",\"to\":\"...\"}],\"nextTaskPrompt\":\"...\",\"fullReport\":\"the complete Amber-style report\"}.",
+    "All four criterion scores must be numbers. Overall must be their average rounded to the nearest 0.5. Evidence must be copied exactly from the submitted essay, never invented.",
+    "Each criteria[].feedback must contain 2-3 concise Chinese sentences about that criterion only. Never reuse the same feedback across criteria and never place paragraph-by-paragraph comments or the full report inside criteria[].feedback.",
+    "phrases must contain only short exact wording pairs from the essay, for example {\"from\":\"less bureaucratic\",\"to\":\"with fewer administrative barriers\"}. Do not put paragraph feedback, scores, explanations, or complete paragraphs in phrases.",
+    "The fullReport field must contain the complete paragraph-by-paragraph feedback, corrected examples, and band-7.5 model answer required by the skill.",
+    "The full skill file is included below. Treat it as mandatory grading instructions inside fullReport.",
     AMBER_WRITING_SKILL || [
       "Fallback if the local skill file is unavailable:",
-      "Copy the prompt. Keep each original student paragraph before its feedback.",
+      "Copy the prompt. Keep each original student paragraph before its Chinese feedback.",
       "Give integer category scores only, then a rounded overall band ending in .0 or .5.",
       "Write a realistic band-7.5 model answer preserving the student's position where possible.",
-      "Add clear English comparisons between original paragraphs and the revised model answer.",
+      "Add Chinese translations comparing original paragraphs with the revised model answer.",
       "For Task 2, the first category is Task Response. For Task 1, the first category is Task Achievement.",
-      "Use direct, practical teacher feedback. Do not be vague.",
+      "Use direct, practical Chinese teacher feedback. Do not be vague.",
     ].join("\n"),
   ].join("\n");
 }
@@ -3067,6 +3882,116 @@ function speakingSystemPrompt() {
     "If MP3 and transcript disagree, treat the audio as stronger evidence for pronunciation, pauses, rhythm, hesitation and self-correction; use the transcript for vocabulary, grammar and content.",
     "Return English feedback with: score table, exact overall calculation, strengths, weaknesses, top 5 improvement points, corrected sample answers, and next drills. Be strict and examiner-like.",
   ].join("\n");
+}
+
+function writingBandNumber(value, fallback = 6) {
+  const number = Number.parseFloat(value);
+  if (!Number.isFinite(number) || number < 0 || number > 9) return fallback;
+  return Math.round(number * 2) / 2;
+}
+
+function writingEvidenceFromEssay(essay) {
+  const source = String(essay || "").trim();
+  if (!source) return "";
+  const paragraphs = source.split(/\n\s*\n/).map((item) => item.trim()).filter(Boolean);
+  const paragraph = paragraphs.find((item) => item.split(/\s+/).length >= 18) || paragraphs[0] || source;
+  const sentences = paragraph.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [paragraph];
+  return String(sentences.find((item) => item.trim().split(/\s+/).length >= 8) || sentences[0] || paragraph).trim().slice(0, 320);
+}
+
+function parseWritingAnalysisJson(raw) {
+  const clean = String(raw || "").trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
+  if (!clean) return null;
+  try {
+    return JSON.parse(clean);
+  } catch {
+    const start = clean.indexOf("{");
+    const end = clean.lastIndexOf("}");
+    if (start < 0 || end <= start) return null;
+    try {
+      return JSON.parse(clean.slice(start, end + 1));
+    } catch {
+      return null;
+    }
+  }
+}
+
+function normalizeWritingAnalysis(raw, prompt, essay, fallbackReport = "") {
+  const parsed = parseWritingAnalysisJson(raw) || {};
+  const labels = ["Task Response", "Coherence & Cohesion", "Lexical Resource", "Grammatical Range & Accuracy"];
+  const localScores = [
+    wordCount(essay) < 180 ? 5 : wordCount(essay) < 240 ? 6 : 7,
+    String(essay || "").split(/\n\s*\n/).filter((item) => item.trim()).length >= 4 ? 7 : 6,
+    wordCount(essay) > 240 ? 7 : 6,
+    wordCount(essay) > 240 ? 7 : 6,
+  ];
+  const inputCriteria = Array.isArray(parsed.criteria) ? parsed.criteria : [];
+  const criterionKey = (value) => {
+    const text = String(value || "").toLowerCase();
+    if (/task\s*(?:response|achievement)|\btr\b|\bta\b/.test(text)) return "task";
+    if (/coherence|cohesion|\bcc\b/.test(text)) return "coherence";
+    if (/lexical|vocabulary|\blr\b/.test(text)) return "lexical";
+    if (/grammar|grammatical|\bgra\b/.test(text)) return "grammar";
+    return "";
+  };
+  const defaultFeedback = [
+    "需要更直接地回应题目，并用具体解释和例子充分发展中心观点。",
+    "段落推进需要更清楚，让每句话都围绕同一个中心并形成自然衔接。",
+    "减少宽泛或重复用词，改用含义准确、搭配自然的主题词汇。",
+    "增加可控的复杂句式，同时检查主谓一致、时态和标点准确性。",
+  ];
+  const usedFeedback = new Set();
+  const criteria = labels.map((label, index) => {
+    const key = criterionKey(label);
+    const source = inputCriteria.find((item) => criterionKey(item?.label) === key) || inputCriteria[index] || {};
+    let feedback = String(source.feedback || source.issue || "").replace(/\s+/g, " ").trim();
+    const reportBoundary = feedback.search(/(?:\|\s*[0-9](?:\.\d)?\s*)?(?:Overall,?\s+I\s+would\s+score|Overall\s+Band|Category\s*\|\s*Feedback)/i);
+    if (reportBoundary > 0) feedback = feedback.slice(0, reportBoundary).trim();
+    feedback = feedback.slice(0, 520);
+    const feedbackKey = feedback.toLowerCase().replace(/\s+/g, " ");
+    if (!feedback || usedFeedback.has(feedbackKey)) feedback = defaultFeedback[index];
+    usedFeedback.add(feedback.toLowerCase().replace(/\s+/g, " "));
+    return {
+      label,
+      score: writingBandNumber(source.score, localScores[index]),
+      feedback,
+    };
+  });
+  const overall = writingBandNumber(criteria.reduce((sum, item) => sum + item.score, 0) / criteria.length, 6);
+  const weakest = [...criteria].sort((a, b) => a.score - b.score)[0];
+  const requestedImpact = parsed.highestImpact && typeof parsed.highestImpact === "object" ? parsed.highestImpact : {};
+  const requestedCriterion = criteria.find((item) => item.label === requestedImpact.criterion) || weakest;
+  const requestedEvidence = String(requestedImpact.evidence || "").trim();
+  const exactEvidence = requestedEvidence && String(essay || "").toLowerCase().includes(requestedEvidence.toLowerCase())
+    ? requestedEvidence
+    : writingEvidenceFromEssay(essay);
+  const defaultInstructions = {
+    "Task Response": "Develop one central idea with a specific explanation and example.",
+    "Coherence & Cohesion": "Rebuild the paragraph around one topic sentence and a clear progression.",
+    "Lexical Resource": "Replace vague repeated wording with precise topic vocabulary.",
+    "Grammatical Range & Accuracy": "Rewrite the idea with one controlled complex sentence, then check agreement, tense, and punctuation.",
+  };
+  return {
+    version: 1,
+    overall,
+    criteria,
+    highestImpact: {
+      criterion: requestedCriterion.label,
+      score: requestedCriterion.score,
+      issue: String(requestedImpact.issue || requestedCriterion.feedback).trim().slice(0, 1200),
+      evidence: exactEvidence,
+      rewriteInstruction: String(requestedImpact.rewriteInstruction || defaultInstructions[requestedCriterion.label]).trim().slice(0, 1200),
+    },
+    phrases: (Array.isArray(parsed.phrases) ? parsed.phrases : []).slice(0, 8).map((item) => {
+      const from = String(item?.from || "").trim();
+      const to = String(item?.to || "").trim();
+      const commentary = /(?:这一段|这个段落|评分|分数|band|criterion|task response|coherence|lexical resource|grammatical range)/i;
+      if (!from || !to || from.length > 100 || to.length > 140 || commentary.test(from) || commentary.test(to)) return null;
+      return { from, to };
+    }).filter(Boolean),
+    nextTaskPrompt: String(parsed.nextTaskPrompt || prompt || "IELTS Writing targeted practice").trim().slice(0, 4000),
+    fullReport: String(parsed.fullReport || fallbackReport || raw || "").trim(),
+  };
 }
 
 function speakingTurnSystemPrompt() {
@@ -3100,6 +4025,21 @@ function cleanupWritingFeedbackJobs() {
 }
 
 function parseWritingPayload(payload) {
+  if (Array.isArray(payload.items)) {
+    const items = payload.items.slice(0, 2).map((item, index) => ({
+      id: String(item?.id || `task${index + 1}`),
+      taskNumber: Number(item?.taskNumber || index + 1),
+      kind: String(item?.kind || (index === 0 ? "academic-task-1" : "task-2")),
+      prompt: String(item?.prompt || "").trim(),
+      essay: String(item?.essay || item?.response || "").trim(),
+    }));
+    if (items.length !== 2 || items.some((item) => !item.prompt || !item.essay)) {
+      const error = new Error("Complete Task 1 and Task 2 are required for a full Writing score.");
+      error.statusCode = 422;
+      throw error;
+    }
+    return { kind: "pair", items };
+  }
   const prompt = String(payload.prompt || "").trim();
   const essay = String(payload.essay || "").trim();
   if (!prompt || !essay) {
@@ -3107,7 +4047,73 @@ function parseWritingPayload(payload) {
     error.statusCode = 400;
     throw error;
   }
-  return { prompt, essay };
+  return { kind: "single", prompt, essay };
+}
+
+function roundWritingScore(value) {
+  const number = Number.parseFloat(value);
+  return Number.isFinite(number) ? Math.round(number * 2) / 2 : null;
+}
+
+function writingAnalysisScore(analysis = {}) {
+  const criteria = Array.isArray(analysis.criteria) ? analysis.criteria.slice(0, 4) : [];
+  const values = criteria.map((item) => Number.parseFloat(item.score)).filter(Number.isFinite);
+  return values.length === 4 ? roundWritingScore(values.reduce((sum, value) => sum + value, 0) / 4) : roundWritingScore(analysis.overall);
+}
+
+function serverWritingEvidence(item, analysis = {}) {
+  const quote = String(analysis?.highestImpact?.evidence || "").trim();
+  const start = quote ? item.essay.indexOf(quote) : -1;
+  return start >= 0 ? [{
+    id: `evidence-${item.id}-${start}`,
+    kind: "text-range",
+    itemId: item.id,
+    quote,
+    range: { start, end: start + quote.length, unit: "utf16-code-unit" },
+  }] : [];
+}
+
+function composeWeightedWritingScore(items, taskResults) {
+  const tasks = taskResults.map((result, index) => {
+    const criteria = (result.analysis?.criteria || []).slice(0, 4).map((criterion, criterionIndex) => ({
+      label: index === 0 && criterionIndex === 0 ? "Task Achievement" : String(criterion.label || "Writing criterion"),
+      score: roundWritingScore(criterion.score),
+      feedback: String(criterion.feedback || ""),
+    }));
+    return {
+      taskNumber: index + 1,
+      itemId: items[index].id,
+      title: items[index].kind,
+      overall: writingAnalysisScore({ ...result.analysis, criteria }),
+      criteria,
+      feedback: result.feedback || "",
+      analysis: result.analysis || null,
+      evidence: serverWritingEvidence(items[index], result.analysis),
+      pdfUrl: result.pdfUrl || "",
+    };
+  });
+  const weighted = (a, b) => roundWritingScore((Number(a) + Number(b) * 2) / 3);
+  const overall = weighted(tasks[0].overall, tasks[1].overall);
+  const labels = ["Task Achievement / Response", "Coherence & Cohesion", "Lexical Resource", "Grammatical Range & Accuracy"];
+  const criteria = labels.map((label, index) => ({
+    label,
+    score: weighted(tasks[0].criteria[index]?.score, tasks[1].criteria[index]?.score),
+    feedback: tasks[1].criteria[index]?.feedback || tasks[0].criteria[index]?.feedback || "",
+  }));
+  const weakest = [...tasks].sort((a, b) => a.overall - b.overall)[0];
+  const impact = weakest.analysis?.highestImpact || {};
+  const evidence = tasks.flatMap((task) => task.evidence);
+  const attemptId = crypto.randomUUID();
+  return {
+    schemaVersion: "scoring.v2",
+    attempt: { id: attemptId, module: "writing", scope: "full-test", submittedAt: new Date().toISOString(), items: items.map((item) => ({ ...item, response: item.essay, essay: undefined, wordCount: wordCount(item.essay) })) },
+    score: { status: "final", overall: { value: overall, scale: "ielts-band", weighting: { task1: 1, task2: 2 } }, criteria, tasks },
+    highestImpact: { criterionKey: impact.criterion || weakest.criteria[0]?.label || "Task response", itemId: weakest.itemId, issue: impact.issue || weakest.criteria[0]?.feedback || "Develop this response more fully.", evidenceIds: weakest.evidence.map((item) => item.id), successCriterion: impact.rewriteInstruction || "Rewrite the evidence paragraph with clearer development." },
+    evidence,
+    nextAction: { type: "rewrite", label: "Improve this skill", itemId: weakest.itemId },
+    retest: { type: "paragraph-rewrite", parentAttemptId: attemptId, itemId: weakest.itemId },
+    provenance: { provider: WRITING_AI_MODEL, weighting: "task1:1,task2:2" },
+  };
 }
 
 async function buildWritingFeedbackResult(prompt, essay) {
@@ -3121,24 +4127,87 @@ async function buildWritingFeedbackResult(prompt, essay) {
   } catch (error) {
     warning = error.message || "AI unavailable";
   }
-  const feedback = ai || localWritingFeedback(prompt, essay, warning);
+  const fallbackFeedback = localWritingFeedback(prompt, essay, warning);
+  const analysis = normalizeWritingAnalysis(ai, prompt, essay, ai || fallbackFeedback);
+  const feedback = analysis.fullReport || fallbackFeedback;
   const pdfDataUrl = await createWritingReportPdfDataUrl(prompt, feedback);
   return addPdfDownloadUrl(
-    { mode: ai ? `ai:${WRITING_AI_MODEL}` : "local", feedback, pdfDataUrl, pdfFileName: "ielts-writing-feedback.pdf", warning },
+    { mode: ai ? `ai:${WRITING_AI_MODEL}` : "local", feedback, analysis, pdfDataUrl, pdfFileName: "ielts-writing-feedback.pdf", warning },
     "ielts-writing-feedback.pdf"
   );
 }
 
+async function buildWritingPairFeedbackResult(items) {
+  const taskResults = await Promise.all(items.map((item) => buildWritingFeedbackResult(item.prompt, item.essay)));
+  const contract = composeWeightedWritingScore(items, taskResults);
+  const feedback = taskResults.map((result, index) => `Task ${index + 1} · Band ${contract.score.tasks[index].overall.toFixed(1)}\n${result.feedback}`).join("\n\n");
+  const analysis = {
+    overall: contract.score.overall.value,
+    criteria: contract.score.criteria,
+    highestImpact: {
+      criterion: contract.highestImpact.criterionKey,
+      issue: contract.highestImpact.issue,
+      evidence: contract.evidence.find((item) => contract.highestImpact.evidenceIds.includes(item.id))?.quote || "",
+      rewriteInstruction: contract.highestImpact.successCriterion,
+    },
+    taskScores: contract.score.tasks,
+  };
+  const pdfDataUrl = await createWritingReportPdfDataUrl("IELTS Writing Task 1 and Task 2", feedback);
+  return addPdfDownloadUrl({ mode: `ai:${WRITING_AI_MODEL}`, feedback, analysis, contract, taskResults, pdfDataUrl, pdfFileName: "ielts-writing-feedback.pdf" }, "ielts-writing-feedback.pdf");
+}
+
+function buildSingleWritingContract(prompt, essay, result) {
+  const taskNumber = /\btask\s*1\b|\b(chart|graph|table|map|diagram|process|letter)\b/i.test(prompt) ? 1 : 2;
+  const item = { id: `task${taskNumber}`, taskNumber, kind: taskNumber === 1 ? "single-task-1" : "single-task-2", prompt, essay };
+  const overall = writingAnalysisScore(result.analysis);
+  const criteria = (result.analysis?.criteria || []).slice(0, 4).map((criterion, index) => ({
+    label: taskNumber === 1 && index === 0 ? "Task Achievement" : String(criterion.label || "Writing criterion"),
+    score: roundWritingScore(criterion.score),
+    feedback: String(criterion.feedback || ""),
+  }));
+  const evidence = serverWritingEvidence(item, result.analysis);
+  const impact = result.analysis?.highestImpact || {};
+  const attemptId = crypto.randomUUID();
+  return {
+    schemaVersion: "scoring.v2",
+    attempt: {
+      id: attemptId,
+      module: "writing",
+      scope: "single-task",
+      submittedAt: new Date().toISOString(),
+      items: [{ ...item, response: essay, essay: undefined, wordCount: wordCount(essay) }],
+    },
+    score: { status: "final", overall: { value: overall, scale: "ielts-band" }, criteria },
+    highestImpact: {
+      criterionKey: impact.criterion || criteria[0]?.label || "Task response",
+      itemId: item.id,
+      issue: impact.issue || criteria[0]?.feedback || "Develop this response more fully.",
+      evidenceIds: evidence.map((entry) => entry.id),
+      successCriterion: impact.rewriteInstruction || "Rewrite the evidence paragraph with clearer development.",
+    },
+    evidence,
+    nextAction: { type: "rewrite", label: "Improve this skill", itemId: item.id },
+    retest: { type: "paragraph-rewrite", parentAttemptId: attemptId, itemId: item.id },
+    provenance: { provider: WRITING_AI_MODEL },
+  };
+}
+
+async function buildWritingPayloadResult(parsed) {
+  if (parsed.kind === "pair") return buildWritingPairFeedbackResult(parsed.items);
+  const result = await buildWritingFeedbackResult(parsed.prompt, parsed.essay);
+  return { ...result, contract: buildSingleWritingContract(parsed.prompt, parsed.essay, result) };
+}
+
 async function handleWriting(req, res) {
   const payload = JSON.parse((await readBody(req)) || "{}");
-  const { prompt, essay } = parseWritingPayload(payload);
-  sendJson(res, 200, await buildWritingFeedbackResult(prompt, essay));
+  const parsed = parseWritingPayload(payload);
+  sendJson(res, 200, await buildWritingPayloadResult(parsed));
 }
 
 async function handleWritingJobStart(req, res) {
   cleanupWritingFeedbackJobs();
   const payload = JSON.parse((await readBody(req)) || "{}");
-  const { prompt, essay } = parseWritingPayload(payload);
+  const parsed = parseWritingPayload(payload);
   const id = crypto.randomUUID();
   const job = {
     id,
@@ -3149,7 +4218,7 @@ async function handleWritingJobStart(req, res) {
     error: "",
   };
   writingFeedbackJobs.set(id, job);
-  buildWritingFeedbackResult(prompt, essay)
+  buildWritingPayloadResult(parsed)
     .then((result) => {
       job.status = "done";
       job.updatedAt = Date.now();
@@ -3161,6 +4230,44 @@ async function handleWritingJobStart(req, res) {
       job.error = error.message || "Writing feedback failed";
     });
   sendJson(res, 202, { jobId: id, status: job.status, message: "Writing feedback job started." });
+}
+
+async function handleWritingRewrite(req, res) {
+  const payload = JSON.parse((await readBody(req)) || "{}");
+  const prompt = String(payload.prompt || "IELTS Writing task").trim();
+  const original = String(payload.original || "").trim();
+  const revision = String(payload.revision || "").trim();
+  const criterion = String(payload.criterion || "Grammatical Range & Accuracy").trim();
+  if (!original || !revision) {
+    sendJson(res, 400, { error: "Original paragraph and revision are both required." });
+    return;
+  }
+  const rubricPrompt = `${prompt}\n\nParagraph-only skill check. Evaluate both paragraphs against the same ${criterion} success criterion. Do not claim this is a full IELTS Writing Band.`;
+  const [beforeResult, afterResult] = await Promise.all([
+    buildWritingFeedbackResult(rubricPrompt, original),
+    buildWritingFeedbackResult(rubricPrompt, revision),
+  ]);
+  const criterionMatch = (analysis) => (analysis?.criteria || []).find((item) => String(item.label || "").toLowerCase().includes(criterion.split(/\s+/)[0].toLowerCase())) || analysis?.criteria?.[0] || {};
+  const beforeCriterion = criterionMatch(beforeResult.analysis);
+  const afterCriterion = criterionMatch(afterResult.analysis);
+  const before = roundWritingScore(beforeCriterion.score);
+  const after = roundWritingScore(afterCriterion.score);
+  sendJson(res, 200, {
+    schemaVersion: "writing-rewrite.v1",
+    scope: "paragraph-skill-check",
+    criterion,
+    practiceScoreBefore: before,
+    practiceScoreAfter: after,
+    delta: Number.isFinite(before) && Number.isFinite(after) ? roundWritingScore(after - before) : null,
+    before: { criteria: [{ label: criterion, score: before }] },
+    after: { criteria: [{ label: criterion, score: after }] },
+    evidence: [
+      { id: "rewrite-before", kind: "text-range", quote: original, range: { start: 0, end: original.length, unit: "utf16-code-unit" } },
+      { id: "rewrite-after", kind: "text-range", quote: revision, range: { start: 0, end: revision.length, unit: "utf16-code-unit" } },
+    ],
+    feedback: afterCriterion.feedback || afterResult.analysis?.highestImpact?.issue || "Compare the rewrite against the stated success criterion.",
+    updatesIeltsBand: false,
+  });
 }
 
 function handleWritingJobStatus(req, res) {
@@ -3374,7 +4481,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method === "OPTIONS") {
       res.writeHead(204, {
         "access-control-allow-origin": "*",
-        "access-control-allow-methods": "GET,POST,DELETE,HEAD,OPTIONS",
+        "access-control-allow-methods": "GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS",
         "access-control-allow-headers": "content-type,authorization",
         "access-control-max-age": "86400",
       });
@@ -3421,8 +4528,25 @@ const server = http.createServer(async (req, res) => {
       await handleVocabularyApi(req, res);
       return;
     }
+    if (req.url.startsWith("/api/learning/")) {
+      await handleLearningApi(req, res);
+      return;
+    }
     if ((req.method === "GET" || req.method === "HEAD") && req.url.startsWith("/api/tasks")) {
       sendTasksPayload(req, res);
+      return;
+    }
+    if ((req.method === "GET" || req.method === "HEAD") && req.url.startsWith("/api/reading/context")) {
+      const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+      const context = await readingContextPayload(
+        url.searchParams.get("id") || "",
+        url.searchParams.get("question") || "",
+      );
+      if (!context) {
+        sendJson(res, 404, { error: "Reading test not found." });
+        return;
+      }
+      sendCompressedJson(req, res, 200, context, "private, no-store");
       return;
     }
     if ((req.method === "GET" || req.method === "HEAD") && req.url.startsWith("/api/report/pdf/")) {
@@ -3464,6 +4588,10 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.method === "POST" && req.url === "/api/writing/feedback") {
       await handleWriting(req, res);
+      return;
+    }
+    if (req.method === "POST" && req.url === "/api/writing/rewrite/score") {
+      await handleWritingRewrite(req, res);
       return;
     }
     if (req.method === "POST" && req.url === "/api/speaking/feedback") {

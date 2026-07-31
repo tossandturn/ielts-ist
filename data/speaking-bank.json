@@ -154,7 +154,7 @@
     {
       "id": "cam4-s-test1",
       "module": "speaking",
-      "title": "Interesting historic place.",
+      "title": "Historic Places",
       "source": "Cambridge IELTS 4 OCR",
       "period": "Cambridge 4",
       "book": 4,
@@ -164,10 +164,10 @@
       "part1": [
         "Are your friends mostly your age or different ages? [Why?]",
         "Do you usually see your friends during the week or at weekends? [Why?]",
-        "what did you do together?",
+        "The last time you saw your friends, what did you do together?",
         "In what ways are your friends important to you?"
       ],
-      "part2": "Describe an interesting historic place. minutes.\nYou should say:\nwhat you're\nwhat it is going to say.\nwhere it is located\nwhat you can see there now to\nand explain\nwhy this place is interesting.",
+      "part2": "Describe an interesting historic place.\nYou should say:\nwhat it is\nwhere it is located\nwhat you can see there now\nand explain why this place is interesting.",
       "part3Topics": [
         "Looking after historic places",
         "The teaching of history at school"

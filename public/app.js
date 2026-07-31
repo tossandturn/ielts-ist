@@ -3,6 +3,49 @@
   userBank: [],
   activeModule: "listening",
   activeSingle: null,
+  singleStarted: false,
+  singlePracticeModes: {
+    listening: "exam",
+    reading: "full",
+    writing: "coach",
+    speaking: "diagnostic",
+  },
+  singlePracticeSections: {
+    listening: 1,
+    reading: 1,
+  },
+  singleAnswers: {},
+  singleAnswerItemId: "",
+  readingMobilePane: "passage",
+  readingQuestionType: "",
+  readingReviewMarks: {},
+  readingPaneScroll: { passage: 0, questionPaper: 0, answers: 0 },
+  readingContextCache: {},
+  latestObjectiveResults: {},
+  latestWritingAttempt: null,
+  latestSpeakingResult: null,
+  speakingRetestParentAttemptId: "",
+  activeSpeakingTopic: null,
+  uploadWritingTasks: [],
+  writingWorkspaceMode: "entry",
+  writingPromptCollapsed: false,
+  writingTimerStartedAt: 0,
+  writingTimerElapsed: 0,
+  writingTimerDuration: 60 * 60,
+  writingTimerLastPersisted: -1,
+  writingTimerId: null,
+  writingSetupMode: "coach",
+  writingActiveTaskNumber: 1,
+  pendingWritingSetId: "",
+  selectedWritingTask1Id: "",
+  selectedWritingTask2Id: "",
+  pendingWritingKind: "cambridge",
+  speakingSetupMode: "exam",
+  speakingDeviceChecked: false,
+  unifiedPracticeFlows: {
+    writing: { stage: "entry", mode: "coach", selectionId: "" },
+    speaking: { stage: "entry", mode: "exam", selectionId: "" },
+  },
   exam: null,
   sequence: null,
   examSeconds: 164 * 60,
@@ -20,6 +63,7 @@
   listeningAsr: {},
   listeningCaptionVoices: {},
   listeningCaptionHomes: {},
+  listeningPlayback: {},
   recognition: null,
   recording: false,
   autoSpeaking: {},
@@ -31,9 +75,14 @@
   qwenRuntimeLoadedAt: 0,
   authToken: "",
   currentUser: null,
+  learningState: null,
+  learningSyncTimer: null,
+  practiceSessionCompleted: false,
   serverDrafts: [],
   vocabItems: [],
   draftSaveTimer: null,
+  practiceSessionSaveTimer: null,
+  practiceWritingDrafts: {},
   annotation: {
     enabled: false,
     activeCanvas: null,
@@ -45,6 +94,7 @@
     lastMultiTouchY: 0,
     lastX: 0,
     lastY: 0,
+    saveTimer: null,
   },
   help: {
     stream: null,
@@ -62,9 +112,30 @@
     dragMode: "",
     activeHandle: "",
     originRect: null,
+    surfaceOverride: null,
+    binding: null,
+    busy: false,
+  },
+  coach: {
+    history: [],
+    contextText: "",
+    pendingImageDataUrl: "",
+    lastAnswer: "",
+    lastModule: "listening",
+    focusQuestion: null,
+    busy: false,
   },
   bankTopicPage: 1,
   bankTopicPageSize: 24,
+  writingTopicPage: 1,
+  writingTopicPageSize: 12,
+  writingTopicCategory: "all",
+  writingLibraryTaskNumber: 2,
+  vocabularyReview: {
+    index: 0,
+    revealed: false,
+    known: new Set(),
+  },
 };
 
 const $ = (id) => document.getElementById(id);
@@ -74,10 +145,307 @@ const authStoreKey = "ieltsistAuthToken";
 const draftStoreKey = "ieltsistDeviceDrafts";
 const likedTopicStoreKey = "ieltsistLikedSpeakingTopics";
 const annotationStoreKey = "ieltsistPdfAnnotations";
+const weakAreaStoreKey = "ieltsistWeakAreas";
+const coreVocabularyStoreKey = "ieltsistCoreVocabularyKnown";
+const learningHistoryStoreKey = "ieltsistLearningLoopHistory";
+const coachHistoryStoreKey = "ieltsistCoachHistoryV1";
+const practiceSessionStoreKey = "ieltsistPracticeSessionV1";
+const pendingPracticeCompletionStoreKey = "ieltsistPendingPracticeCompletionV1";
+const writingUploadSessionStoreKey = "ieltsistWritingUploadSessionV1";
+const writingTimerStoreKey = "ieltsistWritingTimerV1";
+const recommendationHistoryStoreKey = "ieltsistRecommendationHistoryV1";
 const listeningAudioGraphs = new WeakMap();
 const listeningAsrCacheSource = "qwen-asr-live-vad-v1";
 const listeningCaptionDefaultWordsPerSecond = 1.45;
 const listeningCaptionLoopWarmupMs = 9000;
+const ieltsCoreVocabulary = [
+  { word: "significant", phonetic: "/sɪɡˈnɪfɪkənt/", meaning: "显著的，重要的", cn: "常用于小作文趋势和大作文观点。", example: "There was a significant increase in public transport use.", collocations: ["significant increase", "significant impact"] },
+  { word: "approximately", phonetic: "/əˈprɒksɪmətli/", meaning: "大约，近似", cn: "小作文描述数字时比 about 更正式。", example: "Approximately 40% of respondents chose online shopping.", collocations: ["approximately half", "approximately 30 percent"] },
+  { word: "fluctuate", phonetic: "/ˈflʌktʃueɪt/", meaning: "波动", cn: "描述图表数值上下变化。", example: "The figure fluctuated slightly throughout the period.", collocations: ["fluctuate slightly", "fluctuate dramatically"] },
+  { word: "proportion", phonetic: "/prəˈpɔːʃn/", meaning: "比例", cn: "替代 percentage / share。", example: "A higher proportion of young people lived in cities.", collocations: ["a large proportion", "the proportion of"] },
+  { word: "whereas", phonetic: "/ˌweərˈæz/", meaning: "然而，相比之下", cn: "用于清晰对比两个对象。", example: "Men preferred cars, whereas women chose public transport.", collocations: ["whereas others", "whereas the figure for"] },
+  { word: "consequently", phonetic: "/ˈkɒnsɪkwəntli/", meaning: "因此，所以", cn: "大作文因果衔接词。", example: "Consequently, governments need to invest more in prevention.", collocations: ["consequently, this", "consequently, many"] },
+  { word: "sustainable", phonetic: "/səˈsteɪnəbl/", meaning: "可持续的", cn: "环境、城市、经济类高频词。", example: "Cities should develop more sustainable transport systems.", collocations: ["sustainable development", "sustainable solution"] },
+  { word: "inevitable", phonetic: "/ɪnˈevɪtəbl/", meaning: "不可避免的", cn: "科技、社会变化类常用观点词。", example: "Some level of automation is inevitable in modern workplaces.", collocations: ["almost inevitable", "an inevitable result"] },
+  { word: "conventional", phonetic: "/kənˈvenʃənl/", meaning: "传统的，常规的", cn: "用于对比 traditional / modern。", example: "Online learning differs from conventional classroom teaching.", collocations: ["conventional methods", "conventional wisdom"] },
+  { word: "allocate", phonetic: "/ˈæləkeɪt/", meaning: "分配，拨出", cn: "政府资金、资源分配类高频动词。", example: "The government should allocate more funds to healthcare.", collocations: ["allocate resources", "allocate funding"] },
+  { word: "enhance", phonetic: "/ɪnˈhɑːns/", meaning: "提升，增强", cn: "比 improve 更正式。", example: "Public libraries can enhance children's reading habits.", collocations: ["enhance quality", "enhance performance"] },
+  { word: "deteriorate", phonetic: "/dɪˈtɪəriəreɪt/", meaning: "恶化，变差", cn: "用于环境、健康、关系等主题。", example: "Air quality may deteriorate if traffic continues to rise.", collocations: ["deteriorate rapidly", "conditions deteriorate"] },
+  { word: "compulsory", phonetic: "/kəmˈpʌlsəri/", meaning: "强制的，必修的", cn: "教育、政策类常见词。", example: "Some people believe physical education should be compulsory.", collocations: ["compulsory education", "compulsory subjects"] },
+  { word: "subsidise", phonetic: "/ˈsʌbsɪdaɪz/", meaning: "补贴，资助", cn: "英式拼写，政府政策常用。", example: "Governments can subsidise public transport to reduce congestion.", collocations: ["subsidise transport", "subsidise healthcare"] },
+  { word: "adapt", phonetic: "/əˈdæpt/", meaning: "适应，调整", cn: "工作、学习、科技变化类高频。", example: "Students need to adapt to new learning environments.", collocations: ["adapt to change", "adapt quickly"] },
+  { word: "evidence", phonetic: "/ˈevɪdəns/", meaning: "证据", cn: "阅读解释和大作文论证核心词。", example: "There is little evidence that longer working hours improve productivity.", collocations: ["strong evidence", "supporting evidence"] },
+  { word: "outweigh", phonetic: "/ˌaʊtˈweɪ/", meaning: "超过，胜过", cn: "利弊类作文高频结论词。", example: "The benefits of this policy outweigh its disadvantages.", collocations: ["outweigh the drawbacks", "advantages outweigh"] },
+  { word: "prioritise", phonetic: "/praɪˈɒrətaɪz/", meaning: "优先考虑", cn: "政府、个人选择类高频动词。", example: "Schools should prioritise critical thinking over rote learning.", collocations: ["prioritise safety", "prioritise education"] },
+  { word: "obstacle", phonetic: "/ˈɒbstəkl/", meaning: "障碍，阻碍", cn: "同义替换 problem / challenge。", example: "High cost is a major obstacle to university education.", collocations: ["major obstacle", "overcome obstacles"] },
+  { word: "interpret", phonetic: "/ɪnˈtɜːprət/", meaning: "理解，解释", cn: "阅读和图表描述都常用。", example: "Students should learn how to interpret data accurately.", collocations: ["interpret data", "interpret the results"] },
+];
+const builtInPublicWritingTopics = [
+  {
+    id: "public-writing-practical-education-task2",
+    module: "writing",
+    type: "Task 2",
+    minutes: 40,
+    source: "Public topics",
+    period: "Curated practice",
+    topicCategory: "education",
+    title: "Practical education",
+    prompt: "Some people believe schools should spend more time teaching practical skills such as managing money and basic cooking. Others think schools should focus mainly on academic subjects. Discuss both views and give your own opinion.",
+  },
+  {
+    id: "public-writing-homework-task2",
+    module: "writing",
+    type: "Task 2",
+    minutes: 40,
+    source: "Public topics",
+    period: "Curated practice",
+    topicCategory: "education",
+    title: "Homework",
+    prompt: "Some people think schoolchildren should receive homework every day, while others believe homework places unnecessary pressure on them. Discuss both views and give your own opinion.",
+  },
+  {
+    id: "public-writing-university-access-task2",
+    module: "writing",
+    type: "Task 2",
+    minutes: 40,
+    source: "Public topics",
+    period: "Curated practice",
+    topicCategory: "education",
+    title: "University access",
+    prompt: "University education should be free for all students, regardless of their financial background. To what extent do you agree or disagree?",
+  },
+  {
+    id: "public-writing-ai-decisions-task2",
+    module: "writing",
+    type: "Task 2",
+    minutes: 40,
+    source: "Public topics",
+    period: "Curated practice",
+    topicCategory: "technology",
+    title: "AI decisions",
+    prompt: "Artificial intelligence is increasingly used to make decisions in areas such as recruitment, banking and public services. Do the advantages of this development outweigh the disadvantages?",
+  },
+  {
+    id: "public-writing-social-media-news-task2",
+    module: "writing",
+    type: "Task 2",
+    minutes: 40,
+    source: "Public topics",
+    period: "Curated practice",
+    topicCategory: "technology",
+    title: "Social media news",
+    prompt: "More people now get their news from social media rather than newspapers or television. Why has this happened, and is it a positive or negative development?",
+  },
+  {
+    id: "public-writing-online-privacy-task2",
+    module: "writing",
+    type: "Task 2",
+    minutes: 40,
+    source: "Public topics",
+    period: "Curated practice",
+    topicCategory: "technology",
+    title: "Online privacy",
+    prompt: "Many online services collect large amounts of personal data from their users. What problems can this cause, and what measures should individuals and governments take to protect privacy?",
+  },
+  {
+    id: "public-writing-remote-work-task2",
+    module: "writing",
+    type: "Task 2",
+    minutes: 40,
+    source: "Public topics",
+    period: "Curated practice",
+    topicCategory: "work",
+    title: "Remote work",
+    prompt: "Working from home is becoming common in many professions. Do the advantages of remote work for employees and employers outweigh the disadvantages?",
+  },
+  {
+    id: "public-writing-job-satisfaction-task2",
+    module: "writing",
+    type: "Task 2",
+    minutes: 40,
+    source: "Public topics",
+    period: "Curated practice",
+    topicCategory: "work",
+    title: "Job satisfaction",
+    prompt: "Some people believe a high salary is the most important factor when choosing a job. Others think job satisfaction is more important. Discuss both views and give your own opinion.",
+  },
+  {
+    id: "public-writing-retirement-age-task2",
+    module: "writing",
+    type: "Task 2",
+    minutes: 40,
+    source: "Public topics",
+    period: "Curated practice",
+    topicCategory: "work",
+    title: "Retirement age",
+    prompt: "As people live longer, some governments are raising the official retirement age. What are the advantages and disadvantages of this policy?",
+  },
+  {
+    id: "public-writing-carbon-tax-task2",
+    module: "writing",
+    type: "Task 2",
+    minutes: 40,
+    source: "Public topics",
+    period: "Curated practice",
+    topicCategory: "nature",
+    title: "Carbon tax",
+    prompt: "The most effective way to reduce carbon emissions is to increase the cost of fuel and other forms of energy. To what extent do you agree or disagree?",
+  },
+  {
+    id: "public-writing-wildlife-tourism-task2",
+    module: "writing",
+    type: "Task 2",
+    minutes: 40,
+    source: "Public topics",
+    period: "Curated practice",
+    topicCategory: "nature",
+    title: "Wildlife tourism",
+    prompt: "Tourism in areas with rare wildlife can create jobs but may also damage natural habitats. How can governments balance economic benefits with environmental protection?",
+  },
+  {
+    id: "public-writing-recycling-task2",
+    module: "writing",
+    type: "Task 2",
+    minutes: 40,
+    source: "Public topics",
+    period: "Curated practice",
+    topicCategory: "nature",
+    title: "Recycling",
+    prompt: "Household recycling rates remain low in many countries. Why is this the case, and what can be done to encourage people to recycle more?",
+  },
+  {
+    id: "public-writing-free-transport-task2",
+    module: "writing",
+    type: "Task 2",
+    minutes: 40,
+    source: "Public topics",
+    period: "Curated practice",
+    topicCategory: "place",
+    title: "Free transport",
+    prompt: "Public transport in large cities should be free in order to reduce traffic congestion and pollution. To what extent do you agree or disagree?",
+  },
+  {
+    id: "public-writing-high-rise-housing-task2",
+    module: "writing",
+    type: "Task 2",
+    minutes: 40,
+    source: "Public topics",
+    period: "Curated practice",
+    topicCategory: "place",
+    title: "High-rise housing",
+    prompt: "In crowded cities, building high-rise apartments is the best way to solve housing shortages. What are the advantages and disadvantages of this approach?",
+  },
+  {
+    id: "public-writing-urban-green-space-task2",
+    module: "writing",
+    type: "Task 2",
+    minutes: 40,
+    source: "Public topics",
+    period: "Curated practice",
+    topicCategory: "place",
+    title: "Green spaces",
+    prompt: "Some cities use valuable land for parks and public gardens, while others use it for housing and business development. Discuss both views and give your own opinion.",
+  },
+  {
+    id: "public-writing-preventive-health-task2",
+    module: "writing",
+    type: "Task 2",
+    minutes: 40,
+    source: "Public topics",
+    period: "Curated practice",
+    topicCategory: "lifestyle",
+    title: "Preventive health",
+    prompt: "Governments should spend more money preventing illness through education and lifestyle programmes than treating people who are already ill. To what extent do you agree or disagree?",
+  },
+  {
+    id: "public-writing-sugar-tax-task2",
+    module: "writing",
+    type: "Task 2",
+    minutes: 40,
+    source: "Public topics",
+    period: "Curated practice",
+    topicCategory: "lifestyle",
+    title: "Sugar tax",
+    prompt: "Some people think foods and drinks with high levels of sugar should be taxed to improve public health. Others believe consumers should be free to make their own choices. Discuss both views and give your own opinion.",
+  },
+  {
+    id: "public-writing-workplace-exercise-task2",
+    module: "writing",
+    type: "Task 2",
+    minutes: 40,
+    source: "Public topics",
+    period: "Curated practice",
+    topicCategory: "lifestyle",
+    title: "Workplace exercise",
+    prompt: "Employers should provide time during the working day for employees to exercise. Do the advantages of this policy outweigh the disadvantages?",
+  },
+  {
+    id: "public-writing-ageing-population-task2",
+    module: "writing",
+    type: "Task 2",
+    minutes: 40,
+    source: "Public topics",
+    period: "Curated practice",
+    topicCategory: "society",
+    title: "Ageing population",
+    prompt: "In many countries, the proportion of older people is increasing. What problems can this create for society, and what measures can be taken to address them?",
+  },
+  {
+    id: "public-writing-community-service-task2",
+    module: "writing",
+    type: "Task 2",
+    minutes: 40,
+    source: "Public topics",
+    period: "Curated practice",
+    topicCategory: "society",
+    title: "Community service",
+    prompt: "All young people should be required to do unpaid community service for a period of time. To what extent do you agree or disagree?",
+  },
+  {
+    id: "public-writing-crime-rehabilitation-task2",
+    module: "writing",
+    type: "Task 2",
+    minutes: 40,
+    source: "Public topics",
+    period: "Curated practice",
+    topicCategory: "society",
+    title: "Rehabilitation",
+    prompt: "Some people believe longer prison sentences are the best way to reduce crime. Others think education and rehabilitation are more effective. Discuss both views and give your own opinion.",
+  },
+  {
+    id: "public-writing-free-museums-task2",
+    module: "writing",
+    type: "Task 2",
+    minutes: 40,
+    source: "Public topics",
+    period: "Curated practice",
+    topicCategory: "media",
+    title: "Free museums",
+    prompt: "Museums and art galleries should be free for everyone because they preserve culture and educate the public. To what extent do you agree or disagree?",
+  },
+  {
+    id: "public-writing-local-traditions-task2",
+    module: "writing",
+    type: "Task 2",
+    minutes: 40,
+    source: "Public topics",
+    period: "Curated practice",
+    topicCategory: "media",
+    title: "Local traditions",
+    prompt: "Globalisation is causing many local traditions and customs to disappear. Why is this happening, and what can communities do to preserve them?",
+  },
+  {
+    id: "public-writing-local-films-task2",
+    module: "writing",
+    type: "Task 2",
+    minutes: 40,
+    source: "Public topics",
+    period: "Curated practice",
+    topicCategory: "media",
+    title: "Local films",
+    prompt: "Governments should provide financial support for local films and music rather than allowing the entertainment market to be dominated by foreign productions. To what extent do you agree or disagree?",
+  },
+];
 const builtInPublicSpeakingTopics = [
   {
     id: "public-speaking-work-study",
@@ -666,8 +1034,34 @@ function setFeedbackHtml(id, html, modeId, mode) {
   node.innerHTML = html || "";
   node.classList.toggle("empty", !html);
   bindSpeakingResultActions(node);
+  bindWritingResultActions(node);
+  bindUnifiedResultTabs(node);
+  bindObjectiveReviewActions(node);
   document.body.classList.toggle("speaking-result-page-visible", Boolean(document.querySelector(".speaking-result-page")));
+  if (node.querySelector(".writing-result-page")) {
+    setUnifiedPracticeStage("writing", "result");
+    setTimeout(() => node.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
+  }
+  if (node.querySelector(".speaking-result-page")) setUnifiedPracticeStage("speaking", "result");
   if (modeId) $(modeId).textContent = mode ? String(mode).toUpperCase() : "";
+}
+
+function bindUnifiedResultTabs(root = document) {
+  root.querySelectorAll?.(".unified-result-shell").forEach((shell) => {
+    shell.querySelectorAll("[data-result-tab]").forEach((button) => {
+      if (button.dataset.resultTabBound === "1") return;
+      button.dataset.resultTabBound = "1";
+      button.addEventListener("click", () => {
+        const tab = button.dataset.resultTab;
+        shell.querySelectorAll("[data-result-tab]").forEach((item) => {
+          const active = item.dataset.resultTab === tab;
+          item.classList.toggle("active", active);
+          item.setAttribute("aria-selected", active ? "true" : "false");
+        });
+        shell.querySelectorAll("[data-result-panel]").forEach((panel) => { panel.hidden = panel.dataset.resultPanel !== tab; });
+      });
+    });
+  });
 }
 
 function clearSingleFeedback() {
@@ -733,31 +1127,50 @@ function uniqueDrafts(drafts) {
 function updateUserChrome() {
   const avatar = $("brandAvatar");
   const info = $("brandUserInfo");
+  const sidebarAvatar = $("sidebarAccountAvatar");
+  const sidebarName = $("sidebarAccountName");
+  const sidebarPlan = $("sidebarAccountPlan");
   const user = state.currentUser;
+  const avatarText = user?.username ? user.username.slice(0, 1).toUpperCase() : "I";
   if (avatar) {
-    avatar.textContent = user?.username ? user.username.slice(0, 1).toUpperCase() : "I";
+    avatar.textContent = avatarText;
     avatar.style.backgroundImage = user?.avatarDataUrl ? `url("${user.avatarDataUrl}")` : "";
     avatar.classList.toggle("has-avatar", Boolean(user?.avatarDataUrl));
   }
   if (info) info.textContent = user ? `${user.username} · ${membershipLabel(user)}` : "Cambridge IELTS practice / single modules / writing feedback";
+  if (sidebarAvatar) {
+    sidebarAvatar.textContent = avatarText;
+    sidebarAvatar.style.backgroundImage = user?.avatarDataUrl ? `url("${user.avatarDataUrl}")` : "";
+    sidebarAvatar.classList.toggle("has-avatar", Boolean(user?.avatarDataUrl));
+  }
+  if (sidebarName) sidebarName.textContent = user?.username || "Guest";
+  if (sidebarPlan) sidebarPlan.textContent = user ? membershipLabel(user) : "Login / register";
 }
 
 async function refreshMineData() {
   if (!state.authToken) {
     state.serverDrafts = [];
     state.vocabItems = [];
+    state.learningState = null;
     renderMine();
+    renderDashboard();
+    renderSubscription();
+    renderCoach();
     return;
   }
   try {
-    const [me, drafts, vocab] = await Promise.all([
+    await retryPendingPracticeCompletion();
+    const [me, drafts, vocab, learning] = await Promise.all([
       getJson("/api/me"),
       getJson("/api/drafts"),
       getJson("/api/vocabulary"),
+      getJson("/api/learning/state"),
     ]);
     state.currentUser = me.user || null;
     state.serverDrafts = drafts.drafts || [];
     state.vocabItems = vocab.items || [];
+    state.learningState = learning || null;
+    if (!readPendingPracticeCompletion()) importRemotePracticeSession(learning.activeSession);
   } catch (error) {
     if (/log in|expired|401/i.test(error.message)) {
       state.authToken = "";
@@ -767,6 +1180,1606 @@ async function refreshMineData() {
   }
   updateUserChrome();
   renderMine();
+  renderDashboard();
+  renderSubscription();
+  renderCoach();
+}
+
+function dashboardModuleTotal(moduleName) {
+  try {
+    if (moduleName === "writing") return pairedWritingSets(mergedItems("writing")).length;
+    return mergedItems(moduleName).length;
+  } catch {
+    return 0;
+  }
+}
+
+function dashboardCompleteTestsTotal() {
+  try {
+    return completeCambridgeExamSets(mergedItems("listening"), mergedItems("reading"), mergedItems("writing")).length;
+  } catch {
+    return 0;
+  }
+}
+
+function renderDashboardMetric(label, value, detail) {
+  return `<article class="dashboard-metric">
+    <span>${escapeHtml(label)}</span>
+    <strong>${escapeHtml(String(value))}</strong>
+    <em>${escapeHtml(detail)}</em>
+  </article>`;
+}
+
+function renderDashboardTaskCard(task) {
+  const moduleName = task.module || "practice";
+  const total = dashboardModuleTotal(moduleName);
+  const action = task.action || `module:${moduleName}`;
+  const totalLabel = task.totalLabel || `${String(total)} sets available`;
+  const icons = { listening: "🎧", reading: "📖", writing: "✍️", speaking: "🎙️", exam: "🧪", mock: "🧪" };
+  const icon = task.icon || icons[moduleName] || "✨";
+  return `<article class="dashboard-task-card accent-${escapeHtml(task.accent || "blue")}">
+    <div class="dashboard-task-icon" aria-hidden="true">${escapeHtml(icon)}</div>
+    <div>
+      <span>${escapeHtml(task.kicker || moduleName.toUpperCase())}</span>
+      <h3>${escapeHtml(task.title)}</h3>
+      <p>${escapeHtml(compactText(task.text, 82))}</p>
+    </div>
+    <div class="dashboard-card-foot">
+      <small>${escapeHtml(totalLabel)}</small>
+      <button class="primary small-button" type="button" data-home-action="${escapeHtml(action)}">${escapeHtml(task.actionLabel || "Start")}</button>
+    </div>
+  </article>`;
+}
+
+function renderWeakSkillChip(label, score, target, tone) {
+  const numericScore = Number.parseFloat(score);
+  const percent = Number.isFinite(numericScore) ? Math.max(8, Math.min(100, Math.round((numericScore / 9) * 100))) : 8;
+  return `<div class="dashboard-weak-chip tone-${escapeHtml(tone)}">
+    <div><span>${escapeHtml(label)}</span><strong>${escapeHtml(Number.isFinite(numericScore) ? String(score) : "--")}</strong></div>
+    <i><b style="width:${percent}%"></b></i>
+    <em>Target ${escapeHtml(String(target))}</em>
+  </div>`;
+}
+
+function estimatePracticeMinutes(moduleName) {
+  return {
+    listening: "12 min",
+    reading: "15 min",
+    writing: "40 min",
+    speaking: "15 min",
+    exam: "164 min",
+    coach: "5 min",
+  }[moduleName] || "15 min";
+}
+
+function latestSpeakingCriteriaForDashboard() {
+  const outputs = ["singleFeedback", "examFeedback", "sequenceFeedback", "bankFeedback"]
+    .map((id) => $(id)?.textContent || "")
+    .filter(Boolean);
+  for (const text of outputs) {
+    const criteria = extractSpeakingCriterionScores(text);
+    if (criteria.length) return criteria;
+  }
+  return [];
+}
+
+function dashboardSignalSummary() {
+  const drafts = uniqueDrafts([...(state.serverDrafts || []), ...readLocalDrafts()]);
+  const weakAreas = [...(state.learningState?.weakAreas || []), ...readWeakAreas()]
+    .filter((item) => !item.status || item.status === "active")
+    .filter((item, index, values) => values.findIndex((candidate) => (candidate.id || candidate.summary) === (item.id || item.summary)) === index);
+  const history = readLearningLoopHistory();
+  const remoteSpeaking = (state.learningState?.attempts || []).find((attempt) => attempt.module === "speaking") || null;
+  const speakingBand = latestSpeakingBandForCoach() || normalizeSpeakingBand(history.speaking?.band) || normalizeSpeakingBand(remoteSpeaking?.score?.band) || "";
+  const speakingCriteria = latestSpeakingCriteriaForDashboard().length
+    ? latestSpeakingCriteriaForDashboard()
+    : (history.speaking?.criteria || []);
+  const vocabCount = (state.vocabItems || []).length;
+  const writingDrafts = drafts.filter((draft) => /writing/i.test(`${draft.module || ""} ${draft.title || ""}`));
+  const objectiveResults = Object.values(history.objective || {}).filter(Boolean);
+  const latestObjective = objectiveResults.sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")))[0] || null;
+  return {
+    drafts,
+    draftCount: drafts.length,
+    weakAreas,
+    speakingBand,
+    speakingCriteria,
+    vocabCount,
+    writingDrafts,
+    latestObjective,
+    writingResult: history.writing || null,
+    speakingResult: history.speaking || null,
+    hasEvidence: Boolean(weakAreas.length || speakingBand || speakingCriteria.length || writingDrafts.length || vocabCount || latestObjective || history.writing),
+  };
+}
+
+function lowestSpeakingCriterion(criteria) {
+  return criteria.reduce((lowest, item) => {
+    const score = Number.parseFloat(item.score);
+    if (!Number.isFinite(score)) return lowest;
+    if (!lowest || score < Number.parseFloat(lowest.score)) return item;
+    return lowest;
+  }, null);
+}
+
+function optionTask(moduleName, title, text, accent, actionLabel, action = `module:${moduleName}`) {
+  return { module: moduleName, title, text, accent, actionLabel, action };
+}
+
+function diagnosticPracticePlan(signals) {
+  return {
+    mode: "diagnostic",
+    sourceLabel: "Diagnostic needed",
+    title: "Choose your first diagnostic",
+    subtitle: "Pick the skill you want to diagnose first. IELTSist does not have enough evidence to rank your skills yet.",
+    why: "No completed attempt, verified weak area or criterion score is available yet, so IELTSist will not invent a weakest skill.",
+    estimate: "8-15 min",
+    output: "First verified score + next practice reason",
+    module: "coach",
+    primaryAction: "coach-diagnostic",
+    primaryLabel: "Choose diagnostic",
+    secondaryAction: "coach",
+    secondaryLabel: "Ask AI Coach",
+    focusTitle: "Diagnostic practice",
+    band: { value: "--", detail: "Run a diagnostic to calculate.", target: "7.5", percent: 8 },
+    coachReason: {
+      title: "AI Coach needs evidence",
+      text: "Choose Listening with AI, Reading with AI, Writing with AI or Speaking with AI. After one real attempt, AI Coach can explain the result and create a traceable retest.",
+      evidence: ["No score yet", `${signals.draftCount} drafts`, `${signals.vocabCount} saved notes`],
+    },
+    weakSkills: [],
+    options: [
+      optionTask("listening", "Quick listening drill", "Catch plural and number traps.", "blue", "Start drill"),
+      optionTask("reading", "Reading evidence practice", "Explain one answer with text evidence.", "green", "Read paper"),
+      optionTask("writing", "Writing with AI", "Pick a Cambridge set or paste your own task.", "purple", "Start writing", "writing-upload"),
+      { module: "exam", kicker: "MOCK", title: "Full mock exam", text: "Generate a complete timed paper.", accent: "pink", actionLabel: "Generate", action: "exam", totalLabel: "Full test mode" },
+    ],
+    recommendations: [
+      ["Choose a diagnostic skill", "Start with the skill you want measured first; IELTSist will not assume a weakest skill without evidence."],
+      ["Attach a screenshot to AI Coach", "Ask why a reading or listening answer is correct and save the rule."],
+      ["Grade one Task 2 essay", "Writing feedback gives IELTSist another signal for your plan."],
+    ],
+  };
+}
+
+function buildTodayPracticePlan() {
+  const signals = dashboardSignalSummary();
+  const plan = diagnosticPracticePlan(signals);
+  const target = Number(state.learningState?.profile?.targetBand) || 7.5;
+  const remotePlan = state.learningState?.todayPlan;
+  if (remotePlan?.kind === "resume" && remotePlan.task?.module) {
+    const moduleName = remotePlan.task.module;
+    const moduleLabel = moduleDisplayName(moduleName);
+    return {
+      ...plan,
+      mode: "server-resume",
+      sourceLabel: "Saved session",
+      title: `Continue ${moduleLabel} practice`,
+      subtitle: "Resume the exact paper, answers and position saved from your last device.",
+      why: remotePlan.reason?.text || "An unfinished practice session is available.",
+      estimate: estimatePracticeMinutes(moduleName),
+      output: "Completed attempt + AI feedback + next retest",
+      module: moduleName,
+      primaryAction: "resume-practice",
+      primaryLabel: "Continue practice",
+      focusTitle: `${moduleLabel} resume`,
+      coachReason: {
+        title: "Recommended from an unfinished session",
+        text: remotePlan.reason?.text || "IELTSist saved this session before you left.",
+        evidence: remotePlan.reason?.sourceIds || [],
+      },
+    };
+  }
+  if (remotePlan?.kind === "retest" && remotePlan.task?.module) {
+    const moduleName = remotePlan.task.module;
+    const moduleLabel = moduleDisplayName(moduleName);
+    return {
+      ...plan,
+      mode: "server-retest",
+      sourceLabel: `Rules ${remotePlan.algorithmVersion || "v1"}`,
+      title: `${moduleLabel} weak-area retest`,
+      subtitle: "Resolve an unfinished weak area before opening a new task.",
+      why: remotePlan.reason?.text || "A verified weak area is still active.",
+      estimate: estimatePracticeMinutes(moduleName),
+      output: "Retest comparison + weak-area status update",
+      module: moduleName,
+      primaryAction: moduleName === "speaking" ? "bank" : `review:${moduleName}`,
+      primaryLabel: `Retest ${moduleLabel}`,
+      focusTitle: `${moduleLabel} retest`,
+      coachReason: {
+        title: "Recommended from an unresolved weak area",
+        text: remotePlan.reason?.text || "This recommendation is linked to a saved attempt.",
+        evidence: remotePlan.reason?.sourceIds || [],
+      },
+    };
+  }
+  if (remotePlan?.kind === "practice" && remotePlan.task?.module) {
+    const moduleName = remotePlan.task.module;
+    const moduleLabel = moduleDisplayName(moduleName);
+    const itemId = encodeURIComponent(remotePlan.task.itemId || "");
+    const taskMode = encodeURIComponent(remotePlan.task.mode || "");
+    return {
+      ...plan,
+      mode: "server-practice",
+      sourceLabel: `Rules ${remotePlan.algorithmVersion || "v1"}`,
+      title: `${moduleLabel} follow-up practice`,
+      subtitle: "Compare a new attempt with your latest saved result.",
+      why: remotePlan.reason?.text || `Your latest saved attempt was ${moduleLabel}.`,
+      estimate: estimatePracticeMinutes(moduleName),
+      output: "New result + comparison + next retest",
+      module: moduleName,
+      primaryAction: `recommended:${moduleName}:${itemId}:${taskMode}`,
+      primaryLabel: `Start ${moduleLabel}`,
+      focusTitle: `${moduleLabel} follow-up`,
+      coachReason: {
+        title: "Recommended from your latest attempt",
+        text: remotePlan.reason?.text || "Repeat the same skill to measure whether it improved.",
+        evidence: remotePlan.reason?.sourceIds || [],
+      },
+    };
+  }
+  const speakingScore = Number.parseFloat(signals.speakingBand);
+  const weakestCriterion = lowestSpeakingCriterion(signals.speakingCriteria);
+  const firstWeakArea = signals.weakAreas[0] || null;
+
+  if (firstWeakArea) {
+    const moduleName = ["listening", "reading", "writing", "speaking"].includes(firstWeakArea.module) ? firstWeakArea.module : "speaking";
+    const moduleLabel = moduleDisplayName(moduleName);
+    return {
+      ...plan,
+      mode: "weak-area",
+      sourceLabel: "Saved weak area",
+      title: `${moduleLabel} weak-area retest`,
+      subtitle: "Retest the mistake that AI Coach already saved.",
+      why: compactText(firstWeakArea.summary || `A ${moduleLabel.toLowerCase()} weak area was saved from your last AI explanation.`, 180),
+      estimate: estimatePracticeMinutes(moduleName),
+      output: "Retest result + updated weak-area note",
+      module: moduleName,
+      primaryAction: moduleName === "speaking" ? "bank" : `module:${moduleName}`,
+      primaryLabel: `Retest ${moduleLabel}`,
+      focusTitle: `${moduleLabel} retest`,
+      band: { value: signals.speakingBand || "--", detail: signals.speakingBand ? `Speaking Band ${signals.speakingBand}` : "Weak area saved by AI Coach.", target: String(target), percent: Number.isFinite(speakingScore) ? Math.round((speakingScore / 9) * 100) : 8 },
+      weakAreaNote: {
+        title: firstWeakArea.title || `${moduleLabel} weak area`,
+        module: moduleName,
+        summary: compactText(firstWeakArea.summary || `Retest this saved ${moduleLabel.toLowerCase()} weak area.`, 220),
+        createdAt: firstWeakArea.createdAt || "",
+      },
+      coachReason: {
+        title: "AI Coach found a weak area",
+        text: compactText(firstWeakArea.summary || "This task comes from a saved weak-area note.", 220),
+        evidence: [firstWeakArea.title || moduleLabel, firstWeakArea.module || "practice", firstWeakArea.createdAt ? new Date(firstWeakArea.createdAt).toLocaleDateString() : "saved"],
+      },
+      weakSkills: signals.speakingCriteria,
+      recommendations: [
+        [`Retest ${moduleLabel}`, "Use the saved weak-area note as the first task today."],
+        ["Ask AI Coach for evidence", "If the answer still feels unclear, attach the question screenshot."],
+        ["Save one rule", "Turn the explanation into a vocabulary or weak-area note."],
+      ],
+    };
+  }
+
+  if (Number.isFinite(speakingScore)) {
+    const weakness = weakestCriterion?.short || weakestCriterion?.label || (speakingScore < target ? "Fluency" : "Speaking precision");
+    return {
+      ...plan,
+      mode: "speaking-score",
+      sourceLabel: "Latest speaking score",
+      title: `Speaking Part 2: improve ${weakness}`,
+      subtitle: "Use your latest speaking score to run a targeted retest.",
+      why: `Latest speaking band is ${signals.speakingBand}; target is ${target}. ${weakestCriterion ? `${weakness} is the lowest visible criterion.` : "Run another full answer to collect criterion-level evidence."}`,
+      estimate: "15 min",
+      output: "Band report + recording + weak-area retest",
+      module: "speaking",
+      primaryAction: "bank",
+      primaryLabel: "Start AI speaking retest",
+      focusTitle: `Speaking Band ${signals.speakingBand}`,
+      band: { value: signals.speakingBand, detail: `Target ${target}`, target: String(target), percent: Math.max(8, Math.min(100, Math.round((speakingScore / 9) * 100))) },
+      coachReason: {
+        title: "Recommended from speaking score",
+        text: `IELTSist found a speaking band of ${signals.speakingBand}. The next task should produce a new answer, a recording and a fresh criterion breakdown.`,
+        evidence: [`Band ${signals.speakingBand}`, weakestCriterion ? `${weakness} ${weakestCriterion.score}` : "criterion pending", `target ${target}`],
+      },
+      weakSkills: signals.speakingCriteria,
+      recommendations: [
+        ["Finish one speaking retest", "Compare the new result with the previous band."],
+        ["Save one weak point", "Use AI Coach to turn the lowest criterion into a drill."],
+        ["Practise one topic", "Choose a topic and avoid repeating memorised answers."],
+      ],
+    };
+  }
+
+  if (signals.writingDrafts.length) {
+    const draft = signals.writingDrafts[0];
+    return {
+      ...plan,
+      mode: "writing-draft",
+      sourceLabel: "Draft found",
+      title: "Writing Task 2: finish and grade draft",
+      subtitle: "You have a writing draft signal. Turn it into AI feedback.",
+      why: `Found a writing draft: ${draft.title || "Untitled writing draft"}. Grade it to add writing evidence to today's plan.`,
+      estimate: "40 min",
+      output: "Band report + rewrite points + grammar weak area",
+      module: "writing",
+      primaryAction: "writing-upload",
+      primaryLabel: "Grade writing draft",
+      focusTitle: "Writing draft",
+      band: { value: "--", detail: "Writing score pending.", target: String(target), percent: 8 },
+      coachReason: {
+        title: "Recommended from draft activity",
+        text: "IELTSist found writing work in progress. Grading it gives a stronger diagnosis than opening another blank module.",
+        evidence: [draft.title || "writing draft", draft.module || "writing", draft.updatedAt ? new Date(draft.updatedAt).toLocaleDateString() : "auto-saved"],
+      },
+      weakSkills: [],
+      recommendations: [
+        ["Grade the draft", "Submit Task 2 and collect the four writing criteria."],
+        ["Rewrite one paragraph", "Apply the most important grammar or coherence fix."],
+        ["Ask AI Coach", "Ask why the rewrite improves the band."],
+      ],
+    };
+  }
+
+  if (signals.vocabCount) {
+    return {
+      ...plan,
+      mode: "vocabulary-review",
+      sourceLabel: "Vocabulary review",
+      title: "Speaking retest: use saved vocabulary",
+      subtitle: "Convert saved vocabulary into a spoken answer.",
+      why: `You have ${signals.vocabCount} saved vocabulary note${signals.vocabCount === 1 ? "" : "s"}. Use them in one answer and let AI Coach check naturalness.`,
+      estimate: "15 min",
+      output: "Vocabulary-use feedback + speaking weak-area note",
+      module: "speaking",
+      primaryAction: "speaking-vocab",
+      primaryLabel: "Practise with saved words",
+      focusTitle: "Vocabulary retest",
+      band: { value: "--", detail: "Use saved notes to create evidence.", target: String(target), percent: 8 },
+      coachReason: {
+        title: "Recommended from vocabulary notes",
+        text: "Saved vocabulary only helps if it appears naturally in speaking or writing. Today's mission turns notes into output.",
+        evidence: [`${signals.vocabCount} saved notes`, "speaking output", "AI naturalness check"],
+      },
+      weakSkills: [],
+      recommendations: [
+        ["Use three saved words", "Answer one Part 2 topic and use saved language naturally."],
+        ["Ask AI Coach", "Check whether the wording sounds natural or forced."],
+        ["Save one better phrase", "Replace a weak phrase with a band-7 phrase."],
+      ],
+    };
+  }
+
+  return plan;
+}
+
+function renderPracticeFlow(plan) {
+  const steps = plan.mode === "diagnostic"
+    ? ["Start", "Score", "Coach summary", "First retest"]
+    : ["Start", "AI feedback", "Save weak area", "Retest"];
+  return steps.map((step, index) => `${index ? "<i></i>" : ""}<span>${escapeHtml(step)}</span>`).join("");
+}
+
+function renderWeakSummary(plan) {
+  if (plan.weakAreaNote && !plan.weakSkills?.length) {
+    const note = plan.weakAreaNote;
+    return `<div class="dashboard-weak-note">
+      <div>
+        <span>${escapeHtml(moduleDisplayName(note.module))}</span>
+        <strong>${escapeHtml(note.title)}</strong>
+      </div>
+      <p>${escapeHtml(note.summary)}</p>
+      <em>${escapeHtml(note.createdAt ? new Date(note.createdAt).toLocaleDateString() : "Saved by AI Coach")}</em>
+    </div>`;
+  }
+  if (!plan.weakSkills?.length) {
+    return `<div class="dashboard-weak-empty">
+      <strong>No weak-area scores yet</strong>
+      <span>Complete today's mission so IELTSist can build a real skill map.</span>
+    </div>`;
+  }
+  return `<div class="dashboard-weak-grid">
+    ${plan.weakSkills.slice(0, 4).map((item, index) => renderWeakSkillChip(item.short || item.label || `Skill ${index + 1}`, item.score, item.key === "gra" ? 7 : 7.5, ["purple", "blue", "orange", "green"][index % 4])).join("")}
+  </div>`;
+}
+
+function renderSkillProgress(label, score, target, tone) {
+  const percent = Math.max(8, Math.min(100, Math.round((Number(score) / 9) * 100)));
+  return `<div class="skill-progress-row tone-${escapeHtml(tone)}">
+    <div><span>${escapeHtml(label)}</span><strong>${escapeHtml(String(score))}</strong></div>
+    <i><b style="width:${percent}%"></b></i>
+    <em>Target ${escapeHtml(String(target))}</em>
+  </div>`;
+}
+
+function dashboardCoachChipHtml(label, detail, tone = "") {
+  return `<span class="coach-context-chip ${tone ? `tone-${escapeHtml(tone)}` : ""}">
+    <strong>${escapeHtml(label)}</strong>
+    <em>${escapeHtml(compactText(detail, 58))}</em>
+  </span>`;
+}
+
+function dashboardSkillShortcuts() {
+  return [
+    optionTask("listening", "Listening with AI", "Exam, section training, captions and review.", "blue", "Start", "module:listening"),
+    optionTask("reading", "Reading with AI", "Passage/question split with answer evidence.", "green", "Start", "module:reading"),
+    optionTask("writing", "Writing with AI", "Task set, structure check and rewrite loop.", "purple", "Write", "writing-upload"),
+    optionTask("speaking", "Speaking with AI", "15-minute examiner, report and retest.", "pink", "Speak", "bank"),
+  ];
+}
+
+function renderRecentLearningAssets(signals) {
+  const weak = signals.weakAreas[0] || null;
+  const objective = signals.latestObjective || null;
+  const writing = signals.writingDrafts[0] || null;
+  const speakingBand = signals.speakingBand || "";
+  const cards = [
+    {
+      icon: "🎯",
+      title: "Recent wrong answer",
+      text: objective
+        ? `${moduleDisplayName(objective.module)} · ${objective.correct}/${objective.total} · ${objective.wrongQuestionIds?.length || 0} to review`
+        : weak ? compactText(weak.summary || weak.title || "Saved weak-area note", 118) : "No saved wrong-answer explanation yet.",
+      action: objective?.module ? `review:${objective.module}` : weak ? "mine" : "coach",
+      label: objective ? "Review" : weak ? "Review" : "Ask Coach",
+    },
+    {
+      icon: "✍️",
+      title: "Recent writing",
+      text: writing ? compactText(writing.title || "Auto-saved writing draft", 118) : "Grade one essay to unlock rewrite practice.",
+      action: "writing-upload",
+      label: writing ? "Continue" : "Start writing",
+    },
+    {
+      icon: "🎙️",
+      title: "Recent speaking report",
+      text: speakingBand ? `Latest speaking band ${speakingBand}. Retest the weakest criterion.` : "Finish one AI speaking test to create a report.",
+      action: "bank",
+      label: speakingBand ? "Retest" : "Start test",
+    },
+  ];
+  return cards.map((card) => `<article class="dashboard-recent-card">
+    <span aria-hidden="true">${escapeHtml(card.icon)}</span>
+    <div>
+      <strong>${escapeHtml(card.title)}</strong>
+      <p>${escapeHtml(card.text)}</p>
+    </div>
+    <button class="secondary small-button" type="button" data-home-action="${escapeHtml(card.action)}">${escapeHtml(card.label)}</button>
+  </article>`).join("");
+}
+
+function renderDashboardSkillShortcut(task) {
+  const shortLabels = {
+    listening: "Listen",
+    reading: "Read",
+    writing: "Write",
+    speaking: "Speak",
+  };
+  const isCurrent = /in progress|ai recommended/i.test(task.status || "");
+  return `<button class="dashboard-skill-shortcut accent-${escapeHtml(task.accent || "blue")}${isCurrent ? " is-current" : ""}" type="button" data-home-action="${escapeHtml(task.action || `module:${task.module}`)}">
+    <span class="dashboard-skill-mark" aria-hidden="true">${escapeHtml(shortLabels[task.module]?.slice(0, 1) || "P")}</span>
+    <span><strong>${escapeHtml(moduleDisplayName(task.module))}</strong><em>${escapeHtml(compactText(task.status || task.title, 42))}</em></span>
+  </button>`;
+}
+
+function renderLatestLearningFeedback(signals) {
+  const candidates = [];
+  const objective = signals.latestObjective;
+  if (objective) {
+    const wrongCount = objective.wrongQuestionIds?.length || Math.max(0, Number(objective.total || 0) - Number(objective.correct || 0));
+    candidates.push({
+      timestamp: objective.createdAt || objective.updatedAt || "",
+      module: objective.module || "reading",
+      label: "Latest answer feedback",
+      title: `${moduleDisplayName(objective.module)} · ${objective.correct}/${objective.total}`,
+      text: wrongCount ? `${wrongCount} answer${wrongCount === 1 ? "" : "s"} ready for evidence review.` : "Completed with no unresolved wrong answers.",
+      action: wrongCount ? `review:${objective.module}` : `module:${objective.module}`,
+      actionLabel: wrongCount ? "Review evidence" : "Practise again",
+    });
+  }
+  if (signals.writingResult?.updatedAt || signals.writingResult?.createdAt) {
+    const score = signals.writingResult.scores?.overall || signals.writingResult.overall || signals.writingResult.band || "";
+    candidates.push({
+      timestamp: signals.writingResult.updatedAt || signals.writingResult.createdAt,
+      module: "writing",
+      label: "Latest writing feedback",
+      title: score ? `Writing Band ${score}` : "Writing feedback ready",
+      text: compactText(signals.writingResult.feedback || signals.writingResult.report || "Open the report and rewrite the highest-impact paragraph.", 120),
+      action: "writing-upload",
+      actionLabel: "Open feedback",
+    });
+  }
+  if (signals.speakingResult?.updatedAt || signals.speakingResult?.createdAt) {
+    const band = signals.speakingResult.band || signals.speakingBand || "";
+    candidates.push({
+      timestamp: signals.speakingResult.updatedAt || signals.speakingResult.createdAt,
+      module: "speaking",
+      label: "Latest speaking feedback",
+      title: band ? `Speaking Band ${band}` : "Speaking report ready",
+      text: "Review the criterion breakdown, recording and targeted retest.",
+      action: "bank",
+      actionLabel: "Open report",
+    });
+  }
+  const weak = signals.weakAreas[0];
+  if (weak?.createdAt) {
+    candidates.push({
+      timestamp: weak.createdAt,
+      module: weak.module || "practice",
+      label: "Latest saved feedback",
+      title: weak.title || `${moduleDisplayName(weak.module)} weak area`,
+      text: compactText(weak.summary || "Review this saved explanation and retest the skill.", 120),
+      action: "mine",
+      actionLabel: "Review note",
+    });
+  }
+  const latest = candidates.sort((a, b) => String(b.timestamp).localeCompare(String(a.timestamp))).find(Boolean);
+  if (!latest) return "";
+  return `<section class="dashboard-latest-feedback accent-${escapeHtml(latest.module)}" aria-label="Latest useful feedback">
+    <div class="dashboard-feedback-mark" aria-hidden="true">${escapeHtml(moduleDisplayName(latest.module).slice(0, 1))}</div>
+    <div>
+      <span>${escapeHtml(latest.label)}</span>
+      <strong>${escapeHtml(latest.title)}</strong>
+      <p>${escapeHtml(latest.text)}</p>
+    </div>
+    <button class="secondary" type="button" data-home-action="${escapeHtml(latest.action)}">${escapeHtml(latest.actionLabel)}</button>
+  </section>`;
+}
+
+function renderDashboardHistory() {
+  const attempts = mineLearningAttempts().slice(0, 4);
+  const coachThreads = readCoachHistoryThreads().filter((thread) => thread.messages?.length).slice(0, 3);
+  if (!attempts.length && !coachThreads.length) return "";
+  const attemptRows = attempts.map((attempt) => {
+    const result = mineAttemptResult(attempt);
+    const moduleName = ["listening", "reading", "writing", "speaking"].includes(attempt.module || result.module)
+      ? (attempt.module || result.module)
+      : "reading";
+    const timestamp = attempt.submittedAt || result.updatedAt || result.createdAt || attempt.updatedAt || attempt.createdAt || "";
+    const date = timestamp ? new Date(timestamp).toLocaleDateString() : "Saved";
+    const action = moduleName === "writing" ? "writing-upload" : moduleName === "speaking" ? "bank" : `review:${moduleName}`;
+    return `<article class="dashboard-history-row">
+      <span class="dashboard-history-mark tone-${escapeHtml(moduleName)}" aria-hidden="true">${escapeHtml(moduleName.slice(0, 1).toUpperCase())}</span>
+      <div><strong>${escapeHtml(moduleDisplayName(moduleName))} · ${escapeHtml(mineAttemptScore(attempt))}</strong><p>${escapeHtml(date)} · ${mineAttemptWrongCount(attempt) ? `${mineAttemptWrongCount(attempt)} to review` : "Report saved"}</p></div>
+      <button class="secondary small-button" type="button" data-home-action="${escapeHtml(action)}">Open</button>
+    </article>`;
+  }).join("");
+  const coachRows = coachThreads.map((thread) => {
+    const lastUser = [...thread.messages].reverse().find((message) => message.role === "user")?.content || thread.title || "AI Coach conversation";
+    const timestamp = thread.updatedAt ? new Date(thread.updatedAt).toLocaleDateString() : "Saved";
+    return `<article class="dashboard-history-row">
+      <span class="dashboard-history-mark tone-coach" aria-hidden="true">AI</span>
+      <div><strong>${escapeHtml(thread.title || "AI Coach conversation")}</strong><p>${escapeHtml(compactText(lastUser, 82))} · ${escapeHtml(timestamp)}</p></div>
+      <button class="secondary small-button" type="button" data-dashboard-coach-thread="${escapeHtml(thread.key)}">Review</button>
+    </article>`;
+  }).join("");
+  return `<section class="dashboard-history" aria-label="Learning history">
+    <header><span>Learning history</span><strong>Your scores and Coach conversations stay here</strong></header>
+    <div class="dashboard-history-grid">
+      ${attemptRows ? `<section><h3>Recent scores</h3><div>${attemptRows}</div></section>` : ""}
+      ${coachRows ? `<section><h3>AI Coach chats</h3><div>${coachRows}</div></section>` : ""}
+    </div>
+  </section>`;
+}
+
+function openDashboardCoachHistory(threadKey) {
+  const thread = readCoachHistoryThreads().find((entry) => entry.key === threadKey);
+  if (!thread) return;
+  state.help.binding = currentCoachBinding();
+  state.help.history = thread.messages.map((message) => ({ ...message }));
+  state.help.contextText = thread.contextText || "";
+  const log = $("helpChatLog");
+  if (log) {
+    log.innerHTML = "";
+    delete log.dataset.coachSurface;
+    state.help.history.forEach((message) => addHelpMessage(message.role, message.content || ""));
+  }
+  openGlobalCoachPanel({
+    module: thread.binding?.module || "",
+    moduleLabel: thread.binding?.module ? moduleDisplayName(thread.binding.module) : "AI Coach",
+    title: thread.title || "Saved AI Coach conversation",
+    source: "Conversation history",
+  });
+}
+
+function bindDashboardHistoryControls(root = document) {
+  root.querySelectorAll?.("[data-dashboard-coach-thread]").forEach((button) => {
+    button.addEventListener("click", () => openDashboardCoachHistory(button.dataset.dashboardCoachThread || ""));
+  });
+}
+
+function dashboardPersonalSnapshot(signals, currentTask, resumableSession = null) {
+  const profile = state.learningState?.profile || {};
+  const attempts = mineLearningAttempts();
+  const coachThreads = readCoachHistoryThreads();
+  const username = String(state.currentUser?.username || "").trim();
+  const currentModule = resumableSession?.module || currentTask?.module || "";
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const targetBand = Number(profile.targetBand);
+  const dailyMinutes = Number(profile.dailyMinutes);
+  const examDate = String(profile.examDate || "").trim();
+  let examLabel = "Set exam date";
+  if (examDate) {
+    const examTime = new Date(`${examDate}T00:00:00`).getTime();
+    const days = Math.ceil((examTime - Date.now()) / 86400000);
+    examLabel = Number.isFinite(days) ? (days >= 0 ? `${days} days` : "Update date") : examDate;
+  }
+  const signalCount = attempts.length
+    + signals.weakAreas.length
+    + signals.draftCount
+    + signals.vocabCount
+    + coachThreads.length
+    + (resumableSession ? 1 : 0);
+  const memoryLevel = signalCount >= 8 ? "Strong profile" : signalCount >= 3 ? "Personalising" : "Learning you";
+  const skillStatus = {};
+  const skillMap = [];
+  for (const moduleName of ["listening", "reading", "writing", "speaking"]) {
+    const attempt = attempts.find((item) => (item.module || mineAttemptResult(item).module) === moduleName);
+    skillStatus[moduleName] = resumableSession?.module === moduleName
+      ? "In progress"
+      : attempt
+        ? `Latest ${mineAttemptScore(attempt)}`
+        : currentTask?.module === moduleName
+          ? "AI recommended"
+          : "Needs diagnostic";
+    const result = mineAttemptResult(attempt);
+    const score = attempt?.score || {};
+    const band = normalizeSpeakingBand(result.band || score.band || result.scores?.overall || result.scores?.Overall || "");
+    const correct = Number(result.correct ?? score.correct);
+    const total = Number(result.total ?? score.total);
+    const hasObjectiveScore = Number.isFinite(correct) && Number.isFinite(total) && total > 0;
+    const isRecommended = currentTask?.module === moduleName || resumableSession?.module === moduleName;
+    skillMap.push({
+      module: moduleName,
+      label: moduleDisplayName(moduleName),
+      value: band ? `Band ${band}` : hasObjectiveScore ? `${correct}/${total}` : isRecommended ? "Next task" : "Diagnostic",
+      percent: band
+        ? Math.max(8, Math.min(100, Math.round((Number(band) / 9) * 100)))
+        : hasObjectiveScore
+          ? Math.max(8, Math.min(100, Math.round((correct / total) * 100)))
+          : isRecommended ? 24 : 8,
+      isRecommended,
+    });
+  }
+  const memorySignals = [
+    resumableSession ? `${moduleDisplayName(resumableSession.module)} session restored` : "No unfinished session",
+    attempts.length ? `${attempts.length} scored attempt${attempts.length === 1 ? "" : "s"}` : "Score history is building",
+    signals.weakAreas.length ? `${signals.weakAreas.length} active weak area${signals.weakAreas.length === 1 ? "" : "s"}` : `${coachThreads.length} saved Coach thread${coachThreads.length === 1 ? "" : "s"}`,
+  ];
+  return {
+    heading: username
+      ? `${greeting}, ${username}`
+      : currentModule
+        ? `Your ${moduleDisplayName(currentModule)} plan is ready`
+        : "Your personal IELTS plan is ready",
+    summary: signalCount
+      ? `IELTSist is using ${signalCount} learning signal${signalCount === 1 ? "" : "s"} to decide what you should do next.`
+      : "Complete one diagnostic and IELTSist will start adapting every recommendation to your performance.",
+    targetLabel: Number.isFinite(targetBand) ? String(targetBand) : "Set goal",
+    examLabel,
+    dailyLabel: Number.isFinite(dailyMinutes) ? `${dailyMinutes} min` : "Flexible",
+    signalCount,
+    memoryLevel,
+    memorySignals,
+    skillStatus,
+    skillMap,
+  };
+}
+
+function renderDashboard() {
+  const node = $("dashboardContent");
+  if (!node) return;
+  const productSlogan = "The more you use it, the more it gets you";
+  const signals = dashboardSignalSummary();
+  const plan = buildTodayPracticePlan();
+  const resumableSession = readPracticeSession();
+  const resumableItem = resumableSession ? findItemById(resumableSession.module, resumableSession.itemId) : null;
+  const resumableAnswers = resumableSession ? Object.values(resumableSession.answers || {}).filter((value) => String(value || "").trim()).length : 0;
+  const needsOnboarding = Boolean(state.currentUser && state.learningState?.todayPlan?.kind === "onboarding");
+  const hasLocalResume = Boolean(resumableSession && resumableItem);
+  const currentTask = hasLocalResume
+    ? {
+        sourceLabel: "Saved practice",
+        title: `Continue ${moduleDisplayName(resumableSession.module)}`,
+        subtitle: resumableItem.title || "Unfinished IELTS practice",
+        why: `Finish the current ${moduleDisplayName(resumableSession.module)} task before starting another practice. Your answers and position are saved.`,
+        estimate: `${formatTime(Number(resumableSession.seconds) || 0)} remaining`,
+        output: `${resumableAnswers} answered · AI feedback after submission`,
+        primaryAction: `resume-practice:${resumableSession.module}:${encodeURIComponent(resumableSession.itemId)}`,
+        primaryLabel: "Continue practice",
+        secondaryAction: "choose-task",
+        secondaryLabel: "Change task",
+        module: resumableSession.module,
+      }
+    : needsOnboarding
+      ? {
+          sourceLabel: "Personalise IELTSist",
+          title: "Set your IELTS goal",
+          subtitle: "Add four details before IELTSist recommends a task from real evidence.",
+          why: "Your target, exam date and study time prevent generic or invented recommendations.",
+          estimate: "1 min",
+          output: "A traceable first diagnostic plan",
+          primaryLabel: "Save goal",
+          module: "coach",
+        }
+      : { ...plan, primaryLabel: plan.primaryLabel || "Start practice", secondaryLabel: "Ask AI Coach" };
+  const personal = dashboardPersonalSnapshot(signals, currentTask, resumableSession);
+  const profileFieldsHtml = needsOnboarding && !hasLocalResume
+    ? `<form id="learningProfileForm" class="dashboard-profile-form">
+        <label><span>Current band</span><select name="currentBand" required>${[4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8].map((value) => `<option value="${value}"${value === 6 ? " selected" : ""}>${value}</option>`).join("")}</select></label>
+        <label><span>Target band</span><select name="targetBand" required>${[5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9].map((value) => `<option value="${value}"${value === 7.5 ? " selected" : ""}>${value}</option>`).join("")}</select></label>
+        <label><span>Exam date</span><input name="examDate" type="date" required /></label>
+        <label><span>Minutes / day</span><input name="dailyMinutes" type="number" min="5" max="360" step="5" value="30" required /></label>
+      </form>`
+    : "";
+  const primaryAttributes = needsOnboarding && !hasLocalResume
+    ? `type="submit" form="learningProfileForm"`
+    : `type="button" data-home-action="${escapeHtml(currentTask.primaryAction)}"`;
+  const secondaryAction = currentTask.secondaryAction || currentTask.secondaryAction === "" ? currentTask.secondaryAction : "coach";
+  const secondaryButtonHtml = secondaryAction
+    ? `<button class="secondary" type="button" data-home-action="${escapeHtml(secondaryAction)}">${escapeHtml(currentTask.secondaryLabel || "Ask AI Coach")}</button>`
+    : "";
+  const latestFeedbackHtml = renderLatestLearningFeedback(signals);
+  const historyHtml = renderDashboardHistory();
+  const taskIcon = {
+    listening: "headphones",
+    reading: "book-open",
+    writing: "pen-line",
+    speaking: "mic-2",
+    coach: "sparkles",
+  }[currentTask.module] || "target";
+  const coachPrompt = currentTask?.title
+    ? `Explain why ${currentTask.title} is my best next IELTS task and tell me what to focus on.`
+    : "Build my next IELTS practice plan from my recent learning history.";
+  node.innerHTML = `<section class="dashboard-cockpit">
+    <header class="dashboard-personal-header">
+      <div>
+        <span class="dashboard-personal-label"><i></i> Personal AI IELTS workspace</span>
+        <h1>${escapeHtml(personal.heading)}</h1>
+        <p>${escapeHtml(personal.summary)}</p>
+      </div>
+      <dl class="dashboard-personal-goals" aria-label="Personal IELTS goals">
+        <div><dt>Target</dt><dd>${escapeHtml(personal.targetLabel)}</dd></div>
+        <div><dt>Exam</dt><dd>${escapeHtml(personal.examLabel)}</dd></div>
+        <div><dt>Daily</dt><dd>${escapeHtml(personal.dailyLabel)}</dd></div>
+      </dl>
+    </header>
+
+    <div class="dashboard-mission-layout">
+      <section class="dashboard-primary-task" aria-label="Current learning task">
+        <div class="dashboard-task-heading">
+          <div class="dashboard-task-icon tone-${escapeHtml(currentTask.module || "coach")}" aria-hidden="true"><i data-lucide="${taskIcon}"></i></div>
+          <div>
+            <span class="dashboard-task-kicker">${escapeHtml(currentTask.sourceLabel || "Today's AI Practice Plan")}</span>
+            <h2>${escapeHtml(currentTask.title)}</h2>
+          </div>
+        </div>
+        <p>${escapeHtml(compactText(currentTask.subtitle, 130))}</p>
+        <div class="dashboard-task-reason">
+          <strong>Why AI chose this</strong>
+          <span>${escapeHtml(compactText(currentTask.why, 220))}</span>
+        </div>
+        ${profileFieldsHtml}
+        <dl class="dashboard-task-meta">
+          <div><dt>Time</dt><dd>${escapeHtml(currentTask.estimate)}</dd></div>
+          <div><dt>You will get</dt><dd>${escapeHtml(compactText(currentTask.output, 100))}</dd></div>
+        </dl>
+        <div class="dashboard-task-actions">
+          <button class="primary" ${primaryAttributes}>${escapeHtml(currentTask.primaryLabel)}</button>
+          ${secondaryButtonHtml}
+        </div>
+      </section>
+
+      <aside class="dashboard-ai-memory" aria-label="AI learner memory">
+        <header><span>AI memory</span><strong>${escapeHtml(personal.memoryLevel)}</strong></header>
+        <div class="dashboard-memory-score"><strong>${personal.signalCount}</strong><span>signals shaping your plan</span></div>
+        <div class="dashboard-memory-bar"><i style="width:${Math.max(8, Math.min(100, personal.signalCount * 12))}%"></i></div>
+        <div class="dashboard-memory-skill-map" aria-label="Personal skill map">
+          <span>Your current skill map</span>
+          ${personal.skillMap.map((skill) => `<div class="dashboard-memory-skill tone-${escapeHtml(skill.module)}${skill.isRecommended ? " is-next" : ""}">
+            <div><strong>${escapeHtml(skill.label)}</strong><em>${escapeHtml(skill.value)}</em></div>
+            <i><b style="width:${skill.percent}%"></b></i>
+          </div>`).join("")}
+        </div>
+        <div class="dashboard-memory-next"><span>Next AI move</span><strong>${escapeHtml(compactText(currentTask.title, 54))}</strong></div>
+        <p>${escapeHtml(productSlogan)}</p>
+      </aside>
+    </div>
+
+    <section class="dashboard-home-coach" aria-label="AI Coach">
+      <div class="dashboard-home-coach-mark" aria-hidden="true">AI</div>
+      <div class="dashboard-home-coach-copy">
+        <span>AI Coach · aware of your current plan</span>
+        <h3>Ask, explain, or switch practice</h3>
+        <p>Your Coach carries your active task, recent scores and saved weak areas into the conversation.</p>
+      </div>
+      <form id="dashboardCoachForm" class="dashboard-home-coach-form">
+        <label class="sr-only" for="dashboardCoachInput">Ask AI Coach</label>
+        <input id="dashboardCoachInput" type="text" autocomplete="off" placeholder="Ask what to practise, why an answer was wrong, or where to go next..." />
+        <button class="dashboard-coach-send" type="submit">Ask Coach</button>
+      </form>
+      <div class="dashboard-home-coach-prompts">
+        <button type="button" data-dashboard-coach-prompt="${escapeHtml(coachPrompt)}">Why this task?</button>
+        <button type="button" data-dashboard-coach-prompt="Build a focused 15-minute IELTS practice plan from my current profile.">15-min plan</button>
+        <button type="button" data-dashboard-coach-prompt="Help me choose a different skill and open the right IELTS practice for me.">Change focus</button>
+        <button type="button" data-home-action="coach">Open full Coach</button>
+      </div>
+    </section>
+
+    <section class="dashboard-skill-section" aria-label="Practice by skill">
+      <header><span>Your practice spaces</span><strong>Each skill keeps its own score and learning history</strong></header>
+      <div id="dashboardSkillToolbar" class="dashboard-skill-toolbar">
+        ${dashboardSkillShortcuts().map((task) => renderDashboardSkillShortcut({ ...task, status: personal.skillStatus[task.module] })).join("")}
+      </div>
+    </section>
+    ${latestFeedbackHtml}
+    ${historyHtml}
+  </section>`;
+  bindHomeControls(node);
+  bindDashboardHistoryControls(node);
+  window.lucide?.createIcons?.({ attrs: { "stroke-width": 1.9 } });
+  renderCoach();
+}
+
+function moduleDisplayName(moduleName) {
+  return {
+    listening: "Listening with AI",
+    reading: "Reading with AI",
+    writing: "Writing with AI",
+    speaking: "Speaking with AI",
+  }[moduleName] || "Practice";
+}
+
+function answeredCountForPrefix(prefix) {
+  return Object.values(collectAnswers(prefix || "single")).filter((value) => String(value || "").trim()).length;
+}
+
+function readWeakAreas() {
+  try {
+    return JSON.parse(localStorage.getItem(weakAreaStoreKey) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function writeWeakAreas(items) {
+  localStorage.setItem(weakAreaStoreKey, JSON.stringify(items.slice(0, 60)));
+}
+
+async function syncWeakArea(entry) {
+  if (!state.authToken || !entry?.id) return;
+  const moduleName = ["listening", "reading", "writing", "speaking"].includes(entry.module) ? entry.module : state.activeModule || "listening";
+  try {
+    const json = await postJson("/api/learning/weak-areas", {
+      id: entry.id,
+      module: moduleName,
+      skillKey: entry.skillKey || "",
+      questionId: entry.questionId || "",
+      sourceAttemptId: entry.sourceAttemptId || "",
+      summary: entry.summary || entry.title || "Weak area",
+      evidence: entry.evidence || {},
+      status: entry.status || "active",
+    });
+    const weakAreas = [json.weakArea, ...((state.learningState?.weakAreas || []).filter((item) => item.id !== json.weakArea?.id))].filter(Boolean).slice(0, 50);
+    state.learningState = { ...(state.learningState || {}), weakAreas };
+  } catch {
+    // Keep the local weak area available when offline.
+  }
+}
+
+async function resolveRetestedWeakAreas(moduleName, result) {
+  if (currentSinglePracticeMode(moduleName) !== "review") return;
+  const correctIds = new Set((result?.details || []).filter((detail) => detail.correct === true).map((detail) => String(detail.id || "")));
+  if (!correctIds.size) return;
+  const local = readWeakAreas();
+  const remote = state.learningState?.weakAreas || [];
+  const candidates = [...remote, ...local].filter((area) => area.module === moduleName && correctIds.has(String(area.questionId || "")) && area.status !== "resolved");
+  if (!candidates.length) return;
+  const ids = new Set(candidates.map((area) => area.id));
+  writeWeakAreas(local.map((area) => ids.has(area.id) ? { ...area, status: "resolved", retestAttemptId: result.attemptId } : area));
+  if (state.learningState) {
+    state.learningState.weakAreas = remote.map((area) => ids.has(area.id) ? { ...area, status: "resolved", retestAttemptId: result.attemptId } : area);
+  }
+  if (!state.authToken) return;
+  await Promise.all(candidates.map((area) => patchJson(`/api/learning/weak-areas/${encodeURIComponent(area.id)}`, {
+    status: "resolved",
+    retestAttemptId: result.attemptId,
+  }).catch(() => null)));
+}
+
+function readLearningLoopHistory() {
+  try {
+    const value = JSON.parse(localStorage.getItem(learningHistoryStoreKey) || "{}");
+    return value && typeof value === "object" ? value : {};
+  } catch {
+    return {};
+  }
+}
+
+function updateLearningLoopHistory(patch = {}) {
+  const current = readLearningLoopHistory();
+  const mergeAttempts = (key, latest) => {
+    const existing = Array.isArray(current[key]) ? current[key] : [];
+    if (!latest) return existing.slice(0, 5);
+    return [latest, ...existing.filter((item) => item?.attemptId !== latest.attemptId)].slice(0, 5);
+  };
+  const next = {
+    ...current,
+    ...patch,
+    objective: { ...(current.objective || {}), ...(patch.objective || {}) },
+    writingAttempts: mergeAttempts("writingAttempts", patch.writing),
+    speakingAttempts: mergeAttempts("speakingAttempts", patch.speaking),
+    updatedAt: new Date().toISOString(),
+  };
+  localStorage.setItem(learningHistoryStoreKey, JSON.stringify(next));
+  return next;
+}
+
+function coachBindingKey(binding = {}) {
+  return [binding.sessionId || "", binding.module || "", binding.paperId || "", binding.questionId || "", binding.view || ""].join("|");
+}
+
+function readCoachHistoryThreads() {
+  try {
+    const value = JSON.parse(localStorage.getItem(coachHistoryStoreKey) || "[]");
+    if (!Array.isArray(value)) return [];
+    return value
+      .filter((thread) => thread && thread.key && Array.isArray(thread.messages))
+      .map((thread) => ({
+        ...thread,
+        messages: thread.messages
+          .filter((message) => ["user", "assistant"].includes(message?.role) && String(message.content || "").trim())
+          .slice(-24)
+          .map((message) => ({ role: message.role, content: String(message.content || "").slice(0, 8000), createdAt: message.createdAt || thread.updatedAt || "" })),
+      }))
+      .sort((a, b) => String(b.updatedAt || "").localeCompare(String(a.updatedAt || "")))
+      .slice(0, 12);
+  } catch {
+    return [];
+  }
+}
+
+function restoreCoachThread(binding) {
+  const key = coachBindingKey(binding);
+  return readCoachHistoryThreads().find((thread) => thread.key === key) || null;
+}
+
+function persistCoachThread(binding = state.help.binding, history = state.help.history) {
+  const cleanMessages = (history || [])
+    .filter((message) => ["user", "assistant"].includes(message?.role) && String(message.content || "").trim())
+    .slice(-24)
+    .map((message) => ({
+      role: message.role,
+      content: String(message.content || "").slice(0, 8000),
+      createdAt: message.createdAt || new Date().toISOString(),
+    }));
+  if (!binding || !cleanMessages.length) return null;
+  const key = coachBindingKey(binding);
+  const existing = readCoachHistoryThreads().filter((thread) => thread.key !== key);
+  const item = activePracticeItemForSurface(binding.view, binding.module);
+  const moduleLabel = binding.module ? moduleDisplayName(binding.module) : "AI Coach";
+  const questionLabel = binding.questionId ? ` · ${String(binding.questionId).toUpperCase()}` : "";
+  const thread = {
+    key,
+    binding: { ...binding },
+    title: `${item?.title || moduleLabel}${questionLabel}`,
+    messages: cleanMessages,
+    contextText: String(state.help.contextText || "").slice(0, 16000),
+    updatedAt: new Date().toISOString(),
+  };
+  localStorage.setItem(coachHistoryStoreKey, JSON.stringify([thread, ...existing].slice(0, 12)));
+  return thread;
+}
+
+function compactLearningRecord(value) {
+  return JSON.parse(JSON.stringify(value || {}, (_key, entry) => {
+    if (typeof entry === "string") return entry.slice(0, 30000);
+    if (entry instanceof Blob) return undefined;
+    return entry;
+  }));
+}
+
+async function archiveLearningAttempt(moduleName, record) {
+  if (!state.authToken || !record?.attemptId) return;
+  const session = activeViewId() === "single" ? readPracticeSession() : null;
+  const score = moduleName === "writing"
+    ? record.scores || {}
+    : moduleName === "speaking"
+      ? { band: record.band || "", criteria: record.criteria || record.scores || {} }
+      : { correct: record.correct, total: record.total, band: record.band };
+  try {
+    const json = await postJson("/api/learning/attempts", {
+      attemptId: record.attemptId,
+      sessionId: session?.sessionId || "",
+      module: moduleName,
+      itemId: record.itemId || state.activeSingle?.id || "",
+      mode: currentSinglePracticeMode(moduleName),
+      score: compactLearningRecord(score),
+      result: compactLearningRecord(record),
+      feedback: compactLearningRecord({ feedback: record.feedback || record.report || "" }),
+      durationSeconds: Math.max(0, Number(state.singleTotal || 0) - Number(state.singleSeconds || 0)),
+    });
+    const attempts = [json.attempt, ...((state.learningState?.attempts || []).filter((item) => item.attemptId !== json.attempt?.attemptId))].filter(Boolean).slice(0, 20);
+    state.learningState = { ...(state.learningState || {}), attempts };
+  } catch {
+    // Local learning history remains authoritative while offline.
+  }
+}
+
+function latestObjectiveResult(moduleName, itemId = "") {
+  const memory = state.latestObjectiveResults[moduleName]
+    || readLearningLoopHistory().objective?.[moduleName]
+    || (state.learningState?.attempts || []).find((attempt) => {
+      if (attempt.module !== moduleName) return false;
+      if (itemId && attempt.itemId && attempt.itemId !== itemId) return false;
+      return attempt.result && typeof attempt.result === "object";
+    })?.result
+    || null;
+  if (!memory) return null;
+  if (itemId && memory.itemId && memory.itemId !== itemId) return null;
+  return memory;
+}
+
+function rememberObjectiveResult(moduleName, item, json) {
+  const details = (json?.result?.details || []).filter((entry) => entry?.correct !== null);
+  const result = {
+    attemptId: learningEntityId("attempt"),
+    module: moduleName,
+    itemId: item?.id || "",
+    title: item?.title || moduleDisplayName(moduleName),
+    correct: Number(json?.result?.correct || 0),
+    total: Number(json?.result?.scoredTotal ?? json?.result?.total ?? details.length),
+    band: json?.result?.band ?? null,
+    details: details.slice(0, 40),
+    wrongQuestionIds: details.filter((entry) => entry.correct === false).map((entry) => entry.id || entry.qid || "").filter(Boolean),
+    createdAt: new Date().toISOString(),
+  };
+  state.latestObjectiveResults[moduleName] = result;
+  updateLearningLoopHistory({ objective: { [moduleName]: result } });
+  archiveLearningAttempt(moduleName, result);
+  resolveRetestedWeakAreas(moduleName, result);
+  return result;
+}
+
+function rememberWritingAttempt(attempt = {}) {
+  const value = { ...attempt, attemptId: attempt.attemptId || learningEntityId("attempt"), updatedAt: new Date().toISOString() };
+  state.latestWritingAttempt = value;
+  updateLearningLoopHistory({ writing: value });
+  archiveLearningAttempt("writing", value);
+  return value;
+}
+
+function rememberSpeakingResult(result = {}) {
+  const value = { ...result, attemptId: result.attemptId || learningEntityId("attempt"), updatedAt: new Date().toISOString() };
+  state.latestSpeakingResult = value;
+  updateLearningLoopHistory({ speaking: value });
+  archiveLearningAttempt("speaking", value);
+  return value;
+}
+
+function bandDeltaLabel(current, previous) {
+  const currentValue = Number.parseFloat(current);
+  const previousValue = Number.parseFloat(previous);
+  if (!Number.isFinite(currentValue) || !Number.isFinite(previousValue)) return "";
+  const delta = Math.round((currentValue - previousValue) * 2) / 2;
+  if (!delta) return "No change";
+  return `${delta > 0 ? "+" : ""}${delta.toFixed(1)}`;
+}
+
+function singleQuestionSnapshots(item, prefix = "single") {
+  const normalized = normalizeItem(item || {});
+  const answers = collectAnswers(prefix);
+  return (normalized.questions || []).map((question, index) => {
+    const number = questionNumber(question, index);
+    const id = question.id || `q${number}`;
+    return {
+      number,
+      id,
+      question: String(question.text || `Question ${number}`).slice(0, 260),
+      type: String(question.type || "").slice(0, 80),
+      typeLabel: String(question.typeLabel || "").slice(0, 120),
+      expectedAnswer: String(question.answer || "").slice(0, 120),
+      studentAnswer: String(answers[id] || "").slice(0, 120),
+    };
+  });
+}
+
+function currentSingleCoachContext(moduleName = state.activeModule) {
+  if (!state.activeSingle || state.activeSingle.module !== moduleName) return null;
+  const item = normalizeItem(state.activeSingle);
+  const base = {
+    module: moduleName,
+    mode: "single",
+    practiceMode: currentSinglePracticeMode(moduleName),
+    practiceModeLabel: singleModeLabel(moduleName),
+    answerPrefix: "single",
+    id: item.id || "",
+    title: item.title || "",
+    source: item.source || "",
+    period: item.period || "",
+    questions: singleQuestionSnapshots(item, "single"),
+  };
+  if (moduleName === "reading") {
+    return {
+      ...base,
+      paperText: compactText([item.readingPaper, item.passage, item.prompt].filter(Boolean).join("\n\n"), 18000),
+    };
+  }
+  if (moduleName === "listening") {
+    const scriptPayload = listeningCaptionPayload("single");
+    return {
+      ...base,
+      activeSection: String(state.listeningCaptionState.single?.section || ""),
+      audioTime: null,
+      questionPaper: compactText([item.questionPaper, item.transcript, item.prompt].filter(Boolean).join("\n\n"), 16000),
+      audioScript: compactText(scriptPayload?.text || item.transcript || "", 16000),
+    };
+  }
+  if (moduleName === "writing") {
+    const tasks = (item.writingTasks || [item]).filter(Boolean).map((task, index) => {
+      const normalizedTask = normalizeItem(task);
+      return {
+        task: normalizedTask.taskType || normalizedTask.type || `Task ${index + 1}`,
+        title: normalizedTask.title || "",
+        prompt: compactText(normalizedTask.prompt || normalizedTask.question || "", 4000),
+      };
+    });
+    const attempt = state.latestWritingAttempt || readLearningLoopHistory().writing || null;
+    return {
+      ...base,
+      writingTasks: tasks,
+      essay: compactText(writingEssayForTasks(item.writingTasks || [item], "single"), 20000),
+      latestFeedback: compactText(attempt?.feedback || "", 16000),
+      rewrite: attempt?.rewrite || null,
+    };
+  }
+  if (moduleName === "speaking") {
+    const latest = state.latestSpeakingResult || readLearningLoopHistory().speaking || null;
+    return {
+      ...base,
+      part1: item.part1 || [],
+      part2: item.part2 || "",
+      part3: item.part3 || [],
+      part3Topics: item.part3Topics || [],
+      transcript: compactText(latest?.transcript || qwenBuildAutoScoreTranscript("single") || getSpeakingTranscript("single") || "", 18000),
+      latestResult: latest,
+    };
+  }
+  return base;
+}
+
+function latestSpeakingBandForCoach() {
+  const outputs = ["singleFeedback", "examFeedback", "sequenceFeedback", "bankFeedback"]
+    .map((id) => $(id)?.textContent || "")
+    .filter(Boolean);
+  for (const text of outputs) {
+    const band = extractSpeakingBandFromText(text);
+    if (band) return band;
+  }
+  return "";
+}
+
+function buildCoachHelpContext(extra = {}) {
+  const binding = rebindCoachContext();
+  const helpContext = buildHelpContext(extra);
+  const moduleName = helpContext.surface?.module || helpContext.activeModule || (activeViewId() === "single" ? state.activeModule : "");
+  const writingUploadContext = activeViewId() === "writing-upload" ? currentWritingUploadCoachContext() : null;
+  const singleContext = writingUploadContext || currentSingleCoachContext(moduleName);
+  const activeModuleName = writingUploadContext ? "writing" : moduleName;
+  const localDrafts = uniqueDrafts([...(state.serverDrafts || []), ...readLocalDrafts()]).slice(0, 4);
+  const weakAreas = readWeakAreas().slice(0, 6);
+  const learningHistory = readLearningLoopHistory();
+  const context = {
+    ...helpContext,
+    activeModule: activeModuleName || helpContext.activeModule,
+    binding,
+    coach: {
+      product: "IELTSist AI Coach",
+      currentModule: activeModuleName || "dashboard",
+      currentSet: singleContext ? {
+        id: singleContext.id,
+        title: singleContext.title,
+        source: singleContext.source,
+        period: singleContext.period,
+        practiceMode: singleContext.practiceMode || "",
+        practiceModeLabel: singleContext.practiceModeLabel || "",
+      } : null,
+      recentDrafts: localDrafts.map((draft) => ({
+        module: draft.module || "",
+        title: draft.title || "",
+        updatedAt: draft.updatedAt || draft.updated_at || "",
+      })),
+      vocabularyCount: (state.vocabItems || []).length,
+      weakAreas,
+      focusedQuestion: helpContext.surface?.focusedQuestion || null,
+      latestObjectiveResults: learningHistory.objective || {},
+      latestWriting: state.latestWritingAttempt || learningHistory.writing || null,
+      latestSpeaking: state.latestSpeakingResult || learningHistory.speaking || null,
+      systemGuide: "Guide students through IELTSist when they ask how to use the product: Dashboard/AI Coach for today's plan; Practice for single Listening with AI, Reading with AI, Writing with AI and Speaking with AI topics; Simulation for Same test and Random exam; Writing with AI for custom tasks or Cambridge sets; Mine for drafts, vocabulary and membership. Recommended workflow: start the recommended practice -> submit or finish -> read AI explanation/report -> save vocabulary or weak area -> retest.",
+      answerStyle: "For system questions, explain the relevant IELTSist workflow first. For answer explanations, show: question keywords -> paper/audio evidence -> correct answer -> how to catch it next time. If evidence is missing, say so instead of inventing it.",
+    },
+  };
+  if (!context.reading && moduleName === "reading" && singleContext) context.reading = singleContext;
+  if (!context.listening && moduleName === "listening" && singleContext) context.listening = singleContext;
+  if (activeModuleName === "writing" && singleContext) context.writing = singleContext;
+  if (moduleName === "speaking" && singleContext) context.speaking = singleContext;
+  return JSON.parse(JSON.stringify(context, (_key, value) => {
+    if (typeof value === "string") return value.slice(0, 20000);
+    return value;
+  }));
+}
+
+async function hydrateCoachEvidenceContext(context) {
+  const reading = context?.reading;
+  const id = String(reading?.id || "").trim();
+  const focusedQuestion = Number(
+    context?.coach?.focusedQuestion?.number
+    || context?.surface?.focusedQuestion?.number
+    || 0,
+  );
+  if (reading && id && (focusedQuestion || !reading.paperText)) {
+    try {
+      const cacheKey = `${id}:${focusedQuestion || "all"}`;
+      if (!state.readingContextCache[cacheKey]) {
+        const questionQuery = focusedQuestion ? `&question=${encodeURIComponent(focusedQuestion)}` : "";
+        state.readingContextCache[cacheKey] = await getJson(`/api/reading/context?id=${encodeURIComponent(id)}${questionQuery}`);
+      }
+      const payload = state.readingContextCache[cacheKey];
+      context.reading = {
+        ...reading,
+        paperText: String(payload?.paperText || "").slice(0, 120000),
+        evidenceAvailable: Boolean(payload?.evidenceAvailable && payload?.paperText),
+        passage: payload?.passage || null,
+        passageStartPage: payload?.passageStartPage || null,
+        questionPage: payload?.questionPage || null,
+      };
+    } catch {
+      context.reading = { ...reading, evidenceAvailable: false };
+    }
+  }
+  const listening = context?.listening;
+  const listeningId = String(listening?.id || "").trim();
+  if (listening && !listening.audioScript && listeningId) {
+    try {
+      const payload = await postJson("/api/listening/scripts", { id: listeningId, pageImageUrls: [], allowOcr: false });
+      context.listening = {
+        ...listening,
+        questionPaper: compactText(listening.questionPaper || payload?.questionPaper || "", 30000),
+        audioScript: compactText(payload?.text || "", 30000),
+        sections: Array.isArray(payload?.sections) ? payload.sections.slice(0, 4) : [],
+        evidenceAvailable: Boolean(payload?.available && payload?.text),
+      };
+    } catch {
+      context.listening = { ...listening, evidenceAvailable: false };
+    }
+  }
+  return context;
+}
+
+function coachContextChipHtml(label, detail, tone = "") {
+  return `<span class="coach-context-chip ${tone ? `tone-${escapeHtml(tone)}` : ""}">
+    <strong>${escapeHtml(label)}</strong>
+    <em>${escapeHtml(detail)}</em>
+  </span>`;
+}
+
+function renderCoachContextChips() {
+  const node = $("coachContextChips");
+  if (!node) return;
+  const moduleName = state.activeModule || "listening";
+  const item = state.activeSingle ? normalizeItem(state.activeSingle) : null;
+  const chips = [
+    coachContextChipHtml(`Current ${moduleDisplayName(moduleName)}`, item?.title || "No active paper yet", "primary"),
+  ];
+  const answered = answeredCountForPrefix("single");
+  if (answered) chips.push(coachContextChipHtml("Answered", `${answered} response${answered === 1 ? "" : "s"}`, "blue"));
+  const draft = uniqueDrafts([...(state.serverDrafts || []), ...readLocalDrafts()]).find((item) => /writing/i.test(item.module || item.title || ""));
+  if (draft) chips.push(coachContextChipHtml("Last Writing", draft.title || "Writing draft", "purple"));
+  const speakingBand = latestSpeakingBandForCoach();
+  if (speakingBand) chips.push(coachContextChipHtml("Speaking Band", speakingBand, "green"));
+  const weakAreas = readWeakAreas();
+  if (weakAreas.length) chips.push(coachContextChipHtml("Weak Areas", `${weakAreas.length} saved`, "orange"));
+  node.innerHTML = chips.join("");
+}
+
+function setCoachStatus(text) {
+  const node = $("coachStatus");
+  if (node) node.textContent = text || "";
+}
+
+function updateCoachAttachmentPreview() {
+  const preview = $("coachAttachmentPreview");
+  if (!preview) return;
+  preview.hidden = !state.coach.pendingImageDataUrl;
+}
+
+function setCoachMessageContent(item, role, text) {
+  if (!item) return;
+  if (role === "user") {
+    item.innerHTML = `<p>${escapeHtml(text || "")}</p>`;
+    return;
+  }
+  item.innerHTML = `<div class="help-rich">${renderHelpRichText(text || "")}</div>`;
+}
+
+function addCoachMessage(role, text, options = {}) {
+  const log = $("coachChatLog");
+  if (!log) return null;
+  const item = document.createElement("div");
+  item.className = `coach-message ${role === "user" ? "user" : "assistant"}`;
+  setCoachMessageContent(item, role, text);
+  if (options.attachment) {
+    const badge = document.createElement("span");
+    badge.className = "coach-attachment-badge";
+    badge.textContent = "Screenshot attached";
+    item.appendChild(badge);
+  }
+  log.appendChild(item);
+  log.scrollTop = log.scrollHeight;
+  return item;
+}
+
+function renderCoach() {
+  renderCoachContextChips();
+  updateCoachAttachmentPreview();
+  const log = $("coachChatLog");
+  if (log && !log.dataset.ready) {
+    log.innerHTML = "";
+    const history = state.coach.history.slice(-8);
+    if (history.length) {
+      history.forEach((message) => addCoachMessage(message.role === "user" ? "user" : "assistant", message.content || ""));
+    } else {
+      addCoachMessage("assistant", "Ask me how to use IELTS-ist, where to start today, why an answer is correct, or attach a screenshot. I can guide you through Practice, Simulation, Writing with AI, Speaking with AI topics, drafts, vocabulary, and retests.");
+    }
+    log.dataset.ready = "1";
+  }
+  bindCoachControls(document);
+}
+
+function attachCoachImage(imageDataUrl) {
+  state.coach.pendingImageDataUrl = imageDataUrl || "";
+  updateCoachAttachmentPreview();
+  setCoachStatus(state.coach.pendingImageDataUrl ? "Screenshot attached" : "Ready");
+  if (activeViewId() !== "home") activateView("home", true);
+  setTimeout(() => $("dashboardCoachCard")?.scrollIntoView({ behavior: "smooth", block: "center" }), 80);
+}
+
+async function sendCoachMessage(message) {
+  const clean = String(message || "").trim();
+  const imageDataUrl = state.coach.pendingImageDataUrl || "";
+  if (!clean && !imageDataUrl) return;
+  if (state.coach.busy) return;
+  state.coach.busy = true;
+  addCoachMessage("user", clean || "Please explain this screenshot.", { attachment: Boolean(imageDataUrl) });
+  const pending = addCoachMessage("assistant", "Thinking...");
+  setCoachStatus("Thinking");
+  try {
+    const helpContext = await hydrateCoachEvidenceContext(buildCoachHelpContext());
+    const json = await postJson("/api/help/chat", {
+      contextText: state.coach.contextText,
+      helpContext,
+      history: state.coach.history.slice(-8),
+      imageDataUrl,
+      message: clean || "Please explain this screenshot and give me the evidence chain.",
+    });
+    const answer = json.answer || "";
+    setCoachMessageContent(pending, "assistant", answer || "I could not find enough evidence. Try attaching the question area or typing the question number.");
+    if (json.ocrText) state.coach.contextText = [state.coach.contextText, json.ocrText].filter(Boolean).join("\n\n");
+    state.coach.history.push({ role: "user", content: clean || "[Screenshot attached]" }, { role: "assistant", content: answer });
+    state.coach.pendingImageDataUrl = "";
+    state.coach.lastAnswer = answer;
+    state.coach.lastModule = helpContext.activeModule || state.activeModule || "";
+    updateCoachAttachmentPreview();
+    renderCoachContextChips();
+    setCoachStatus(helpResponseStatus(json.mode));
+  } catch (error) {
+    setCoachMessageContent(pending, "assistant", `Coach failed: ${error.message}`);
+    setCoachStatus("Error");
+  } finally {
+    state.coach.busy = false;
+  }
+}
+
+async function saveCoachVocabulary() {
+  const selection = String(window.getSelection?.() || "").trim();
+  const fallbackText = selection || cleanReviewText(state.coach.lastAnswer).split(/\s+/).slice(0, 8).join(" ");
+  const term = window.prompt("Save which word, sentence, or paragraph?", fallbackText);
+  if (!term) return;
+  const kind = classifyVocabularyText(term);
+  if (!state.authToken) {
+    alert("Please log in first, then save vocabulary to Mine.");
+    activateView("mine", true);
+    return;
+  }
+  await postJson("/api/vocabulary", {
+    term: cleanReviewText(term),
+    context: cleanReviewText(state.coach.contextText || state.coach.lastAnswer),
+    explanation: compactText(state.coach.lastAnswer || state.coach.contextText, kind === "paragraph" ? 260 : 180),
+    source: `Coach:${kind}`,
+  });
+  await refreshMineData();
+  setCoachStatus("Saved");
+}
+
+function addCoachWeakArea() {
+  const moduleName = state.coach.lastModule || state.activeModule || "practice";
+  const item = state.activeSingle ? normalizeItem(state.activeSingle) : null;
+  const summary = compactText(state.coach.lastAnswer || `Review ${moduleDisplayName(moduleName)} evidence and retest.`, 180);
+  const areas = readWeakAreas().filter((entry) => entry.summary !== summary);
+  areas.unshift({
+    id: `weak-${Date.now()}`,
+    module: moduleName,
+    title: item?.title || moduleDisplayName(moduleName),
+    summary,
+    createdAt: new Date().toISOString(),
+  });
+  writeWeakAreas(areas);
+  syncWeakArea(areas[0]);
+  renderCoachContextChips();
+  setCoachStatus("Weak area saved");
+}
+
+function retestCoachSkill() {
+  const moduleName = state.coach.lastModule || state.activeModule || "listening";
+  if (["listening", "reading", "writing", "speaking"].includes(moduleName)) activateSingleModule(moduleName, true);
+}
+
+function runCoachQuickAction(kind) {
+  openGlobalCoachPanel();
+  const input = $("helpChatInput");
+  const prompts = {
+    explain: "Explain my current question with this chain: question keywords -> paper/audio evidence -> correct answer -> how to catch it next time.",
+    translate: "Break down the selected sentence or screenshot. Give a natural translation, key words, and why it matters for IELTS.",
+    plan: "Use my recent wrong answers, writing feedback, speaking score and vocabulary notes to decide what I should practise today.",
+  };
+  if (kind === "capture") {
+    beginHelpCapture("attach");
+    return;
+  }
+  if (input) {
+    input.value = prompts[kind] || "";
+    input.focus();
+  }
+}
+
+function bindCoachControls(root = document) {
+  const form = $("coachChatForm");
+  if (form && form.dataset.boundCoachForm !== "1") {
+    form.dataset.boundCoachForm = "1";
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const input = $("coachChatInput");
+      const message = input?.value || "";
+      if (input) input.value = "";
+      await sendCoachMessage(message);
+    });
+  }
+  const attach = $("coachAttachButton");
+  if (attach && attach.dataset.boundCoachAttach !== "1") {
+    attach.dataset.boundCoachAttach = "1";
+    attach.addEventListener("click", () => beginHelpCapture("coach-attach"));
+  }
+  const clear = $("coachAttachmentClear");
+  if (clear && clear.dataset.boundCoachClear !== "1") {
+    clear.dataset.boundCoachClear = "1";
+    clear.addEventListener("click", () => {
+      state.coach.pendingImageDataUrl = "";
+      updateCoachAttachmentPreview();
+      setCoachStatus("Ready");
+    });
+  }
+  root.querySelectorAll?.("[data-coach-action]").forEach((button) => {
+    if (button.dataset.boundCoachAction === "1") return;
+    button.dataset.boundCoachAction = "1";
+    button.addEventListener("click", async () => {
+      const action = button.dataset.coachAction;
+      if (action === "capture") beginHelpCapture("coach-attach");
+      if (action === "save-vocab") await saveCoachVocabulary();
+      if (action === "weak-area") addCoachWeakArea();
+      if (action === "retest") retestCoachSkill();
+    });
+  });
+  root.querySelectorAll?.("[data-coach-quick]").forEach((button) => {
+    if (button.dataset.boundCoachQuick === "1") return;
+    button.dataset.boundCoachQuick = "1";
+    button.addEventListener("click", () => runCoachQuickAction(button.dataset.coachQuick));
+  });
+  root.querySelectorAll?.("[data-global-coach-open]").forEach((button) => {
+    if (button.dataset.boundGlobalCoachOpen === "1") return;
+    button.dataset.boundGlobalCoachOpen = "1";
+    button.addEventListener("click", openGlobalCoachPanel);
+  });
+}
+
+function mineLearningAttempts() {
+  const history = readLearningLoopHistory();
+  const localAttempts = [
+    ...Object.values(history.objective || {}),
+    history.writing ? { module: "writing", ...history.writing } : null,
+    history.speaking ? { module: "speaking", ...history.speaking } : null,
+  ].filter(Boolean);
+  const attempts = [...(state.learningState?.attempts || []), ...localAttempts];
+  const seen = new Set();
+  return attempts.filter((attempt) => {
+    const key = attempt.attemptId || `${attempt.module}:${attempt.itemId || attempt.title || "attempt"}:${attempt.submittedAt || attempt.updatedAt || attempt.createdAt || ""}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).sort((a, b) => String(b.submittedAt || b.updatedAt || b.createdAt || "").localeCompare(String(a.submittedAt || a.updatedAt || a.createdAt || "")));
+}
+
+function mineWeakAreas() {
+  const all = [...(state.learningState?.weakAreas || []), ...readWeakAreas()];
+  const seen = new Set();
+  return all.filter((area) => {
+    const key = area.id || `${area.module}:${area.questionId || ""}:${area.summary || ""}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function mineAttemptResult(attempt) {
+  return attempt?.result && typeof attempt.result === "object" ? attempt.result : attempt || {};
+}
+
+function mineAttemptWrongCount(attempt) {
+  const result = mineAttemptResult(attempt);
+  if (Array.isArray(result.details)) return result.details.filter((detail) => detail.correct === false).length;
+  const total = Number(result.total ?? attempt?.score?.total);
+  const correct = Number(result.correct ?? attempt?.score?.correct);
+  return Number.isFinite(total) && Number.isFinite(correct) ? Math.max(0, total - correct) : 0;
+}
+
+function mineAttemptScore(attempt) {
+  const result = mineAttemptResult(attempt);
+  const score = attempt?.score || {};
+  const band = normalizeSpeakingBand(result.band || score.band || result.scores?.overall || result.scores?.Overall || "");
+  if (band) return `Band ${band}`;
+  const correct = Number(result.correct ?? score.correct);
+  const total = Number(result.total ?? score.total);
+  if (Number.isFinite(correct) && Number.isFinite(total) && total > 0) return `${correct}/${total}`;
+  return "Feedback saved";
+}
+
+function renderMineLearningAssets() {
+  const attempts = mineLearningAttempts();
+  const weakAreas = mineWeakAreas();
+  const activeWeakAreas = weakAreas.filter((area) => area.status !== "resolved");
+  const resolvedWeakAreas = weakAreas.filter((area) => area.status === "resolved");
+  const wrongAnswers = attempts.reduce((total, attempt) => total + mineAttemptWrongCount(attempt), 0);
+  const weakRows = activeWeakAreas.slice(0, 5).map((area) => {
+    const moduleName = ["listening", "reading", "writing", "speaking"].includes(area.module) ? area.module : "reading";
+    return `<article class="mine-learning-row">
+      <span class="mine-learning-module tone-${escapeHtml(moduleName)}">${escapeHtml(moduleName.slice(0, 1).toUpperCase())}</span>
+      <div><strong>${escapeHtml(moduleDisplayName(moduleName))}${area.questionId ? ` · ${escapeHtml(String(area.questionId).toUpperCase())}` : ""}</strong><p>${escapeHtml(compactText(area.summary || "Saved weak area", 130))}</p></div>
+      <button class="secondary small-button" type="button" data-mine-learning-action="retest" data-module="${escapeHtml(moduleName)}">Retest</button>
+    </article>`;
+  }).join("");
+  const attemptRows = attempts.slice(0, 6).map((attempt) => {
+    const result = mineAttemptResult(attempt);
+    const moduleName = ["listening", "reading", "writing", "speaking"].includes(attempt.module || result.module) ? (attempt.module || result.module) : "reading";
+    const wrong = mineAttemptWrongCount(attempt);
+    const dateValue = attempt.submittedAt || result.updatedAt || result.createdAt || "";
+    const dateLabel = dateValue ? new Date(dateValue).toLocaleDateString() : "Saved";
+    return `<article class="mine-learning-row attempt-row">
+      <span class="mine-learning-module tone-${escapeHtml(moduleName)}">${escapeHtml(moduleName.slice(0, 1).toUpperCase())}</span>
+      <div><strong>${escapeHtml(moduleDisplayName(moduleName))} · ${escapeHtml(mineAttemptScore(attempt))}</strong><p>${wrong ? `${wrong} wrong answer${wrong === 1 ? "" : "s"}` : "Report available"} · ${escapeHtml(dateLabel)}</p></div>
+      <button class="secondary small-button" type="button" data-mine-learning-action="coach" data-module="${escapeHtml(moduleName)}" data-wrong-count="${wrong}">Review</button>
+    </article>`;
+  }).join("");
+  return `<section class="panel mine-card mine-learning-assets">
+    <div class="mine-section-head"><div><span class="eyebrow">Learning assets</span><h3>Your AI learning record</h3></div><span>${attempts.length + weakAreas.length} items</span></div>
+    <div class="mine-learning-stats" aria-label="Learning asset summary">
+      <span><strong>${activeWeakAreas.length}</strong>Weak areas</span>
+      <span><strong>${wrongAnswers}</strong>Wrong answers</span>
+      <span><strong>${attempts.length}</strong>Recent attempts</span>
+      <span><strong>${resolvedWeakAreas.length}</strong>Retest history</span>
+    </div>
+    <div class="mine-learning-columns">
+      <section><header><h4>Weak areas</h4><small>${activeWeakAreas.length} active</small></header>${weakRows || `<div class="empty-list compact-empty">No weak area saved yet.</div>`}</section>
+      <section><header><h4>Recent attempts</h4><small>${attempts.length} saved</small></header>${attemptRows || `<div class="empty-list compact-empty">Finish one practice to create your first report.</div>`}</section>
+    </div>
+  </section>`;
 }
 
 function renderMine() {
@@ -850,15 +2863,15 @@ function renderMine() {
       </div>
       ${renderDraftList(allDrafts, "mixed")}
     </aside>
+    ${renderMineLearningAssets()}
     <section class="panel mine-card mine-quick-actions">
       <div>
         <h3>Quick Actions</h3>
         <p>Jump back into practice or review saved study materials.</p>
       </div>
       <div class="mine-action-grid">
-        ${renderMineAction("AI Speaking Test", "Practice with AI examiner", "single-speaking", "purple")}
-        ${renderMineAction("Writing Feedback", "Get AI feedback on your writing", "writing-upload", "blue")}
-        ${renderMineAction("Speaking Topics", "Browse common topics", "bank", "green")}
+        ${renderMineAction("Speaking with AI", "Choose a topic and talk with the examiner", "bank", "purple")}
+        ${renderMineAction("Writing with AI", "Choose Task 1 charts or Task 2 topics", "writing-upload", "blue")}
         ${renderMineAction("Vocabulary Notebook", "Review saved vocabulary", "vocabulary", "orange")}
       </div>
     </section>`;
@@ -887,6 +2900,575 @@ function renderMineAction(title, subtitle, action, tone) {
     <strong>${escapeHtml(title)}</strong>
     <em>${escapeHtml(subtitle)}</em>
   </button>`;
+}
+
+function loadCoreVocabularyKnown() {
+  try {
+    const values = JSON.parse(localStorage.getItem(coreVocabularyStoreKey) || "[]");
+    state.vocabularyReview.known = new Set(Array.isArray(values) ? values : []);
+  } catch {
+    state.vocabularyReview.known = new Set();
+  }
+}
+
+function saveCoreVocabularyKnown() {
+  localStorage.setItem(coreVocabularyStoreKey, JSON.stringify([...state.vocabularyReview.known]));
+}
+
+function currentCoreVocabularyItem() {
+  const index = Math.max(0, Math.min(ieltsCoreVocabulary.length - 1, state.vocabularyReview.index || 0));
+  state.vocabularyReview.index = index;
+  return ieltsCoreVocabulary[index] || ieltsCoreVocabulary[0];
+}
+
+function renderVocabularyTrainer() {
+  const node = $("vocabularyContent");
+  if (!node) return;
+  const item = currentCoreVocabularyItem();
+  const knownCount = state.vocabularyReview.known.size;
+  const revealed = Boolean(state.vocabularyReview.revealed);
+  const deckPosition = `${state.vocabularyReview.index + 1} / ${ieltsCoreVocabulary.length}`;
+  node.innerHTML = `<section class="vocab-trainer-shell">
+    <article class="vocab-review-card ${revealed ? "is-revealed" : ""}">
+      <div class="vocab-review-top">
+        <span class="eyebrow">IELTS core word</span>
+        <strong>${escapeHtml(deckPosition)}</strong>
+      </div>
+      <div class="vocab-word-face">
+        <h3>${escapeHtml(item.word)}</h3>
+        <p>${escapeHtml(item.phonetic)}</p>
+      </div>
+      <div class="vocab-meaning-face" ${revealed ? "" : "hidden"}>
+        <strong>${escapeHtml(item.meaning)}</strong>
+        <p>${escapeHtml(item.cn)}</p>
+        <blockquote>${escapeHtml(item.example)}</blockquote>
+        <div class="vocab-collocations">
+          ${(item.collocations || []).map((phrase) => `<span>${escapeHtml(phrase)}</span>`).join("")}
+        </div>
+      </div>
+      <div class="vocab-review-actions">
+        <button id="vocabReveal" class="primary" type="button">${revealed ? "Hide meaning" : "Show meaning"}</button>
+        <button id="vocabAgain" class="secondary" type="button">Again</button>
+        <button id="vocabKnown" class="secondary" type="button">Know it</button>
+      </div>
+    </article>
+    <aside class="vocab-review-side">
+      <div class="vocab-study-meter">
+        <span>Mastered</span>
+        <strong>${knownCount}</strong>
+        <em>${ieltsCoreVocabulary.length - knownCount} left</em>
+      </div>
+      <div class="vocab-mini-list">
+        ${ieltsCoreVocabulary.map((word, index) => `<button class="${index === state.vocabularyReview.index ? "active" : ""} ${state.vocabularyReview.known.has(word.word) ? "known" : ""}" type="button" data-vocab-index="${index}">
+          <span>${escapeHtml(word.word)}</span>
+          <em>${state.vocabularyReview.known.has(word.word) ? "known" : "review"}</em>
+        </button>`).join("")}
+      </div>
+      <div class="vocab-nav-actions">
+        <button id="vocabPrev" class="secondary" type="button">Previous</button>
+        <button id="vocabNext" class="primary" type="button">Next word</button>
+      </div>
+    </aside>
+  </section>`;
+  bindVocabularyControls();
+}
+
+function setVocabularyIndex(index) {
+  const total = ieltsCoreVocabulary.length;
+  state.vocabularyReview.index = ((Number(index) || 0) + total) % total;
+  state.vocabularyReview.revealed = false;
+  renderVocabularyTrainer();
+}
+
+function bindVocabularyControls() {
+  $("vocabReveal")?.addEventListener("click", () => {
+    state.vocabularyReview.revealed = !state.vocabularyReview.revealed;
+    renderVocabularyTrainer();
+  });
+  $("vocabAgain")?.addEventListener("click", () => {
+    const item = currentCoreVocabularyItem();
+    state.vocabularyReview.known.delete(item.word);
+    saveCoreVocabularyKnown();
+    setVocabularyIndex(state.vocabularyReview.index + 1);
+  });
+  $("vocabKnown")?.addEventListener("click", () => {
+    const item = currentCoreVocabularyItem();
+    state.vocabularyReview.known.add(item.word);
+    saveCoreVocabularyKnown();
+    setVocabularyIndex(state.vocabularyReview.index + 1);
+  });
+  $("vocabPrev")?.addEventListener("click", () => setVocabularyIndex(state.vocabularyReview.index - 1));
+  $("vocabNext")?.addEventListener("click", () => setVocabularyIndex(state.vocabularyReview.index + 1));
+  document.querySelectorAll("[data-vocab-index]").forEach((button) => {
+    button.onclick = () => setVocabularyIndex(button.dataset.vocabIndex);
+  });
+}
+
+function renderSubscriptionPlan(name, price, label, features, featured = false) {
+  return `<article class="subscription-card${featured ? " featured" : ""}">
+    <div class="subscription-card-head">
+      <span>${escapeHtml(label)}</span>
+      <h3>${escapeHtml(name)}</h3>
+      <strong>${escapeHtml(price)}</strong>
+    </div>
+    <ul>${features.map((feature) => `<li>${escapeHtml(feature)}</li>`).join("")}</ul>
+    <button class="${featured ? "primary" : "secondary"}" type="button" data-home-action="${featured ? "mine" : "module:listening"}">${featured ? "Redeem code" : "Start free"}</button>
+  </article>`;
+}
+
+function renderSubscription() {
+  const node = $("subscriptionContent");
+  if (!node) return;
+  node.innerHTML = `
+    ${renderSubscriptionPlan("Free", "¥0", "Starter", [
+      "Listening and reading practice",
+      "Basic answer checking",
+      "Limited AI trial",
+      "Device draft box",
+    ])}
+    ${renderSubscriptionPlan("Pro", "¥300 / month", "Recommended", [
+      "Unlimited AI Speaking Examiner",
+      "Unlimited Writing Feedback",
+      "AI Coach screenshot explanations",
+      "Study reports and vocabulary review",
+    ], true)}
+    ${renderSubscriptionPlan("School", "Custom", "Classroom", [
+      "Teacher-managed student accounts",
+      "Batch redemption codes",
+      "Shared topic banks",
+      "Learning analytics export",
+    ])}`;
+  bindHomeControls(node);
+}
+
+function activateSingleModule(moduleName, updateHash = true) {
+  if (!["listening", "reading", "writing", "speaking"].includes(moduleName)) return;
+  syncCurrentDraftNow();
+  savePracticeSession();
+  if (state.activeModule === "speaking" && moduleName !== "speaking" && state.qwenSpeaking?.single) disconnectQwenSpeaking("single");
+  state.activeModule = moduleName;
+  state.activeSingle = null;
+  state.singleStarted = false;
+  document.querySelectorAll(".module-btn").forEach((item) => item.classList.toggle("active", item.dataset.module === moduleName));
+  resetSingleTimer(moduleName);
+  renderSingle();
+  activateView("single", updateHash);
+}
+
+function runHomeAction(action) {
+  if (!action) return;
+  if (action === "choose-task") {
+    $("dashboardSkillToolbar")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+  if (action.startsWith("resume-practice")) {
+    const [, expectedModule = "", encodedItemId = ""] = action.split(":");
+    const expectedItemId = decodeURIComponent(encodedItemId || "");
+    if (!restorePracticeSessionAfterData(expectedModule, expectedItemId)) return;
+    renderSingle();
+    activateView("single", true);
+    setSingleImmersive(state.activeModule);
+    return;
+  }
+  if (action === "speaking-vocab") {
+    const topic = mergedItems("speaking").map(normalizeItem)[0] || null;
+    const words = (state.vocabItems || []).slice(0, 5).map((item) => item.term || item.text || item.word || "").filter(Boolean);
+    activateView("bank", true);
+    renderBankList();
+    if (topic) {
+      renderBankPracticeTopic({
+        ...topic,
+        retestFocus: `Vocabulary output practice. Invite the candidate to use these saved expressions naturally when relevant: ${words.join(", ") || "their saved vocabulary"}. Do not force every word and do not repeat questions.`,
+      });
+    }
+    return;
+  }
+  if (action.startsWith("recommended:")) {
+    const [, moduleName, encodedItemId = "", encodedMode = ""] = action.split(":");
+    if (!["listening", "reading", "writing", "speaking"].includes(moduleName)) return;
+    const itemId = decodeURIComponent(encodedItemId || "");
+    const requestedMode = decodeURIComponent(encodedMode || "");
+    if (singleModeOptions(moduleName).some((mode) => mode.id === requestedMode)) state.singlePracticeModes[moduleName] = requestedMode;
+    activateSingleModule(moduleName, true);
+    const options = singleOptions(moduleName);
+    state.activeSingle = options.find((item) => item.id === itemId) || singleRecommendedOption(moduleName, options) || options[0] || null;
+    state.singleStarted = Boolean(state.activeSingle);
+    state.practiceSessionCompleted = false;
+    state.singleAnswers = {};
+    state.singleAnswerItemId = state.activeSingle?.id || "";
+    resetSingleTimer(moduleName);
+    renderSingle();
+    if (state.activeSingle) {
+      setSingleImmersive(moduleName);
+      window.scrollTo({ top: 0, behavior: "auto" });
+      savePracticeSession();
+    }
+    return;
+  }
+  if (action.startsWith("module-mode:")) {
+    const [, moduleName, mode] = action.split(":");
+    if (["listening", "reading", "writing", "speaking"].includes(moduleName) && mode) {
+      state.singlePracticeModes[moduleName] = mode;
+      activateSingleModule(moduleName, true);
+    }
+    return;
+  }
+  if (action.startsWith("review:")) {
+    const moduleName = action.split(":")[1];
+    if (["listening", "reading"].includes(moduleName)) {
+      state.singlePracticeModes[moduleName] = "review";
+      activateSingleModule(moduleName, true);
+      const review = latestObjectiveResult(moduleName);
+      const options = singleOptions(moduleName);
+      state.activeSingle = options.find((item) => item.id === review?.itemId) || options[0] || null;
+      state.singleStarted = Boolean(state.activeSingle);
+      state.practiceSessionCompleted = false;
+      state.singleAnswers = {};
+      state.singleAnswerItemId = state.activeSingle?.id || "";
+      resetSingleTimer(moduleName);
+      renderSingle();
+      if (state.activeSingle) {
+        setSingleImmersive(moduleName);
+        window.scrollTo({ top: 0, behavior: "auto" });
+        savePracticeSession();
+      }
+    }
+    return;
+  }
+  if (action.startsWith("module:")) {
+    activateSingleModule(action.split(":")[1], true);
+    return;
+  }
+  if (action === "exam") {
+    activateView("exam", true);
+    return;
+  }
+  if (action === "sequence") {
+    activateView("sequence", true);
+    return;
+  }
+  if (action === "writing-upload") {
+    activateView("writing-upload", true);
+    return;
+  }
+  if (action === "bank") {
+    activateView("bank", true);
+    renderBankList();
+    return;
+  }
+  if (action === "mine") {
+    activateView("mine", true);
+    return;
+  }
+  if (action === "vocabulary") {
+    activateView("vocabulary", true);
+    renderVocabularyTrainer();
+    return;
+  }
+  if (action === "subscription") {
+    activateView("subscription", true);
+    return;
+  }
+  if (action === "coach") {
+    openGlobalCoachPanel();
+    return;
+  }
+  if (action === "coach-diagnostic") {
+    openGlobalCoachPanel();
+    const input = $("helpChatInput");
+    if (input) {
+      input.value = "Help me choose my first IELTS diagnostic. Ask which skill I want to diagnose, then open that practice. Do not assume Speaking is my weakest skill.";
+      input.focus();
+    }
+  }
+}
+
+function coachAgentDefinitions() {
+  return [
+    { action: "module-mode:listening:training", label: "Open Listening training", shortLabel: "Listening training", terms: ["listening training", "section drill", "caption training", "listening evidence", "听力训练", "字幕训练", "听力分节"] },
+    { action: "module-mode:listening:review", label: "Review Listening mistakes", shortLabel: "Listening review", terms: ["listening review", "review listening", "listening mistakes", "听力错题", "听力复盘"] },
+    { action: "module-mode:listening:exam", label: "Open Listening exam", shortLabel: "Listening exam", terms: ["listening exam", "full listening", "listening mock", "听力模考", "完整听力"] },
+    { action: "module-mode:reading:evidence", label: "Open Reading evidence drill", shortLabel: "Evidence drill", terms: ["reading evidence drill", "reading evidence", "evidence drill", "evidence locator", "阅读证据", "原文定位"] },
+    { action: "module-mode:reading:type", label: "Open Reading question type", shortLabel: "Question type", terms: ["reading question type", "question type practice", "阅读题型", "题型训练"] },
+    { action: "module-mode:reading:review", label: "Review Reading mistakes", shortLabel: "Reading review", terms: ["reading review", "review reading", "reading mistakes", "阅读错题", "阅读复盘"] },
+    { action: "module-mode:writing:coach", label: "Open Writing with AI", shortLabel: "Writing with AI", terms: ["writing coach", "writing rewrite", "rewrite mode", "写作教练", "作文复写"] },
+    { action: "module-mode:speaking:diagnostic", label: "Open Speaking with AI", shortLabel: "Speaking with AI", terms: ["speaking diagnostic", "diagnostic speaking", "口语诊断"] },
+    { action: "module-mode:speaking:part2", label: "Open Cue card drill", shortLabel: "Cue card", terms: ["cue card drill", "speaking part 2", "part 2 practice", "口语 part 2", "口语第二部分"] },
+    { action: "module-mode:speaking:retest", label: "Retest Speaking weakness", shortLabel: "Speaking retest", terms: ["speaking retest", "retest speaking", "口语复练", "口语弱项"] },
+    { action: "module:listening", label: "Open Listening", shortLabel: "Listening", terms: ["listening", "listen", "audio", "听力"] },
+    { action: "module:reading", label: "Open Reading", shortLabel: "Reading", terms: ["reading", "read", "passage", "阅读"] },
+    { action: "writing-upload", label: "Open Writing with AI", shortLabel: "Writing with AI", terms: ["writing", "essay", "task 1", "task 2", "作文", "写作"] },
+    { action: "bank", label: "Open Speaking with AI", shortLabel: "Speaking with AI", terms: ["speaking", "口语", "topic", "part 2", "part 3"] },
+    { action: "sequence", label: "Open Same test", shortLabel: "Same test", terms: ["same test", "same paper", "顺序", "同一套", "整套"] },
+    { action: "exam", label: "Open Random exam", shortLabel: "Random exam", terms: ["random", "mock exam", "full mock", "随机", "模考"] },
+    { action: "vocabulary", label: "Open Vocabulary", shortLabel: "Vocabulary", terms: ["vocabulary", "word", "单词", "词汇"] },
+    { action: "mine", label: "Open Mine", shortLabel: "Mine", terms: ["account", "draft", "membership", "mine", "账户", "草稿", "会员"] },
+  ];
+}
+
+function coachWantsNavigation(text) {
+  const clean = String(text || "").trim();
+  if (!clean) return false;
+  const englishNavigation = /\b(?:open|launch|go to|switch to|take me to)\b/i.test(clean)
+    || /\bstart\s+(?!from\b)(?:(?:my|a|the)\s+)?(?:listening|reading|writing|speaking|practice|drill|test|exam|mock)\b/i.test(clean)
+    || /\b(?:i want to|let me|please)\s+(?:practice|do|take)\s+(?:listening|reading|writing|speaking|a practice|a drill|a test|an exam|a mock)\b/i.test(clean);
+  const chineseNavigation = /(?:开始(?:练|做|听力|阅读|写作|口语)|打开|进入|切换到|跳到|带我去|我要练|去练|做一套|做一次)/.test(clean);
+  return englishNavigation || chineseNavigation;
+}
+
+function coachAgentActionsFromText(text) {
+  const clean = String(text || "").toLowerCase();
+  if (!clean.trim()) return [];
+  const wantsPractice = coachWantsNavigation(text);
+  return coachAgentDefinitions()
+    .filter((item) => item.terms.some((term) => clean.includes(term.toLowerCase())))
+    .map((item) => ({ ...item, autoOpen: wantsPractice }));
+}
+
+function coachAgentActionFromText(text) {
+  return coachAgentActionsFromText(text)[0] || null;
+}
+
+function runCoachAgentAction(action) {
+  if (!action) return;
+  closeHelpPanel();
+  runHomeAction(action);
+}
+
+function appendCoachAgentAction(messageNode, action) {
+  if (!messageNode || !action) return;
+  const row = document.createElement("div");
+  row.className = "coach-agent-actions";
+  row.innerHTML = `<button class="primary small-button" type="button">${escapeHtml(action.label)}</button>`;
+  row.querySelector("button")?.addEventListener("click", () => runCoachAgentAction(action.action));
+  messageNode.appendChild(row);
+}
+
+function appendCoachAgentActions(messageNode, actions) {
+  const list = (actions || []).slice(0, 3);
+  if (!messageNode || !list.length) return;
+  const row = document.createElement("div");
+  row.className = "coach-agent-actions";
+  row.innerHTML = list.map((action) => `<button class="primary small-button" type="button" data-agent-action="${escapeHtml(action.action)}">${escapeHtml(action.label)}</button>`).join("");
+  row.querySelectorAll("[data-agent-action]").forEach((button) => {
+    button.addEventListener("click", () => runCoachAgentAction(button.dataset.agentAction));
+  });
+  messageNode.appendChild(row);
+}
+
+function addHelpWeakArea() {
+  const surface = currentCoachSurface();
+  const moduleName = surface.module || state.activeModule || "practice";
+  const latestAssistant = [...(state.help.history || [])].reverse().find((item) => item.role === "assistant")?.content || "";
+  const summary = compactText(latestAssistant || surface.title || `Review ${moduleDisplayName(moduleName)} evidence and retest.`, 180);
+  const areas = readWeakAreas().filter((entry) => entry.summary !== summary);
+  areas.unshift({
+    id: `weak-${Date.now()}`,
+    module: moduleName,
+    title: surface.title || moduleDisplayName(moduleName),
+    summary,
+    createdAt: new Date().toISOString(),
+  });
+  writeWeakAreas(areas);
+  syncWeakArea(areas[0]);
+  setHelpStatus("Weak area saved");
+  renderDashboard();
+}
+
+function renderGlobalCoachContext() {
+  const root = $("helpCoachContext");
+  if (!root) return;
+  const surface = currentCoachSurface();
+  const answered = surface.answerCount ? `${surface.answerCount} answered` : surface.isImmersive ? "In practice" : "Ready";
+  const questionLabel = surface.focusedQuestion?.number ? `Question ${surface.focusedQuestion.number}` : "";
+  const crumbs = [surface.viewLabel || "IELTS-ist", surface.moduleLabel || "", compactText(surface.title || "", 48), questionLabel].filter(Boolean);
+  root.innerHTML = `
+    <div class="help-coach-breadcrumb">
+      ${crumbs.map((crumb) => `<span>${escapeHtml(crumb)}</span>`).join("<i>/</i>")}
+    </div>
+    <div class="help-coach-mini-status">
+      <span>${escapeHtml(answered)}</span>
+      ${surface.source ? `<em>${escapeHtml(compactText(surface.source, 44))}</em>` : ""}
+    </div>`;
+}
+
+function renderGlobalCoachActions() {
+  const root = $("helpCoachActions");
+  if (!root) return;
+  const surface = currentCoachSurface();
+  const readingQuestionRef = surface.focusedQuestion?.number
+    ? `Q${surface.focusedQuestion.number}`
+    : "the current Reading question";
+  const primary = surface.module && ["listening", "reading", "writing", "speaking"].includes(surface.module)
+    ? { action: surface.module === "speaking" ? "bank" : `module:${surface.module}`, label: `Open ${surface.moduleLabel}` }
+    : { action: "module:listening", label: "Start Listening" };
+  const primaryActions = !surface.module
+    ? [
+        { type: "prompt", label: "How should I use IELTSist?", prompt: "Guide me through IELTSist as a student. Ask what I want to practise, then route me to the right skill and explain the loop: practice -> AI feedback -> review -> retest." },
+        { type: "capture", label: "Attach screenshot" },
+      ]
+    : surface.module === "reading"
+    ? [
+        { type: "prompt", label: "Explain this question", prompt: `Explain ${readingQuestionRef} step by step. Start from the question focus and paraphrase chain. In exam practice, do not reveal the answer before checking my reasoning.` },
+        { type: "prompt", label: "Find evidence", prompt: `Help me locate the passage and evidence sentence for ${readingQuestionRef}. Do not reveal the answer.` },
+        { type: "prompt", label: "One hint", prompt: `Give exactly one small hint for ${readingQuestionRef}. Do not reveal the answer.` },
+        { type: "prompt", label: "Check my answer", prompt: `Check my answer for ${readingQuestionRef} against the evidence. Explain why it works or fails.` },
+      ]
+    : [
+        { type: "prompt", label: "Show evidence", prompt: "Show the evidence chain for the current question: question focus -> keywords -> paper/audio evidence -> correct answer -> why my answer or the wrong option fails." },
+        { type: "capture", label: "Attach screenshot" },
+        { type: "retest", label: "Retest skill" },
+      ];
+  const moreActions = !surface.module
+    ? [
+        { type: "prompt", label: "Explain screen", prompt: "Explain what I should do on my current IELTS-ist screen and what the next step is." },
+        { type: "prompt", label: "Explain in Chinese", prompt: "Explain how to use this IELTSist screen in Chinese. Keep IELTS keywords in English and make the next step practical." },
+        primary,
+      ]
+    : [
+        { type: "prompt", label: "Generate similar", prompt: "Generate one similar IELTS question from my current question and weak area. Keep the same skill but change the wording. Wait for my answer before revealing the solution." },
+        { type: "prompt", label: "Explain screen", prompt: "Explain what I should do on my current IELTS-ist screen and what the next step is." },
+        { type: "prompt", label: "Explain in Chinese", prompt: "Explain this in Chinese. Keep IELTS keywords in English and make it practical for my next attempt." },
+        { type: "vocab", label: "Save vocabulary" },
+        { type: "weak", label: "Save weak area" },
+        primary,
+      ];
+  const renderActionButton = (item) => {
+    if (item.type === "prompt") return `<button type="button" data-global-coach-prompt="${escapeHtml(item.prompt)}">${escapeHtml(item.label)}</button>`;
+    if (item.type === "capture") return `<button type="button" data-global-coach-capture>${escapeHtml(item.label)}</button>`;
+    if (item.type === "vocab") return `<button type="button" data-global-coach-vocab>${escapeHtml(item.label)}</button>`;
+    if (item.type === "weak") return `<button type="button" data-global-coach-weak>${escapeHtml(item.label)}</button>`;
+    if (item.type === "retest") return `<button type="button" data-global-coach-retest>${escapeHtml(item.label)}</button>`;
+    return `<button type="button" data-global-coach-action="${escapeHtml(item.action)}">${escapeHtml(item.label)}</button>`;
+  };
+  root.innerHTML = `
+    ${primaryActions.map(renderActionButton).join("")}
+    <details class="help-coach-more">
+      <summary>More</summary>
+      <div>${moreActions.map(renderActionButton).join("")}</div>
+    </details>`;
+  root.querySelectorAll("[data-global-coach-action]").forEach((button) => {
+    button.addEventListener("click", () => runCoachAgentAction(button.dataset.globalCoachAction));
+  });
+  root.querySelectorAll("[data-global-coach-prompt]").forEach((button) => {
+    button.addEventListener("click", () => {
+      void sendHelpChatMessage(button.dataset.globalCoachPrompt || "");
+    });
+  });
+  root.querySelectorAll("[data-global-coach-capture]").forEach((button) => {
+    button.addEventListener("click", () => beginHelpCapture("attach"));
+  });
+  root.querySelectorAll("[data-global-coach-weak]").forEach((button) => {
+    button.addEventListener("click", addHelpWeakArea);
+  });
+  root.querySelectorAll("[data-global-coach-vocab]").forEach((button) => {
+    button.addEventListener("click", saveHelpVocabulary);
+  });
+  root.querySelectorAll("[data-global-coach-retest]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const moduleName = currentCoachSurface().module || state.activeModule || "listening";
+      const hasObjectiveReview = ["listening", "reading"].includes(moduleName) && Boolean(latestObjectiveResult(moduleName));
+      runCoachAgentAction(moduleName === "speaking" ? "bank" : hasObjectiveReview ? `review:${moduleName}` : `module:${moduleName}`);
+    });
+  });
+}
+
+function openGlobalCoachPanel(surfaceOverride = null) {
+  const override = surfaceOverride && typeof surfaceOverride === "object" && !surfaceOverride.type
+    ? surfaceOverride
+    : null;
+  state.help.surfaceOverride = override;
+  openHelpPanel();
+  document.body.classList.add("coach-dock-open");
+  const view = activeViewId();
+  const resultVisible = Boolean(document.querySelector(".view.active .unified-result-shell"));
+  const examLocked = !resultVisible && (
+    (view === "writing-upload" && state.writingWorkspaceMode !== "entry" && state.writingSetupMode === "exam")
+    || (view === "bank" && state.speakingSetupMode === "exam" && Boolean(document.querySelector("#bankPracticePanel .speaking-practice-layout")))
+  );
+  const form = $("helpChatForm");
+  const input = $("helpChatInput");
+  const actions = $("helpCoachActions");
+  if (form) form.dataset.examLocked = examLocked ? "1" : "0";
+  if (input) input.disabled = examLocked;
+  if (actions) actions.hidden = examLocked;
+  setHelpStatus("AI Coach");
+  updateHelpAttachmentPreview();
+  renderGlobalCoachContext();
+  renderGlobalCoachActions();
+  const log = $("helpChatLog");
+  const surfaceSummary = coachSurfaceSummary();
+  const coachSurfaceKey = `${surfaceSummary}|${examLocked ? "exam-locked" : "coach-ready"}`;
+  if (log && log.dataset.coachSurface !== coachSurfaceKey) {
+    addHelpMessage("assistant", examLocked
+      ? `Current task: ${surfaceSummary}. AI hints are locked during Exam mode. Finish the practice to review evidence with AI Coach.`
+      : `Current task: ${surfaceSummary}. Ask about this task, attach a screenshot, or ask me to route you to the next practice.`);
+    log.dataset.coachSurface = coachSurfaceKey;
+  }
+  if (!examLocked) setTimeout(() => $("helpChatInput")?.focus({ preventScroll: true }), 60);
+}
+
+function refreshGlobalCoachPanelIfOpen() {
+  const panel = $("helpChatPanel");
+  if (!panel || panel.hidden) return;
+  renderGlobalCoachContext();
+  renderGlobalCoachActions();
+}
+
+function bindHomeControls(root = document) {
+  root.querySelectorAll?.("[data-home-action]").forEach((button) => {
+    if (button.dataset.boundHomeAction === "1") return;
+    button.dataset.boundHomeAction = "1";
+    button.addEventListener("click", () => runHomeAction(button.dataset.homeAction));
+  });
+  bindCoachControls(root);
+  const dashboardCoachForm = root.querySelector?.("#dashboardCoachForm");
+  if (dashboardCoachForm && dashboardCoachForm.dataset.boundDashboardCoach !== "1") {
+    dashboardCoachForm.dataset.boundDashboardCoach = "1";
+    dashboardCoachForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const input = dashboardCoachForm.querySelector("#dashboardCoachInput");
+      const message = String(input?.value || "").trim();
+      if (!message) return;
+      if (input) input.value = "";
+      await sendHelpChatMessage(message);
+    });
+  }
+  root.querySelectorAll?.("[data-dashboard-coach-prompt]").forEach((button) => {
+    if (button.dataset.boundDashboardCoachPrompt === "1") return;
+    button.dataset.boundDashboardCoachPrompt = "1";
+    button.addEventListener("click", () => sendHelpChatMessage(button.dataset.dashboardCoachPrompt || ""));
+  });
+  const profileForm = root.querySelector?.("#learningProfileForm");
+  if (profileForm && profileForm.dataset.boundProfile !== "1") {
+    profileForm.dataset.boundProfile = "1";
+    profileForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const submit = profileForm.querySelector("button[type='submit']");
+      if (submit) {
+        submit.disabled = true;
+        submit.textContent = "Saving...";
+      }
+      try {
+        const values = new FormData(profileForm);
+        const json = await patchJson("/api/learning/profile", {
+          currentBand: Number(values.get("currentBand")),
+          targetBand: Number(values.get("targetBand")),
+          examDate: String(values.get("examDate") || ""),
+          dailyMinutes: Number(values.get("dailyMinutes")),
+          onboardingCompleted: true,
+        });
+        const planJson = await getJson("/api/learning/today-plan");
+        state.learningState = { ...(state.learningState || {}), profile: json.profile, todayPlan: planJson.plan };
+        renderDashboard();
+      } catch (error) {
+        if (submit) {
+          submit.disabled = false;
+          submit.textContent = error.message || "Save failed";
+        }
+      }
+    });
+  }
 }
 
 function renderDraftList(drafts, mode) {
@@ -1036,6 +3618,46 @@ async function redeemCode() {
   }
 }
 
+function bindMineLearningAssetControls(root = document) {
+  root.querySelectorAll?.("[data-mine-learning-action]").forEach((button) => {
+    button.onclick = () => {
+      const action = button.dataset.mineLearningAction || "coach";
+      const moduleName = ["listening", "reading", "writing", "speaking"].includes(button.dataset.module) ? button.dataset.module : "reading";
+      if (action === "retest") {
+        if (moduleName === "speaking") {
+          startSpeakingResultRetest("fluency");
+        } else if (moduleName === "writing") {
+          activateView("writing-upload", true);
+        } else {
+          runHomeAction(`review:${moduleName}`);
+        }
+        return;
+      }
+      const wrongCount = Number(button.dataset.wrongCount || 0);
+      const attempt = mineLearningAttempts().find((entry) => (entry.module || mineAttemptResult(entry).module) === moduleName) || null;
+      const result = mineAttemptResult(attempt);
+      state.help.context = {
+        activeModule: moduleName,
+        learningAttempt: compactLearningRecord(attempt || result),
+        ...(["listening", "reading"].includes(moduleName) ? { [moduleName]: compactLearningRecord(result) } : {}),
+      };
+      openGlobalCoachPanel({
+        viewLabel: "Attempt review",
+        module: moduleName,
+        moduleLabel: moduleDisplayName(moduleName),
+        title: result.title || `Latest ${moduleDisplayName(moduleName)} attempt`,
+        source: [result.source, result.period].filter(Boolean).join(" · "),
+        answerCount: Math.max(0, Number(result.total || 0) - wrongCount),
+        focusedQuestion: null,
+      });
+      const input = $("helpChatInput");
+      if (!input) return;
+      input.value = `Review my latest ${moduleName} attempt${wrongCount ? ` with ${wrongCount} wrong answer${wrongCount === 1 ? "" : "s"}` : ""}. Explain the main weakness, show the available evidence, and give me one executable retest.`;
+      input.focus();
+    };
+  });
+}
+
 function bindMineControls() {
   $("authForm")?.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -1063,14 +3685,12 @@ function bindMineControls() {
   document.querySelectorAll(".mine-quick-action, .mine-action-card").forEach((button) => {
     button.onclick = () => runMineAction(button.dataset.mineAction);
   });
+  bindMineLearningAssetControls();
 }
 
 function runMineAction(action) {
   if (action === "single-speaking") {
-    state.activeModule = "speaking";
-    document.querySelectorAll(".module-btn").forEach((item) => item.classList.toggle("active", item.dataset.module === "speaking"));
-    activateView("single", true);
-    renderSingle();
+    activateSingleModule("speaking", true);
     return;
   }
   if (action === "writing-upload") {
@@ -1082,11 +3702,12 @@ function runMineAction(action) {
     return;
   }
   if (action === "vocabulary") {
-    document.querySelector(".mine-vocab-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    activateView("vocabulary", true);
+    renderVocabularyTrainer();
     return;
   }
   if (action === "plans") {
-    $("redeemCode")?.focus();
+    activateView("subscription", true);
   }
 }
 
@@ -1113,6 +3734,7 @@ function currentDraftSnapshot() {
   const activeView = document.querySelector(".view.active")?.id || "practice";
   const values = {};
   document.querySelectorAll(".view.active textarea, .view.active input.answer-input, .view.active input.paper-answer-input, .view.active input.page-card-input, .view.active input.band-input").forEach((field) => {
+    if (field.closest("[hidden]")) return;
     const key = draftFieldKey(field);
     if (key) values[key] = field.value || "";
   });
@@ -1124,11 +3746,17 @@ function currentDraftSnapshot() {
     : activeView === "sequence"
       ? bundleDraftPayload(state.sequence)
       : null;
+  const writingSetId = activeView === "writing-upload" && state.writingWorkspaceMode === "cambridge"
+    ? state.pendingWritingSetId || ""
+    : "";
+  const writingTask1Id = writingSetId ? state.selectedWritingTask1Id || writingUploadTaskByNumber(1)?.id || "" : "";
+  const writingTask2Id = writingSetId ? state.selectedWritingTask2Id || writingUploadTaskByNumber(2)?.id || "" : "";
+  const draftModule = activeView === "writing-upload" ? "writing" : state.activeModule;
   return {
-    key: `${activeView}:${state.activeModule}:${state.activeSingle?.id || bundle?.listeningId || "current"}`,
-    module: activeView === "single" ? state.activeModule : activeView,
-    title: `${activeTitle} · ${state.activeModule || "practice"}`,
-    payload: { values, activeView, activeModule: state.activeModule, activeSingleId: state.activeSingle?.id || "", bundle },
+    key: `${activeView}:${draftModule}:${writingSetId || state.activeSingle?.id || bundle?.listeningId || "current"}${writingSetId ? `:${writingTask1Id}:${writingTask2Id}` : ""}`,
+    module: activeView === "single" ? state.activeModule : draftModule || activeView,
+    title: `${activeTitle} · ${draftModule || "practice"}`,
+    payload: { values, activeView, activeModule: draftModule, activeSingleId: state.activeSingle?.id || "", writingSetId, writingTask1Id, writingTask2Id, bundle },
     updatedAt: new Date().toISOString(),
   };
 }
@@ -1151,7 +3779,19 @@ async function syncCurrentDraftNow() {
 
 function scheduleDraftAutosave() {
   if (state.draftSaveTimer) window.clearTimeout(state.draftSaveTimer);
-  state.draftSaveTimer = window.setTimeout(syncCurrentDraftNow, 700);
+  setWritingAutosaveStatus("Saving...");
+  state.draftSaveTimer = window.setTimeout(async () => {
+    state.draftSaveTimer = null;
+    await syncCurrentDraftNow();
+    setWritingAutosaveStatus("Saved");
+  }, 700);
+}
+
+function setWritingAutosaveStatus(label) {
+  document.querySelectorAll("[data-writing-autosave-status]").forEach((node) => {
+    node.textContent = label || "Saved";
+    node.dataset.state = /^saving/i.test(label || "") ? "saving" : "saved";
+  });
 }
 
 async function syncAllLocalDrafts() {
@@ -1167,6 +3807,15 @@ async function syncAllLocalDrafts() {
   await refreshMineData();
 }
 
+function applyDraftValues(values = {}) {
+  for (const [id, value] of Object.entries(values || {})) {
+    const field = findDraftField(id);
+    if (!field) continue;
+    field.value = value;
+    field.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+}
+
 function restoreDraft(key) {
   const draft = [...state.serverDrafts, ...readLocalDrafts()].find((item) => (item.key || item.draft_key) === key);
   if (!draft?.payload?.values) return;
@@ -1180,18 +3829,26 @@ function restoreDraft(key) {
     if (bundle) buildSequence(bundle);
   } else if (targetView === "single" && draft.payload.activeModule) {
     state.activeModule = draft.payload.activeModule;
+    state.singleStarted = true;
     document.querySelectorAll(".module-btn").forEach((item) => item.classList.toggle("active", item.dataset.module === state.activeModule));
     const item = findItemById(state.activeModule, draft.payload.activeSingleId);
     if (item) state.activeSingle = item;
     renderSingle();
-  }
-  for (const [id, value] of Object.entries(draft.payload.values)) {
-    const field = findDraftField(id);
-    if (field) {
-      field.value = value;
-      field.dispatchEvent(new Event("input", { bubbles: true }));
+    setSingleImmersive(state.activeModule);
+  } else if (targetView === "writing-upload") {
+    const setId = draft.payload.writingSetId || "";
+    const task1Id = draft.payload.writingTask1Id || "";
+    const task2Id = draft.payload.writingTask2Id || "";
+    const taskNumber = task1Id ? 1 : task2Id ? 2 : 0;
+    const taskId = taskNumber === 1 ? task1Id : task2Id;
+    if (setId && taskId) {
+      state.writingLibraryTaskNumber = taskNumber;
+      startWritingSystemPractice("selected", { setId, taskNumber, taskId, scroll: false });
+    } else {
+      setWritingWorkspaceMode("custom");
     }
   }
+  applyDraftValues(draft.payload.values);
 }
 
 async function deleteDraft(key) {
@@ -1220,7 +3877,7 @@ async function saveHelpVocabulary() {
     activateView("mine", true);
     return;
   }
-  await postJson("/api/vocabulary", { term: cleanReviewText(term), context: cleanReviewText(context), explanation, source: `Help:${kind}` });
+  await postJson("/api/vocabulary", { term: cleanReviewText(term), context: cleanReviewText(context), explanation, source: `Coach:${kind}` });
   await refreshMineData();
 }
 
@@ -1371,27 +4028,22 @@ function renderSingleFilters(items, moduleName) {
   $("singleTaskFilter").style.display = "none";
 }
 
-function singleWritingSetTitle(tasks) {
-  const first = normalizeItem(tasks?.[0] || {});
-  const book = itemBook(first);
-  const test = itemTest(first);
-  const source = first.source || "Writing";
-  return [book ? `Cambridge ${book}` : source, test ? `Test ${test}` : "", "Writing Task 1 + Task 2"]
-    .filter(Boolean)
-    .join(" · ");
-}
-
-function singleWritingSetFromPair(pair) {
-  const tasks = pair.map(normalizeItem);
-  const first = tasks[0];
+function singleWritingTaskOption(task) {
+  const item = normalizeItem(task || {});
+  const taskNumber = writingTaskNumber(item) || 2;
+  const book = itemBook(item);
+  const test = itemTest(item);
+  const source = item.source || "Writing";
   return {
-    id: `writing-set:${writingPairKey(first)}`,
+    id: item.id,
     module: "writing",
-    type: "Task 1 + Task 2",
-    title: singleWritingSetTitle(tasks),
-    source: first.source || "",
-    period: first.period || "",
-    writingTasks: tasks,
+    type: `Task ${taskNumber}`,
+    title: [book ? `Cambridge ${book}` : source, test ? `Test ${test}` : "", `Writing Task ${taskNumber}`]
+      .filter(Boolean)
+      .join(" · "),
+    source: item.source || "",
+    period: item.period || "",
+    writingTasks: [item],
   };
 }
 
@@ -1399,7 +4051,48 @@ function singleOptions(moduleName) {
   const allOptions = mergedItems(moduleName).map(normalizeItem);
   const filtered = applySingleFilters(allOptions, moduleName);
   if (moduleName !== "writing") return filtered;
-  return pairedWritingSets(filtered).map(singleWritingSetFromPair);
+  return filtered.map(singleWritingTaskOption);
+}
+
+function writingSystemOptions() {
+  const tasks = mergedItems("writing").map(normalizeItem);
+  return tasks
+    .filter((task) => writingTaskNumber(task) === 2)
+    .map((task2) => {
+      return {
+        id: `writing-set:${writingPairKey(task2)}`,
+        module: "writing",
+        type: "Task 2",
+        title: [itemBook(task2) ? `Cambridge ${itemBook(task2)}` : task2.source || "Writing", itemTest(task2) ? `Test ${itemTest(task2)}` : "", "Writing Task 2"]
+          .filter(Boolean)
+          .join(" · "),
+        source: task2.source || "",
+        period: task2.period || "",
+        writingTasks: [task2],
+      };
+    });
+}
+
+function writingSystemRecommended(options = writingSystemOptions()) {
+  return chooseRotatingRecommendation("writing", options);
+}
+
+function writingPromptForTasks(tasks = []) {
+  return tasks.filter(Boolean).map((task, index) => {
+    const item = normalizeItem(task);
+    const taskName = item.type || `Task ${index + 1}`;
+    const body = [item.prompt, item.data].filter(Boolean).join("\n\nData: ");
+    return `${taskName}: ${item.title || "Writing task"}\n${body}`;
+  }).join("\n\n---\n\n");
+}
+
+function writingEssayForTasks(tasks = [], prefixRoot = "single") {
+  return tasks.filter(Boolean).map((task, index) => {
+    const item = normalizeItem(task);
+    const taskName = item.type || `Task ${index + 1}`;
+    const value = $(`${prefixRoot}-task${index + 1}-writing`)?.value.trim() || "";
+    return `${taskName} response:\n${value}`;
+  }).join("\n\n---\n\n");
 }
 
 function mergedItems(moduleName) {
@@ -1417,7 +4110,9 @@ function mergedItems(moduleName) {
             : [];
   const builtIn = moduleName === "speaking"
     ? [...(Array.isArray(builtInRaw) ? builtInRaw : []), ...builtInPublicSpeakingTopics, ...expandedPublicSpeakingTopics]
-    : builtInRaw;
+    : moduleName === "writing"
+      ? [...(Array.isArray(builtInRaw) ? builtInRaw : []), ...builtInPublicWritingTopics]
+      : builtInRaw;
   return [...user, ...(Array.isArray(builtIn) ? builtIn : [])];
 }
 
@@ -1520,6 +4215,10 @@ function resetSequenceTimer() {
 }
 
 function singleModuleTotal(moduleName = state.activeModule) {
+  const mode = currentSinglePracticeMode(moduleName);
+  if (moduleName === "listening" && mode === "training") return 10 * 60;
+  if (["listening", "reading"].includes(moduleName) && mode === "review") return 15 * 60;
+  if (moduleName === "reading" && ["evidence", "type"].includes(mode)) return 20 * 60;
   return {
     listening: 30 * 60,
     reading: 60 * 60,
@@ -1552,6 +4251,7 @@ function startSingleTimer() {
   state.singleTimerId = setInterval(() => {
     state.singleSeconds = Math.max(0, state.singleSeconds - 1);
     renderSingleTimer();
+    if (state.singleSeconds % 5 === 0) savePracticeSession();
     if (state.singleSeconds === 0) stopSingleTimer();
   }, 1000);
   renderSingleTimer();
@@ -1595,6 +4295,20 @@ async function postJson(url, payload, options = {}) {
   return parseJsonResponse(response);
 }
 
+async function sendJsonRequest(url, method, payload) {
+  const headers = { "content-type": "application/json" };
+  if (state.authToken) headers.authorization = `Bearer ${state.authToken}`;
+  const response = await fetch(url, {
+    method,
+    headers,
+    body: payload === undefined ? undefined : JSON.stringify(payload),
+  });
+  return parseJsonResponse(response);
+}
+
+const putJson = (url, payload) => sendJsonRequest(url, "PUT", payload);
+const patchJson = (url, payload) => sendJsonRequest(url, "PATCH", payload);
+
 async function postBlobWithTimeout(url, blob, timeoutMs = 0) {
   const headers = {};
   if (blob?.type) headers["content-type"] = blob.type;
@@ -1628,6 +4342,12 @@ function setHelpStatus(text) {
   if (node) node.textContent = text || "";
 }
 
+function helpResponseStatus(mode) {
+  if (mode === "ai") return "AI";
+  if (mode === "evidence-required") return "Evidence needed";
+  return "Local";
+}
+
 function openHelpPanel() {
   const panel = $("helpChatPanel");
   if (panel) panel.hidden = false;
@@ -1645,6 +4365,8 @@ function closeHelpPanel() {
   stopHelpCaptureStream();
   const panel = $("helpChatPanel");
   if (panel) panel.hidden = true;
+  state.help.surfaceOverride = null;
+  document.body.classList.remove("coach-dock-open");
 }
 
 function renderHelpInline(text) {
@@ -1705,12 +4427,13 @@ function setHelpMessageContent(item, role, text) {
 
 function addHelpMessage(role, text) {
   const log = $("helpChatLog");
-  if (!log) return;
+  if (!log) return null;
   const item = document.createElement("div");
   item.className = `help-message ${role === "user" ? "user" : "assistant"}`;
   setHelpMessageContent(item, role, text);
   log.appendChild(item);
   log.scrollTop = log.scrollHeight;
+  return item;
 }
 
 function stopHelpCaptureStream() {
@@ -1921,21 +4644,22 @@ async function cropHelpSelectionFromPageImages(rect) {
 }
 
 async function explainHelpImage(imageDataUrl) {
-  openHelpPanel();
+  openGlobalCoachPanel();
   setHelpStatus("Recognizing");
   addHelpMessage("assistant", "Recognizing the selected area...");
   try {
-    const helpContext = buildHelpContext();
+    const helpContext = buildCoachHelpContext();
     const json = await postJson("/api/help/explain", { imageDataUrl, helpContext });
     state.help.contextText = json.ocrText || "";
     state.help.context = helpContext;
-    state.help.history = [{ role: "assistant", content: json.answer || "" }];
+    state.help.history = [{ role: "assistant", content: json.answer || "", createdAt: new Date().toISOString() }];
+    persistCoachThread(state.help.binding, state.help.history);
     const last = $("helpChatLog")?.lastElementChild;
     setHelpMessageContent(last, "assistant", json.answer || "I could not recognize enough text. Try a tighter screenshot or type your question.");
-    setHelpStatus(json.mode === "ai" ? "AI" : "Local");
+    setHelpStatus(helpResponseStatus(json.mode));
   } catch (error) {
     const last = $("helpChatLog")?.lastElementChild;
-    setHelpMessageContent(last, "assistant", `Help failed: ${error.message}`);
+    setHelpMessageContent(last, "assistant", `AI Coach failed: ${error.message}`);
     setHelpStatus("Error");
   }
 }
@@ -1943,8 +4667,20 @@ async function explainHelpImage(imageDataUrl) {
 function attachHelpImage(imageDataUrl) {
   state.help.pendingImageDataUrl = imageDataUrl || "";
   updateHelpAttachmentPreview();
-  openHelpPanel();
+  openGlobalCoachPanel();
   setHelpStatus(state.help.pendingImageDataUrl ? "Image attached" : "Ready");
+}
+
+function isCoachCaptureMode(mode = state.help.captureMode) {
+  return String(mode || "").startsWith("coach-");
+}
+
+function setCaptureStatus(text) {
+  setHelpStatus(text);
+}
+
+function addCaptureAssistantMessage(text) {
+  addHelpMessage("assistant", text);
 }
 
 async function finishHelpSelection(event) {
@@ -1956,11 +4692,11 @@ async function finishHelpSelection(event) {
   state.help.activeHandle = "";
   state.help.originRect = null;
   if (!rect || rect.width < 28 || rect.height < 28) {
-    setHelpStatus("Drag area");
+    setCaptureStatus("Drag area");
     return;
   }
   setHelpSelectionRect(rect, true);
-  setHelpStatus("Adjust or Explain");
+  setCaptureStatus("Adjust or Explain");
 }
 
 async function confirmHelpSelection() {
@@ -1974,16 +4710,16 @@ async function confirmHelpSelection() {
       : await cropHelpSelectionFromPageImages(rect);
     hideHelpCaptureOverlay();
     stopHelpCaptureStream();
-    if (state.help.captureMode === "attach") {
+    if (state.help.captureMode === "attach" || state.help.captureMode === "coach-attach") {
       attachHelpImage(imageDataUrl);
       return;
     }
     await explainHelpImage(imageDataUrl);
   } catch (error) {
     stopHelpCaptureStream();
-    openHelpPanel();
-    setHelpStatus("Ready");
-    addHelpMessage("assistant", error.message || "Could not capture the selected area.");
+    openGlobalCoachPanel();
+    setCaptureStatus("Ready");
+    addCaptureAssistantMessage(error.message || "Could not capture the selected area.");
   }
 }
 
@@ -1997,7 +4733,7 @@ function retakeHelpSelection() {
   const toolbar = $("helpCaptureToolbar");
   if (selection) selection.style.cssText = "";
   if (toolbar) toolbar.hidden = true;
-  setHelpStatus(state.help.video ? "Drag screen area" : "Drag PDF area");
+  setCaptureStatus(state.help.video ? "Drag screen area" : "Drag PDF area");
 }
 
 async function beginHelpCapture(mode = "explain") {
@@ -2005,16 +4741,16 @@ async function beginHelpCapture(mode = "explain") {
   state.help.captureMode = captureMode;
   const requestId = state.help.captureRequestId + 1;
   state.help.captureRequestId = requestId;
-  openHelpPanel();
+  openGlobalCoachPanel();
   retakeHelpSelection();
-  setHelpStatus("Capture");
+  setCaptureStatus("Capture");
   if (!navigator.mediaDevices?.getDisplayMedia) {
     state.help.video = null;
     stopHelpCaptureStream();
     const overlay = $("helpCaptureOverlay");
     if (overlay) overlay.hidden = false;
-    addHelpMessage("assistant", "Drag over the PDF question area. I will crop that part of the page and explain it.");
-    setHelpStatus("Drag PDF area");
+    addCaptureAssistantMessage("Drag over the PDF question area. I will crop that part of the page and attach it.");
+    setCaptureStatus("Drag PDF area");
     return;
   }
   try {
@@ -2039,15 +4775,15 @@ async function beginHelpCapture(mode = "explain") {
     state.help.video = video;
     const overlay = $("helpCaptureOverlay");
     if (overlay) overlay.hidden = false;
-    setHelpStatus("Drag area");
+    setCaptureStatus("Drag area");
   } catch (error) {
     stopHelpCaptureStream();
     if (state.help.captureRequestId !== requestId) return;
     state.help.video = null;
     const overlay = $("helpCaptureOverlay");
     if (overlay) overlay.hidden = false;
-    addHelpMessage("assistant", "Screen capture was not started. Drag over the PDF question area instead, or type your question here.");
-    setHelpStatus("Drag PDF area");
+    addCaptureAssistantMessage("Screen capture was not started. Drag over the PDF question area instead, or type your question here.");
+    setCaptureStatus("Drag PDF area");
   }
 }
 
@@ -2055,27 +4791,49 @@ async function sendHelpChatMessage(message) {
   const clean = String(message || "").trim();
   const imageDataUrl = state.help.pendingImageDataUrl || "";
   if (!clean && !imageDataUrl) return;
-  openHelpPanel();
+  if (state.help.busy) return;
+  state.help.busy = true;
+  const agentActions = coachAgentActionsFromText(clean);
+  const agentAction = agentActions[0] || null;
+  openGlobalCoachPanel();
+  renderGlobalCoachContext();
   addHelpMessage("user", [clean, imageDataUrl ? "[Screenshot attached]" : ""].filter(Boolean).join("\n"));
   setHelpStatus("Thinking");
   try {
+    const helpContext = await hydrateCoachEvidenceContext(buildCoachHelpContext({}));
     const json = await postJson("/api/help/chat", {
+      binding: currentCoachBinding(),
       contextText: state.help.contextText,
-      helpContext: buildHelpContext(state.help.context || {}),
+      helpContext,
       history: state.help.history.slice(-8),
       imageDataUrl,
       message: clean || "Please explain this screenshot.",
     });
-    addHelpMessage("assistant", json.answer || "");
+    const answerNode = addHelpMessage("assistant", json.answer || "");
+    appendCoachAgentActions(answerNode, agentActions);
     if (json.ocrText) state.help.contextText = [state.help.contextText, json.ocrText].filter(Boolean).join("\n\n");
-    state.help.context = buildHelpContext(state.help.context || {});
-    state.help.history.push({ role: "user", content: clean || "[Screenshot attached]" }, { role: "assistant", content: json.answer || "" });
+    state.help.context = helpContext;
+    const createdAt = new Date().toISOString();
+    state.help.history.push(
+      { role: "user", content: clean || "[Screenshot attached]", createdAt },
+      { role: "assistant", content: json.answer || "", createdAt },
+    );
+    persistCoachThread(state.help.binding, state.help.history);
     state.help.pendingImageDataUrl = "";
     updateHelpAttachmentPreview();
-    setHelpStatus(json.mode === "ai" ? "AI" : "Local");
+    setHelpStatus(helpResponseStatus(json.mode));
+    if (agentAction?.autoOpen) {
+      setHelpStatus("Opening practice");
+      window.setTimeout(() => {
+        runCoachAgentAction(agentAction.action);
+      }, 650);
+    }
   } catch (error) {
-    addHelpMessage("assistant", `Help failed: ${error.message}`);
+    const fallbackNode = addHelpMessage("assistant", `Coach failed: ${error.message}`);
+    appendCoachAgentActions(fallbackNode, agentActions);
     setHelpStatus("Error");
+  } finally {
+    state.help.busy = false;
   }
 }
 
@@ -2083,10 +4841,12 @@ function bindHelpControls() {
   document.querySelectorAll("[data-help-trigger]").forEach((button) => {
     button.onclick = () => beginHelpCapture("explain");
   });
+  const globalCoach = $("globalHelpButton");
+  if (globalCoach) globalCoach.onclick = openGlobalCoachPanel;
 }
 
-async function runWritingFeedbackJob(prompt, essay, onStatus) {
-  const start = await postJson("/api/writing/feedback/start", { prompt, essay });
+async function runWritingFeedbackJob(prompt, essay, onStatus, extraPayload = {}) {
+  const start = await postJson("/api/writing/feedback/start", { prompt, essay, ...extraPayload });
   if (!start.jobId) return start;
   const startedAt = Date.now();
   let delay = 1200;
@@ -2109,8 +4869,559 @@ function pdfDownloadLink(json, fallbackName) {
   return `\n\n<a class="report-download" href="${href}" download="${fileName}"${openAttrs}>Open / download PDF report</a>`;
 }
 
+function extractBandByPatterns(text, patterns) {
+  const clean = String(text || "");
+  for (const pattern of patterns) {
+    const match = clean.match(pattern);
+    const band = normalizeSpeakingBand(match?.[1]);
+    if (band) return band;
+  }
+  return "";
+}
+
+function extractWritingScores(text, analysis = null) {
+  if (Array.isArray(analysis?.criteria) && analysis.criteria.length >= 4) {
+    const criteria = analysis.criteria.slice(0, 4).map((item) => ({
+      label: String(item?.label || "Writing criterion"),
+      score: normalizeSpeakingBand(item?.score),
+      feedback: compactText(String(item?.feedback || item?.issue || "").trim(), 520),
+    }));
+    const numeric = criteria.map((item) => Number.parseFloat(item.score)).filter(Number.isFinite);
+    const calculated = numeric.length === 4 ? normalizeSpeakingBand(numeric.reduce((sum, score) => sum + score, 0) / 4) : "";
+    return { overall: calculated || normalizeSpeakingBand(analysis.overall), criteria };
+  }
+  const clean = String(text || "");
+  const overall = extractBandByPatterns(clean, [
+    /overall\s*(?:writing\s*)?(?:band|score|estimate)\s*(?:is|=|:|：|-)?\s*(?:band\s*)?([0-9](?:\.\d)?)/i,
+    /(?:final|estimated)\s*(?:writing\s*)?(?:band|score)\s*(?:is|=|:|：|-)?\s*([0-9](?:\.\d)?)/i,
+    /overall,?\s*i\s+would\s+score[^\n]{0,80}?band\s*score\s*([0-9](?:\.\d)?)/i,
+    /overall[^\n]{0,100}?band\s*(?:score)?\s*(?:is|=|:|：|-)?\s*([0-9](?:\.\d)?)/i,
+    /总分\s*(?:=|:|：|-)?\s*([0-9](?:\.\d)?)/,
+  ]);
+  const definitions = [
+    ["Task Response", /task\s*(?:response|achievement)/i, /(?:task\s*(?:response|achievement)|\btr\b|\bta\b|任务(?:回应|完成))[^\n|:：=]{0,48}(?:band|score)?\s*(?:is|=|:|：|-|\|)?\s*\*{0,2}([0-9](?:\.\d)?)\*{0,2}/i],
+    ["Coherence & Cohesion", /coherence\s*(?:and|&)\s*cohesion/i, /(?:coherence\s*(?:and|&)\s*cohesion|\bcc\b|连贯|衔接)[^\n|:：=]{0,48}(?:band|score)?\s*(?:is|=|:|：|-|\|)?\s*\*{0,2}([0-9](?:\.\d)?)\*{0,2}/i],
+    ["Lexical Resource", /lexical\s*resource/i, /(?:lexical\s*resource|\blr\b|词汇)[^\n|:：=]{0,48}(?:band|score)?\s*(?:is|=|:|：|-|\|)?\s*\*{0,2}([0-9](?:\.\d)?)\*{0,2}/i],
+    ["Grammatical Range & Accuracy", /grammatical\s*range\s*(?:and|&)\s*accuracy/i, /(?:grammatical\s*range\s*(?:and|&)\s*accuracy|grammar|\bgra\b|语法)[^\n|:：=]{0,58}(?:band|score)?\s*(?:is|=|:|：|-|\|)?\s*\*{0,2}([0-9](?:\.\d)?)\*{0,2}/i],
+  ];
+  const tableStart = clean.search(/category\s*\|\s*feedback\s*\|\s*score/i);
+  const tableSource = tableStart >= 0 ? clean.slice(tableStart) : "";
+  const tableScores = new Map();
+  if (tableSource) {
+    definitions.forEach(([label, rowPattern], index) => {
+      const row = tableSource.match(rowPattern);
+      if (!row || row.index == null) return;
+      const bodyStart = row.index + row[0].length;
+      const nextRows = definitions
+        .slice(index + 1)
+        .map(([, nextPattern]) => tableSource.slice(bodyStart).search(nextPattern))
+        .filter((position) => position >= 0);
+      const overallPosition = tableSource.slice(bodyStart).search(/overall\b/i);
+      if (overallPosition >= 0) nextRows.push(overallPosition);
+      const bodyEnd = nextRows.length ? bodyStart + Math.min(...nextRows) : tableSource.length;
+      const scoreMatches = [...tableSource.slice(bodyStart, bodyEnd).matchAll(/\|\s*\*{0,2}([0-9](?:\.\d)?)\*{0,2}/g)];
+      const score = scoreMatches.at(-1)?.[1] || "";
+      if (score) tableScores.set(label, score);
+    });
+  }
+  const criteria = definitions.map(([label, , inlinePattern]) => ({
+    label,
+    score: normalizeSpeakingBand(tableScores.get(label) || clean.match(inlinePattern)?.[1]),
+  }));
+  const numeric = criteria.map((item) => Number.parseFloat(item.score)).filter(Number.isFinite);
+  const calculated = numeric.length === 4 ? normalizeSpeakingBand(numeric.reduce((sum, score) => sum + score, 0) / 4) : "";
+  return { overall: calculated || overall, criteria };
+}
+
+function validStructuredWritingPhrases(items) {
+  if (!Array.isArray(items)) return [];
+  return items.slice(0, 8).map((item) => {
+    if (!item || typeof item !== "object") return null;
+    const from = String(item.from || "").trim();
+    const to = String(item.to || "").trim();
+    const looksLikeCommentary = /(?:这一段|这个段落|评分|分数|band|criterion|task response|coherence|lexical resource|grammatical range)/i;
+    if (!from || !to || from.length > 100 || to.length > 140 || looksLikeCommentary.test(from) || looksLikeCommentary.test(to)) return null;
+    return { from: compactText(from, 100), to: compactText(to, 140) };
+  }).filter(Boolean);
+}
+
+function writingFeedbackLines(text) {
+  return String(text || "")
+    .replace(/\*\*/g, "")
+    .replace(/`/g, "")
+    .replace(/^#{1,6}\s*/gm, "")
+    .split(/\r?\n+/)
+    .map((line) => line.replace(/^\s*[-*]\s+/, "").trim())
+    .filter(Boolean);
+}
+
+function writingCriterionPattern(label) {
+  const patterns = {
+    "Task Response": /(?:task\s*(?:response|achievement)|\btr\b|\bta\b|任务(?:回应|完成))/i,
+    "Coherence & Cohesion": /(?:coherence\s*(?:and|&)\s*cohesion|\bcc\b|连贯|衔接)/i,
+    "Lexical Resource": /(?:lexical\s*resource|\blr\b|词汇)/i,
+    "Grammatical Range & Accuracy": /(?:grammatical\s*range\s*(?:and|&)\s*accuracy|grammar|\bgra\b|语法)/i,
+  };
+  return patterns[label] || new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+}
+
+function writingCriterionPatterns() {
+  return [
+    writingCriterionPattern("Task Response"),
+    writingCriterionPattern("Coherence & Cohesion"),
+    writingCriterionPattern("Lexical Resource"),
+    writingCriterionPattern("Grammatical Range & Accuracy"),
+  ];
+}
+
+function stripWritingLabelContent(line, pattern) {
+  return String(line || "")
+    .replace(pattern, "")
+    .replace(/^[\s:：=\-|]+/, "")
+    .replace(/^(?:band|score)?\s*[0-9](?:\.\d)?\s*(?:[:：=\-|]+)?/i, "")
+    .trim();
+}
+
+function feedbackSnippetForLabel(text, label) {
+  const lines = writingFeedbackLines(text);
+  const pattern = writingCriterionPattern(label);
+  const allPatterns = writingCriterionPatterns();
+  const candidates = lines
+    .map((line, index) => ({ line, index, content: stripWritingLabelContent(line, pattern) }))
+    .filter((item) => pattern.test(item.line));
+  const picked = candidates.find((item) => item.content.length > 16 && !/^[0-9](?:\.\d)?$/.test(item.content)) || candidates[0];
+  if (!picked) {
+    return compactText(lines.find((line) => line.length > 42) || "Detailed feedback is available in the full report below.", 220);
+  }
+  const snippets = [];
+  if (picked.content && !/^[0-9](?:\.\d)?$/.test(picked.content)) snippets.push(picked.content);
+  for (let index = picked.index + 1; index < lines.length && snippets.join(" ").length < 260; index += 1) {
+    const line = lines[index];
+    if (/^(?:ai feedback|corrected essay|improved words|phrases|overall band|总分|范文|评分)/i.test(line)) continue;
+    if (allPatterns.some((itemPattern) => itemPattern.test(line))) break;
+    snippets.push(line);
+  }
+  return compactText(snippets.join(" ") || "Detailed feedback is available in the full report below.", 220);
+}
+
+function extractWritingPhraseItems(text) {
+  const lines = writingFeedbackLines(text);
+  const phraseLines = lines.filter((line) => /(?:->|→|replace|instead of|more precise|better phrase|词|表达|改成|替换)/i.test(line));
+  const items = [];
+  phraseLines.forEach((line) => {
+    const stripped = stripWritingLabelContent(line, writingCriterionPattern("Lexical Resource"));
+    String(stripped || line)
+      .split(/[;；]\s*/)
+      .forEach((part) => {
+        const match = part.match(/(.+?)\s*(?:->|→|=>|改成|替换为|better phrase:?)\s*(.+)/i);
+        if (match) {
+          const from = compactText(match[1].replace(/^(?:replace|instead of)\s+/i, ""), 34);
+          const to = compactText(match[2], 48);
+          if (from && to) items.push({ from, to });
+          return;
+        }
+        const fallback = compactText(part, 96);
+        if (fallback) items.push(fallback);
+      });
+  });
+  return items.slice(0, 6);
+}
+
+function renderWritingScoreBar(label, score) {
+  const percent = speakingScorePercent(score);
+  return `<div class="writing-result-score-row">
+    <span>${escapeHtml(label)}</span>
+    <i><b style="width:${percent.toFixed(1)}%"></b></i>
+    <strong>${escapeHtml(score || "--")}</strong>
+  </div>`;
+}
+
+function renderLegacyWritingReportHtml(text, json, fallbackName) {
+  const attempt = state.latestWritingAttempt || readLearningLoopHistory().writing || {};
+  const analysis = json?.analysis || attempt.analysis || null;
+  const scores = extractWritingScores(text, analysis);
+  const overall = scores.overall || "--";
+  const structuredPhrases = validStructuredWritingPhrases(analysis?.phrases);
+  const phrases = structuredPhrases.length ? structuredPhrases : extractWritingPhraseItems(text);
+  const pdfLink = pdfDownloadLink(json, fallbackName);
+  const date = new Date().toLocaleString();
+  const impact = writingImpactInsight(text, scores, attempt, analysis);
+  const originalParagraph = impact.paragraph || String(attempt.essay || "").split(/\n\s*\n/).map((item) => item.trim()).find(Boolean) || "";
+  return `<article class="writing-result-page">
+    <header class="writing-result-topbar">
+      <div>
+        <span class="eyebrow">Writing Result</span>
+        <h3>Writing Report</h3>
+        <p>Generated on ${escapeHtml(date)}</p>
+      </div>
+      <div class="writing-result-actions">${pdfLink}</div>
+    </header>
+    <section class="writing-result-overview">
+      <div class="writing-result-overall">
+        <span>Overall Band</span>
+        <strong>${escapeHtml(overall)}</strong>
+        <em>${Number.parseFloat(overall) >= 7 ? "Good" : "Keep improving"}</em>
+      </div>
+      <div class="writing-result-bars">
+        ${scores.criteria.map((item) => renderWritingScoreBar(item.label, item.score)).join("")}
+      </div>
+    </section>
+    <section class="writing-impact-panel">
+      <header>
+        <div><span>Highest-impact issue</span><h4>${escapeHtml(impact.criterion)}</h4></div>
+        <strong>${escapeHtml(impact.score || "Review")}</strong>
+      </header>
+      <p>${escapeHtml(impact.issue)}</p>
+      <blockquote><span>Exact evidence from your essay</span>${escapeHtml(impact.evidence)}</blockquote>
+      <div class="writing-impact-next"><span>Rewrite focus</span><strong>${escapeHtml(impact.instruction)}</strong></div>
+    </section>
+    <section class="writing-result-grid">
+      <div class="writing-result-card writing-feedback-card">
+        <div class="writing-result-section-title"><span>Criterion review</span><strong>What held the score back</strong></div>
+        ${scores.criteria.map((item) => `<article>
+          <div><strong>${escapeHtml(item.label)}</strong><b>${escapeHtml(item.score || "--")}</b></div>
+          <p>${escapeHtml(item.feedback || feedbackSnippetForLabel(text, item.label))}</p>
+        </article>`).join("")}
+      </div>
+      <aside class="writing-result-card writing-phrase-card">
+        <h4>Improved Words & Phrases</h4>
+        ${(phrases.length ? phrases : ["Open the full feedback to review corrected wording.", "Rewrite one paragraph using the strongest suggested phrase."]).map((item) => {
+          if (typeof item === "object") {
+            return `<div class="writing-phrase-pair"><span>${escapeHtml(item.from)}</span><strong>${escapeHtml(item.to)}</strong></div>`;
+          }
+          return `<p>${escapeHtml(item)}</p>`;
+        }).join("")}
+      </aside>
+    </section>
+    <section class="writing-rewrite-mode">
+      <div>
+        <span class="eyebrow">Rewrite mode</span>
+        <strong>Fix this paragraph before starting another essay.</strong>
+        <p>${escapeHtml(impact.instruction)}</p>
+      </div>
+      <button class="primary" type="button" data-writing-result-action="rewrite">Rewrite one paragraph</button>
+    </section>
+    <section class="writing-rewrite-editor" hidden>
+      <header><div><span class="eyebrow">Rewrite round</span><h4>Improve one paragraph, then score it again.</h4></div><button class="icon-btn" type="button" data-writing-result-action="close-rewrite" aria-label="Close rewrite editor">Close</button></header>
+      <div class="writing-rewrite-columns">
+        <label><span>Original paragraph</span><textarea data-writing-original rows="7">${escapeHtml(originalParagraph)}</textarea></label>
+        <label><span>Your rewrite</span><textarea data-writing-revision rows="7" placeholder="Rewrite the paragraph here..."></textarea></label>
+      </div>
+      <div class="writing-rewrite-submit">
+        <p>AI will compare the two paragraphs against the same task and show the score movement.</p>
+        <button class="primary" type="button" data-writing-result-action="rescore">Score rewrite</button>
+      </div>
+      <div class="writing-rewrite-result" aria-live="polite"></div>
+    </section>
+    <section class="writing-result-next-actions" aria-label="Next Writing steps">
+      <div><span>Continue the learning loop</span><strong>Save the issue, practise it, or ask with full context.</strong></div>
+      <button class="secondary" type="button" data-writing-result-action="save-weak">Save weak area</button>
+      <button class="primary" type="button" data-writing-result-action="next-task">Start targeted task</button>
+      <button class="secondary" type="button" data-writing-result-action="coach">Ask AI Coach</button>
+    </section>
+    <details class="writing-raw-feedback">
+      <summary>View full feedback</summary>
+      <div>${escapeHtml(text).replace(/\n/g, "<br>")}</div>
+    </details>
+  </article>`;
+}
+
+function renderWritingReportHtml(text, json, fallbackName) {
+  const attempt = state.latestWritingAttempt || readLearningLoopHistory().writing || {};
+  const analysis = json?.analysis || attempt.analysis || null;
+  const scores = extractWritingScores(text, analysis);
+  const overall = scores.overall || "--";
+  const impact = writingImpactInsight(text, scores, attempt, analysis);
+  const evidenceItems = json?.contract?.evidence || attempt.contract?.evidence || writingTextEvidence("task", attempt.essay || "", analysis);
+  const contractItems = json?.contract?.attempt?.items || attempt.contract?.attempt?.items || [];
+  const evidenceSources = contractItems.length
+    ? contractItems.map((item, index) => ({ id: item.id || `task${index + 1}`, label: `Task ${index + 1} response`, text: item.response || item.essay || "" }))
+    : [{ id: "task", label: "Submitted response", text: attempt.essay || "" }];
+  const phrases = validStructuredWritingPhrases(analysis?.phrases).length
+    ? validStructuredWritingPhrases(analysis?.phrases)
+    : extractWritingPhraseItems(text);
+  const originalParagraph = impact.paragraph || String(attempt.essay || "").split(/\n\s*\n/).map((item) => item.trim()).find(Boolean) || "";
+  const taskScores = json?.contract?.score?.tasks || attempt.taskScores || analysis?.taskScores || [];
+  const taskSummary = taskScores.length ? `<div class="writing-task-score-summary">${taskScores.map((task) => `<div data-writing-task-score="${escapeHtml(String(task.taskNumber))}"><span>Task ${escapeHtml(String(task.taskNumber))}</span><strong>${escapeHtml(task.overall || "--")}</strong></div>`).join("")}<div class="weighted"><span>Weighted overall · 1:2</span><strong data-writing-overall>${escapeHtml(overall)}</strong></div></div>` : "";
+  const learningHistory = readLearningLoopHistory();
+  const writingHistory = [attempt, ...(learningHistory.writingAttempts || [])]
+    .filter((item, index, items) => item && items.findIndex((candidate) => candidate?.attemptId === item.attemptId) === index)
+    .filter((item) => !attempt.title || item.title === attempt.title)
+    .slice(0, 5);
+  const pdfLink = pdfDownloadLink(json, fallbackName);
+  return `<article class="writing-result-page unified-result-shell" data-result-module="writing">
+    <header class="unified-result-header">
+      <div><span class="eyebrow">Writing feedback</span><h3>Your Writing result</h3></div>
+      <details class="result-more"><summary>More</summary><div>${pdfLink || "No downloadable report for this attempt."}</div></details>
+    </header>
+    <nav class="unified-result-tabs" role="tablist">
+      ${[["overview","Overview"],["evidence","Evidence"],["improve","Improve"],["history","History"]].map(([key,label], index) => `<button type="button" data-result-tab="${key}" class="${index === 0 ? "active" : ""}" aria-selected="${index === 0}">${label}</button>`).join("")}
+    </nav>
+    <section data-result-panel="overview" class="unified-result-panel result-overview-panel">
+      <div class="unified-score-summary"><div><span>Overall Band</span><strong>${escapeHtml(overall)}</strong><em>Target 7.0</em></div><div><span>Highest-impact issue</span><strong>${escapeHtml(impact.criterion)}</strong><p>${escapeHtml(impact.issue)}</p></div><blockquote><span>Exact evidence</span>${escapeHtml(impact.evidence)}</blockquote></div>
+      ${taskSummary}
+      <button class="primary unified-result-primary" type="button" data-writing-result-action="rewrite">Improve this skill</button>
+      <div class="unified-score-bars">${scores.criteria.map((item) => renderWritingScoreBar(item.label, item.score)).join("")}</div>
+    </section>
+    <section data-result-panel="evidence" class="unified-result-panel" hidden>
+      <div class="writing-impact-panel"><header><div><span>Evidence review</span><h4>${escapeHtml(impact.criterion)}</h4></div><strong>${escapeHtml(impact.score || "Review")}</strong></header><p>${escapeHtml(impact.issue)}</p><blockquote><span>Exact evidence from your essay</span>${escapeHtml(impact.evidence)}</blockquote><div class="writing-impact-next"><span>Success criterion</span><strong>${escapeHtml(impact.instruction)}</strong></div></div>
+      <div class="writing-evidence-list">${evidenceItems.length ? evidenceItems.map((item) => `<button type="button" data-evidence-id="${escapeHtml(item.id)}" data-source-highlight data-item-id="${escapeHtml(item.itemId || "task")}" data-start="${escapeHtml(String(item.range?.start ?? ""))}" data-end="${escapeHtml(String(item.range?.end ?? ""))}" data-quote="${escapeHtml(item.quote || "")}">${escapeHtml(item.quote)}</button>`).join("") : `<p>No exact evidence range was returned for this attempt.</p>`}</div>
+      <div class="writing-evidence-sources">${evidenceSources.map((item) => `<article data-writing-source-item="${escapeHtml(item.id)}"><span>${escapeHtml(item.label)}</span><pre>${escapeHtml(item.text)}</pre></article>`).join("")}</div>
+      <section class="writing-result-grid"><div class="writing-result-card writing-feedback-card"><div class="writing-result-section-title"><span>Criterion review</span><strong>What held the score back</strong></div>${scores.criteria.map((item) => `<article><div><strong>${escapeHtml(item.label)}</strong><b>${escapeHtml(item.score || "--")}</b></div><p>${escapeHtml(item.feedback || feedbackSnippetForLabel(text, item.label))}</p></article>`).join("")}</div><aside class="writing-result-card writing-phrase-card"><h4>Better wording</h4>${(phrases.length ? phrases : [{ from: "Review the evidence", to: "Rewrite it with more precise language" }]).map((item) => typeof item === "object" ? `<div class="writing-phrase-pair"><span>${escapeHtml(item.from)}</span><strong>${escapeHtml(item.to)}</strong></div>` : `<p>${escapeHtml(item)}</p>`).join("")}</aside></section>
+    </section>
+    <section data-result-panel="improve" class="unified-result-panel" hidden>
+      <section class="writing-rewrite-mode"><div><span class="eyebrow">Targeted rewrite</span><strong>${escapeHtml(impact.instruction)}</strong><p>This paragraph check does not replace your full IELTS Band.</p></div><button class="primary" type="button" data-writing-result-action="rewrite">Start rewrite</button></section>
+      <section class="writing-rewrite-editor" hidden><header><div><span class="eyebrow">Rewrite round</span><h4>Improve the same paragraph against one success criterion.</h4></div><button class="icon-btn" type="button" data-writing-result-action="close-rewrite">Close</button></header><div class="writing-rewrite-columns"><label><span>Original paragraph</span><textarea data-writing-original rows="7">${escapeHtml(originalParagraph)}</textarea></label><label><span>Your rewrite</span><textarea data-writing-revision rows="7"></textarea></label></div><div class="writing-rewrite-submit"><p>${escapeHtml(impact.instruction)}</p><button class="primary" type="button" data-writing-result-action="rescore">Check this rewrite</button></div><div class="writing-rewrite-result" aria-live="polite"></div></section>
+      <section class="writing-result-next-actions"><button class="secondary" type="button" data-writing-result-action="save-weak">Save weak area</button><button class="primary" type="button" data-writing-result-action="next-task">Start targeted task</button><button class="secondary" type="button" data-writing-result-action="coach">Ask AI Coach</button></section>
+    </section>
+    <section data-result-panel="history" class="unified-result-panel" hidden><div class="result-history-list">${writingHistory.map((item, index) => { const itemBand = item.scores?.overall || item.analysis?.overall || "--"; const previousBand = writingHistory[index + 1]?.scores?.overall || writingHistory[index + 1]?.analysis?.overall || ""; return `<div class="result-history-row"><span>${index === 0 ? "Current full attempt" : `Attempt ${index + 1}`}</span><strong>${escapeHtml(itemBand)}</strong><em>${escapeHtml([bandDeltaLabel(itemBand, previousBand), item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : "Today"].filter(Boolean).join(" · "))}</em></div>`; }).join("")}</div><details class="writing-raw-feedback"><summary>Full report</summary><div>${escapeHtml(text).replace(/\n/g, "<br>")}</div></details></section>
+  </article>`;
+}
+
+function writingEvidenceExcerpt(essay, feedback = "") {
+  const source = String(essay || "").trim();
+  if (!source) return "No essay excerpt is available for this attempt.";
+  const quoted = [...String(feedback || "").matchAll(/[\"“]([^\"”]{24,240})[\"”]/g)]
+    .map((match) => match[1].trim())
+    .find((candidate) => source.toLowerCase().includes(candidate.toLowerCase()));
+  if (quoted) return compactText(quoted, 240);
+  const paragraphs = source.split(/\n\s*\n/).map((item) => item.trim()).filter(Boolean);
+  const paragraph = paragraphs.find((item) => item.split(/\s+/).length >= 18) || paragraphs[0] || source;
+  const sentences = paragraph.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [paragraph];
+  return compactText(sentences.find((item) => item.trim().split(/\s+/).length >= 8) || sentences[0], 240);
+}
+
+function writingImpactInsight(text, scores, attempt = {}, analysis = null) {
+  const ranked = (scores?.criteria || [])
+    .map((item) => ({ ...item, numeric: Number.parseFloat(item.score) }))
+    .sort((a, b) => (Number.isFinite(a.numeric) ? a.numeric : 99) - (Number.isFinite(b.numeric) ? b.numeric : 99));
+  const weakest = ranked[0] || { label: "Task Response", score: "" };
+  const structured = analysis?.highestImpact && typeof analysis.highestImpact === "object" ? analysis.highestImpact : null;
+  const instructions = {
+    "Task Response": "Make the position explicit, develop one central idea, and support it with a specific example.",
+    "Coherence & Cohesion": "Rebuild the paragraph around one topic sentence and make every sentence advance that idea.",
+    "Lexical Resource": "Replace vague or repeated wording with precise topic vocabulary that fits the original meaning.",
+    "Grammatical Range & Accuracy": "Rewrite the idea with one controlled complex sentence, then check agreement, tense, and punctuation.",
+  };
+  const paragraph = String(attempt.essay || "").split(/\n\s*\n/).map((item) => item.trim()).find(Boolean) || "";
+  return {
+    criterion: structured?.criterion || weakest.label || "Task Response",
+    score: normalizeSpeakingBand(structured?.score) || weakest.score || "",
+    issue: structured?.issue || feedbackSnippetForLabel(text, weakest.label || "Task Response"),
+    evidence: structured?.evidence || writingEvidenceExcerpt(attempt.essay, text),
+    instruction: structured?.rewriteInstruction || instructions[weakest.label] || instructions["Task Response"],
+    paragraph,
+  };
+}
+
+function saveWritingWeakArea(button = null) {
+  const attempt = state.latestWritingAttempt || readLearningLoopHistory().writing || {};
+  const scores = attempt.scores || extractWritingScores(attempt.feedback || "", attempt.analysis);
+  const impact = writingImpactInsight(attempt.feedback || "", scores, attempt, attempt.analysis);
+  const entry = {
+    id: learningEntityId("weak"),
+    module: "writing",
+    skillKey: impact.criterion,
+    questionId: "",
+    sourceAttemptId: attempt.attemptId || "",
+    title: impact.criterion,
+    summary: compactText(impact.issue, 180),
+    evidence: {
+      criterion: impact.criterion,
+      score: impact.score,
+      originalExcerpt: impact.evidence,
+      rewriteInstruction: impact.instruction,
+      prompt: compactText(attempt.prompt || "", 1200),
+    },
+    status: "active",
+    createdAt: new Date().toISOString(),
+  };
+  const areas = readWeakAreas().filter((item) => !(item.module === "writing" && item.sourceAttemptId === entry.sourceAttemptId && item.skillKey === entry.skillKey));
+  areas.unshift(entry);
+  writeWeakAreas(areas);
+  syncWeakArea(entry);
+  if (button) {
+    button.textContent = "Weak area saved";
+    button.disabled = true;
+  }
+  renderCoachContextChips();
+  return entry;
+}
+
+function writingTargetTaskForCriterion(criterion = "Task Response") {
+  const tasks = {
+    "Task Response": "Some people think schools should focus mainly on academic subjects, while others believe practical life skills are equally important. Discuss both views and give your own opinion.",
+    "Coherence & Cohesion": "Some people prefer to live in a large city, while others believe life in a small town is better. Discuss both views and give your own opinion. Organise each body paragraph around one clear central idea.",
+    "Lexical Resource": "Many cities are encouraging people to use public transport instead of private cars. To what extent do you agree or disagree? Use precise transport and environment vocabulary without repeating key words.",
+    "Grammatical Range & Accuracy": "Some people believe working from home benefits both employees and employers. To what extent do you agree or disagree? Use a controlled range of complex sentences and check every clause boundary.",
+  };
+  return tasks[criterion] || tasks["Task Response"];
+}
+
+function startWritingTargetedPractice() {
+  const attempt = state.latestWritingAttempt || readLearningLoopHistory().writing || {};
+  const scores = attempt.scores || extractWritingScores(attempt.feedback || "", attempt.analysis);
+  const impact = writingImpactInsight(attempt.feedback || "", scores, attempt, attempt.analysis);
+  setWritingWorkspaceMode("custom");
+  const title = $("writingWorkspaceTitle");
+  const prompt = $("uploadPrompt");
+  const essay = $("uploadEssay");
+  const generatedTask = String(attempt.analysis?.nextTaskPrompt || "").trim();
+  const taskPrompt = generatedTask && generatedTask !== String(attempt.prompt || "").trim()
+    ? generatedTask
+    : writingTargetTaskForCriterion(impact.criterion);
+  if (title) title.textContent = `Targeted practice · ${impact.criterion}`;
+  if (prompt) prompt.value = taskPrompt;
+  if (essay) essay.value = "";
+  if ($("uploadEssayWords")) $("uploadEssayWords").textContent = "0";
+  setFeedback("uploadWritingFeedback", "", "uploadWritingMode", "");
+  setHelpStatus(`Targeted Writing task ready: ${impact.criterion}`);
+  scheduleDraftAutosave();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  if (window.matchMedia("(min-width: 900px)").matches) setTimeout(() => essay?.focus({ preventScroll: true }), 80);
+}
+
+async function openWritingCoachFromResult() {
+  const attempt = state.latestWritingAttempt || readLearningLoopHistory().writing || {};
+  const scores = attempt.scores || extractWritingScores(attempt.feedback || "", attempt.analysis);
+  const impact = writingImpactInsight(attempt.feedback || "", scores, attempt, attempt.analysis);
+  openGlobalCoachPanel({
+    module: "writing",
+    title: `${attempt.title || "Writing attempt"} · ${impact.criterion}`,
+    prompt: compactText(attempt.prompt || "", 3000),
+    studentAnswer: compactText(attempt.essay || "", 8000),
+    feedback: compactText(attempt.feedback || "", 8000),
+  });
+  await sendHelpChatMessage(`Review my latest Writing attempt. Focus on ${impact.criterion}. Use this exact evidence from my essay: "${impact.evidence}". Explain why it limited the score, then give one concrete rewrite step without replacing my whole essay.`);
+}
+
+function bindWritingResultActions(root = document) {
+  root.querySelectorAll?.("[data-writing-result-action]").forEach((button) => {
+    if (button.dataset.boundWritingResultAction) return;
+    button.dataset.boundWritingResultAction = "1";
+    button.onclick = async () => {
+      const action = button.dataset.writingResultAction;
+      if (action === "rewrite") {
+        const editor = button.closest(".writing-result-page")?.querySelector(".writing-rewrite-editor");
+        if (editor) {
+          editor.hidden = false;
+          editor.scrollIntoView({ behavior: "smooth", block: "center" });
+          editor.querySelector("[data-writing-revision]")?.focus();
+        }
+        return;
+      }
+      if (action === "close-rewrite") {
+        const editor = button.closest(".writing-rewrite-editor");
+        if (editor) editor.hidden = true;
+        return;
+      }
+      if (action === "rescore") {
+        await scoreWritingRewrite(button.closest(".writing-rewrite-editor"));
+        return;
+      }
+      if (action === "save-weak") {
+        saveWritingWeakArea(button);
+        return;
+      }
+      if (action === "next-task") {
+        startWritingTargetedPractice();
+        return;
+      }
+      if (action === "coach") {
+        await openWritingCoachFromResult();
+      }
+    };
+  });
+  root.querySelectorAll?.("[data-source-highlight]").forEach((button) => {
+    if (button.dataset.boundSourceHighlight) return;
+    button.dataset.boundSourceHighlight = "1";
+    button.addEventListener("click", () => {
+      const shell = button.closest(".writing-result-page");
+      if (!shell) return;
+      shell.querySelectorAll("[data-writing-source-item] pre").forEach((source) => {
+        source._writingSourceText ||= source.textContent || "";
+        source.textContent = source._writingSourceText;
+      });
+      const itemId = button.dataset.itemId || "task";
+      const source = shell.querySelector(`[data-writing-source-item="${CSS.escape(itemId)}"] pre`)
+        || shell.querySelector("[data-writing-source-item] pre");
+      if (!source) return;
+      const text = source._writingSourceText || source.textContent || "";
+      const quote = button.dataset.quote || button.textContent || "";
+      let start = Number(button.dataset.start);
+      let end = Number(button.dataset.end);
+      if (!Number.isInteger(start) || !Number.isInteger(end) || text.slice(start, end) !== quote) {
+        start = text.indexOf(quote);
+        end = start + quote.length;
+      }
+      if (start < 0 || end <= start) return;
+      const mark = document.createElement("mark");
+      mark.textContent = text.slice(start, end);
+      source.replaceChildren(document.createTextNode(text.slice(0, start)), mark, document.createTextNode(text.slice(end)));
+      source.closest("[data-writing-source-item]")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  });
+}
+
+function renderWritingRewriteComparison(before, after, feedback) {
+  const labels = ["Task Response", "Coherence & Cohesion", "Lexical Resource", "Grammatical Range & Accuracy"];
+  const beforeMap = new Map((before?.criteria || []).map((item) => [item.label, item.score || "--"]));
+  const afterMap = new Map((after?.criteria || []).map((item) => [item.label, item.score || "--"]));
+  return `<section class="writing-rewrite-comparison">
+    <div class="writing-rewrite-scope"><span>Paragraph skill check</span><strong>Your IELTS Band is unchanged until you resubmit the full response.</strong></div>
+    <div class="writing-rewrite-score-grid">${labels.map((label) => `<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(beforeMap.get(label) || "--")} to ${escapeHtml(afterMap.get(label) || "--")}</strong></div>`).join("")}</div>
+    <details><summary>Rewrite feedback</summary><div>${escapeHtml(compactText(feedback || "", 1800)).replace(/\n/g, "<br>")}</div></details>
+    <div class="actions"><button class="secondary" type="button" data-writing-result-action="save-weak">Save remaining weakness</button><button class="primary" type="button" data-writing-result-action="next-task">Start targeted task</button><button class="secondary" type="button" data-writing-result-action="coach">Ask AI Coach</button></div>
+  </section>`;
+}
+
+async function scoreWritingRewrite(editor) {
+  if (!editor) return;
+  const original = editor.querySelector("[data-writing-original]")?.value.trim() || "";
+  const revision = editor.querySelector("[data-writing-revision]")?.value.trim() || "";
+  const result = editor.querySelector(".writing-rewrite-result");
+  const button = editor.querySelector('[data-writing-result-action="rescore"]');
+  if (!original || !revision) {
+    if (result) result.textContent = "Add both the original paragraph and your rewrite.";
+    return;
+  }
+  const attempt = state.latestWritingAttempt || readLearningLoopHistory().writing || {};
+  if (result) result.textContent = "Scoring the rewrite...";
+  if (button) button.disabled = true;
+  try {
+    const impact = writingImpactInsight(attempt.feedback || "", attempt.scores || extractWritingScores(attempt.feedback || "", attempt.analysis), attempt, attempt.analysis);
+    const json = await postJson("/api/writing/rewrite/score", {
+      prompt: attempt.prompt || "IELTS Writing task",
+      original,
+      revision,
+      criterion: impact.criterion,
+    });
+    const afterScores = json.after || { criteria: [] };
+    const beforeScores = attempt.scores || extractWritingScores(attempt.feedback || "", attempt.analysis);
+    const beforeSkillScores = json.before || { criteria: beforeScores.criteria.filter((item) => item.label === impact.criterion) };
+    const rewrite = { original, revision, feedback: json.feedback || "", skillScores: afterScores, parentAttemptId: attempt.attemptId || "", updatesIeltsBand: false };
+    const preservedAttempt = { ...attempt, rewrite, updatedAt: new Date().toISOString() };
+    state.latestWritingAttempt = preservedAttempt;
+    updateLearningLoopHistory({ writing: preservedAttempt });
+    if (result) result.innerHTML = renderWritingRewriteComparison(beforeSkillScores, afterScores, json.feedback || "");
+    bindWritingResultActions(result || editor);
+  } catch (error) {
+    if (result) result.textContent = `Rewrite scoring failed: ${error.message}`;
+  } finally {
+    if (button) button.disabled = false;
+  }
+}
+
 function feedbackWithPdfHtml(text, json, fallbackName) {
+  if (/writing/i.test(String(fallbackName || ""))) return renderWritingReportHtml(text, json, fallbackName);
   return `${escapeHtml(text).replace(/\n/g, "<br>")}${pdfDownloadLink(json, fallbackName).replace(/\n/g, "<br>")}`;
+}
+
+function revealWritingFeedback(id = "uploadWritingFeedback") {
+  requestAnimationFrame(() => {
+    const target = $(id)?.closest(".writing-focused-feedback") || $(id);
+    target?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
 }
 
 function normalizeSpeakingBand(value) {
@@ -2530,6 +5841,74 @@ function renderSpeakingRecordingButton(prefix) {
   return `<a class="speaking-result-button ghost" href="${escapeHtml(href)}" download="${escapeHtml(result.fileName || "ielts-speaking-recording.mp3")}" target="_blank" rel="noreferrer">Download Recording</a>`;
 }
 
+function speakingTopicForPrefix(prefix = "") {
+  if (prefix === "single") return state.activeSingle ? normalizeItem(state.activeSingle) : null;
+  if (prefix === "exam") return state.exam?.speaking ? normalizeItem(state.exam.speaking) : null;
+  if (prefix === "sequence") return state.sequence?.speaking ? normalizeItem(state.sequence.speaking) : null;
+  if (prefix === "bank") return state.activeSpeakingTopic ? normalizeItem(state.activeSpeakingTopic) : null;
+  return state.activeSpeakingTopic ? normalizeItem(state.activeSpeakingTopic) : null;
+}
+
+function buildSpeakingResultRecord(prefix, feedback, json = {}, bandValue = "") {
+  const criteria = extractSpeakingCriterionScores(feedback);
+  const band = normalizeSpeakingBand(json.band)
+    || normalizeSpeakingBand(bandValue)
+    || speakingOverallFromCriteria(criteria)
+    || extractSpeakingBandFromText(feedback)
+    || "";
+  const criteriaItems = speakingCriterionItems(criteria, band);
+  const transcript = json.evidence?.transcriptText
+    || (prefix ? qwenBuildAutoScoreTranscript(prefix) : "")
+    || (prefix ? getSpeakingTranscript(prefix) : "")
+    || "";
+  const strongest = criteriaItems.reduce((best, item) => {
+    const score = Number.parseFloat(item.score);
+    return Number.isFinite(score) && (!best || score > Number.parseFloat(best.score)) ? item : best;
+  }, null);
+  const weakest = criteriaItems.reduce((lowest, item) => {
+    const score = Number.parseFloat(item.score);
+    return Number.isFinite(score) && (!lowest || score < Number.parseFloat(lowest.score)) ? item : lowest;
+  }, null);
+  const topic = speakingTopicForPrefix(prefix);
+  return {
+    attemptId: json.attemptId || "",
+    prefix,
+    topicId: topic?.id || "",
+    title: topic?.title || "Speaking with AI",
+    topic: topic ? {
+      id: topic.id || "",
+      title: topic.title || "",
+      source: topic.source || "",
+      period: topic.period || "",
+      part1: topic.part1 || [],
+      part2: topic.part2 || "",
+      part3: topic.part3 || [],
+      part3Topics: topic.part3Topics || [],
+    } : null,
+    band,
+    criteria: criteriaItems,
+    weakest,
+    strongest,
+    transcript: compactText(transcript, 20000),
+    feedback: compactText(cleanSpeakingFeedbackForDisplay(feedback), 20000),
+  };
+}
+
+function startSpeakingResultRetest(action = "part2") {
+  const result = state.latestSpeakingResult || readLearningLoopHistory().speaking || null;
+  state.speakingRetestParentAttemptId = result?.attemptId || "";
+  const topic = result?.topic || (result?.topicId ? mergedItems("speaking").map(normalizeItem).find((item) => item.id === result.topicId) : null) || state.activeSpeakingTopic || state.activeSingle;
+  activateView("bank", true);
+  if (!topic) {
+    renderBankList();
+    return;
+  }
+  const focus = action === "fluency"
+    ? `Fluency retest. Keep the same broad topic, ask fresh non-repeating follow-ups, and help the candidate extend answers naturally. Previous weakest criterion: ${result?.weakest?.label || "Fluency and Coherence"}.`
+    : "Part 2 retake. Keep the same cue card, allow preparation, then ask new Part 3 follow-ups without repeating the previous conversation.";
+  renderBankPracticeTopic({ ...topic, retestFocus: focus });
+}
+
 function bindSpeakingResultActions(root = document) {
   root.querySelectorAll?.("[data-speaking-result-action]").forEach((button) => {
     if (button.dataset.boundSpeakingResultAction) return;
@@ -2542,42 +5921,54 @@ function bindSpeakingResultActions(root = document) {
         return;
       }
       if (action === "practice") {
-        const feedback = button.closest(".feedback-output");
-        if (feedback) {
-          feedback.classList.add("empty");
-          feedback.textContent = "Start another speaking practice to generate a new result.";
+        startSpeakingResultRetest("part2");
+        return;
+      }
+      if (action === "coach") {
+        openGlobalCoachPanel();
+        const input = $("helpChatInput");
+        if (input) {
+          input.value = "Explain this speaking result and give me the next retest plan.";
+          input.focus();
         }
-        document.body.classList.toggle("speaking-result-page-visible", Boolean(document.querySelector(".speaking-result-page")));
-        const target = document.querySelector(".qwen-speaking, textarea[id$='-speaking']");
-        target?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      if (action === "part2" || action === "fluency") {
+        startSpeakingResultRetest(action);
       }
     };
   });
+  root.querySelectorAll?.("[data-audio-evidence]").forEach((button) => {
+    if (button.dataset.boundAudioEvidence) return;
+    button.dataset.boundAudioEvidence = "1";
+    button.addEventListener("click", async () => {
+      const shell = button.closest(".speaking-result-page");
+      const player = shell?.querySelector("[data-speaking-evidence-player]");
+      if (!player) return;
+      const start = Math.max(0, Number(button.dataset.startMs || 0) / 1000);
+      const end = Math.max(start, Number(button.dataset.endMs || 0) / 1000);
+      player.currentTime = start;
+      try { await player.play(); } catch { return; }
+      if (player._evidenceStopHandler) player.removeEventListener("timeupdate", player._evidenceStopHandler);
+      player._evidenceStopHandler = () => {
+        if (end > start && player.currentTime >= end) player.pause();
+      };
+      player.addEventListener("timeupdate", player._evidenceStopHandler);
+    });
+  });
 }
 
-function renderSpeakingResultHtml(text, json = {}, bandValue = "", prefix = "") {
+function renderLegacySpeakingResultHtml(text, json = {}, bandValue = "", prefix = "") {
   const feedback = String(text || json.feedback || "").trim();
-  const criteria = extractSpeakingCriterionScores(feedback);
-  const criteriaOverall = speakingOverallFromCriteria(criteria);
-  const band = criteriaOverall || normalizeSpeakingBand(bandValue) || normalizeSpeakingBand(json.band) || extractSpeakingBandFromText(feedback) || "";
-  const criteriaItems = speakingCriterionItems(criteria, band);
+  const resultRecord = buildSpeakingResultRecord(prefix, feedback, json, bandValue);
+  const { band, criteria: criteriaItems, strongest, weakest, transcript } = resultRecord;
   const scoreNumber = Number.parseFloat(band);
   const scorePercent = speakingScorePercent(band);
-  const strongest = criteriaItems.reduce((best, item) => {
-    const score = Number.parseFloat(item.score);
-    return Number.isFinite(score) && (!best || score > Number.parseFloat(best.score)) ? item : best;
-  }, null);
-  const weakest = criteriaItems.reduce((lowest, item) => {
-    const score = Number.parseFloat(item.score);
-    return Number.isFinite(score) && (!lowest || score < Number.parseFloat(lowest.score)) ? item : lowest;
-  }, null);
-  const transcript = json.evidence?.transcriptText
-    || (prefix ? qwenBuildAutoScoreTranscript(prefix) : "")
-    || (prefix ? getSpeakingTranscript(prefix) : "")
-    || "";
   const cleanFeedback = cleanSpeakingFeedbackForDisplay(feedback);
   const buckets = speakingFeedbackBuckets(cleanFeedback, strongest, weakest);
   const overview = speakingResultOverview(prefix, transcript, json);
+  if (!resultRecord.attemptId || state.latestSpeakingResult?.attemptId !== resultRecord.attemptId) {
+    rememberSpeakingResult({ ...resultRecord, title: resultRecord.title || overview.testType || "Speaking with AI" });
+  }
   const viewTarget = prefix === "exam" ? "exam" : prefix === "sequence" ? "sequence" : prefix === "bank" ? "bank" : "single";
   const metricRows = criteriaItems.map((item) => {
     const score = normalizeSpeakingBand(item.score);
@@ -2632,8 +6023,96 @@ function renderSpeakingResultHtml(text, json = {}, bandValue = "", prefix = "") 
         <div class="speaking-result-secondary-actions">${renderSpeakingRecordingButton(prefix)}</div>
       </div>
     </section>
+    <section class="speaking-result-next-actions">
+      <article>
+        <span>Next retest</span>
+        <strong>Do not stop at the report.</strong>
+        <p>Turn the weakest criterion into one more controlled practice.</p>
+      </article>
+      <button class="speaking-result-button primary" type="button" data-speaking-result-action="part2">Retake Part 2</button>
+      <button class="speaking-result-button" type="button" data-speaking-result-action="fluency">Practise fluency drill</button>
+      <button class="speaking-result-button ghost" type="button" data-speaking-result-action="coach">Ask AI Coach about this result</button>
+    </section>
     ${renderSpeakingAnalysis(prefix, transcript, criteriaItems)}
   </article>`;
+}
+
+function renderSpeakingResultHtml(text, json = {}, bandValue = "", prefix = "") {
+  const feedback = String(text || json.feedback || "").trim();
+  const resultRecord = buildSpeakingResultRecord(prefix, feedback, json, bandValue);
+  const { band, criteria: criteriaItems, weakest, transcript } = resultRecord;
+  const overview = speakingResultOverview(prefix, transcript, json);
+  const pairs = speakingAnalysisPairs(prefix, transcript);
+  const exactEvidence = pairs.find((pair) => pair.answer)?.answer || compactText(transcript, 260) || "No transcript evidence was returned.";
+  const audioSucceeded = json.audioAiUsed === true || json.evidence?.audioAnalysis?.status === "succeeded";
+  const audioRanges = audioSucceeded && Array.isArray(json.evidence?.turns) ? json.evidence.turns : [];
+  const recordingHref = qwenRecordingDownloadHref(speakingResultSession(prefix)?.recordingResult);
+  const viewTarget = prefix === "exam" ? "exam" : prefix === "sequence" ? "sequence" : prefix === "bank" ? "bank" : "single";
+  const learningHistory = readLearningLoopHistory();
+  const contract = buildUnifiedAttemptContract({
+    module: "speaking",
+    mode: "exam",
+    items: pairs.map((pair, index) => ({ id: `turn${index + 1}`, question: pair.question, response: pair.answer })),
+    score: { status: audioSucceeded ? "final" : "provisional", overall: { value: Number.parseFloat(band), scale: "ielts-band" }, criteria: criteriaItems },
+    highestImpact: { criterionKey: weakest?.label || "Fluency & Coherence", issue: `Prioritise ${weakest?.label || "answer development"} in the next response.`, evidenceIds: ["speaking-transcript-evidence"], successCriterion: "Give a direct answer, one reason and one specific example." },
+    evidence: [{ id: "speaking-transcript-evidence", kind: "transcript", quote: exactEvidence }, ...audioRanges],
+    nextAction: { type: "answer-repeat", label: "Improve this skill" },
+    retest: { type: "part2-repeat" },
+    provenance: { audioAnalysis: { status: audioSucceeded ? "succeeded" : "unavailable" } },
+  });
+  contract.attempt.parentAttemptId = state.speakingRetestParentAttemptId || null;
+  resultRecord.contract = contract;
+  resultRecord.parentAttemptId = contract.attempt.parentAttemptId;
+  if (!resultRecord.attemptId || state.latestSpeakingResult?.attemptId !== resultRecord.attemptId) {
+    rememberSpeakingResult({ ...resultRecord, title: resultRecord.title || overview.testType || "Speaking with AI" });
+  }
+  const speakingHistory = [resultRecord, ...(learningHistory.speakingAttempts || [])]
+    .filter((item, index, items) => item && items.findIndex((candidate) => candidate?.attemptId === item.attemptId) === index)
+    .filter((item) => !resultRecord.topicId || item.topicId === resultRecord.topicId)
+    .slice(0, 5);
+  state.speakingRetestParentAttemptId = "";
+  const metricRows = criteriaItems.map((item) => {
+    const score = normalizeSpeakingBand(item.score);
+    return `<div class="unified-band-scale"><div><span>${escapeHtml(item.label)}</span><strong>Current ${escapeHtml(score || "--")}</strong><em>Target 7.0</em></div><i><b style="width:${speakingScorePercent(score).toFixed(1)}%"></b><u style="left:${speakingScorePercent("7.0").toFixed(1)}%"></u></i></div>`;
+  }).join("");
+  return `<article class="speaking-result-page unified-result-shell" data-result-module="speaking">
+    <header class="unified-result-header"><div><span class="eyebrow">Speaking feedback</span><h3>Your Speaking result</h3><p>${escapeHtml(overview.date)} · ${escapeHtml(overview.testType)}</p></div><details class="result-more"><summary>More</summary><div>${renderSpeakingResultDownloadButton(json)}${renderSpeakingRecordingButton(prefix)}</div></details></header>
+    <nav class="unified-result-tabs" role="tablist">${[["overview","Overview"],["evidence","Evidence"],["improve","Improve"],["history","History"]].map(([key,label], index) => `<button type="button" data-result-tab="${key}" class="${index === 0 ? "active" : ""}" aria-selected="${index === 0}">${label}</button>`).join("")}</nav>
+    <section data-result-panel="overview" class="unified-result-panel result-overview-panel">
+      <div class="unified-score-summary"><div><span>Overall Band</span><strong>${escapeHtml(band || "--")}</strong><em>Target 7.0</em></div><div><span>Weakest criterion</span><strong>${escapeHtml(weakest?.label || "Review")}</strong><p>Focus on one controlled improvement, then repeat the answer.</p></div><blockquote><span>Exact response evidence</span>${escapeHtml(exactEvidence)}</blockquote></div>
+      <button class="speaking-result-button primary unified-result-primary" type="button" data-speaking-result-action="part2">Improve this skill</button>
+      <div class="unified-score-bars">${metricRows}</div>
+    </section>
+    <section data-result-panel="evidence" class="unified-result-panel" hidden>
+      <div class="result-evidence-note ${audioSucceeded ? "audio-ready" : "transcript-only"}"><strong>${audioSucceeded ? "Audio evidence analysed" : "Transcript evidence only"}</strong><p>${audioSucceeded ? "Pronunciation comments may use the analysed recording ranges below." : "The audio model did not return a successful analysis, so this report does not claim timestamped Pronunciation evidence."}</p></div>
+      <div class="speaking-evidence-list">${pairs.length ? pairs.map((pair, index) => `<article data-speaking-evidence="turn-${index + 1}"><span>${escapeHtml(pair.question || `Question ${index + 1}`)}</span><p>${escapeHtml(pair.answer)}</p></article>`).join("") : `<article data-speaking-evidence="transcript"><p>${escapeHtml(exactEvidence)}</p></article>`}</div>
+      ${audioRanges.length && recordingHref ? `<audio data-speaking-evidence-player preload="metadata" src="${escapeHtml(recordingHref)}"></audio><div class="speaking-audio-evidence">${audioRanges.map((item, index) => `<button type="button" data-audio-evidence="${escapeHtml(item.id || `audio-${index}`)}" data-start-ms="${escapeHtml(String(item.startMs || 0))}" data-end-ms="${escapeHtml(String(item.endMs || 0))}">Play ${Math.round(Number(item.startMs || 0) / 1000)}s-${Math.round(Number(item.endMs || 0) / 1000)}s</button>`).join("")}</div>` : audioRanges.length ? `<p class="notice-inline">Timestamped evidence is available after the recording finishes preparing.</p>` : ""}
+    </section>
+    <section data-result-panel="improve" class="unified-result-panel" hidden><div class="result-improve-task"><span>Success criterion</span><strong>Direct answer + reason + specific example</strong><p>Repeat one answer without copying the previous wording.</p></div><div class="speaking-result-next-actions"><button class="speaking-result-button primary" type="button" data-speaking-result-action="part2">Retake Part 2</button><button class="speaking-result-button" type="button" data-speaking-result-action="fluency">Practise fluency</button><button class="speaking-result-button ghost" type="button" data-speaking-result-action="coach">Ask AI Coach</button></div></section>
+    <section data-result-panel="history" class="unified-result-panel" hidden><div class="result-history-list">${speakingHistory.map((item, index) => `<div class="result-history-row"><span>${index === 0 ? "Current attempt" : `Attempt ${index + 1}`}</span><strong>${escapeHtml(item.band || "--")}</strong><em>${escapeHtml([bandDeltaLabel(item.band, speakingHistory[index + 1]?.band), item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : "Today"].filter(Boolean).join(" · "))}</em></div>`).join("")}</div><button class="speaking-result-button" type="button" data-speaking-result-action="practice">Start another practice</button></section>
+  </article>`;
+}
+
+function updateSpeakingScorePanel(prefix, text, fallbackBand = "") {
+  const clean = String(text || "");
+  const band = speakingBandFromFeedbackPayload(clean, fallbackBand) || normalizeSpeakingBand(clean) || "";
+  const input = $(`${prefix}-speaking-score`);
+  if (input && band) input.value = band;
+  const criteria = extractSpeakingCriterionScores(clean);
+  const map = {};
+  criteria.forEach((item) => {
+    const key = String(item.label || "").toLowerCase().includes("fluency") ? "fc"
+      : String(item.label || "").toLowerCase().includes("lexical") ? "lr"
+        : String(item.label || "").toLowerCase().includes("grammar") ? "gra"
+          : String(item.label || "").toLowerCase().includes("pronunciation") ? "p"
+            : "";
+    if (key) map[key] = item;
+  });
+  Object.entries(map).forEach(([key, item]) => {
+    const node = $(`${prefix}-score-${key}`);
+    if (node && item?.score) node.textContent = item.score;
+  });
+  return band;
 }
 
 function parseAnswers(raw) {
@@ -3619,20 +7098,42 @@ function pageAnswerGroups(assignments, entries) {
   return groups;
 }
 
-function renderAnswerGroup(group, prefix) {
+function renderAnswerGroup(group, prefix, options = {}) {
+  const isReading = options.isReading === true;
+  const passagePageByQuestion = options.passagePageByQuestion instanceof Map
+    ? options.passagePageByQuestion
+    : new Map();
   return `<section class="paper-answer-group">
     <div class="paper-answer-group-title">${escapeHtml(group.title)}</div>
     ${renderSectionAudio(group.audioUrl, group.section, prefix)}
     <div class="paper-answer-grid">${group.entries
-      .map(([number, question]) => `<label class="paper-answer-row">
-        <span>${number}</span>
-        <input class="text-input answer-input paper-answer-input" data-prefix="${prefix}" data-qid="${question.id}" placeholder="Answer" />
-      </label>`)
+      .map(([number, question]) => {
+        if (!isReading) {
+          return `<label class="paper-answer-row">
+            <span>${number}</span>
+            <input class="text-input answer-input paper-answer-input" data-prefix="${prefix}" data-qid="${escapeHtml(question.id)}" placeholder="Answer" />
+          </label>`;
+        }
+        const marked = Boolean(state.readingReviewMarks?.[question.id]);
+        const passagePage = passagePageByQuestion.get(number) || "";
+        return `<div class="paper-answer-row${marked ? " marked-review" : ""}" data-question-number="${number}" data-question-page="${escapeHtml(question.questionPage || "")}" data-reading-passage-page="${escapeHtml(passagePage)}" data-qid="${escapeHtml(question.id)}">
+          <div class="paper-answer-number"><strong>${number}</strong>${isReading ? `<span>${escapeHtml(question.typeLabel || "Question")}</span>` : ""}</div>
+          <label>
+            <span class="sr-only">Question ${number} answer</span>
+            <input class="text-input answer-input paper-answer-input" data-prefix="${prefix}" data-qid="${escapeHtml(question.id)}" placeholder="Answer" />
+          </label>
+          ${isReading ? `<div class="reading-question-actions">
+            <span class="reading-answer-state">Unanswered</span>
+            <button class="reading-mark-review${marked ? " active" : ""}" type="button" data-reading-mark="${escapeHtml(question.id)}" aria-pressed="${marked ? "true" : "false"}">${marked ? "Marked" : "Mark"}</button>
+            <button class="reading-hint-step" type="button" data-reading-hint="${escapeHtml(question.id)}" data-hint-step="1">Hint 1</button>
+          </div>` : ""}
+        </div>`;
+      })
       .join("")}</div>
   </section>`;
 }
 
-function renderPaperAnswerPanel(prefix, questions, assignments, label, audioUrls = []) {
+function renderPaperAnswerPanel(prefix, questions, assignments, label, audioUrls = [], options = {}) {
   const entries = paperQuestionEntries(questions);
   const isListening = audioUrls.length > 0;
   const isReading = /Reading/i.test(label);
@@ -3642,9 +7143,13 @@ function renderPaperAnswerPanel(prefix, questions, assignments, label, audioUrls
       ? readingAnswerGroups(entries)
       : pageAnswerGroups(assignments, entries);
   const title = isListening ? "Listening answer sheet" : answerCardTitle(label);
-  return `<aside class="paper-answer-scroll" aria-label="${escapeHtml(title)}">
+  const scrollAttribute = options.scrollKey ? ` data-reading-scroll-pane="${escapeHtml(options.scrollKey)}"` : "";
+  return `<aside class="paper-answer-scroll${isReading ? " reading-answer-sheet" : ""}"${scrollAttribute} aria-label="${escapeHtml(title)}">
     <div class="paper-answer-groups">
-      ${groups.length ? groups.map((group) => renderAnswerGroup(group, prefix)).join("") : `<div class="page-card-empty">This paper has no answerable questions.</div>`}
+      ${groups.length ? groups.map((group) => renderAnswerGroup(group, prefix, {
+        isReading,
+        passagePageByQuestion: options.passagePageByQuestion,
+      })).join("") : `<div class="page-card-empty">This paper has no answerable questions.</div>`}
     </div>
   </aside>`;
 }
@@ -3674,8 +7179,260 @@ function collectAnswers(prefix) {
   return answers;
 }
 
+function collectSingleWritingDrafts() {
+  const drafts = {};
+  document.querySelectorAll('#single textarea[id$="-writing"]').forEach((textarea) => {
+    drafts[textarea.id] = textarea.value || "";
+  });
+  return drafts;
+}
+
+function learningEntityId(prefix) {
+  const random = globalThis.crypto?.randomUUID?.() || `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+  return `${prefix}_${random.replace(/[^A-Za-z0-9_-]/g, "")}`;
+}
+
+function practiceSessionRemotePayload(session, status = "in_progress") {
+  return {
+    revision: Number(session.revision) || 0,
+    module: session.module,
+    itemId: session.itemId,
+    practiceKind: "single",
+    mode: session.modes?.[session.module] || "practice",
+    status,
+    state: {
+      answers: session.answers || {},
+      seconds: session.seconds,
+      total: session.total,
+      sections: session.sections || {},
+      readingPane: session.readingPane || "passage",
+      readingQuestionType: session.readingQuestionType || "",
+      readingReviewMarks: session.readingReviewMarks || {},
+      readingPaneScroll: session.readingPaneScroll || {},
+      writingDrafts: session.writingDrafts || {},
+      pageScrollY: session.pageScrollY || 0,
+    },
+  };
+}
+
+function scheduleRemotePracticeSessionSync(session) {
+  if (!state.authToken || !session?.sessionId) return;
+  if (state.learningSyncTimer) clearTimeout(state.learningSyncTimer);
+  state.learningSyncTimer = setTimeout(async () => {
+    state.learningSyncTimer = null;
+    try {
+      const json = await putJson(`/api/learning/sessions/${encodeURIComponent(session.sessionId)}`, practiceSessionRemotePayload(session));
+      const current = readPracticeSession();
+      if (current?.sessionId === session.sessionId && json.session?.revision) {
+        current.revision = json.session.revision;
+        localStorage.setItem(practiceSessionStoreKey, JSON.stringify(current));
+      }
+      state.learningState = { ...(state.learningState || {}), activeSession: json.session || null };
+    } catch (error) {
+      if (/another device/i.test(error.message)) {
+        state.learningState = { ...(state.learningState || {}), syncConflict: true };
+      }
+    }
+  }, 500);
+}
+
+function savePracticeSession() {
+  if (!state.singleStarted || !state.activeSingle?.id || state.practiceSessionCompleted) return;
+  saveSingleAnswersToState();
+  state.practiceWritingDrafts = { ...state.practiceWritingDrafts, ...collectSingleWritingDrafts() };
+  const previous = readPracticeSession();
+  const sameSession = previous?.module === state.activeModule && previous?.itemId === state.activeSingle.id;
+  const session = {
+    version: 1,
+    sessionId: sameSession ? previous.sessionId || learningEntityId("session") : learningEntityId("session"),
+    revision: sameSession ? Number(previous.revision) || 0 : 0,
+    view: "single",
+    module: state.activeModule,
+    itemId: state.activeSingle.id,
+    started: true,
+    modes: state.singlePracticeModes,
+    sections: state.singlePracticeSections,
+    answers: state.singleAnswers,
+    answerItemId: state.singleAnswerItemId,
+    seconds: state.singleSeconds,
+    total: state.singleTotal,
+    readingPane: state.readingMobilePane,
+    readingQuestionType: state.readingQuestionType,
+    readingReviewMarks: state.readingReviewMarks,
+    readingPaneScroll: state.readingPaneScroll,
+    writingDrafts: state.practiceWritingDrafts,
+    pageScrollY: window.scrollY,
+    updatedAt: new Date().toISOString(),
+  };
+  try {
+    localStorage.setItem(practiceSessionStoreKey, JSON.stringify(session));
+  } catch {}
+  scheduleRemotePracticeSessionSync(session);
+}
+
+async function completeActivePracticeSession() {
+  const session = readPracticeSession();
+  if (!session || session.module !== state.activeModule || session.itemId !== state.activeSingle?.id) return;
+  state.practiceSessionCompleted = true;
+  if (!state.authToken || !session.sessionId) {
+    localStorage.removeItem(practiceSessionStoreKey);
+    return;
+  }
+  localStorage.setItem(pendingPracticeCompletionStoreKey, JSON.stringify(session));
+  try {
+    const json = await putJson(`/api/learning/sessions/${encodeURIComponent(session.sessionId)}`, practiceSessionRemotePayload(session, "completed"));
+    localStorage.removeItem(practiceSessionStoreKey);
+    localStorage.removeItem(pendingPracticeCompletionStoreKey);
+    state.learningState = { ...(state.learningState || {}), activeSession: null };
+    if (json.session) state.learningState.lastCompletedSession = json.session;
+  } catch {
+    localStorage.removeItem(practiceSessionStoreKey);
+    // Keep a completion tombstone so the stale remote session is never restored as unfinished.
+  }
+}
+
+function readPendingPracticeCompletion() {
+  try {
+    return JSON.parse(localStorage.getItem(pendingPracticeCompletionStoreKey) || "null");
+  } catch {
+    return null;
+  }
+}
+
+async function retryPendingPracticeCompletion() {
+  const session = readPendingPracticeCompletion();
+  if (!state.authToken || !session?.sessionId) return false;
+  try {
+    await putJson(`/api/learning/sessions/${encodeURIComponent(session.sessionId)}`, practiceSessionRemotePayload(session, "completed"));
+    localStorage.removeItem(pendingPracticeCompletionStoreKey);
+    localStorage.removeItem(practiceSessionStoreKey);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function schedulePracticeSessionSave() {
+  if (state.practiceSessionSaveTimer) clearTimeout(state.practiceSessionSaveTimer);
+  state.practiceSessionSaveTimer = setTimeout(() => {
+    state.practiceSessionSaveTimer = null;
+    savePracticeSession();
+  }, 180);
+}
+
+function readPracticeSession() {
+  try {
+    const session = JSON.parse(localStorage.getItem(practiceSessionStoreKey) || "null");
+    if (!session || session.version !== 1 || !session.started || !session.itemId) return null;
+    return session;
+  } catch {
+    return null;
+  }
+}
+
+function importRemotePracticeSession(remote) {
+  if (!remote?.sessionId || readPracticeSession()) return false;
+  const sessionState = remote.state || {};
+  const session = {
+    version: 1,
+    sessionId: remote.sessionId,
+    revision: Number(remote.revision) || 0,
+    view: "single",
+    module: remote.module,
+    itemId: remote.itemId,
+    started: remote.status === "in_progress",
+    modes: { ...state.singlePracticeModes, [remote.module]: remote.mode || state.singlePracticeModes[remote.module] },
+    sections: { ...state.singlePracticeSections, ...(sessionState.sections || {}) },
+    answers: sessionState.answers || {},
+    answerItemId: remote.itemId,
+    seconds: Number(sessionState.seconds),
+    total: Number(sessionState.total),
+    readingPane: sessionState.readingPane || "passage",
+    readingQuestionType: sessionState.readingQuestionType || "",
+    readingReviewMarks: sessionState.readingReviewMarks || {},
+    readingPaneScroll: sessionState.readingPaneScroll || { passage: 0, questionPaper: 0, answers: 0 },
+    writingDrafts: sessionState.writingDrafts || {},
+    pageScrollY: Number(sessionState.pageScrollY) || 0,
+    updatedAt: remote.updatedAt || new Date().toISOString(),
+  };
+  if (!session.started || !session.itemId) return false;
+  localStorage.setItem(practiceSessionStoreKey, JSON.stringify(session));
+  return true;
+}
+
+function restorePracticeSessionAfterData(expectedModule = "", expectedItemId = "") {
+  const savedSession = readPracticeSession();
+  const hasExpectedTarget = ["listening", "reading", "writing", "speaking"].includes(expectedModule) && Boolean(expectedItemId);
+  const sessionMatchesTarget = savedSession?.module === expectedModule && savedSession?.itemId === expectedItemId;
+  const session = hasExpectedTarget && !sessionMatchesTarget
+    ? {
+        version: 1,
+        started: true,
+        module: expectedModule,
+        itemId: expectedItemId,
+        modes: state.singlePracticeModes,
+        sections: state.singlePracticeSections,
+        answers: {},
+        answerItemId: expectedItemId,
+        seconds: singleModuleTotal(expectedModule),
+        total: singleModuleTotal(expectedModule),
+        readingPane: "passage",
+        readingQuestionType: "",
+        readingReviewMarks: {},
+        readingPaneScroll: { passage: 0, questionPaper: 0, answers: 0 },
+        writingDrafts: {},
+        pageScrollY: 0,
+      }
+    : savedSession;
+  if (!session || !["listening", "reading", "writing", "speaking"].includes(session.module)) return false;
+  const options = mergedItems(session.module).map(normalizeItem);
+  const item = options.find((candidate) => candidate.id === session.itemId);
+  if (!item) return false;
+  state.activeModule = session.module;
+  state.practiceSessionCompleted = false;
+  state.activeSingle = item;
+  state.singleStarted = true;
+  state.singlePracticeModes = { ...state.singlePracticeModes, ...(session.modes || {}) };
+  state.singlePracticeSections = { ...state.singlePracticeSections, ...(session.sections || {}) };
+  state.singleAnswers = { ...(session.answers || {}) };
+  state.singleAnswerItemId = session.answerItemId || item.id;
+  state.singleSeconds = Number.isFinite(Number(session.seconds)) ? Number(session.seconds) : singleModuleTotal(session.module);
+  state.singleTotal = Number.isFinite(Number(session.total)) ? Number(session.total) : singleModuleTotal(session.module);
+  state.readingMobilePane = ["passage", "questions"].includes(session.readingPane) ? session.readingPane : "passage";
+  state.readingQuestionType = session.readingQuestionType || "";
+  state.readingReviewMarks = { ...(session.readingReviewMarks || {}) };
+  state.readingPaneScroll = { passage: 0, questionPaper: 0, answers: 0, ...(session.readingPaneScroll || {}) };
+  state.practiceWritingDrafts = { ...(session.writingDrafts || {}) };
+  state.restoredPracticeScrollY = session.module === "speaking" ? Number(session.pageScrollY) || 0 : 0;
+  return true;
+}
+
+function restoreSingleWritingDrafts() {
+  Object.entries(state.practiceWritingDrafts || {}).forEach(([id, value]) => {
+    const textarea = $(id);
+    if (!textarea) return;
+    textarea.value = value;
+    const wordNode = $(`${id.replace("-writing", "")}-words`);
+    if (wordNode) wordNode.textContent = countWords(value);
+  });
+}
+
 function activeViewId() {
   return document.querySelector(".view.active")?.id || "";
+}
+
+function viewDisplayName(viewId = activeViewId()) {
+  return {
+    home: "Dashboard",
+    single: "Single Module",
+    exam: "Random Full Exam",
+    sequence: "Same-Test Practice",
+    "writing-upload": "Writing with AI",
+    bank: "Speaking with AI",
+    vocabulary: "Vocabulary",
+    mine: "Mine",
+    subscription: "Membership",
+  }[viewId] || "IELTS-ist";
 }
 
 function currentHelpModule() {
@@ -3701,6 +7458,152 @@ function currentHelpModule() {
     }
   });
   return best?.dataset.module || "";
+}
+
+function activePracticeItemForSurface(view = activeViewId(), moduleName = currentHelpModule()) {
+  if (view === "single") return state.activeSingle ? normalizeItem(state.activeSingle) : null;
+  if (view === "exam") {
+    if (moduleName === "listening") return state.exam?.listening ? normalizeItem(state.exam.listening) : null;
+    if (moduleName === "reading") return state.exam?.reading ? normalizeItem(state.exam.reading) : null;
+    if (moduleName === "writing") return state.exam?.writingTasks?.[0] ? normalizeItem(state.exam.writingTasks[0]) : null;
+    if (moduleName === "speaking") return state.exam?.speaking ? normalizeItem(state.exam.speaking) : null;
+  }
+  if (view === "sequence") {
+    if (moduleName === "listening") return state.sequence?.listening ? normalizeItem(state.sequence.listening) : null;
+    if (moduleName === "reading") return state.sequence?.reading ? normalizeItem(state.sequence.reading) : null;
+    if (moduleName === "writing") return state.sequence?.writingTasks?.[0] ? normalizeItem(state.sequence.writingTasks[0]) : null;
+    if (moduleName === "speaking") return state.sequence?.speaking ? normalizeItem(state.sequence.speaking) : null;
+  }
+  if (view === "writing-upload") {
+    const context = currentWritingUploadCoachContext();
+    if (context?.taskId) return normalizeItem(writingUploadTaskByNumber(context.activeTaskNumber) || {});
+    if (context) return { id: `custom-task-${context.activeTaskNumber}`, title: context.activeTaskTitle, module: "writing" };
+  }
+  if (view === "bank" && state.activeSpeakingTopic) return normalizeItem(state.activeSpeakingTopic);
+  return null;
+}
+
+function currentCoachBinding() {
+  const view = activeViewId() || "home";
+  const moduleName = ["single", "exam", "sequence"].includes(view)
+    ? currentHelpModule() || state.activeModule || ""
+    : view === "writing-upload"
+      ? "writing"
+      : view === "bank"
+        ? "speaking"
+        : "";
+  const item = activePracticeItemForSurface(view, moduleName);
+  const savedSession = readPracticeSession();
+  const writingContext = view === "writing-upload" ? currentWritingUploadCoachContext() : null;
+  const writingUnit = writingContext ? `task${writingContext.activeTaskNumber || 1}` : "";
+  const sessionId = view === "single" && savedSession?.module === moduleName && (!item?.id || savedSession.itemId === item.id)
+    ? String(savedSession.sessionId || "")
+    : view === "exam"
+      ? `exam:${item?.id || "current"}`
+      : view === "sequence"
+        ? `sequence:${item?.id || "current"}`
+        : view === "writing-upload"
+          ? `writing:${item?.id || "custom"}:${writingUnit}`
+          : view === "bank"
+            ? `speaking:${item?.id || "bank"}`
+            : `view:${view}`;
+  const focused = state.coach.focusQuestion?.module === moduleName ? state.coach.focusQuestion : null;
+  const fallbackQuestion = moduleName === "reading"
+    ? Number(document.querySelector(".reading-mobile-workspace")?.dataset.focusedQuestion || 0)
+    : 0;
+  const questionId = String(focused?.id || writingUnit || (fallbackQuestion ? `q${fallbackQuestion}` : ""));
+  return {
+    sessionId,
+    module: moduleName,
+    paperId: String(item?.id || ""),
+    questionId,
+    view,
+  };
+}
+
+function rebindCoachContext() {
+  const next = currentCoachBinding();
+  const nextKey = coachBindingKey(next);
+  const previous = state.help.binding;
+  const previousKey = previous ? coachBindingKey(previous) : "";
+  if (previousKey === nextKey) return next;
+  if (previous && state.help.history.length) persistCoachThread(previous, state.help.history);
+  const focus = state.coach.focusQuestion;
+  const restored = restoreCoachThread(next);
+  state.help.binding = next;
+  state.help.contextText = restored?.contextText || "";
+  state.help.context = null;
+  state.help.pendingImageDataUrl = "";
+  state.help.history = restored?.messages?.map((message) => ({ ...message })) || [];
+  state.help.surfaceOverride = null;
+  state.coach.history = [];
+  state.coach.contextText = "";
+  state.coach.lastAnswer = "";
+  state.coach.focusQuestion = focus?.module === next.module && (!next.questionId || focus.id === next.questionId) ? focus : null;
+  const log = $("helpChatLog");
+  if (log) {
+    log.innerHTML = "";
+    delete log.dataset.coachSurface;
+    state.help.history.forEach((message) => addHelpMessage(message.role, message.content || ""));
+  }
+  updateHelpAttachmentPreview();
+  return next;
+}
+
+function currentCoachSurface(extra = {}) {
+  const binding = rebindCoachContext();
+  const view = activeViewId();
+  const moduleName = ["single", "exam", "sequence"].includes(view)
+    ? currentHelpModule() || state.activeModule || ""
+    : view === "writing-upload"
+      ? "writing"
+      : view === "bank"
+        ? "speaking"
+        : "";
+  const item = activePracticeItemForSurface(view, moduleName);
+  const activePanel = document.querySelector(".view.active .exam-section.focused-section h2")?.textContent?.trim() || "";
+  const title = item?.title || item?.type || activePanel || viewDisplayName(view);
+  const source = [item?.source, item?.period].filter(Boolean).join(" · ");
+  const singleMode = view === "single" && moduleName ? singleModeLabel(moduleName) : "";
+  const fallbackReadingQuestion = moduleName === "reading"
+    ? Number(document.querySelector(".reading-mobile-workspace")?.dataset.focusedQuestion || 0)
+    : 0;
+  const focusedQuestion = state.coach.focusQuestion?.module === moduleName
+    ? state.coach.focusQuestion
+    : fallbackReadingQuestion
+      ? { module: "reading", number: fallbackReadingQuestion, id: `q${fallbackReadingQuestion}` }
+      : null;
+  const surface = {
+    view,
+    viewLabel: viewDisplayName(view),
+    module: moduleName,
+    moduleLabel: moduleName ? moduleDisplayName(moduleName) : "",
+    title,
+    source,
+    mode: singleMode ? `${document.body.dataset.immersiveScope || (view === "single" && !state.singleStarted ? "single-launch" : view)} · ${singleMode}` : document.body.dataset.immersiveScope || (view === "single" && !state.singleStarted ? "single-launch" : view),
+    isImmersive: document.body.classList.contains("immersive-mode"),
+    answerCount: view === "single" ? answeredCountForPrefix("single") : 0,
+    focusedQuestion,
+    binding,
+    path: location.hash || "#home",
+    ...(extra || {}),
+  };
+  if (view === "bank") surface.title = state.activeSpeakingTopic?.title || "Speaking topic bank";
+  if (view === "vocabulary") surface.title = "Vocabulary trainer";
+  if (view === "mine") surface.title = "Account, drafts, vocabulary and membership";
+  if (view === "home") surface.title = "Dashboard and today's AI practice plan";
+  Object.assign(surface, state.help.surfaceOverride || {});
+  return surface;
+}
+
+function coachSurfaceSummary(surface = currentCoachSurface()) {
+  const parts = [
+    surface.viewLabel || "IELTS-ist",
+    surface.moduleLabel || "",
+    surface.title || "",
+    surface.source || "",
+  ].filter(Boolean);
+  return compactText(parts.join(" · "), 140);
 }
 
 function currentReadingContext() {
@@ -3804,10 +7707,12 @@ function buildHelpContext(extra = {}) {
   const helpModule = currentHelpModule();
   const currentReading = currentReadingContext();
   const currentListening = currentListeningContext();
+  const surface = currentCoachSurface();
   const context = {
     ...(extra || {}),
     activeView: view,
     activeModule: helpModule,
+    surface,
     reading: currentReading || extra?.reading || null,
     listening: currentListening || extra?.listening || null,
   };
@@ -3974,7 +7879,7 @@ function renderPageImages(images, label) {
       const page = image.page || index + 1;
       const url = escapeHtml(image.url || "");
       if (!url) return "";
-      return `<figure class="pdf-page">
+      return `<figure class="pdf-page" data-pdf-page="${escapeHtml(page)}">
         <figcaption>Page ${escapeHtml(page)} (${index + 1}/${orderedImages.length})</figcaption>
         <div class="pdf-page-body pdf-page-image-wrap">
           <img src="${url}" alt="${escapeHtml(label)} page ${escapeHtml(page)}" loading="${index === 0 ? "eager" : "lazy"}" />
@@ -4028,6 +7933,13 @@ function writeAnnotations(value) {
 }
 
 function setAnnotationMode(enabled, erasing = false) {
+  if (state.annotation.saveTimer) {
+    window.clearTimeout(state.annotation.saveTimer);
+    state.annotation.saveTimer = null;
+  }
+  if (state.annotation.drawing && state.annotation.activeCanvas) {
+    saveAnnotationCanvas(state.annotation.activeCanvas);
+  }
   state.annotation.enabled = enabled;
   state.annotation.erasing = enabled && erasing;
   state.annotation.drawing = false;
@@ -4039,8 +7951,56 @@ function setAnnotationMode(enabled, erasing = false) {
   document.body.classList.toggle("annotation-erasing", state.annotation.erasing);
   const draw = $("toggleAnnotation");
   const erase = $("toggleEraser");
-  if (draw) draw.classList.toggle("active", state.annotation.enabled && !state.annotation.erasing);
-  if (erase) erase.classList.toggle("active", state.annotation.erasing);
+  const drawingActive = state.annotation.enabled && !state.annotation.erasing;
+  if (draw) {
+    draw.classList.toggle("active", drawingActive);
+    draw.setAttribute("aria-pressed", drawingActive ? "true" : "false");
+    draw.textContent = drawingActive ? "Drawing" : "Draw";
+    draw.title = drawingActive ? "Draw mode is on" : "Turn on Draw mode";
+  }
+  if (erase) {
+    erase.classList.toggle("active", state.annotation.erasing);
+    erase.setAttribute("aria-pressed", state.annotation.erasing ? "true" : "false");
+    erase.textContent = state.annotation.erasing ? "Erasing" : "Erase";
+    erase.title = state.annotation.erasing ? "Erase mode is on" : "Turn on Erase mode";
+  }
+}
+
+function isAnnotationPracticeContext() {
+  const scope = document.body.dataset.immersiveScope || "";
+  const moduleName = document.body.dataset.immersiveModule || "";
+  if (!["listening", "reading", "writing"].includes(moduleName)) return false;
+  const viewId = activeViewId();
+  if (scope === "single") return viewId === "single" && Boolean(state.singleStarted);
+  if (scope === "exam") return ["exam", "sequence"].includes(viewId) && Boolean(document.querySelector(".exam-section.focused-section"));
+  return false;
+}
+
+function updateAnnotationToolbarAvailability() {
+  const canvases = [...document.querySelectorAll(".pdf-annotation-canvas")];
+  const visibleCanvas = canvases.some((canvas) => {
+    const rect = canvas.getBoundingClientRect();
+    return rect.width > 0 && rect.height > 0 && canvas.closest(".view.active, .exam-section.focused-section");
+  });
+  const available = visibleCanvas && isAnnotationPracticeContext();
+  const toolbar = $("annotationToolbar");
+  const scope = document.body.dataset.immersiveScope || "";
+  const toolbarHost = scope === "single"
+    ? document.querySelector("#single > .view-head")
+    : scope === "exam"
+      ? document.querySelector(".view.active .exam-quick-nav")
+      : null;
+  if (toolbar && available && toolbarHost) {
+    const firstControl = [...toolbarHost.children].find((child) => child !== toolbar) || null;
+    if (toolbar.parentElement !== toolbarHost || toolbar.previousElementSibling) {
+      toolbarHost.insertBefore(toolbar, firstControl);
+    }
+  } else if (toolbar && !available && toolbar.parentElement !== document.body) {
+    document.body.append(toolbar);
+  }
+  document.body.classList.toggle("has-pdf-pages", canvases.length > 0);
+  document.body.classList.toggle("annotation-toolbar-available", available);
+  if (!available && state.annotation.enabled) setAnnotationMode(false);
 }
 
 function canvasPoint(event, canvas) {
@@ -4092,6 +8052,15 @@ function saveAnnotationCanvas(canvas) {
   writeAnnotations(map);
 }
 
+function scheduleAnnotationCanvasSave(canvas, delay = 350) {
+  if (!canvas) return;
+  if (state.annotation.saveTimer) window.clearTimeout(state.annotation.saveTimer);
+  state.annotation.saveTimer = window.setTimeout(() => {
+    state.annotation.saveTimer = null;
+    if (canvas.isConnected) saveAnnotationCanvas(canvas);
+  }, Math.max(0, delay));
+}
+
 function restoreAnnotationCanvas(canvas) {
   const key = canvas.dataset.annotationKey;
   const dataUrl = key ? readAnnotations()[key] : "";
@@ -4120,7 +8089,10 @@ function bindPdfAnnotations() {
     const img = canvas.parentElement?.querySelector("img");
     if (!img || canvas.dataset.bound === "1") return;
     canvas.dataset.bound = "1";
-    const sync = () => resizeAnnotationCanvas(canvas, img);
+    const sync = () => {
+      resizeAnnotationCanvas(canvas, img);
+      updateAnnotationToolbarAvailability();
+    };
     if (img.complete) sync();
     else img.addEventListener("load", sync, { once: true });
     window.setTimeout(sync, 50);
@@ -4172,6 +8144,7 @@ function bindPdfAnnotations() {
       ctx.restore();
       state.annotation.lastX = point.x;
       state.annotation.lastY = point.y;
+      scheduleAnnotationCanvasSave(canvas);
     });
     const endDrawing = (event) => {
       state.annotation.pointers.delete(event.pointerId);
@@ -4190,13 +8163,13 @@ function bindPdfAnnotations() {
       state.annotation.drawing = false;
       state.annotation.activeCanvas = null;
       state.annotation.scrollTarget = null;
-      if (shouldSave) saveAnnotationCanvas(canvas);
+      if (shouldSave) scheduleAnnotationCanvasSave(canvas, 0);
     };
     canvas.addEventListener("pointerup", endDrawing);
     canvas.addEventListener("pointercancel", endDrawing);
     canvas.addEventListener("pointerleave", endDrawing);
   });
-  document.body.classList.toggle("has-pdf-pages", canvases.length > 0);
+  updateAnnotationToolbarAvailability();
 }
 
 function clearVisibleAnnotationPage() {
@@ -4233,7 +8206,15 @@ function hasPassageTextBeforeQuestion(text, questionLineIndex) {
   return before.length > 180 && !/^Test\s+\d+\s+Reading/i.test(before);
 }
 
-function splitReadingPageImages(images, paper) {
+function splitReadingPageImages(images, paper, provided = {}) {
+  const providedPassages = uniqueOrderedImages(provided.passageImages || []);
+  const providedQuestions = uniqueOrderedImages(provided.questionImages || []);
+  if (providedPassages.length || providedQuestions.length) {
+    return {
+      passageImages: providedPassages,
+      questionImages: providedQuestions,
+    };
+  }
   const orderedImages = filteredPaperImagesForLabel(uniqueOrderedImages(images), "Reading", paper);
   const pages = parsePaperPages(paper);
   const passageImages = [];
@@ -4254,48 +8235,119 @@ function splitReadingPageImages(images, paper) {
 
   return {
     passageImages: passageImages.length ? passageImages : orderedImages,
-    questionImages: questionImages.length ? questionImages : orderedImages,
+    questionImages,
   };
 }
 
-function renderReadingSplitPages(images, prefix, questions, paper) {
-  const { passageImages, questionImages } = splitReadingPageImages(images, paper);
-  return `<div class="reading-split">
-    <section class="reading-pane reading-passage-pane">
-      ${renderPageImages(passageImages, "Reading passage PDF")}
-    </section>
-    <section class="reading-pane reading-question-pane">
-      ${renderPageImagesWithAnswers(questionImages, "Reading question PDF", prefix, questions, paper)}
-    </section>
+function renderReadingQuestionNav(questions = []) {
+  return `<nav class="reading-question-nav" aria-label="Reading question navigation">
+    ${(questions || []).map((question, index) => {
+      const number = questionNumber(question, index);
+      const marked = Boolean(state.readingReviewMarks?.[question.id]);
+      return `<button type="button" data-reading-question-nav="${number}" class="${marked ? "marked" : ""}" aria-label="Go to question ${number}">${number}</button>`;
+    }).join("")}
+  </nav>`;
+}
+
+function readingPassagePageByQuestion(passageImages, paper, providedStarts = {}) {
+  const orderedImages = uniqueOrderedImages(passageImages || []);
+  const pageTexts = parsePaperPages(paper);
+  const passageStarts = new Map(
+    Object.entries(providedStarts || {})
+      .map(([passage, page]) => [Number(passage), Number(page)])
+      .filter(([passage, page]) => passage >= 1 && passage <= 3 && Number.isFinite(page)),
+  );
+  for (const image of orderedImages) {
+    const page = Number(image.page || 0);
+    const passage = Number(String(pageTexts.get(page) || "").match(/^\s*READING PASSAGE\s+([123])\b/im)?.[1] || 0);
+    if (passage && !passageStarts.has(passage)) passageStarts.set(passage, page);
+  }
+  if (orderedImages.length && !passageStarts.has(1)) {
+    passageStarts.set(1, Number(orderedImages[0].page || 1));
+  }
+  const byQuestion = new Map();
+  for (let number = 1; number <= 40; number += 1) {
+    const passage = number <= 13 ? 1 : number <= 26 ? 2 : 3;
+    if (passageStarts.has(passage)) byQuestion.set(number, passageStarts.get(passage));
+  }
+  return byQuestion;
+}
+
+function renderReadingSplitPages(images, prefix, questions, paper, provided = {}) {
+  const { passageImages, questionImages } = splitReadingPageImages(images, paper, provided);
+  const passagePageByQuestion = readingPassagePageByQuestion(passageImages, paper, provided.passageStartPages);
+  const activePane = ["passage", "questions"].includes(state.readingMobilePane) ? state.readingMobilePane : "passage";
+  const focusedQuestion = state.coach.focusQuestion?.module === "reading"
+    ? state.coach.focusQuestion.number
+    : questionNumber(questions?.[0], 0);
+  const questionPaperHtml = questionImages.length
+    ? renderPageImages(questionImages, "Reading question PDF")
+    : `<section class="reading-question-fallback"><p>Question paper text is unavailable.</p></section>`;
+  const questionAssignments = assignQuestionsToPages(questionImages, questions, paper);
+  const answerPanelHtml = renderPaperAnswerPanel(prefix, questions, questionAssignments, "Reading question PDF", [], {
+    scrollKey: "answers",
+    passagePageByQuestion,
+  });
+  return `<div class="reading-mobile-workspace" data-reading-pane="${escapeHtml(activePane)}" data-focused-question="${escapeHtml(focusedQuestion || "")}">
+    <nav class="reading-pane-tabs" aria-label="Reading workspace">
+      ${["passage", "questions"].map((pane) => `<button class="${pane === activePane ? "active" : ""}" type="button" data-reading-pane-target="${pane}">${pane.slice(0, 1).toUpperCase()}${pane.slice(1)}</button>`).join("")}
+    </nav>
+    <div class="reading-question-rail-layout reading-question-top-layout">
+      ${renderReadingQuestionNav(questions)}
+      <div class="reading-split">
+        <section class="reading-pane reading-passage-pane" data-reading-pane-content="passage" data-reading-scroll-pane="passage">
+          ${renderPageImages(passageImages, "Reading passage PDF")}
+        </section>
+        <div class="reading-split-divider" role="separator" aria-label="Resize passage and questions" aria-orientation="vertical" tabindex="0"></div>
+        <section class="reading-pane reading-question-pane" data-reading-pane-content="questions">
+          <div class="reading-question-paper" data-reading-scroll-pane="questionPaper">${questionPaperHtml}</div>
+          <section class="reading-inline-answers" aria-label="Reading questions and answers">
+            <header><strong>Questions and answers</strong><span>Choose an answer, mark review, or ask AI Coach for evidence.</span></header>
+            ${answerPanelHtml}
+          </section>
+        </section>
+      </div>
+    </div>
   </div>`;
 }
 
 function renderListening(test, prefix = "single") {
   const item = normalizeItem(test);
   const audioUrl = resolveAudioUrl(item.audioUrl);
-  const audioUrls = Array.isArray(item.audioUrls) ? item.audioUrls.map(resolveAudioUrl).filter(Boolean) : [];
+  const audioUrls = Array.isArray(item.audioUrls) ? item.audioUrls.map((url) => url ? resolveAudioUrl(url) : "") : [];
   const transcript = item.transcript || item.prompt || "";
   const sourceLink = item.sourceUrl ? `<a class="source-inline" href="${item.sourceUrl}" target="_blank" rel="noreferrer">Open source page</a>` : "";
   const pageImageUrls = Array.isArray(item.questionPageImages) ? item.questionPageImages.map((image) => image?.url).filter(Boolean) : [];
   const hasPdfImages = Boolean(item.questionPageImages?.length);
-  const playbackActions = hasPdfImages && audioUrls.length
-    ? ""
-    : audioUrls.length
-      ? audioUrls.map((url, index) => `<button class="secondary play-source-audio" data-prefix="${escapeHtml(prefix)}" data-section="${index + 1}" data-url="${url}">Play Section ${index + 1}</button>`).join("")
-      : audioUrl
-        ? `<button class="secondary play-source-audio" data-prefix="${escapeHtml(prefix)}" data-url="${audioUrl}">Play audio</button>`
-        : `<button class="secondary play-audio" data-text="${encodeURIComponent(transcript)}">Play listening</button>`;
+  const practiceMode = listeningModeForPrefix(prefix);
+  const playback = listeningPlaybackRecord(prefix);
+  if (playback.itemId !== item.id || playback.mode !== practiceMode) {
+    state.listeningPlayback[prefix] = { status: "ready", section: "", endedSections: {}, reviewStarted: false, itemId: item.id || "", mode: practiceMode };
+  }
+  const activeSection = prefix === "single" && practiceMode === "training" ? state.singlePracticeSections.listening : "";
+  const playbackRule = listeningPlaybackRule(practiceMode);
+  const playbackActions = !audioUrls.length && !audioUrl
+    ? `<button class="secondary play-audio" data-text="${encodeURIComponent(transcript)}">Play listening</button>`
+    : "";
   const questionPaper = hasPdfImages
     ? renderPageImagesWithAnswers(item.questionPageImages, "Listening question PDF", prefix, item.questions, item.questionPaper, { audioUrls })
     : item.questionPaper
       ? `<details class="question-paper" open><summary>Listening OCR text</summary><pre>${escapeHtml(item.questionPaper)}</pre></details>`
       : `<div class="notice">This listening set has not been extracted from the PDF yet. Open the local PDF and answer directly.</div>`;
   return `
-    <div class="listening-study" id="${escapeHtml(prefix)}-listening-studio" data-listening-prefix="${escapeHtml(prefix)}" data-listening-id="${escapeHtml(item.id || "")}" data-page-images="${escapeHtml(encodeURIComponent(JSON.stringify(pageImageUrls)))}">
+    <div class="listening-study" id="${escapeHtml(prefix)}-listening-studio" data-listening-prefix="${escapeHtml(prefix)}" data-listening-mode="${escapeHtml(practiceMode)}" data-listening-id="${escapeHtml(item.id || "")}" data-page-images="${escapeHtml(encodeURIComponent(JSON.stringify(pageImageUrls)))}">
       <div class="listening-main">
         <div class="listening-head-row">
           <div class="module-meta">${[item.source, item.period || "", `${item.minutes || 30} min`].filter(Boolean).join(" · ")} ${sourceLink}</div>
         </div>
+        <section class="listening-playback-status" data-listening-status data-prefix="${escapeHtml(prefix)}" data-section="${escapeHtml(activeSection)}" aria-live="polite">
+          <div>
+            <span data-listening-state>Ready to play</span>
+            <strong data-listening-progress>${escapeHtml(listeningProgressLabel(prefix, activeSection, item.questions))}</strong>
+          </div>
+          <p>${escapeHtml(playbackRule.summary)}</p>
+          <button class="primary small-button" type="button" data-listening-start data-prefix="${escapeHtml(prefix)}" data-section="${escapeHtml(activeSection)}">Start listening</button>
+        </section>
         ${
           hasPdfImages && audioUrls.length
             ? ""
@@ -4313,6 +8365,101 @@ function renderListening(test, prefix = "single") {
       </div>
     </div>
   `;
+}
+
+function listeningModeForPrefix(prefix = "single") {
+  if (prefix === "single") return currentSinglePracticeMode("listening");
+  return "exam";
+}
+
+function listeningPlaybackRule(mode = "exam") {
+  if (mode === "training") return { canPause: true, canSeek: true, captions: true, summary: "Training: pause, replay and captions are available." };
+  if (mode === "review") return { canPause: true, canSeek: true, captions: true, summary: "Review: replay the evidence, inspect captions and retest mistakes." };
+  return { canPause: false, canSeek: false, captions: false, summary: "Exam: audio plays once; pause, replay and captions are unavailable." };
+}
+
+function listeningProgressLabel(prefix, section = "", questions = []) {
+  const answers = collectAnswers(prefix);
+  const sectionNumber = Number(section);
+  const visibleQuestions = Number.isFinite(sectionNumber) && sectionNumber > 0
+    ? (questions || []).filter((question, index) => {
+        const number = questionNumber(question, index);
+        return number >= (sectionNumber - 1) * 10 + 1 && number <= sectionNumber * 10;
+      })
+    : questions || [];
+  const answered = visibleQuestions.filter((question, index) => {
+    const number = questionNumber(question, index);
+    return String(answers[question.id || `q${number}`] || "").trim();
+  }).length;
+  const total = visibleQuestions.length || (sectionNumber ? 10 : 40);
+  return `${sectionNumber ? `Section ${sectionNumber} · ` : ""}${answered}/${total} answered`;
+}
+
+function listeningPlaybackRecord(prefix) {
+  state.listeningPlayback[prefix] ||= { status: "ready", endedSections: {}, reviewStarted: false };
+  return state.listeningPlayback[prefix];
+}
+
+function setListeningPlaybackStatus(audio, status, label) {
+  const prefix = audio?.dataset?.prefix || "single";
+  const section = audio?.dataset?.section || "";
+  const record = listeningPlaybackRecord(prefix);
+  record.status = status;
+  record.section = section;
+  document.querySelectorAll(`[data-listening-status][data-prefix="${CSS.escape(prefix)}"]`).forEach((node) => {
+    node.dataset.playbackState = status;
+    if (section) node.dataset.section = section;
+    const stateNode = node.querySelector("[data-listening-state]");
+    if (stateNode) stateNode.textContent = label;
+    const progressNode = node.querySelector("[data-listening-progress]");
+    const item = prefix === "single" ? singlePracticeItemForMode("listening", state.activeSingle) : null;
+    if (progressNode) progressNode.textContent = listeningProgressLabel(prefix, section, item?.questions || []);
+    const start = node.querySelector("[data-listening-start]");
+    if (start) {
+      start.disabled = status === "playing" || status === "finished";
+      start.textContent = status === "loading" ? "Loading listening" : status === "playing" ? "Listening" : status === "failed" ? "Retry listening" : status === "finished" ? "Finished" : status === "paused" ? "Continue listening" : "Start listening";
+    }
+  });
+}
+
+function advanceListeningExamSection(audio) {
+  const prefix = audio?.dataset?.prefix || "single";
+  if (listeningModeForPrefix(prefix) !== "exam") return false;
+  const players = [...document.querySelectorAll(`.listening-player[data-prefix="${CSS.escape(prefix)}"][data-section]`)]
+    .filter((item) => item.getAttribute("src"));
+  const currentIndex = players.indexOf(audio);
+  const next = currentIndex >= 0 ? players[currentIndex + 1] : null;
+  if (!next) return false;
+  setListeningPlaybackStatus(next, next.readyState >= 3 ? "ready" : "loading", next.readyState >= 3 ? `Section ${next.dataset.section} ready` : `Loading Section ${next.dataset.section}`);
+  if (next.readyState === 0) next.load();
+  Promise.resolve(next.play()).catch(() => setListeningPlaybackStatus(next, "failed", `Section ${next.dataset.section} failed`));
+  return true;
+}
+
+function updateListeningProgress(prefix = "single") {
+  const audio = [...document.querySelectorAll(`.listening-player[data-prefix="${CSS.escape(prefix)}"]`)].find((item) => !item.paused) || document.querySelector(`.listening-player[data-prefix="${CSS.escape(prefix)}"]`);
+  if (!audio) return;
+  const record = listeningPlaybackRecord(prefix);
+  const labels = { loading: "Loading", ready: "Ready to play", playing: "Playing", paused: "Paused", failed: "Playback failed", finished: "Finished" };
+  setListeningPlaybackStatus(audio, record.status || "ready", labels[record.status] || "Ready to play");
+}
+
+function handleListeningAnswerReviewTransition(prefix, section = "") {
+  if (prefix !== "single" || state.activeModule !== "listening" || !state.singleStarted) return;
+  const mode = currentSinglePracticeMode("listening");
+  const record = listeningPlaybackRecord(prefix);
+  if (section) record.endedSections[String(section)] = true;
+  const requiredSections = mode === "training" ? [String(state.singlePracticeSections.listening)] : ["1", "2", "3", "4"];
+  const complete = !section || requiredSections.every((value) => record.endedSections[value]);
+  if (!complete || record.reviewStarted) return;
+  record.reviewStarted = true;
+  saveSingleAnswersToState();
+  savePracticeSession();
+  if (mode === "review") {
+    setFeedback("singleFeedback", "Review audio finished. Ask AI Coach for the evidence timestamp, then retest this skill.", "singleMode", "Review complete");
+    return;
+  }
+  window.setTimeout(() => submitSingle(), 450);
 }
 
 function listeningScriptsCacheKey(prefix, id) {
@@ -5116,7 +9263,7 @@ function updateTimedListeningCaption(prefix, section, selected, audio) {
   if (timed.lastVisibleCount === visibleCount) return;
   timed.lastVisibleCount = visibleCount;
   if (!visibleCount) {
-    setListeningCaption(prefix, section, "Audio is playing. Captions will appear with speech.", `${title} · 0/${words.length}`);
+    setListeningCaption(prefix, section, "Captions will appear when speech begins.", `${title} · 0/${words.length}`);
     return;
   }
   const entries = timedCaptionConversationEntries(model, visibleCount);
@@ -5264,7 +9411,7 @@ async function loadListeningScripts(prefix, itemId, pageImageUrls = []) {
     return json;
   } catch (error) {
     const message = error?.name === "AbortError"
-      ? "No saved transcript yet. Play audio to generate ASR captions."
+      ? "No cached captions for this section yet. Refresh the offline ASR cache."
       : `Captions failed: ${error.message}`;
     setListeningCaption(prefix, "", message, "Auto captions");
     return null;
@@ -5341,10 +9488,16 @@ function renderReading(test, prefix = "single", options = {}) {
   const analysisLink = item.analysisUrl ? `<a class="source-inline" href="${item.analysisUrl}" target="_blank" rel="noreferrer">Open local analysis</a>` : "";
   const useSplitLayout = options.splitLayout === true;
   const readingPageImages = filteredPaperImagesForLabel(item.readingPageImages || [], "Reading", item.readingPaper);
+  const readingPassagePageImages = item.readingPassagePageImages || [];
+  const readingQuestionPageImages = item.readingQuestionPageImages || [];
   const readingPaper = readingPageImages.length
     ? (useSplitLayout
-        ? renderReadingSplitPages(readingPageImages, prefix, item.questions, item.readingPaper)
-        : renderPageImagesWithAnswers(readingPageImages, "Reading question PDF", prefix, item.questions, item.readingPaper))
+          ? renderReadingSplitPages(readingPageImages, prefix, item.questions, item.readingPaper, {
+            passageImages: readingPassagePageImages,
+            questionImages: readingQuestionPageImages,
+            passageStartPages: item.readingPassageStartPages || {},
+          })
+        : renderPageImagesWithAnswers(readingQuestionPageImages.length ? readingQuestionPageImages : readingPageImages, "Reading question PDF", prefix, item.questions, item.readingPaper))
     : item.readingPaper
       ? `<details class="question-paper" open><summary>Reading OCR text</summary><pre>${escapeHtml(item.readingPaper)}</pre></details>`
       : `<article class="passage">${escapeHtml(item.passage || item.prompt || "")}</article>`;
@@ -5371,6 +9524,7 @@ function writingTooltipSummary(tasks = []) {
 
 function renderWriting(task, prefix = "single") {
   const item = normalizeItem(task);
+  const wordTarget = /task\s*1/i.test(item.type || item.title || "") ? 150 : 250;
   const sourceLink = item.sourceUrl ? `<a class="source-inline" href="${item.sourceUrl}" target="_blank" rel="noreferrer">Open local PDF</a>` : "";
   const writingPrompt = item.writingPageImages?.length
     ? renderPageImages(item.writingPageImages, "Writing prompt PDF")
@@ -5383,74 +9537,140 @@ function renderWriting(task, prefix = "single") {
     ${showMeta ? `<div class="module-meta">${[item.type || "Writing", item.source, item.period || "", `${item.minutes || 40} min`].filter(Boolean).join(" · ")} ${sourceLink}</div>` : ""}
     ${showTitle ? `<h3>${item.title || "Writing task"}</h3>` : ""}
     ${writingPrompt}
-    <textarea id="${prefix}-writing" placeholder="Write your essay here..."></textarea>
-    <div class="word-count"><span id="${prefix}-words">0</span> words</div>
+    <textarea id="${prefix}-writing" data-word-target="${wordTarget}" placeholder="Write your essay here..."></textarea>
+    <div class="writing-editor-meta">
+      <div class="word-count"><span id="${prefix}-words">0</span> / ${wordTarget} words</div>
+      <span class="writing-autosave-status" data-writing-autosave-status data-state="saved">Saved</span>
+    </div>
   `;
 }
 
 function renderWritingExamTwoColumn(tasks = [], prefixRoot = "exam") {
   const validTasks = tasks.filter((task) => task && typeof task === "object");
-  if (validTasks.length < 2) {
-    return `<section class="panel notice">Writing Task 1 and Task 2 are not both available for this paper. Generate another paper or check the writing bank.</section>`;
+  if (!validTasks.length) {
+    return `<section class="panel notice">No Writing task is available. Choose another task.</section>`;
   }
-  const prompts = validTasks.map((task, index) => {
+  const totalMinutes = validTasks.reduce((sum, task) => sum + (Number(normalizeItem(task).minutes) || 40), 0);
+  const taskTabs = validTasks.map((task, index) => {
     const item = normalizeItem(task);
-    const sourceLink = item.sourceUrl ? `<a class="source-inline" href="${item.sourceUrl}" target="_blank" rel="noreferrer">Open local PDF</a>` : "";
+    const taskNumber = writingTaskNumber(item) || index + 1;
+    const taskLabel = item.type || `Task ${taskNumber}`;
+    const wordTarget = taskNumber === 1 ? 150 : 250;
+    return `<button type="button" role="tab" data-writing-task-tab="${taskNumber}" aria-selected="${index === 0 ? "true" : "false"}" class="writing-task-tab${index === 0 ? " active" : ""}">
+      <span>${escapeHtml(taskLabel)}</span><strong>${wordTarget} words</strong>
+    </button>`;
+  }).join("");
+  const taskPanels = validTasks.map((task, index) => {
+    const item = normalizeItem(task);
+    const taskNumber = writingTaskNumber(item) || index + 1;
+    const answerPrefix = `${prefixRoot}-task${taskNumber}`;
+    const wordTarget = taskNumber === 1 ? 150 : 250;
     const writingPrompt = item.writingPageImages?.length
       ? renderPageImages(item.writingPageImages, "Writing prompt PDF")
       : `<pre class="prompt-text">${escapeHtml(item.prompt)}</pre>${renderTaskVisual(item)}`;
-    return `<section class="writing-task-prompt">
-      <div class="module-meta">${[item.type || `Task ${index + 1}`, item.source, item.period || "", `${item.minutes || 40} min`].filter(Boolean).join(" · ")} ${sourceLink}</div>
-      <h3>${item.title || `Writing Task ${index + 1}`}</h3>
-      ${writingPrompt}
+    return `<section class="writing-task-workspace" data-writing-task-panel="${taskNumber}"${index === 0 ? "" : " hidden"}>
+      <div class="exam-two-column writing-two-column">
+        <section class="exam-left-pane writing-task-prompt">
+          <div class="writing-pane-label"><span>Question</span><strong>${escapeHtml(item.type || `Task ${taskNumber}`)} · ${escapeHtml(String(item.minutes || 40))} min</strong></div>
+          <h3>${escapeHtml(item.title || `Writing Task ${taskNumber}`)}</h3>
+          <div class="writing-prompt-scroll">${writingPrompt}</div>
+        </section>
+        <aside class="exam-right-pane writing-answer-pane">
+          <label class="writing-answer-block" for="${answerPrefix}-writing">
+            <span class="writing-pane-label"><span>Your response</span><strong>Target ${wordTarget}+ words</strong></span>
+            <textarea id="${answerPrefix}-writing" data-word-target="${wordTarget}" placeholder="Write your answer here..."></textarea>
+            <div class="writing-editor-meta">
+              <div class="word-count"><span id="${answerPrefix}-words">0</span> / ${wordTarget} words</div>
+              <span class="writing-autosave-status" data-writing-autosave-status data-state="saved">Saved</span>
+            </div>
+          </label>
+        </aside>
+      </div>
     </section>`;
   }).join("");
-  const answers = validTasks.map((task, index) => {
-    const item = normalizeItem(task);
-    const answerPrefix = `${prefixRoot}-task${index + 1}`;
-    return `<label class="writing-answer-block" for="${answerPrefix}-writing">
-      <span>${escapeHtml(item.type || `Task ${index + 1}`)}</span>
-      <textarea id="${answerPrefix}-writing" placeholder="Write your essay here..."></textarea>
-      <div class="word-count"><span id="${answerPrefix}-words">0</span> words</div>
-    </label>`;
-  }).join("");
-  return `<div class="exam-two-column writing-two-column">
-    <section class="exam-left-pane">${prompts}</section>
-    <aside class="exam-right-pane writing-answer-pane">${answers}</aside>
+  const firstTaskNumber = writingTaskNumber(normalizeItem(validTasks[0])) || 1;
+  return `<div class="writing-practice-shell" data-writing-total-minutes="${escapeHtml(String(totalMinutes || 40))}" data-active-writing-task="${firstTaskNumber}">
+    <nav class="writing-task-tabs" role="tablist" aria-label="Writing tasks">${taskTabs}</nav>
+    <div class="writing-task-stage">${taskPanels}</div>
   </div>`;
+}
+
+function bindWritingTaskTabs(root = document) {
+  root.querySelectorAll?.(".writing-practice-shell").forEach((shell) => {
+    const tabs = [...shell.querySelectorAll("[data-writing-task-tab]")];
+    const panels = [...shell.querySelectorAll("[data-writing-task-panel]")];
+    tabs.forEach((tab) => {
+      if (tab.dataset.writingTabBound === "1") return;
+      tab.dataset.writingTabBound = "1";
+      tab.onclick = () => {
+        const task = tab.dataset.writingTaskTab || "1";
+        tabs.forEach((item) => {
+          const active = item.dataset.writingTaskTab === task;
+          item.classList.toggle("active", active);
+          item.setAttribute("aria-selected", active ? "true" : "false");
+        });
+        panels.forEach((panel) => {
+          panel.hidden = panel.dataset.writingTaskPanel !== task;
+        });
+        shell.dataset.activeWritingTask = task;
+        state.writingActiveTaskNumber = Number(task) || 1;
+        saveWritingUploadSessionPointer();
+        rebindCoachContext();
+        renderGlobalCoachContext();
+        panels.find((panel) => panel.dataset.writingTaskPanel === task)?.querySelector("textarea")?.focus({ preventScroll: true });
+      };
+    });
+  });
 }
 
 function renderSpeaking(set, prefix = "single") {
   return renderSpeakingExamTwoColumn(set, prefix);
 }
 
+function renderSpeakingCueCard(item) {
+  const part2 = compactDialogueText(item.part2 || item.prompt || item.title || "");
+  const cueLines = String(item.part2 || "")
+    .split(/\r?\n+/)
+    .map((line) => line.replace(/^[\s\-•*]+/, "").trim())
+    .filter(Boolean);
+  const cueTitle = (cueLines[0] || item.title || "IELTS Speaking topic")
+    .replace(/\s*(?:one|1)?\s*(?:to|-)?\s*(?:two|2)?\s*minutes?\.?$/i, "")
+    .replace(/\s+minutes?\.?$/i, "")
+    .trim();
+  const bulletLines = cueLines.slice(1, 6);
+  const paperPreview = item.speakingPageImages?.length
+    ? `<div class="speaking-paper-preview">${renderPageImages(item.speakingPageImages, "Speaking prompt PDF")}</div>`
+    : "";
+  return `<div class="speaking-cue-card">
+    <div class="speaking-cue-top">
+      <div class="speaking-bot-mark" aria-hidden="true"><span></span></div>
+      <div>
+        <span class="eyebrow">AI Speaking Examiner</span>
+        <h3>${escapeHtml(cueTitle || "Speaking with AI")}</h3>
+        ${part2 && !bulletLines.length ? `<p>${escapeHtml(part2.slice(0, 260))}</p>` : ""}
+      </div>
+    </div>
+    ${bulletLines.length ? `<ul>${bulletLines.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul>` : ""}
+    ${paperPreview}
+  </div>`;
+}
+
 function renderSpeakingExamTwoColumn(set, prefix = "exam") {
   const item = normalizeItem(set);
-  const pdfHtml = item.speakingPageImages?.length
-    ? renderPageImages(item.speakingPageImages, "Speaking prompt PDF")
-    : `<div class="speaking-paper-placeholder">
-        ${item.part1Topic ? `<p><strong>Part 1:</strong> ${escapeHtml(item.part1Topic)}</p>` : ""}
-        ${item.part2 ? `<p><strong>Part 2:</strong> ${escapeHtml(compactDialogueText(item.part2).slice(0, 260))}</p>` : ""}
-        ${item.part3Topics ? `<p><strong>Part 3:</strong> ${escapeHtml(Array.isArray(item.part3Topics) ? item.part3Topics.join(", ") : item.part3Topics)}</p>` : ""}
-      </div>`;
   const leftPane = prefix === "exam"
     ? `<div class="speaking-orb-stage">
         <div id="${prefix}-speaking-orb" class="speaking-voice-orb" aria-hidden="true"></div>
         <div class="speaking-orb-label">Speaking exam</div>
       </div>`
     : `<div class="module-meta">${[item.source, item.period || ""].filter(Boolean).join(" · ")}</div>
-      <h3>${item.title}</h3>
-      ${pdfHtml}`;
-  return `<div class="exam-two-column speaking-two-column">
-    <section class="exam-left-pane ${prefix === "exam" ? "speaking-orb-pane" : ""}">${leftPane}</section>
-    <aside class="exam-right-pane speaking-answer-pane">
-      ${renderRealtimeSpeakingPanel(item, prefix, { showTranscript: prefix !== "exam" })}
-    </aside>
-  </div>`;
+      ${renderSpeakingCueCard(item)}`;
+  return renderRealtimeSpeakingPanel(item, prefix, { showTranscript: prefix !== "exam", leftPane });
 }
 
 function renderRealtimeSpeakingPanel(item, prefix, options = {}) {
   const showTranscript = options.showTranscript !== false;
+  const mode = options.mode || (prefix === "exam" ? "exam" : "coach");
+  const leftPane = options.leftPane || "";
   const speakingTopicPayload = JSON.stringify({
     title: item.title || "",
     source: item.source || "",
@@ -5459,35 +9679,49 @@ function renderRealtimeSpeakingPanel(item, prefix, options = {}) {
     part2: item.part2 || "",
     part3: item.part3 || [],
   });
-  const transcriptHtml = showTranscript
-    ? `<div id="${prefix}-speaking-log" class="dialogue-log"></div>`
-    : "";
-  return `<div class="qwen-speaking" data-prefix="${prefix}" data-topic="${escapeHtml(item.title)}">
+  const transcriptHtml = `<details class="speaking-transcript-pane"${showTranscript ? "" : " hidden"}>
+      <summary>Conversation transcript</summary>
+      <div id="${prefix}-speaking-log" class="dialogue-log"></div>
+    </details>`;
+  return `<div class="qwen-speaking speaking-exam-shell speaking-practice-layout" data-prefix="${prefix}" data-topic="${escapeHtml(item.title)}" data-practice-mode="${escapeHtml(mode)}">
     <textarea id="${prefix}-qwen-prompt" hidden>${escapeHtml(buildIeltsSpeakingPrompt(item))}</textarea>
     <textarea id="${prefix}-qwen-topic-json" hidden>${escapeHtml(speakingTopicPayload)}</textarea>
-    <div class="speaking-environment-tip">Please practise in a quiet environment. Keep your microphone close and avoid background noise so the examiner can hear you clearly.</div>
-    <div id="${prefix}-qwen-status" class="voice-state">Not started</div>
-    <div class="qwen-meter">
-      <span id="${prefix}-qwen-level"></span>
-      <strong id="${prefix}-qwen-meter">0.00</strong>
-    </div>
-    <label class="field-label speaking-band-field" for="${prefix}-speaking-score">
-      <span>Speaking band</span>
-      <input id="${prefix}-speaking-score" class="text-input band-input" inputmode="decimal" placeholder="Enter band score" />
-    </label>
-    ${transcriptHtml}
-    <div id="${prefix}-scoring-progress" class="speaking-scoring-progress" hidden aria-live="polite">
-      <div class="speaking-scoring-row">
-        <span id="${prefix}-scoring-label">Preparing scoring...</span>
-        <strong id="${prefix}-scoring-percent">0%</strong>
+    <section class="practice-context exam-left-pane speaking-exam-left-pane ${prefix === "exam" ? "speaking-orb-pane" : ""}">
+      <div class="speaking-current-question"><span>Current question</span><strong id="${prefix}-speaking-question">Waiting for the examiner</strong></div>
+      <div class="speaking-deferred-cue" data-speaking-part2-cue hidden>${leftPane}</div>
+    </section>
+    <section class="practice-main speaking-main-stage">
+      <div class="speaking-voice-card" data-speaking-phase="ready">
+        <div class="speaking-panel-head">
+          <span id="${prefix}-qwen-status" class="voice-state">Ready to check</span>
+          <strong>Your answer</strong>
+        </div>
+        <div class="speaking-preflight" aria-label="Speaking test status"><span><i aria-hidden="true"></i> ${prefix === "bank" && state.speakingDeviceChecked ? "Device check passed" : "Ready for device permission"}</span><span><i aria-hidden="true"></i> ${navigator.onLine ? "Network online" : "Network offline"}</span></div>
+        <div class="speaking-live-meta" aria-live="polite">
+          <strong id="${prefix}-speaking-current-part">Preparation</strong>
+          <span id="${prefix}-speaking-elapsed">00:00</span>
+        </div>
+        <div class="qwen-meter" aria-label="Live voice waveform">
+          <span id="${prefix}-qwen-level"></span>
+          <strong id="${prefix}-qwen-meter">0.00</strong>
+        </div>
+        <div class="actions">
+          <button class="primary start-qwen-speaking" data-prefix="${prefix}" data-topic="${escapeHtml(item.title)}">Start speaking test</button>
+          <button class="primary qwen-finish-score" data-prefix="${prefix}" disabled>Finish &amp; get feedback</button>
+          <button class="secondary qwen-disconnect" data-prefix="${prefix}" disabled>Disconnect</button>
+        </div>
       </div>
-      <div class="speaking-scoring-track"><span id="${prefix}-scoring-bar"></span></div>
-    </div>
-    <div id="${prefix}-recording-download" class="recording-download"></div>
-    <div class="actions">
-      <button class="primary start-qwen-speaking" data-prefix="${prefix}" data-topic="${escapeHtml(item.title)}">Start</button>
-      <button class="secondary qwen-disconnect" data-prefix="${prefix}" disabled>Disconnect</button>
-    </div>
+      <input id="${prefix}-speaking-score" class="band-input" type="hidden" />
+      <div id="${prefix}-scoring-progress" class="speaking-scoring-progress" hidden aria-live="polite">
+        <div class="speaking-scoring-row">
+          <span id="${prefix}-scoring-label">Preparing scoring...</span>
+          <strong id="${prefix}-scoring-percent">0%</strong>
+        </div>
+        <div class="speaking-scoring-track"><span id="${prefix}-scoring-bar"></span></div>
+      </div>
+      <div id="${prefix}-recording-download" class="recording-download"></div>
+      ${transcriptHtml}
+    </section>
   </div>`;
 }
 
@@ -5532,6 +9766,7 @@ function buildIeltsSpeakingPrompt(set) {
     "After scoring, give concise English feedback with 3 specific weaknesses and 3 drills.",
     "",
     `Topic set title: ${item.title}`,
+    item.retestFocus ? `Targeted retest instruction: ${item.retestFocus}` : "",
     topicLines,
   ].join("\n");
 }
@@ -5753,7 +9988,7 @@ async function finishSpeakingScore(prefix, setTitle, feedbackId = "singleFeedbac
     const transcript = getSpeakingTranscript(prefix);
     const json = await postJson("/api/speaking/feedback", { set: setTitle, transcript });
     const band = speakingBandFromFeedbackPayload(json.feedback, json.band);
-    if (band) fillSpeakingBandFromText(prefix, band);
+    if (band || json.feedback) updateSpeakingScorePanel(prefix, json.feedback || "", band);
     setFeedbackHtml(feedbackId, renderSpeakingResultHtml(json.feedback, json, band, prefix), modeId, json.mode);
   } catch (error) {
     setFeedback(feedbackId, `Submission failed: ${error.message}`, modeId, "error");
@@ -5765,6 +10000,19 @@ function speakingFeedbackTargets(prefix) {
   if (prefix === "sequence") return { feedbackId: "sequenceFeedback", modeId: "sequenceMode" };
   if (prefix === "bank") return { feedbackId: "bankFeedback", modeId: "bankMode" };
   return { feedbackId: "singleFeedback", modeId: "singleMode" };
+}
+
+function revealSpeakingResult(prefix) {
+  const targets = speakingFeedbackTargets(prefix);
+  const result = $(`${targets.feedbackId}`)?.querySelector(".speaking-result-page");
+  if (!result) return false;
+  exitImmersiveMode();
+  result.setAttribute("tabindex", "-1");
+  window.setTimeout(() => {
+    result.scrollIntoView({ behavior: "smooth", block: "start" });
+    result.focus({ preventScroll: true });
+  }, 120);
+  return true;
 }
 
 async function scoreSpeakingText(prefix, setTitle, feedbackId, modeId) {
@@ -5781,7 +10029,7 @@ async function scoreSpeakingText(prefix, setTitle, feedbackId, modeId) {
   setFeedback(targets.feedbackId, "Scoring speaking text...", targets.modeId, "");
   const json = await postJson("/api/speaking/feedback", { set: setTitle || "", transcript });
   const band = speakingBandFromFeedbackPayload(json.feedback, json.band);
-  if (band) fillSpeakingBandFromText(prefix, band);
+  if (band || json.feedback) updateSpeakingScorePanel(prefix, json.feedback || "", band);
   setFeedbackHtml(targets.feedbackId, renderSpeakingResultHtml(json.feedback, json, band, prefix), targets.modeId, json.mode);
   return json;
 }
@@ -6006,6 +10254,23 @@ function qwenSetStatus(prefix, text, active = false) {
     node.classList.toggle("active", active);
   }
   const normalized = String(text || "").toLowerCase();
+  if (normalized.includes("error") || normalized.includes("failed") || normalized.includes("disconnected")) {
+    qwenSession(prefix).connecting = false;
+  }
+  const shell = document.querySelector(`.qwen-speaking[data-prefix="${prefix}"]`);
+  let phase = "ready";
+  if (normalized.includes("scoring") || normalized.includes("score ready")) phase = "scoring";
+  else if (normalized.includes("disconnected") || normalized.includes("complete")) phase = "complete";
+  else if (normalized.includes("reconnect")) phase = "reconnecting";
+  else if (normalized.includes("connecting")) phase = "checks";
+  else if (normalized.includes("examiner speaking")) phase = "examiner";
+  else if (normalized.includes("listening") || normalized.includes("connected") || normalized.includes("processing")) phase = "recording";
+  shell?.setAttribute("data-speaking-phase", phase);
+  if (phase === "complete") {
+    const session = qwenSession(prefix);
+    if (session.uiTimer) clearInterval(session.uiTimer);
+    session.uiTimer = null;
+  }
   if (normalized.includes("examiner speaking") || normalized.includes("preparing response")) {
     qwenSetSpeakingVisualState(prefix, "assistant");
   } else if (normalized.includes("listening")) {
@@ -6013,6 +10278,19 @@ function qwenSetStatus(prefix, text, active = false) {
   } else if (normalized.includes("disconnected") || normalized.includes("not started") || normalized.includes("connected")) {
     qwenSetSpeakingVisualState(prefix, "idle");
   }
+}
+
+function qwenUpdateExamMeta(prefix) {
+  const session = qwenSession(prefix);
+  const elapsed = session.sessionStartedAt ? Math.max(0, Math.floor((Date.now() - session.sessionStartedAt) / 1000)) : 0;
+  const elapsedNode = $(`${prefix}-speaking-elapsed`);
+  const partNode = $(`${prefix}-speaking-current-part`);
+  if (elapsedNode) elapsedNode.textContent = `${String(Math.floor(elapsed / 60)).padStart(2, "0")}:${String(elapsed % 60).padStart(2, "0")}`;
+  if (partNode) partNode.textContent = session.scheduledAction?.part || (session.sessionStartedAt ? "Part 1" : "Preparation");
+  const part = String(session.scheduledAction?.part || "");
+  document.querySelectorAll(`.qwen-speaking[data-prefix="${prefix}"] [data-speaking-part2-cue]`).forEach((node) => {
+    node.hidden = !/^Part 2/i.test(part);
+  });
 }
 
 function qwenClearScoringProgressTimer(prefix) {
@@ -6193,6 +10471,7 @@ async function qwenShouldTryWebRtc(prefix = "") {
 }
 
 function qwenSetControls(prefix, connected) {
+  if (connected) qwenSession(prefix).connecting = false;
   document.querySelectorAll(`.qwen-speaking [data-prefix="${prefix}"]`).forEach((button) => {
     const currentSession = qwenSession(prefix);
     const transport = currentSession.transport;
@@ -6210,6 +10489,9 @@ function qwenSetControls(prefix, connected) {
 
 function qwenSetRecoveringControls(prefix) {
   qwenSetControls(prefix, false);
+  document.querySelectorAll(`.start-qwen-speaking[data-prefix="${prefix}"]`).forEach((button) => {
+    button.disabled = true;
+  });
   document.querySelectorAll(`.qwen-disconnect[data-prefix="${prefix}"]`).forEach((button) => {
     button.disabled = false;
   });
@@ -6418,6 +10700,13 @@ function qwenRecoveryInstructions(prefix, reason = "connection lost") {
 function scheduleQwenConnectionRecovery(prefix, reason = "connection lost", options = {}) {
   const session = qwenSession(prefix);
   if (!qwenShouldRecoverConnection(session)) return false;
+  const interruptedExaminerText = compactDialogueText(session.pendingAssistantText || session.currentAssistantText || "");
+  if (interruptedExaminerText) {
+    qwenRememberExaminerQuestion(prefix, interruptedExaminerText);
+    session.scheduledAction = null;
+    session.nextQuestionPrepared = false;
+    session.webRtcTurnPreparedForAnswer = false;
+  }
   const proactive = Boolean(options.proactive);
   session.connectionRecovering = true;
   session.connected = false;
@@ -6705,15 +10994,21 @@ async function qwenRunAutoScore(prefix, options = {}) {
     });
     if (options.showProgress) qwenSetScoringProgress(prefix, Math.max(session.scoringProgressValue || 0, 86), "Formatting feedback...", true);
     const band = speakingBandFromFeedbackPayload(json.feedback, json.band);
-    if (band && options.fillScore) fillSpeakingBandFromText(prefix, band);
+    const canonicalJson = { ...json, band };
+    if (band || json.feedback) {
+      const saved = rememberSpeakingResult(buildSpeakingResultRecord(prefix, json.feedback || "", canonicalJson, band));
+      canonicalJson.attemptId = saved.attemptId;
+      renderDashboard();
+    }
+    if ((band || json.feedback) && options.fillScore) updateSpeakingScorePanel(prefix, json.feedback || "", band);
     if (options.showFeedback) {
       const targets = speakingFeedbackTargets(prefix);
       const finalLine = band ? `Final Speaking Band: ${band}` : "Final Speaking Band: unavailable";
       const feedbackText = [finalLine, json.feedback || ""].filter(Boolean).join("\n\n");
-      setFeedbackHtml(targets.feedbackId, renderSpeakingResultHtml(feedbackText || `Speaking band: ${band || ""}`, json, band, prefix), targets.modeId, json.mode || "");
+      setFeedbackHtml(targets.feedbackId, renderSpeakingResultHtml(feedbackText || `Speaking band: ${band || ""}`, canonicalJson, band, prefix), targets.modeId, json.mode || "");
     }
     if (options.showStatus) qwenSetStatus(prefix, band ? `Final Speaking Band: ${band}` : "Scoring complete", true);
-    return json;
+    return canonicalJson;
   } catch (error) {
     if (options.showProgress) qwenSetScoringProgress(prefix, 100, "Scoring failed. Please try again.", true);
     if (options.showStatus) qwenSetStatus(prefix, `Scoring failed: ${error.message}`, false);
@@ -6732,6 +11027,9 @@ function qwenAssistantTranscriptVisible(prefix) {
 }
 
 function qwenAddBubble(prefix, role, text) {
+  if (role === "assistant" && $(`${prefix}-speaking-question`) && compactDialogueText(text)) {
+    $(`${prefix}-speaking-question`).textContent = compactText(compactDialogueText(text), 260);
+  }
   const log = $(`${prefix}-speaking-log`);
   if (!log || !qwenTranscriptVisible(prefix)) return null;
   const node = document.createElement("div");
@@ -6768,6 +11066,27 @@ function normalizeAssistantDisplayText(text) {
 
 function dialogueFingerprint(text) {
   return compactDialogueText(text).toLowerCase().replace(/[^a-z0-9]+/gi, "");
+}
+
+function qwenQuestionIsDuplicate(askedQuestions, text) {
+  const candidate = qwenExtractQuestion(text);
+  const candidateFp = dialogueFingerprint(candidate);
+  if (!candidateFp) return false;
+  const stopWords = new Set(["a", "an", "and", "are", "can", "could", "did", "do", "does", "for", "how", "in", "is", "it", "of", "on", "or", "that", "the", "this", "to", "what", "when", "where", "which", "who", "why", "would", "you", "your"]);
+  const terms = (value) => (String(value || "").toLowerCase().match(/[a-z0-9']+/g) || []).filter((word) => !stopWords.has(word));
+  const candidateTerms = new Set(terms(candidate));
+  return (askedQuestions || []).some((asked) => {
+    const askedQuestion = qwenExtractQuestion(asked);
+    const askedFp = dialogueFingerprint(askedQuestion);
+    if (!askedFp) return false;
+    if (askedFp === candidateFp) return true;
+    if (Math.min(askedFp.length, candidateFp.length) >= 24
+      && (askedFp.includes(candidateFp) || candidateFp.includes(askedFp))) return true;
+    const askedTerms = new Set(terms(askedQuestion));
+    if (candidateTerms.size < 3 || askedTerms.size < 3) return false;
+    const overlap = [...candidateTerms].filter((word) => askedTerms.has(word)).length;
+    return overlap / Math.min(candidateTerms.size, askedTerms.size) >= 0.8;
+  });
 }
 
 function qwenWordCount(text) {
@@ -7026,14 +11345,12 @@ function qwenTakeNextScheduledAction(prefix, plan) {
     const text = plan.part1[session.part1Index];
     session.part1Index += 1;
     session.lastActionKind = "question";
-    qwenRememberUnique(session.askedQuestions, text, 18);
     session.scheduledAction = { part: "Part 1", kind: "question", label: `Part 1 question ${session.part1Index}`, text };
     return session.scheduledAction;
   }
   if (!session.part2Delivered) {
     session.part2Delivered = true;
     session.lastActionKind = "cue-card";
-    qwenRememberUnique(session.askedQuestions, `Part 2 cue card: ${plan.part2}`, 18);
     session.scheduledAction = { part: "Part 2", kind: "cue-card", label: "Part 2 cue card", text: plan.part2 };
     return session.scheduledAction;
   }
@@ -7041,7 +11358,6 @@ function qwenTakeNextScheduledAction(prefix, plan) {
     const text = plan.part3[session.part3Index];
     session.part3Index += 1;
     session.lastActionKind = "question";
-    qwenRememberUnique(session.askedQuestions, text, 18);
     session.scheduledAction = { part: "Part 3", kind: "question", label: `Part 3 question ${session.part3Index}`, text };
     return session.scheduledAction;
   }
@@ -7182,11 +11498,13 @@ function qwenRememberCandidateAnswer(prefix, text) {
 
 function qwenRememberExaminerQuestion(prefix, text) {
   const session = qwenSession(prefix);
-  if (session.awaitingScore) return;
+  if (session.awaitingScore) return false;
   const clean = compactDialogueText(text);
-  if (!clean) return;
+  if (!clean) return false;
+  const question = qwenExtractQuestion(clean);
+  if (qwenQuestionIsDuplicate(session.askedQuestions, question)) return false;
   qwenRememberDialogueTurn(prefix, "Examiner", clean);
-  qwenRememberUnique(session.askedQuestions, qwenExtractQuestion(clean), 18);
+  return qwenRememberUnique(session.askedQuestions, question, 18);
 }
 
 function qwenTurnControlInstructions(prefix, mode = "next-question") {
@@ -8062,7 +12380,8 @@ function startQwenWebSocket(prefix, openingInstructions, options = {}) {
 
 async function startQwenSpeaking(prefix) {
   const session = qwenSession(prefix);
-  if (session.connected || session.ws?.readyState === WebSocket.OPEN) return;
+  if (session.connected || session.connecting || session.ws?.readyState === WebSocket.OPEN) return;
+  session.connecting = true;
   qwenHideScoringProgress(prefix);
   session.userDisconnected = false;
   void requestQwenWakeLock(prefix);
@@ -8120,6 +12439,9 @@ async function startQwenSpeaking(prefix) {
   session.candidateQuestions = [];
   session.dialogueTurns = [];
   session.sessionStartedAt = Date.now();
+  if (session.uiTimer) clearInterval(session.uiTimer);
+  session.uiTimer = setInterval(() => qwenUpdateExamMeta(prefix), 1000);
+  qwenUpdateExamMeta(prefix);
   qwenResetExaminerSchedule(prefix);
   qwenAdvanceScheduledAction(prefix);
   session.voiceStarted = false;
@@ -8189,6 +12511,12 @@ async function startQwenSpeaking(prefix) {
   unlockQwenOutput(prefix);
   qwenSetStatus(prefix, "Connecting...", false);
   qwenSetControls(prefix, false);
+  document.querySelectorAll(`.start-qwen-speaking[data-prefix="${prefix}"]`).forEach((button) => {
+    button.disabled = true;
+  });
+  document.querySelectorAll(`.qwen-disconnect[data-prefix="${prefix}"]`).forEach((button) => {
+    button.disabled = false;
+  });
   await qwenRuntimeConfig();
   const tryWebRtc = await qwenShouldTryWebRtc(prefix);
   if (!tryWebRtc) {
@@ -8262,6 +12590,7 @@ function handleQwenMessage(prefix, message) {
   if (message.type === "status") {
     if (message.status === "qwen-open") {
       session.connected = true;
+      session.connecting = false;
       const wasRecovering = session.connectionRecovering;
       session.connectionRecovering = false;
       session.connectionRecoveryAttempts = 0;
@@ -8859,6 +13188,7 @@ function qwenMaybeAutoFinish(prefix) {
 }
 
 async function finishQwenSpeaking(prefix) {
+  setUnifiedPracticeStage("speaking", "scoring");
   const session = qwenSession(prefix);
   if (session.finalScoreInFlight) return;
   session.finalScoreInFlight = true;
@@ -8889,20 +13219,24 @@ async function finishQwenSpeaking(prefix) {
       audioEvidence,
     });
     if (!result) {
+      setUnifiedPracticeStage("speaking", "practice");
       qwenSetStatus(prefix, "No complete speaking answer to score yet", false);
       qwenStopFakeScoringProgress(prefix, "Not enough speech to score yet.");
       window.setTimeout(() => qwenHideScoringProgress(prefix), 3500);
       return;
     }
-    const band = normalizeSpeakingBand(result.band) || extractSpeakingBandFromText(result.feedback);
+    const band = speakingBandFromFeedbackPayload(result.feedback || "", result.band);
     qwenSetScoringProgress(prefix, 94, "Preparing final voice closing...", true);
     qwenSetStatus(prefix, band ? `Speaking ended. Final Band: ${band}. Saying goodbye...` : "Speaking ended. Score ready. Saying goodbye...", true);
     await qwenSayGoodbyeAndDisconnect(prefix, band);
+    revealSpeakingResult(prefix);
+    if (prefix === "single" && state.activeModule === "speaking") await completeActivePracticeSession();
     qwenSetScoringProgress(prefix, 98, "Preparing recording download...", true);
     createQwenRecordingDownload(prefix, { forceUpload: true, timeoutMs: QWEN_RECORDING_DOWNLOAD_RETRY_TIMEOUT_MS }).catch(() => {});
     qwenStopFakeScoringProgress(prefix, band ? `Score ready: Band ${band}` : "Score ready");
     window.setTimeout(() => qwenHideScoringProgress(prefix), 5000);
   } catch (error) {
+    setUnifiedPracticeStage("speaking", "practice");
     qwenStopFakeScoringProgress(prefix, "Scoring failed. Please try again.");
     window.setTimeout(() => qwenHideScoringProgress(prefix), 5000);
     qwenSetStatus(prefix, `Speaking scoring failed: ${error.message}`, false);
@@ -9058,7 +13392,7 @@ async function createQwenRecordingDownload(prefix, options = {}) {
     return json;
   } catch (error) {
     const dataUrl = await qwenRecordingDataUrl(prefix);
-    const fallback = qwenOriginalRecordingFallback(session, dataUrl, `MP3 conversion failed: ${error.message}`);
+    const fallback = qwenOriginalRecordingFallback(session, dataUrl, "MP3 conversion was unavailable. The original recording is ready to download.");
     session.recordingResult = fallback;
     renderQwenRecordingDownload(target, fallback);
     return fallback;
@@ -9078,15 +13412,13 @@ function fillSpeakingBandFromText(prefix, text) {
   const clean = String(text || "");
   const extracted = extractSpeakingBandFromText(clean);
   if (extracted) {
-    const input = $(`${prefix}-speaking-score`);
-    if (input) input.value = extracted;
+    updateSpeakingScorePanel(prefix, clean, extracted);
     qwenSession(prefix).scoreFilled = true;
     return;
   }
   const direct = normalizeSpeakingBand(clean);
   if (direct) {
-    const input = $(`${prefix}-speaking-score`);
-    if (input) input.value = direct;
+    updateSpeakingScorePanel(prefix, clean, direct);
     qwenSession(prefix).scoreFilled = true;
     return;
   }
@@ -9101,8 +13433,7 @@ function fillSpeakingBandFromText(prefix, text) {
   const value = Number.parseFloat(match[1]);
   if (!Number.isFinite(value) || value < 0 || value > 9) return;
   const rounded = Math.round(value * 2) / 2;
-  const input = $(`${prefix}-speaking-score`);
-  if (input) input.value = rounded.toFixed(1);
+  updateSpeakingScorePanel(prefix, clean, rounded.toFixed(1));
   qwenSession(prefix).scoreFilled = true;
 }
 
@@ -9305,32 +13636,520 @@ function arrayBufferToBase64(buffer) {
   return btoa(binary);
 }
 
+function singlePracticeMeta(moduleName) {
+  const map = {
+    listening: {
+      title: "Listening with AI",
+      label: "Listening with AI",
+      estimate: "30 min",
+      recommended: "Catch numbers, plurals and section details.",
+      self: "Choose a Cambridge listening paper from the bank.",
+      output: "Score + answer review + captions when available",
+    },
+    reading: {
+      title: "Reading with AI",
+      label: "Reading with AI",
+      estimate: "60 min",
+      recommended: "Practise evidence-based answer selection.",
+      self: "Choose one reading paper and work through it.",
+      output: "Score + evidence review",
+    },
+    writing: {
+      title: "Writing with AI",
+      label: "Writing with AI",
+      estimate: "20 or 40 min",
+      recommended: "Practise one Task 1 chart or one Task 2 topic independently.",
+      self: "Choose Task 1 or Task 2 before selecting a question.",
+      output: "Independent band report + rewrite task",
+    },
+    speaking: {
+      title: "Speaking with AI",
+      label: "Speaking with AI",
+      estimate: "15 min",
+      recommended: "Start a focused AI speaking examiner session.",
+      self: "Choose a Cambridge or public speaking topic.",
+      output: "Band estimate + transcript + recording",
+    },
+  };
+  return map[moduleName] || map.listening;
+}
+
+function singleModeOptions(moduleName) {
+  const map = {
+    listening: [
+      { id: "exam", icon: "⏱️", title: "Exam mode", text: "Real 40-question test.", output: "Score + review" },
+      { id: "training", icon: "🎧", title: "Training mode", text: "Section drill with captions.", output: "Evidence + traps" },
+      { id: "review", icon: "🔁", title: "Review mode", text: "Wrong answers first.", output: "Rule + retest" },
+    ],
+    reading: [
+      { id: "full", icon: "📖", title: "Full passage", text: "Split passage + questions.", output: "Score + evidence" },
+      { id: "evidence", icon: "🔎", title: "Evidence drill", text: "Find the proof sentence.", output: "Paraphrase chain" },
+      { id: "type", icon: "🧩", title: "Question type", text: "Train one question type.", output: "Type review" },
+      { id: "review", icon: "🔁", title: "Review mistakes", text: "Saved weak areas first.", output: "Retest" },
+    ],
+    writing: [
+      { id: "coach", icon: "✍️", title: "Writing with AI", text: "Independent Task 1 or Task 2 practice with grading and rewrite.", output: "Band + rewrite task" },
+      { id: "custom", icon: "📄", title: "Custom task", text: "Paste your own question and essay in Writing with AI.", output: "AI writing report" },
+    ],
+    speaking: [
+      { id: "diagnostic", icon: "🎙️", title: "Diagnostic test", text: "15-minute IELTS examiner session.", output: "Band + recording" },
+      { id: "part2", icon: "🗣️", title: "Cue card drill", text: "Practise Part 2 fluency without repeating answers.", output: "Fluency retest" },
+      { id: "retest", icon: "🎯", title: "Retest weak criterion", text: "Use your last report to focus one criterion.", output: "Updated score" },
+    ],
+  };
+  return map[moduleName] || map.listening;
+}
+
+function currentSinglePracticeMode(moduleName = state.activeModule) {
+  const options = singleModeOptions(moduleName);
+  const saved = state.singlePracticeModes?.[moduleName] || options[0]?.id || "";
+  return options.some((item) => item.id === saved) ? saved : options[0]?.id || "";
+}
+
+function singleModeLabel(moduleName, mode = currentSinglePracticeMode(moduleName)) {
+  return singleModeOptions(moduleName).find((item) => item.id === mode)?.title || "Practice mode";
+}
+
+function singleSectionQuestionRange(moduleName, section = 1) {
+  const safeSection = Math.max(1, Math.min(moduleName === "reading" ? 3 : 4, Number(section) || 1));
+  if (moduleName === "reading") {
+    return [
+      [1, 13],
+      [14, 26],
+      [27, 40],
+    ][safeSection - 1];
+  }
+  return [(safeSection - 1) * 10 + 1, safeSection * 10];
+}
+
+function questionsInRange(questions, start, end) {
+  return (questions || []).filter((question, index) => {
+    const number = questionNumber(question, index);
+    return number >= start && number <= end;
+  });
+}
+
+function selectedQuestionNumbers(questions) {
+  return new Set((questions || []).map((question, index) => questionNumber(question, index)).filter(Number.isFinite));
+}
+
+function paperImagesForQuestionSubset(images, allQuestions, paper, selectedQuestions) {
+  if (!Array.isArray(images) || !images.length || !selectedQuestions?.length) return images || [];
+  const selected = selectedQuestionNumbers(selectedQuestions);
+  const metadataPages = new Set((selectedQuestions || []).map((question) => Number(question.questionPage)).filter(Number.isFinite));
+  if (metadataPages.size) {
+    const metadataFiltered = uniqueOrderedImages(images).filter((image) => metadataPages.has(Number(image.page)));
+    if (metadataFiltered.length) return metadataFiltered;
+  }
+  const assignments = assignQuestionsToPages(images, allQuestions, paper);
+  const filtered = uniqueOrderedImages(images).filter((image, index) => {
+    const page = image.page || index + 1;
+    return (assignments.get(page) || []).some((number) => selected.has(number));
+  });
+  return filtered.length ? filtered : images;
+}
+
+function saveSingleAnswersToState() {
+  state.singleAnswers = { ...(state.singleAnswers || {}), ...collectAnswers("single") };
+}
+
+function restoreSingleAnswersFromState() {
+  document.querySelectorAll('.answer-input[data-prefix="single"]').forEach((input) => {
+    const saved = state.singleAnswers?.[input.dataset.qid];
+    if (saved !== undefined) input.value = saved;
+  });
+}
+
+function singlePracticeItemForMode(moduleName, sourceItem) {
+  const item = normalizeItem(sourceItem);
+  const mode = currentSinglePracticeMode(moduleName);
+  if (!["listening", "reading"].includes(moduleName)) return item;
+  const allQuestions = item.questions || [];
+  let questions = allQuestions;
+
+  if (mode === "review") {
+    const previous = latestObjectiveResult(moduleName, item.id || "");
+    const wrongIds = new Set(previous?.wrongQuestionIds || []);
+    questions = allQuestions.filter((question) => wrongIds.has(question.id));
+    if (!questions.length) return { ...item, questions: [], reviewUnavailable: true };
+  } else if (moduleName === "listening" && mode === "training") {
+    const [start, end] = singleSectionQuestionRange(moduleName, state.singlePracticeSections.listening);
+    questions = questionsInRange(allQuestions, start, end);
+  } else if (moduleName === "reading" && mode === "evidence") {
+    const [start, end] = singleSectionQuestionRange(moduleName, state.singlePracticeSections.reading);
+    questions = questionsInRange(allQuestions, start, end);
+  } else if (moduleName === "reading" && mode === "type") {
+    const availableTypes = [...new Set(allQuestions.map((question) => question.type).filter((type) => type && type !== "unknown"))];
+    if (!availableTypes.includes(state.readingQuestionType)) state.readingQuestionType = availableTypes[0] || "unknown";
+    questions = allQuestions.filter((question) => question.type === state.readingQuestionType);
+  }
+
+  if (moduleName === "listening" && mode !== "exam") {
+    const numbers = [...selectedQuestionNumbers(questions)];
+    const activeSections = new Set(numbers.map((number) => Math.ceil(number / 10)));
+    const audioUrls = (item.audioUrls || []).map((url, index) => activeSections.has(index + 1) ? url : "");
+    return {
+      ...item,
+      questions,
+      audioUrls,
+      questionPageImages: paperImagesForQuestionSubset(item.questionPageImages || [], allQuestions, item.questionPaper, questions),
+      minutes: mode === "training" ? 10 : item.minutes,
+    };
+  }
+  if (moduleName === "reading") {
+    return {
+      ...item,
+      questions,
+      readingQuestionPageImages: paperImagesForQuestionSubset(item.readingQuestionPageImages || item.readingPageImages || [], allQuestions, item.readingPaper, questions),
+    };
+  }
+  return { ...item, questions };
+}
+
+function renderSingleRuntimeControls(moduleName, mode) {
+  if (moduleName === "listening" && mode === "training") {
+    return `<div class="single-runtime-controls" aria-label="Listening section">
+      <span>Section</span>
+      ${[1, 2, 3, 4].map((section) => `<button class="${state.singlePracticeSections.listening === section ? "active" : ""}" type="button" data-single-section="${section}" data-module="listening">${section}</button>`).join("")}
+    </div>`;
+  }
+  if (moduleName === "reading" && mode === "evidence") {
+    return `<div class="single-runtime-controls" aria-label="Reading passage">
+      <span>Passage</span>
+      ${[1, 2, 3].map((passage) => `<button class="${state.singlePracticeSections.reading === passage ? "active" : ""}" type="button" data-single-section="${passage}" data-module="reading">${passage}</button>`).join("")}
+    </div>`;
+  }
+  if (moduleName === "reading" && mode === "type") {
+    const types = [...new Map((state.activeSingle?.questions || [])
+      .filter((question) => question.type && question.type !== "unknown")
+      .map((question) => [question.type, question.typeLabel || question.type])).entries()];
+    return `<label class="single-runtime-controls reading-type-control" for="readingQuestionType">
+      <span>Question type</span>
+      <select id="readingQuestionType" class="text-input">
+        ${types.map(([type, label]) => `<option value="${escapeHtml(type)}"${type === state.readingQuestionType ? " selected" : ""}>${escapeHtml(label)}</option>`).join("")}
+      </select>
+    </label>`;
+  }
+  return "";
+}
+
+function renderSingleModePicker(moduleName) {
+  const selected = currentSinglePracticeMode(moduleName);
+  return `<section class="single-mode-picker" aria-label="${escapeHtml(moduleDisplayName(moduleName))} practice mode">
+    ${singleModeOptions(moduleName).map((mode) => `<label class="single-mode-option ${mode.id === selected ? "active" : ""}">
+      <input type="radio" name="singlePracticeMode" value="${escapeHtml(mode.id)}"${mode.id === selected ? " checked" : ""} />
+      <span aria-hidden="true">${escapeHtml(mode.icon)}</span>
+      <strong>${escapeHtml(mode.title)}</strong>
+      <em>${escapeHtml(mode.text)}</em>
+      <small>${escapeHtml(mode.output)}</small>
+    </label>`).join("")}
+  </section>`;
+}
+
+function renderSingleModeWorkspaceIntro(moduleName, mode = currentSinglePracticeMode(moduleName)) {
+  const option = singleModeOptions(moduleName).find((item) => item.id === mode) || singleModeOptions(moduleName)[0];
+  const moduleLabel = moduleDisplayName(moduleName);
+  const hints = {
+    listening: {
+      exam: ["Captions stay hidden unless you turn them on.", "Submit when the full 40-question paper is complete."],
+      training: ["Use captions only after listening once.", "After each section, ask AI Coach for audio evidence and distractors."],
+      review: ["Focus wrong answers first.", "Ask AI Coach for audio time, answer format and a similar retest."],
+    },
+    reading: {
+      full: ["Use the split layout: passage on the left, questions and answer sheet on the right.", "Submit for evidence review."],
+      evidence: ["Find keywords, then locate the paraphrase in the passage.", "Ask AI Coach to show the evidence sentence."],
+      type: ["Group mistakes by question type after submitting.", "Retest evidence-location questions."],
+      review: ["Open saved weak areas and explain why the wrong option fails.", "Save one rule before retesting."],
+    },
+  };
+  const introHints = hints[moduleName]?.[mode] || ["Finish the task, submit, read the AI feedback, then retest the weak point."];
+  return `<section class="single-mode-workspace-intro tone-${escapeHtml(moduleName)}">
+    <div>
+      <span class="eyebrow">${escapeHtml(moduleLabel)} · ${escapeHtml(option?.title || "Practice mode")}</span>
+      <h3>${escapeHtml(moduleName === "listening" ? "Listening evidence trainer" : moduleName === "reading" ? "Reading evidence locator" : `${moduleLabel} coach`)}</h3>
+    </div>
+    <ul>${introHints.map((hint) => `<li>${escapeHtml(hint)}</li>`).join("")}</ul>
+    ${renderSingleRuntimeControls(moduleName, mode)}
+  </section>`;
+}
+
+function singleOptionLabel(item, moduleName = state.activeModule) {
+  const title = item?.title || item?.type || "Untitled practice";
+  const source = item?.source && moduleName !== "writing" ? ` · ${item.source}` : "";
+  return `${title}${source}`;
+}
+
+function singleOptionTitle(item) {
+  return item?.title || item?.type || "Untitled practice";
+}
+
+function readRecommendationHistory() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(recommendationHistoryStoreKey) || "{}");
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeRecommendationHistory(value) {
+  try {
+    localStorage.setItem(recommendationHistoryStoreKey, JSON.stringify(value || {}));
+  } catch {}
+}
+
+function recommendationOptionId(item) {
+  return String(item?.id || item?.writingTasks?.[0]?.id || item?.title || item?.prompt || "").trim();
+}
+
+function stableRecommendationHash(value) {
+  let hash = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 31 + value.charCodeAt(index)) >>> 0;
+  }
+  return hash;
+}
+
+function recommendationBucket(moduleName) {
+  const history = readRecommendationHistory();
+  const bucket = history[moduleName];
+  return bucket && typeof bucket === "object" ? bucket : { recent: [] };
+}
+
+function recentRecommendationIds(moduleName, limit = 3) {
+  const bucket = recommendationBucket(moduleName);
+  return (Array.isArray(bucket.recent) ? bucket.recent : []).map(String).filter(Boolean).slice(0, Math.max(1, limit));
+}
+
+function rememberPracticeRecommendation(moduleName, item) {
+  const id = recommendationOptionId(item);
+  if (!id) return;
+  const history = readRecommendationHistory();
+  const bucket = history[moduleName] && typeof history[moduleName] === "object" ? history[moduleName] : {};
+  const recent = [id, ...((Array.isArray(bucket.recent) ? bucket.recent : []).map(String).filter((value) => value !== id))].slice(0, 8);
+  history[moduleName] = { ...bucket, recent, updatedAt: new Date().toISOString() };
+  writeRecommendationHistory(history);
+}
+
+function optionRotationScore(moduleName, item, index = 0) {
+  const key = [
+    moduleName,
+    recommendationOptionId(item),
+    new Date().toISOString().slice(0, 10),
+    state.currentUser?.username || "guest",
+    currentSinglePracticeMode(moduleName),
+    index,
+  ].join("|");
+  return stableRecommendationHash(key);
+}
+
+function chooseRotatingRecommendation(moduleName, options = []) {
+  const normalized = options.filter(Boolean);
+  if (!normalized.length) return null;
+  if (normalized.length === 1) return normalized[0];
+  const recent = new Set(recentRecommendationIds(moduleName, Math.min(3, normalized.length - 1)));
+  const candidates = normalized.filter((item) => {
+    const id = recommendationOptionId(item);
+    return !id || !recent.has(id);
+  });
+  const pool = candidates.length ? candidates : normalized;
+  const sorted = [...pool].sort((a, b) => optionRotationScore(moduleName, a) - optionRotationScore(moduleName, b));
+  return sorted[0] || normalized[0];
+}
+
+function singlePracticeEvidenceLabel(item, moduleName = state.activeModule) {
+  const parts = [];
+  const book = itemBook(item);
+  const test = itemTest(item);
+  if (book) parts.push(`Cambridge ${book}`);
+  if (test) parts.push(`Test ${test}`);
+  if (!parts.length) {
+    if (item?.source) parts.push(String(item.source));
+    if (item?.period && item.period !== item.source) parts.push(String(item.period));
+  }
+  if (!parts.length && moduleName === "speaking") parts.push("topic rotation");
+  return parts.join(" · ");
+}
+
+function singleRecommendationReason(moduleName, item, options = []) {
+  const moduleLabel = moduleDisplayName(moduleName);
+  const evidenceLabel = singlePracticeEvidenceLabel(item, moduleName);
+  const recentIds = recentRecommendationIds(moduleName, Math.min(3, options.length - 1));
+  const recentItems = recentIds
+    .map((id) => options.find((candidate) => recommendationOptionId(candidate) === id))
+    .filter(Boolean);
+  const signals = dashboardSignalSummary();
+  const weakArea = signals.weakAreas.find((area) => area.module === moduleName) || signals.weakAreas[0] || null;
+  const latestObjective = signals.latestObjective;
+  const writingDraft = signals.writingDrafts[0] || null;
+  const speakingBand = signals.speakingBand || latestSpeakingBandForCoach() || "";
+  const sourceLine = evidenceLabel || singleOptionTitle(item);
+  const recentLine = recentItems.length
+    ? `It avoids the last ${recentItems.length} ${moduleLabel.toLowerCase()} set${recentItems.length === 1 ? "" : "s"} you just used.`
+    : `It gives you a fresh ${moduleLabel.toLowerCase()} sample before the same paper repeats.`;
+
+  if (moduleName === "writing") {
+    if (writingDraft) {
+      return `You already have a writing draft, so this Cambridge set turns a real piece of work into feedback instead of another blank page. ${recentLine}`;
+    }
+    return `${sourceLine} is the safest graded writing route right now. ${recentLine}`;
+  }
+
+  if (moduleName === "speaking" && speakingBand) {
+    const weakText = weakArea?.module === "speaking"
+      ? `Your saved speaking weak area is ${compactText(weakArea.summary || weakArea.title || "still active", 120)}.`
+      : `Your latest speaking band is ${speakingBand}.`;
+    return `${weakText} ${sourceLine ? `This topic keeps the next answer concrete: ${sourceLine}.` : ""} ${recentLine}`;
+  }
+
+  if (weakArea?.module === moduleName) {
+    return `AI Coach already saved a ${moduleLabel.toLowerCase()} weak area: ${compactText(weakArea.summary || weakArea.title || "review this once more", 140)}. ${recentLine}`;
+  }
+
+  if (latestObjective?.module === moduleName) {
+    const wrongCount = latestObjective.wrongQuestionIds?.length || Math.max(0, Number(latestObjective.total || 0) - Number(latestObjective.correct || 0));
+    return `Your last ${moduleLabel.toLowerCase()} result was ${latestObjective.correct || 0}/${latestObjective.total || 0} with ${wrongCount} item${wrongCount === 1 ? "" : "s"} to review. ${recentLine}`;
+  }
+
+  return `${sourceLine || moduleLabel} is selected by rotation, not because it is the first item. ${recentLine}`;
+}
+
+function singleRecommendedOption(moduleName, options) {
+  const candidates = options.filter(Boolean);
+  if (!candidates.length) return null;
+  const speakingPool = moduleName === "speaking"
+    ? candidates.filter((item) => String(item.source || "").toLowerCase().includes("public"))
+    : [];
+  const recommended = chooseRotatingRecommendation(moduleName, speakingPool.length ? speakingPool : candidates);
+  return recommended || candidates[0];
+}
+
+function renderSingleLaunch(moduleName, options) {
+  const meta = singlePracticeMeta(moduleName);
+  const recommended = singleRecommendedOption(moduleName, options);
+  const recommendationReason = singleRecommendationReason(moduleName, recommended, options);
+  const selected = state.activeSingle && options.some((item) => item.id === state.activeSingle.id) ? state.activeSingle : recommended || options[0];
+  const selectOptions = options
+    .map((item) => `<option value="${escapeHtml(item.id)}"${selected?.id === item.id ? " selected" : ""}>${escapeHtml(singleOptionLabel(item, moduleName))}</option>`)
+    .join("");
+  return `<div class="single-launch-shell">
+    <section class="single-launch-hero">
+      <span class="eyebrow">${escapeHtml(meta.label)} module</span>
+      <h3>${escapeHtml(moduleName === "listening" ? "Listening evidence trainer" : moduleName === "reading" ? "Reading evidence locator" : "Choose how to practise")}</h3>
+      <p>${escapeHtml(moduleName === "listening" ? "Choose exam, training or review mode before opening the paper." : moduleName === "reading" ? "Choose full passage, evidence drill, question type practice or review mode before opening the paper." : "Each module is a standalone practice. Start with an AI recommendation, or choose a paper yourself.")}</p>
+    </section>
+    ${renderSingleModePicker(moduleName)}
+    <div class="single-launch-grid">
+      <article class="single-launch-card recommended">
+        <span class="single-launch-badge">AI recommended</span>
+        <h4>${escapeHtml(recommended ? singleOptionTitle(recommended) : meta.title)}</h4>
+        <p>${escapeHtml(meta.recommended)}</p>
+        <div class="single-launch-reason">
+          <strong>Why this</strong>
+          <span>${escapeHtml(recommendationReason)}</span>
+        </div>
+        <div class="single-launch-meta">
+          <span>${escapeHtml(meta.estimate)}</span>
+          <span>${escapeHtml(meta.output)}</span>
+        </div>
+        <button class="primary start-single-practice" type="button" data-single-start="recommended">Start recommended practice</button>
+      </article>
+      <article class="single-launch-card">
+        <span class="single-launch-badge secondary">Choose yourself</span>
+        <h4>Selected practice</h4>
+        <p>${escapeHtml(meta.self)}</p>
+        <label class="field-label single-launch-select-label" for="singleLaunchSelect">
+          <span>Paper / topic</span>
+          <select id="singleLaunchSelect" class="text-input">${selectOptions}</select>
+        </label>
+        <button class="secondary start-single-practice" type="button" data-single-start="selected">Start selected practice</button>
+      </article>
+    </div>
+  </div>`;
+}
+
+function startSinglePractice(mode = "recommended") {
+  const moduleName = state.activeModule;
+  const options = singleOptions(moduleName);
+  if (!options.length) return;
+  const selectedMode = document.querySelector("input[name='singlePracticeMode']:checked")?.value || currentSinglePracticeMode(moduleName);
+  state.singlePracticeModes[moduleName] = selectedMode;
+  if (mode === "selected") {
+    const selectedId = $("singleLaunchSelect")?.value || "";
+    state.activeSingle = options.find((item) => item.id === selectedId) || options[0];
+  } else {
+    state.activeSingle = singleRecommendedOption(moduleName, options) || options[0];
+  }
+  rememberPracticeRecommendation(moduleName, state.activeSingle);
+  const nextItemId = state.activeSingle?.id || "";
+  if (state.singleAnswerItemId !== nextItemId) {
+    state.singleAnswers = {};
+    state.singleAnswerItemId = nextItemId;
+  }
+  state.singleStarted = true;
+  state.practiceSessionCompleted = false;
+  resetSingleTimer(moduleName);
+  renderSingle();
+  setSingleImmersive(moduleName);
+  window.scrollTo({ top: 0, behavior: "auto" });
+  savePracticeSession();
+}
+
 function renderSingle() {
   const moduleName = state.activeModule;
   resetListeningCaptionSession("single");
   const allOptions = mergedItems(moduleName).map(normalizeItem);
   renderSingleFilters(allOptions, moduleName);
   const options = singleOptions(moduleName);
+  $("single")?.classList.toggle("single-launching", !state.singleStarted);
+  $("single")?.classList.toggle("single-started", Boolean(state.singleStarted));
   if (!options.length) {
     $("singleTitle").textContent = "No questions available";
     $("singleSelect").innerHTML = "";
-    $("singleContent").innerHTML = `<div class="notice">${moduleName === "writing" ? "No complete Writing Task 1 + Task 2 set is available for this filter." : "This module has no imported questions yet. Add materials to the user bank first."}</div>`;
+    $("singleContent").innerHTML = `<div class="notice">${moduleName === "writing" ? "No independent Writing task is available for this filter." : "This module has no imported questions yet. Add materials to the user bank first."}</div>`;
     return;
   }
   state.activeSingle = state.activeSingle && state.activeSingle.module === moduleName && options.some((item) => item.id === state.activeSingle.id) ? state.activeSingle : options[0];
-  $("singleTitle").textContent = { listening: "Listening practice", reading: "Reading practice", writing: "Writing practice", speaking: "Speaking practice" }[moduleName];
+  $("singleTitle").textContent = moduleDisplayName(moduleName);
   $("singleSelect").innerHTML = options.map((item) => `<option value="${item.id}">${item.title || item.type || "Untitled"}${item.source && moduleName !== "writing" ? ` · ${item.source}` : ""}</option>`).join("");
   $("singleSelect").value = state.activeSingle.id;
+  if (!state.singleStarted) {
+    $("singleContent").innerHTML = renderSingleLaunch(moduleName, options);
+    bindDynamicControls();
+    return;
+  }
   const prefix = "single";
+  const practiceItem = singlePracticeItemForMode(moduleName, state.activeSingle);
+  const modeIntro = renderSingleModeWorkspaceIntro(moduleName);
+  if (practiceItem.reviewUnavailable) {
+    $("singleContent").innerHTML = `${modeIntro}<section class="single-review-empty">
+      <span aria-hidden="true">↻</span>
+      <h3>No wrong-answer review is ready for this paper.</h3>
+      <p>Complete one scored attempt first. IELTSist will then keep only the questions that need another look.</p>
+      <div class="actions">
+        <button class="primary" type="button" data-review-empty-action="training">Start training</button>
+        <button class="secondary" type="button" data-review-empty-action="exam">Open full paper</button>
+      </div>
+    </section>`;
+    bindDynamicControls();
+    return;
+  }
   $("singleContent").innerHTML =
     moduleName === "listening"
-      ? renderListening(state.activeSingle, prefix)
+      ? `${modeIntro}${renderListening(practiceItem, prefix)}`
       : moduleName === "reading"
-        ? renderReading(state.activeSingle, prefix)
+        ? `${modeIntro}${renderReading(practiceItem, prefix, { splitLayout: true })}`
         : moduleName === "writing"
-          ? renderWritingExamTwoColumn(state.activeSingle.writingTasks || [], prefix)
-          : renderSpeaking(state.activeSingle, prefix);
+          ? `${modeIntro}${renderWritingExamTwoColumn(state.activeSingle.writingTasks || [], prefix)}`
+          : `${modeIntro}${renderSpeaking(state.activeSingle, prefix)}`;
   bindDynamicControls();
+  restoreSingleAnswersFromState();
+  restoreSingleWritingDrafts();
+  if (state.restoredPracticeScrollY) {
+    const scrollY = state.restoredPracticeScrollY;
+    state.restoredPracticeScrollY = 0;
+    requestAnimationFrame(() => window.scrollTo({ top: scrollY, behavior: "auto" }));
+  }
 }
 
 function buildExam() {
@@ -9378,7 +14197,6 @@ function renderFullExamPaper(bundle, prefixRoot, scoreButtonId) {
       : null;
   const timerHtml = timerConfig
     ? `<div class="exam-quick-timer timer" aria-label="Stopped">
-        <button class="help-capture-button" type="button" data-help-trigger>Help</button>
         <span id="${timerConfig.timer}">${formatTime(timerConfig.seconds)}</span>
         <button id="${timerConfig.toggle}" class="icon-btn">Start</button>
         <button id="${timerConfig.reset}" class="icon-btn">Reset</button>
@@ -9529,45 +14347,194 @@ async function submitSingle() {
   setFeedback("singleFeedback", "Scoring...", "singleMode", "");
   try {
     if (moduleName === "listening" || moduleName === "reading") {
-      const item = normalizeItem(state.activeSingle);
-      const json = await postJson(`/api/${moduleName}/score`, { questions: item.questions || [], answers: collectAnswers("single") });
-      setFeedback("singleFeedback", formatObjectiveFeedback(json), "singleMode", json.mode);
+      const item = singlePracticeItemForMode(moduleName, state.activeSingle);
+      saveSingleAnswersToState();
+      const json = await postJson(`/api/${moduleName}/score`, { questions: item.questions || [], answers: state.singleAnswers || {} });
+      rememberObjectiveResult(moduleName, normalizeItem(state.activeSingle), json);
+      setFeedbackHtml("singleFeedback", renderObjectiveFeedbackHtml(json, moduleName), "singleMode", json.mode);
     } else if (moduleName === "writing") {
       setFeedback("singleFeedback", "Writing feedback is being generated. Estimated time: 1-10 min.", "singleMode", "");
       const tasks = (state.activeSingle.writingTasks || [state.activeSingle]).filter(Boolean).map(normalizeItem);
-      const prompt = tasks.map((task, index) => {
-        const taskName = task.type || `Task ${index + 1}`;
-        const body = [task.prompt, task.data].filter(Boolean).join("\n\nData: ");
-        return `${taskName}: ${task.title || "Writing task"}\n${body}`;
-      }).join("\n\n---\n\n");
-      const essay = tasks.map((task, index) => {
-        const taskName = task.type || `Task ${index + 1}`;
-        const value = $(`single-task${index + 1}-writing`)?.value.trim() || "";
-        return `${taskName} response:\n${value}`;
-      }).join("\n\n---\n\n");
+      const prompt = writingPromptForTasks(tasks);
+      const essay = writingEssayForTasks(tasks, "single");
       const json = await runWritingFeedbackJob(prompt, essay, () => {
         setFeedback("singleFeedback", "Writing feedback is being generated. Estimated time: 1-10 min.", "singleMode", "");
       });
+      rememberWritingAttempt({ source: "single", title: state.activeSingle.title || "Writing with AI", prompt, essay, feedback: json.feedback || "", analysis: json.analysis || null, scores: extractWritingScores(json.feedback || "", json.analysis) });
       setFeedbackHtml("singleFeedback", feedbackWithPdfHtml(json.feedback, json, "ielts-writing-feedback.pdf"), "singleMode", json.mode);
     } else {
       const item = normalizeItem(state.activeSingle);
       await scoreSpeakingText("single", item.title || "Speaking", "singleFeedback", "singleMode");
+    }
+    await completeActivePracticeSession();
+    if (moduleName !== "speaking") {
+      exitImmersiveMode();
+      window.setTimeout(() => $("singleFeedback")?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
     }
   } catch (error) {
     setFeedback("singleFeedback", `Submit failed: ${error.message}`, "singleMode", "error");
   }
 }
 
-function formatObjectiveFeedback(json) {
+function objectiveReviewHeader(moduleName, result) {
+  const mode = currentSinglePracticeMode(moduleName);
+  const total = result?.scoredTotal ?? result?.total ?? 40;
+  const correct = result?.correct ?? 0;
+  const wrong = Math.max(0, Number(total) - Number(correct || 0));
+  if (moduleName === "listening") {
+    return [
+      "Listening evidence review",
+      `Mode: ${singleModeLabel(moduleName, mode)} | Score: ${correct}/${total} | Review queue: ${wrong}`,
+      "For every wrong answer, use this chain: question wording -> audio evidence -> distractor -> answer format -> next signal word.",
+    ];
+  }
+  return [
+    "Reading evidence review",
+    `Mode: ${singleModeLabel(moduleName, mode)} | Score: ${correct}/${total} | Review queue: ${wrong}`,
+    "For every wrong answer, use this chain: question focus -> keywords -> passage location -> evidence sentence -> paraphrase chain -> why the wrong option fails.",
+  ];
+}
+
+function objectiveRetestHint(moduleName) {
+  return moduleName === "listening"
+    ? "Next: save one weak area, then retest similar spelling / plural / number traps."
+    : "Next: save one weak area, then retest evidence-location questions of the same type.";
+}
+
+function formatObjectiveFeedback(json, moduleName = state.activeModule) {
   if (!json.result?.answerAvailable) {
     return [json.feedback, "", "Answer status: not imported. Open the local PDF or parse file and mark manually."].join("\n");
   }
-  const lines = [json.feedback, "", "Wrong answers:"];
+  const lines = [...objectiveReviewHeader(moduleName, json.result), "", json.feedback, "", "Wrong-answer queue:"];
   for (const item of json.result.details) {
     if (item.correct === null) continue;
-    lines.push(`${item.correct ? "?" : "?"} ${item.text} | your answer: ${item.actual || "(blank)"} | expected: ${item.expected}`);
+    const status = item.correct ? "OK" : "Review";
+    const reviewCue = moduleName === "listening"
+      ? "check audio evidence, distractor, spelling/plural/number format"
+      : "find passage evidence, paraphrase link and why the wrong answer fails";
+    lines.push(`${status} ${item.text} | your answer: ${item.actual || "(blank)"} | expected: ${item.expected}${item.correct ? "" : ` | ${reviewCue}`}`);
   }
+  lines.push("", objectiveRetestHint(moduleName), "Use AI Coach: Explain in Chinese / Show evidence / Save weak area / Retest this skill.");
   return lines.join("\n");
+}
+
+function objectiveDetailNumber(detail, index = 0) {
+  const direct = Number(String(detail?.id || "").match(/\d+/)?.[0]);
+  if (Number.isFinite(direct) && direct > 0) return direct;
+  const textNumber = Number(String(detail?.text || "").match(/\d+/)?.[0]);
+  return Number.isFinite(textNumber) && textNumber > 0 ? textNumber : index + 1;
+}
+
+function renderObjectiveFeedbackHtml(json, moduleName = state.activeModule) {
+  const result = json?.result || {};
+  if (!result.answerAvailable) {
+    return `<section class="objective-review-empty"><h3>Answer key unavailable</h3><p>${escapeHtml(json?.feedback || "This paper can still be completed, but it cannot be scored automatically yet.")}</p></section>`;
+  }
+  const details = (result.details || []).filter((item) => item.correct !== null);
+  const wrong = details.filter((item) => item.correct === false);
+  const correct = Number(result.correct || 0);
+  const total = Number(result.scoredTotal ?? result.total ?? details.length);
+  const evidenceLabel = moduleName === "listening" ? "Audio evidence" : "Passage evidence";
+  return `<article class="objective-review" data-objective-module="${escapeHtml(moduleName)}">
+    <header class="objective-review-head">
+      <div><span class="eyebrow">${escapeHtml(singleModeLabel(moduleName))}</span><h3>${escapeHtml(moduleName === "listening" ? "Listening evidence review" : "Reading evidence review")}</h3></div>
+      <div class="objective-review-score"><strong>${correct}/${total}</strong><span>${wrong.length} to review</span></div>
+    </header>
+    <div class="objective-review-loop" aria-label="Review loop"><span>Score</span><i></i><span>Explain</span><i></i><span>Save rule</span><i></i><span>Retest</span></div>
+    ${wrong.length ? `<div class="objective-review-list">${wrong.map((item, index) => {
+      const number = objectiveDetailNumber(item, index);
+      return `<section class="objective-review-item" data-qid="${escapeHtml(item.id || `q${number}`)}">
+        <div class="objective-review-number">${number}</div>
+        <div class="objective-review-answer"><span>Your answer</span><strong>${escapeHtml(item.actual || "Blank")}</strong></div>
+        <div class="objective-review-answer correct"><span>Correct answer</span><strong>${escapeHtml(item.expected || "-")}</strong></div>
+        <div class="objective-review-evidence"><span>${escapeHtml(evidenceLabel)}</span><p>${escapeHtml(moduleName === "listening" ? "Open the matching section and ask AI Coach for the exact phrase, distractor and answer-format signal." : "Ask AI Coach for the location, evidence sentence and keyword-paraphrase chain.")}</p></div>
+        <div class="objective-review-actions">
+          <button class="primary small-button" type="button" data-objective-action="explain" data-module="${escapeHtml(moduleName)}" data-qid="${escapeHtml(item.id || `q${number}`)}">Explain</button>
+          <button class="secondary small-button" type="button" data-objective-action="weak" data-module="${escapeHtml(moduleName)}" data-qid="${escapeHtml(item.id || `q${number}`)}">Save weak area</button>
+          <button class="secondary small-button" type="button" data-objective-action="similar" data-module="${escapeHtml(moduleName)}" data-qid="${escapeHtml(item.id || `q${number}`)}">Similar question</button>
+        </div>
+      </section>`;
+    }).join("")}</div>` : `<div class="objective-review-success"><span aria-hidden="true">✓</span><strong>No wrong answers in this attempt.</strong><p>Use AI Coach to raise the difficulty or move to the next skill.</p></div>`}
+    <footer class="objective-review-footer">
+      <button class="primary" type="button" data-objective-action="retest" data-module="${escapeHtml(moduleName)}">Retest wrong answers</button>
+      <button class="secondary" type="button" data-objective-action="coach" data-module="${escapeHtml(moduleName)}">Ask AI Coach</button>
+    </footer>
+  </article>`;
+}
+
+function objectiveResultDetail(moduleName, qid) {
+  return latestObjectiveResult(moduleName)?.details?.find((item) => String(item.id || "") === String(qid || "")) || null;
+}
+
+function setObjectiveCoachFocus(moduleName, qid) {
+  const detail = objectiveResultDetail(moduleName, qid);
+  state.coach.focusQuestion = detail ? { module: moduleName, ...detail } : null;
+  return detail;
+}
+
+function saveObjectiveWeakArea(moduleName, detail) {
+  if (!detail) return;
+  const number = objectiveDetailNumber(detail);
+  const summary = `${moduleDisplayName(moduleName)} Q${number}: ${detail.actual || "blank"} -> ${detail.expected || "review"}`;
+  const areas = readWeakAreas().filter((entry) => entry.summary !== summary);
+  areas.unshift({
+    id: `weak-${Date.now()}`,
+    module: moduleName,
+    title: `${moduleDisplayName(moduleName)} Question ${number}`,
+    summary,
+    questionId: detail.id || `q${number}`,
+    sourceAttemptId: latestObjectiveResult(moduleName)?.attemptId || "",
+    evidence: { actual: detail.actual || "", expected: detail.expected || "" },
+    createdAt: new Date().toISOString(),
+  });
+  writeWeakAreas(areas);
+  syncWeakArea(areas[0]);
+  renderDashboard();
+}
+
+function bindObjectiveReviewActions(root = document) {
+  root.querySelectorAll?.("[data-objective-action]").forEach((button) => {
+    if (button.dataset.boundObjectiveAction) return;
+    button.dataset.boundObjectiveAction = "1";
+    button.onclick = () => {
+      const action = button.dataset.objectiveAction;
+      const moduleName = button.dataset.module || state.activeModule || "listening";
+      const qid = button.dataset.qid || "";
+      const detail = qid ? setObjectiveCoachFocus(moduleName, qid) : null;
+      if (action === "weak") {
+        saveObjectiveWeakArea(moduleName, detail);
+        button.textContent = "Saved";
+        return;
+      }
+      if (action === "retest") {
+        const previous = latestObjectiveResult(moduleName);
+        state.singlePracticeModes[moduleName] = "review";
+        saveSingleAnswersToState();
+        (previous?.wrongQuestionIds || []).forEach((id) => {
+          state.singleAnswers[id] = "";
+        });
+        state.singleStarted = true;
+        state.practiceSessionCompleted = false;
+        resetSingleTimer(moduleName);
+        renderSingle();
+        setSingleImmersive(moduleName);
+        savePracticeSession();
+        return;
+      }
+      openGlobalCoachPanel();
+      const input = $("helpChatInput");
+      if (!input) return;
+      const number = detail ? objectiveDetailNumber(detail) : "current";
+      if (action === "similar") {
+        input.value = `Generate one similar ${moduleName} question for Q${number}. Keep the same skill and trap, but change the surface wording. Do not reveal the answer until I respond.`;
+      } else if (action === "coach") {
+        input.value = `Review my latest ${moduleName} result, explain the main pattern behind my mistakes, and choose the next retest.`;
+      } else {
+        input.value = `Explain ${moduleName} Q${number}: show the question focus, evidence, why my answer failed, the correct answer, and the rule for my next attempt.`;
+      }
+      input.focus();
+    };
+  });
 }
 
 async function scoreExam() {
@@ -9638,13 +14605,1140 @@ async function submitUploadedWriting() {
     setFeedback("uploadWritingFeedback", "Please enter both a prompt and an essay.", "uploadWritingMode", "error");
     return;
   }
+  setUnifiedPracticeStage("writing", "scoring");
   setFeedback("uploadWritingFeedback", "Scoring in progress. Estimated time: 10 min.", "uploadWritingMode", "");
   try {
     const json = await runWritingFeedbackJob(prompt, essay, () => {
       setFeedback("uploadWritingFeedback", "Writing feedback is being generated. Estimated time: 1-10 min.", "uploadWritingMode", "");
     });
+    const canonicalScores = json.contract?.score
+      ? { overall: roundWritingBand(json.contract.score.overall?.value), criteria: (json.contract.score.criteria || []).map((item) => ({ ...item, score: roundWritingBand(item.score) })) }
+      : extractWritingScores(json.feedback || "", json.analysis);
+    rememberWritingAttempt({
+      attemptId: json.contract?.attempt?.id,
+      source: "custom",
+      title: `Custom ${detectWritingTaskProfile(prompt).taskLabel}`,
+      prompt,
+      essay,
+      feedback: json.feedback || "",
+      analysis: json.analysis || null,
+      scores: canonicalScores,
+      contract: json.contract || null,
+    });
     setFeedbackHtml("uploadWritingFeedback", feedbackWithPdfHtml(json.feedback, json, "ielts-writing-feedback.pdf"), "uploadWritingMode", json.mode);
+    revealWritingFeedback();
   } catch (error) {
+    setUnifiedPracticeStage("writing", "practice");
+    setFeedback("uploadWritingFeedback", `Submission failed: ${error.message}`, "uploadWritingMode", "error");
+  }
+}
+
+function detectWritingTaskProfile(prompt = "") {
+  const text = String(prompt || "").toLowerCase();
+  const task1 = /\btask\s*1\b|\b(chart|graph|table|map|diagram|process|letter)\b/.test(text);
+  const general = /\bletter\b|dear\s+(?:sir|madam)|general\s+training/.test(text);
+  return {
+    taskNumber: task1 ? 1 : 2,
+    taskLabel: task1 ? "Task 1" : "Task 2",
+    testType: general ? "General" : "Academic",
+    wordTarget: task1 ? 150 : 250,
+  };
+}
+
+function syncCustomWritingState() {
+  const prompt = $("uploadPrompt")?.value || "";
+  const essay = $("uploadEssay")?.value || "";
+  const profile = detectWritingTaskProfile(prompt);
+  const essayNode = $("uploadEssay");
+  if (essayNode) essayNode.dataset.wordTarget = String(profile.wordTarget);
+  if ($("uploadEssayTarget")) $("uploadEssayTarget").textContent = String(profile.wordTarget);
+  if ($("writingCustomDetection")) {
+    $("writingCustomDetection").textContent = `${profile.taskLabel} · ${profile.testType} · target ${profile.wordTarget} words`;
+  }
+  if ($("submitUploadedWriting")) $("submitUploadedWriting").disabled = !prompt.trim() || !essay.trim();
+  return profile;
+}
+
+function writingTimerElapsedSeconds() {
+  const live = state.writingTimerStartedAt ? Math.floor((Date.now() - state.writingTimerStartedAt) / 1000) : 0;
+  return Math.max(0, Number(state.writingTimerElapsed || 0) + live);
+}
+
+function saveWritingTimerState(running = Boolean(state.writingTimerStartedAt)) {
+  try {
+    localStorage.setItem(writingTimerStoreKey, JSON.stringify({
+      setId: state.pendingWritingSetId || (state.uploadWritingTasks?.[0] ? `writing-task${writingTaskNumber(state.uploadWritingTasks[0]) || 2}:${state.uploadWritingTasks[0].id || "current"}` : "custom"),
+      workspaceMode: state.writingWorkspaceMode,
+      setupMode: state.writingSetupMode,
+      elapsed: writingTimerElapsedSeconds(),
+      duration: state.writingTimerDuration,
+      running,
+      savedAt: Date.now(),
+    }));
+  } catch {}
+}
+
+function restoreWritingTimerState(expectedSetId = "") {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(writingTimerStoreKey) || "null"); } catch {}
+  if (!saved || (expectedSetId && saved.setId && saved.setId !== expectedSetId)) return false;
+  const offlineElapsed = saved.running ? Math.max(0, Math.floor((Date.now() - Number(saved.savedAt || Date.now())) / 1000)) : 0;
+  state.writingTimerElapsed = Math.max(0, Number(saved.elapsed || 0) + offlineElapsed);
+  state.writingTimerDuration = Math.max(1, Number(saved.duration || 60 * 60));
+  state.writingSetupMode = saved.setupMode === "exam" ? "exam" : "coach";
+  state.writingTimerStartedAt = saved.running ? Date.now() : 0;
+  return true;
+}
+
+function renderWritingTimer() {
+  const elapsed = writingTimerElapsedSeconds();
+  const value = state.writingWorkspaceMode === "cambridge"
+    ? Math.max(0, state.writingTimerDuration - elapsed)
+    : elapsed;
+  const text = `${String(Math.floor(value / 60)).padStart(2, "0")}:${String(value % 60).padStart(2, "0")}`;
+  document.querySelectorAll("[data-writing-timer]").forEach((node) => {
+    node.textContent = text;
+    node.dataset.timerDirection = state.writingWorkspaceMode === "cambridge" ? "countdown" : "elapsed";
+  });
+  if (elapsed % 5 === 0 && state.writingTimerLastPersisted !== elapsed) {
+    state.writingTimerLastPersisted = elapsed;
+    saveWritingTimerState(true);
+  }
+}
+
+function startWritingTimer({ reset = false } = {}) {
+  if (reset) {
+    if (state.writingTimerId) clearInterval(state.writingTimerId);
+    state.writingTimerId = null;
+    state.writingTimerElapsed = 0;
+    state.writingTimerDuration = state.writingWorkspaceMode === "cambridge"
+      ? (state.writingActiveTaskNumber === 1 ? 20 * 60 : 40 * 60)
+      : 60 * 60;
+    state.writingTimerStartedAt = Date.now();
+  } else if (!state.writingTimerStartedAt) {
+    state.writingTimerStartedAt = Date.now();
+  }
+  if (!state.writingTimerId) state.writingTimerId = window.setInterval(renderWritingTimer, 500);
+  saveWritingTimerState(true);
+  renderWritingTimer();
+}
+
+function stopWritingTimer({ pause = true } = {}) {
+  if (pause && state.writingTimerStartedAt) state.writingTimerElapsed = writingTimerElapsedSeconds();
+  state.writingTimerStartedAt = 0;
+  if (state.writingTimerId) clearInterval(state.writingTimerId);
+  state.writingTimerId = null;
+  saveWritingTimerState(false);
+  renderWritingTimer();
+}
+
+function currentWritingUploadCoachContext() {
+  if (state.writingWorkspaceMode === "custom") {
+    const profile = detectWritingTaskProfile($("uploadPrompt")?.value || "");
+    return {
+      module: "writing",
+      mode: state.writingSetupMode,
+      activeTaskNumber: profile.taskNumber,
+      activeTaskTitle: `${profile.taskLabel} · Custom essay`,
+      taskType: profile.testType,
+      prompt: compactText($("uploadPrompt")?.value || "", 4000),
+      essay: compactText($("uploadEssay")?.value || "", 20000),
+    };
+  }
+  if (state.writingWorkspaceMode !== "cambridge") return null;
+  const shell = $("writingSystemContent")?.querySelector(".writing-practice-shell");
+  const activeTaskNumber = Number(shell?.dataset.activeWritingTask || 1);
+  const task = normalizeItem(writingUploadTaskByNumber(activeTaskNumber) || {});
+  return {
+    module: "writing",
+    mode: state.writingSetupMode,
+    activeTaskNumber,
+    activeTaskTitle: `Task ${activeTaskNumber} · ${task.title || "Cambridge writing"}`,
+    taskId: task.id || "",
+    taskType: task.type || `Task ${activeTaskNumber}`,
+    prompt: compactText(task.prompt || task.question || "", 4000),
+    essay: compactText($(`upload-system-task${activeTaskNumber}-writing`)?.value || "", 20000),
+  };
+}
+
+function setWritingWorkspaceMode(mode = "entry") {
+  const next = ["entry", "cambridge", "custom"].includes(mode) ? mode : "entry";
+  const entry = $("writingEntry");
+  const workspace = $("writingWorkspace");
+  const custom = $("writingCustomWorkspace");
+  const system = $("writingSystemWorkspace");
+  const setup = $("writingSetupPanel");
+  if (!entry || !workspace || !custom || !system) return;
+  state.writingWorkspaceMode = next;
+  setUnifiedPracticeStage("writing", next === "entry" ? "entry" : "practice", { mode: state.writingSetupMode });
+  if (next === "entry") {
+    entry.hidden = false;
+    if (setup) setup.hidden = true;
+    workspace.hidden = true;
+    custom.hidden = true;
+    system.hidden = true;
+    state.writingPromptCollapsed = false;
+    workspace.classList.remove("prompt-collapsed");
+    stopWritingTimer();
+    return;
+  }
+  entry.hidden = true;
+  if (setup) setup.hidden = true;
+  workspace.hidden = false;
+  custom.hidden = next !== "custom";
+  system.hidden = next !== "cambridge";
+  const title = $("writingWorkspaceTitle");
+  if (title) title.textContent = next === "custom" ? "Submit my essay" : "Writing practice";
+  const promptToggle = $("toggleWritingPrompt");
+  if (promptToggle) {
+    promptToggle.hidden = next === "entry";
+    promptToggle.textContent = state.writingPromptCollapsed ? "Show task" : "Hide task";
+  }
+  workspace.classList.toggle("prompt-collapsed", Boolean(state.writingPromptCollapsed && next !== "entry"));
+  if ($("writingModeStatus")) $("writingModeStatus").textContent = `${state.writingSetupMode === "exam" ? "Exam" : "Coach"} mode`;
+  startWritingTimer();
+  syncCustomWritingState();
+  bindDynamicControls();
+}
+
+function unifiedPracticeSetupHtml(module, { title = "Practice", source = "IELTSist", detail = "", deviceCheck = false, extra = "" } = {}) {
+  return `<section class="unified-practice-setup" data-setup-module="${escapeHtml(module)}">
+    <header><button class="secondary small-button" type="button" data-setup-back="${escapeHtml(module)}">Back</button><div><span>${escapeHtml(source)}</span><h3>${escapeHtml(title)}</h3><p>${escapeHtml(detail)}</p></div></header>
+    <div class="unified-setup-main">
+      <div><span class="eyebrow">Choose mode</span><div class="unified-mode-switch" role="group" aria-label="Practice mode"><button type="button" data-setup-mode="exam" class="active"><strong>Exam</strong><span>No AI hints during practice</span></button><button type="button" data-setup-mode="coach"><strong>Coach</strong><span>Hints after each completed unit</span></button></div></div>
+      ${deviceCheck ? `<div class="speaking-device-check"><span class="eyebrow">Device check</span><div data-device-check-status>Microphone, speaker and network not checked</div><button class="secondary" type="button" data-run-device-check>Check microphone and speaker</button><meter min="0" max="1" value="0" data-device-level></meter></div>` : `<div class="writing-setup-summary"><span class="eyebrow">Practice flow</span><p>Plan briefly, complete the response, get evidence-based feedback, then rewrite the highest-impact section.</p></div>`}
+    </div>
+    ${extra}
+    <footer><span>${deviceCheck ? "The test starts only after device checks pass." : "Your response is saved on this device."}</span><button class="primary" type="button" data-start-unified-practice="${escapeHtml(module)}"${deviceCheck ? " disabled" : ""}>Start practice</button></footer>
+  </section>`;
+}
+
+function setUnifiedPracticeStage(module, stage, patch = {}) {
+  if (!state.unifiedPracticeFlows[module]) return null;
+  state.unifiedPracticeFlows[module] = { ...state.unifiedPracticeFlows[module], ...patch, stage };
+  const view = module === "writing" ? $("writing-upload") : $("bank");
+  if (view) {
+    view.dataset.practiceStage = stage;
+    view.dataset.practiceMode = state.unifiedPracticeFlows[module].mode || "";
+  }
+  return state.unifiedPracticeFlows[module];
+}
+
+function bindUnifiedSetup(root, { onBack, onStart, deviceCheck = false } = {}) {
+  root.querySelectorAll("[data-setup-mode]").forEach((button) => {
+    button.addEventListener("click", () => {
+      root.querySelectorAll("[data-setup-mode]").forEach((item) => item.classList.toggle("active", item === button));
+    });
+  });
+  root.querySelector("[data-setup-back]")?.addEventListener("click", onBack);
+  if (deviceCheck) {
+    root.querySelector("[data-run-device-check]")?.addEventListener("click", async (event) => {
+      const status = root.querySelector("[data-device-check-status]");
+      const start = root.querySelector("[data-start-unified-practice]");
+      event.currentTarget.disabled = true;
+      if (status) status.textContent = "Checking microphone and speaker...";
+      let stream = null;
+      let context = null;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia(qwenMicConstraints());
+        context = new (window.AudioContext || window.webkitAudioContext)();
+        const analyser = context.createAnalyser();
+        analyser.fftSize = 512;
+        context.createMediaStreamSource(stream).connect(analyser);
+        const data = new Uint8Array(analyser.fftSize);
+        const meter = root.querySelector("[data-device-level]");
+        let level = 0;
+        for (let sample = 0; sample < 8; sample += 1) {
+          analyser.getByteTimeDomainData(data);
+          level = Math.max(level, Math.min(1, Math.max(...data.map((value) => Math.abs(value - 128))) / 64));
+          if (meter) meter.value = level;
+          await sleep(60);
+        }
+        const oscillator = context.createOscillator();
+        const gain = context.createGain();
+        oscillator.frequency.value = 440;
+        gain.gain.value = 0.025;
+        oscillator.connect(gain).connect(context.destination);
+        oscillator.start();
+        oscillator.stop(context.currentTime + 0.12);
+        await sleep(160);
+        const health = await fetch("/healthz", { cache: "no-store" });
+        if (!health.ok) throw new Error("IELTSist realtime service is unreachable");
+        state.speakingDeviceChecked = true;
+        if (status) status.textContent = `Microphone ready${level > 0.02 ? " · voice detected" : ""} · test sound played · service online`;
+        if (start) start.disabled = false;
+      } catch (error) {
+        state.speakingDeviceChecked = false;
+        if (status) status.textContent = `Device check failed: ${error.message}`;
+      } finally {
+        stream?.getTracks().forEach((track) => track.stop());
+        if (context && context.state !== "closed") await context.close().catch(() => {});
+        event.currentTarget.disabled = false;
+      }
+    });
+  }
+  root.querySelector("[data-start-unified-practice]")?.addEventListener("click", () => {
+    const mode = root.querySelector("[data-setup-mode].active")?.dataset.setupMode || "exam";
+    onStart?.(mode);
+  });
+}
+
+function openWritingPracticeSetup(kind = "task2", selectionId = "") {
+  const setup = $("writingSetupPanel");
+  const entry = $("writingEntry");
+  const workspace = $("writingWorkspace");
+  if (!setup || !entry || !workspace) return;
+  const resolvedKind = kind === "cambridge" ? "task2" : kind;
+  const isTask1 = resolvedKind === "task1";
+  const option = isTask1 || resolvedKind === "custom"
+    ? null
+    : writingSystemOptions().find((item) => item.id === selectionId) || writingSystemRecommended(writingSystemOptions());
+  const task2 = writingTask2ForOption(option);
+  const task1 = isTask1
+    ? writingTask1Pool().find((task) => task.id === selectionId) || writingTask1Pool()[0] || null
+    : null;
+  const resolvedSelectionId = isTask1 ? `writing-task1:${task1?.id || ""}` : option?.id || selectionId || resolvedKind;
+  state.pendingWritingKind = resolvedKind;
+  state.pendingWritingSetId = resolvedSelectionId;
+  setUnifiedPracticeStage("writing", "setup", { selectionId: resolvedSelectionId });
+  if (resolvedKind === "custom") {
+    state.selectedWritingTask1Id = "";
+    state.selectedWritingTask2Id = "";
+  } else if (isTask1) {
+    state.selectedWritingTask1Id = task1?.id || "";
+    state.selectedWritingTask2Id = "";
+  } else {
+    state.selectedWritingTask1Id = "";
+    state.selectedWritingTask2Id = task2?.id || "";
+  }
+  const label = resolvedKind === "custom"
+    ? "Custom writing task"
+    : isTask1
+      ? writingTopicSourceLabel({ writingTasks: [task1] })
+      : writingTopicSourceLabel(option || {});
+  setup.innerHTML = unifiedPracticeSetupHtml("writing", {
+    title: resolvedKind === "custom"
+      ? "Submit your own essay"
+      : isTask1 ? task1?.title || "Task 1 visual" : writingTopicMeta(option || {}).title || "Task 2 topic",
+    source: label,
+    detail: resolvedKind === "custom"
+      ? "Paste one IELTS task and confirm its detected type before writing."
+      : isTask1
+        ? "Task 1 only · 20 minutes · 150 words · scored independently."
+        : "Task 2 only · 40 minutes · 250 words · scored independently.",
+  });
+  const setupShell = setup.querySelector(".unified-practice-setup");
+  if (setupShell && task1?.id) setupShell.dataset.writingTask1Id = task1.id;
+  if (setupShell && task2?.id) setupShell.dataset.writingTask2Id = task2.id;
+  entry.hidden = true;
+  workspace.hidden = true;
+  setup.hidden = false;
+  bindUnifiedSetup(setup, {
+    onBack: () => { setup.hidden = true; entry.hidden = false; },
+    onStart: (mode) => {
+      state.writingSetupMode = mode;
+      setUnifiedPracticeStage("writing", "practice", { mode, selectionId: resolvedSelectionId });
+      state.writingTimerElapsed = 0;
+      state.writingTimerStartedAt = Date.now();
+      state.writingTimerDuration = isTask1 ? 20 * 60 : 40 * 60;
+      if (resolvedKind === "custom") setWritingWorkspaceMode("custom");
+      else startWritingSystemPractice("selected", {
+        setId: resolvedSelectionId,
+        taskNumber: isTask1 ? 1 : 2,
+        taskId: isTask1 ? task1?.id : task2?.id,
+      });
+      startWritingTimer({ reset: true });
+    },
+  });
+  setup.scrollIntoView({ block: "start" });
+}
+
+function continueLatestWritingDraft() {
+  const draft = latestWritingDraft();
+  if (!draft) {
+    setWritingWorkspaceMode("entry");
+    setHelpStatus("No saved Writing draft yet");
+    return;
+  }
+  restoreDraft(draft.key || draft.draft_key);
+}
+
+function latestWritingDraft() {
+  return uniqueDrafts([...(state.serverDrafts || []), ...readLocalDrafts()])
+    .filter((item) => item.payload?.activeView === "writing-upload")
+    .sort((a, b) => String(b.updatedAt || b.updated_at || "").localeCompare(String(a.updatedAt || a.updated_at || "")))
+    .find(Boolean);
+}
+
+function renderWritingResumeStrip() {
+  const root = $("writingResumeStrip");
+  if (!root) return;
+  const draft = latestWritingDraft();
+  root.hidden = !draft;
+  if (!draft) return;
+  if ($("writingResumeTitle")) $("writingResumeTitle").textContent = draft.title || "Your latest Writing practice";
+  const date = draft.updatedAt || draft.updated_at;
+  if ($("writingResumeMeta")) $("writingResumeMeta").textContent = date ? `Saved ${new Date(date).toLocaleString()}` : "Saved on this device";
+}
+
+function writingSetTasks(option) {
+  return (option?.writingTasks || []).filter(Boolean).map(normalizeItem);
+}
+
+function writingUploadTaskByNumber(taskNumber) {
+  return (state.uploadWritingTasks || []).map(normalizeItem)
+    .find((task) => writingTaskNumber(task) === Number(taskNumber)) || null;
+}
+
+function writingTask1Pool() {
+  return mergedItems("writing")
+    .map(normalizeItem)
+    .filter((task) => writingTaskNumber(task) === 1);
+}
+
+function writingTask1ForOption(option) {
+  return writingSetTasks(option).find((task) => writingTaskNumber(task) === 1) || null;
+}
+
+function writingTask2ForOption(option) {
+  return writingSetTasks(option).find((task) => writingTaskNumber(task) === 2) || null;
+}
+
+function writingTask1OptionLabel(task) {
+  const kind = writingTaskKind(task);
+  const usefulKind = /^task\s*1$/i.test(kind) ? "visual" : kind;
+  return `${writingTopicSourceLabel({ writingTasks: [task] })} · ${usefulKind}`;
+}
+
+function writingSetSearchText(option) {
+  const task2 = writingTask2ForOption(option) || {};
+  return [
+    option?.source,
+    option?.period,
+    task2.title,
+    task2.type,
+    task2.prompt,
+    task2.data,
+    task2.source,
+    task2.period,
+  ].filter(Boolean).join(" ").toLowerCase();
+}
+
+function writingTopicRules() {
+  return [
+    { title: "Education & learning", iconName: "graduation-cap", accent: "education-learning", pattern: /\b(school|student|education|university|teacher|learning|homework|subject|course|academic|tuition|classroom)\b/i },
+    { title: "Digital technology", iconName: "monitor-smartphone", accent: "technology-digital", pattern: /\b(technology|internet|computer|online|digital|robot|automation|ai|smartphone|algorithm|data|privacy)\b/i },
+    { title: "Work & careers", iconName: "briefcase-business", accent: "work-career", pattern: /\b(work|job|career|employee|employer|office|salary|profession|business|company|workplace|retirement)\b/i },
+    { title: "Environment & climate", iconName: "leaf", accent: "environment-climate", pattern: /\b(environment|climate|pollution|recycle|recycling|carbon|emission|energy|wildlife|habitat|animal|plant|nature|green)\b/i },
+    { title: "Transport & mobility", iconName: "train-front", accent: "transport-mobility", pattern: /\b(transport|traffic|congestion|commute|road|car|vehicle|rail|bus|cycling|pedestrian|fuel)\b/i },
+    { title: "Cities & housing", iconName: "building-2", accent: "cities-housing", pattern: /\b(city|cities|urban|housing|apartment|high-rise|residential|land|neighbourhood|neighborhood|public space|park)\b/i },
+    { title: "Health & lifestyle", iconName: "heart-pulse", accent: "health-lifestyle", pattern: /\b(health|healthy|hospital|doctor|exercise|sport|diet|medical|wellbeing|fitness|sugar|illness|disease)\b/i },
+    { title: "Family & children", iconName: "users-round", accent: "family-children", pattern: /\b(family|families|children|child|parent|parents|mother|father|elderly|older people|ageing|aging)\b/i },
+    { title: "Crime & law", iconName: "scale", accent: "crime-law", pattern: /\b(crime|criminal|prison|punishment|sentence|law|legal|police|rehabilitation|offender)\b/i },
+    { title: "Government & public services", iconName: "landmark", accent: "government-public", pattern: /\b(government|public service|policy|tax|funding|spend|spending|community service|citizen|society|population)\b/i },
+    { title: "Culture & traditions", iconName: "landmark", accent: "culture-traditions", pattern: /\b(culture|art|music|museum|history|tradition|custom|festival|heritage|local film)\b/i },
+    { title: "Media & advertising", iconName: "newspaper", accent: "media-advertising", pattern: /\b(media|news|newspaper|television|advertising|advertisement|social media|film|entertainment)\b/i },
+    { title: "Globalisation & language", iconName: "globe-2", accent: "globalisation-language", pattern: /\b(globalisation|globalization|international|foreign|overseas|language|multicultural|border)\b/i },
+    { title: "Consumerism & money", iconName: "wallet-cards", accent: "consumerism-money", pattern: /\b(consumer|consumption|shopping|商品|money|finance|financial|bank|salary|wealth|cost|price)\b/i },
+    { title: "Science & research", iconName: "flask-conical", accent: "science-research", pattern: /\b(science|scientific|research|experiment|space|discovery|medicine|innovation)\b/i },
+  ];
+}
+
+function writingTopicMeta(option) {
+  const task2 = writingTask2ForOption(option) || option || {};
+  const taskText = [task2.prompt, task2.data, task2.title]
+    .filter(Boolean)
+    .join(" ")
+    .replace(/present a written argument or case to an educated reader with no specialist knowledge/gi, " ")
+    .replace(/you should spend about \d+ minutes on this task/gi, " ")
+    .replace(/write at least \d+ words/gi, " ");
+  const rules = writingTopicRules();
+  const legacyAccent = {
+    education: "education-learning",
+    technology: "technology-digital",
+    work: "work-career",
+    nature: "environment-climate",
+    place: "cities-housing",
+    lifestyle: "health-lifestyle",
+    society: "government-public",
+    media: "culture-traditions",
+  }[task2.topicCategory];
+  const match = rules.find((rule) => rule.accent === task2.topicSubcategory)
+    || rules.find((rule) => rule.pattern.test(taskText))
+    || rules.find((rule) => rule.accent === legacyAccent);
+  return match || { title: "Essay", iconName: "file-pen-line", accent: "education-learning" };
+}
+
+function renderWritingTopicCategoryBar(options = []) {
+  const root = $("writingTopicCategoryBar");
+  if (!root) return;
+  const available = new Set(options.map((option) => writingTopicMeta(option).accent));
+  const current = state.writingTopicCategory || "all";
+  const selected = current === "recommended" || current === "all" || available.has(current) ? current : "all";
+  state.writingTopicCategory = selected;
+  const buttons = [
+    { key: "all", label: "All topics" },
+    { key: "recommended", label: "AI pick" },
+    ...writingTopicRules()
+      .filter((rule) => available.has(rule.accent))
+      .map((rule) => ({ key: rule.accent, label: rule.title })),
+  ];
+  root.innerHTML = buttons.map((button) => `<button class="topic-category-pill${button.key === selected ? " active" : ""}" type="button" data-writing-topic-category="${escapeHtml(button.key)}">${escapeHtml(button.label)}</button>`).join("");
+  root.querySelectorAll("[data-writing-topic-category]").forEach((button) => {
+    button.addEventListener("click", () => {
+      root.querySelectorAll("[data-writing-topic-category]").forEach((item) => item.classList.remove("active"));
+      button.classList.add("active");
+      state.writingTopicCategory = button.dataset.writingTopicCategory || "all";
+      state.writingTopicPage = 1;
+      renderWritingUploadHub();
+    });
+  });
+}
+
+function writingTaskPreview(task, fallback = "Cambridge writing task") {
+  const text = compactDialogueText([task?.prompt, task?.data, task?.title].filter(Boolean).join(" "));
+  return compactText(text || fallback, 150);
+}
+
+function writingTaskKind(task) {
+  const text = compactDialogueText([task?.title, task?.prompt, task?.data].filter(Boolean).join(" ")).toLowerCase();
+  if (/map/.test(text)) return "map";
+  if (/process|diagram|stages|cycle/.test(text)) return "process";
+  if (/pie chart|pie charts/.test(text)) return "pie chart";
+  if (/bar chart|bar graph/.test(text)) return "bar chart";
+  if (/line graph|line chart/.test(text)) return "line graph";
+  if (/table/.test(text)) return "table";
+  if (/letter/.test(text)) return "letter";
+  return String(task?.type || "task").toLowerCase();
+}
+
+function writingTopicSourceLabel(option) {
+  const first = writingTask2ForOption(option) || writingTask1ForOption(option) || option || {};
+  return [
+    itemBook(first) ? `Cambridge ${itemBook(first)}` : first.source || option?.source || "Writing",
+    itemTest(first) ? `Test ${itemTest(first)}` : "",
+  ].filter(Boolean).join(" · ");
+}
+
+function writingTopicCards(options = writingSystemOptions(), recommendedId = "") {
+  const query = ($("writingTopicSearch")?.value || "").trim().toLowerCase();
+  const book = $("writingTopicBook")?.value || "all";
+  const category = state.writingTopicCategory || "all";
+  return options.filter((option) => {
+    const first = writingTask2ForOption(option) || option || {};
+    const isPublic = first.source === "Public topics";
+    const bookOk = book === "all"
+      || (book === "public" ? isPublic : !isPublic && String(itemBook(first)) === book);
+    if (!bookOk) return false;
+    const meta = writingTopicMeta(option);
+    const categoryOk = category === "all"
+      || (category === "recommended" ? option.id === recommendedId : meta.accent === category);
+    if (!categoryOk) return false;
+    if (!query) return true;
+    return `${writingSetSearchText(option)} ${meta.title}`.toLowerCase().includes(query);
+  });
+}
+
+function renderWritingTopicFilters(options) {
+  const select = $("writingTopicBook");
+  if (!select) return;
+  const current = select.value || "all";
+  const books = [...new Set(options.map((option) => itemBook(writingTask2ForOption(option) || option)).filter((value) => value !== null && value !== undefined))]
+    .sort((a, b) => Number(a) - Number(b));
+  const hasPublic = options.some((option) => writingTask2ForOption(option)?.source === "Public topics");
+  select.innerHTML = [
+    `<option value="all">All sources</option>`,
+    ...(hasPublic ? [`<option value="public">Public topics</option>`] : []),
+    ...books.map((book) => `<option value="${escapeHtml(book)}">Cambridge ${escapeHtml(book)}</option>`),
+  ].join("");
+  select.value = current === "public" && hasPublic
+    ? "public"
+    : books.map(String).includes(current) ? current : "all";
+}
+
+function writingTask1Cards(tasks = writingTask1Pool()) {
+  const query = ($("writingTopicSearch")?.value || "").trim().toLowerCase();
+  const source = $("writingTopicBook")?.value || "all";
+  return tasks.filter((task) => {
+    const sourceOk = source === "all" || String(itemBook(task)) === source;
+    if (!sourceOk) return false;
+    if (!query) return true;
+    return [task.title, task.prompt, task.data, task.source, writingTaskKind(task)]
+      .filter(Boolean).join(" ").toLowerCase().includes(query);
+  });
+}
+
+function renderWritingTask1Filters(tasks) {
+  const select = $("writingTopicBook");
+  if (!select) return;
+  const current = select.value || "all";
+  const books = [...new Set(tasks.map(itemBook).filter((value) => value !== null && value !== undefined))]
+    .sort((a, b) => Number(a) - Number(b));
+  select.innerHTML = [
+    `<option value="all">All Task 1 charts</option>`,
+    ...books.map((book) => `<option value="${escapeHtml(book)}">Cambridge ${escapeHtml(book)}</option>`),
+  ].join("");
+  select.value = books.map(String).includes(current) ? current : "all";
+}
+
+function renderWritingTask1Card(task, recommendedId = "") {
+  const item = normalizeItem(task);
+  const kind = writingTaskKind(item);
+  const isRecommended = item.id === recommendedId;
+  return `<article class="bank-item speaking-topic-card writing-topic-card writing-task1-card${isRecommended ? " recommended" : ""}" data-writing-task1-id="${escapeHtml(item.id)}" role="button" tabindex="0" aria-label="Choose ${escapeHtml(item.title || "Task 1 visual")}">
+    <div class="topic-card-head"><div class="topic-icon" aria-hidden="true"><i data-lucide="chart-no-axes-combined"></i></div>${isRecommended ? `<span class="writing-ai-pick">AI pick</span>` : ""}</div>
+    <h3>${escapeHtml(item.title || "Task 1 visual")}</h3>
+    <div class="topic-card-body">
+      <div class="topic-keywords"><span>Task 1</span><span>${escapeHtml(kind === "task 1" ? "visual" : kind)}</span></div>
+      <p class="writing-topic-summary">${escapeHtml(writingTaskPreview(item, "Summarise the main features and make relevant comparisons."))}</p>
+    </div>
+    <div class="topic-card-foot"><span class="topic-origin">${escapeHtml(writingTopicSourceLabel({ writingTasks: [item] }))}</span><button class="primary small-button practice-writing-task1" type="button" data-writing-task1-id="${escapeHtml(item.id)}">Choose</button></div>
+  </article>`;
+}
+
+function renderWritingTask1Board(tasks, recommended) {
+  const root = $("writingTopicList");
+  if (!root) return;
+  renderWritingTask1Filters(tasks);
+  const filtered = writingTask1Cards(tasks);
+  if (!filtered.length) {
+    root.innerHTML = `<div class="notice">No Task 1 charts match this search.</div>`;
+    renderWritingTopicPagination(0, 1, state.writingTopicPageSize);
+    return;
+  }
+  const ordered = recommended && filtered.some((task) => task.id === recommended.id)
+    ? [recommended, ...filtered.filter((task) => task.id !== recommended.id)]
+    : filtered;
+  const totalPages = Math.max(1, Math.ceil(ordered.length / state.writingTopicPageSize));
+  state.writingTopicPage = Math.min(Math.max(1, state.writingTopicPage || 1), totalPages);
+  const start = (state.writingTopicPage - 1) * state.writingTopicPageSize;
+  const visible = ordered.slice(start, start + state.writingTopicPageSize);
+  root.innerHTML = visible.map((task) => renderWritingTask1Card(task, recommended?.id || "")).join("");
+  renderWritingTopicPagination(ordered.length, state.writingTopicPage, state.writingTopicPageSize);
+  root.querySelectorAll(".writing-task1-card[data-writing-task1-id]").forEach((card) => {
+    const open = () => openWritingPracticeSetup("task1", card.dataset.writingTask1Id);
+    card.addEventListener("click", (event) => { if (!event.target.closest("button")) open(); });
+    card.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      open();
+    });
+  });
+  root.querySelectorAll(".practice-writing-task1").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      openWritingPracticeSetup("task1", button.dataset.writingTask1Id);
+    });
+  });
+  window.lucide?.createIcons?.({ attrs: { "stroke-width": 1.8 } });
+}
+
+function renderWritingTopicPagination(total, page, pageSize) {
+  const root = $("writingTopicPagination");
+  if (!root) return;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  if (!total) {
+    root.hidden = true;
+    root.innerHTML = "";
+    return;
+  }
+  if (totalPages <= 1) {
+    root.hidden = false;
+    root.innerHTML = `<div class="topic-pagination-summary">Showing ${total} writing topics</div>`;
+    return;
+  }
+  const pages = new Set([1, totalPages, page - 1, page, page + 1].filter((value) => value >= 1 && value <= totalPages));
+  const ordered = [...pages].sort((a, b) => a - b);
+  const pageButtons = [];
+  ordered.forEach((value, index) => {
+    if (index && value - ordered[index - 1] > 1) pageButtons.push(`<span class="topic-pagination-gap">...</span>`);
+    pageButtons.push(`<button class="topic-page-button${value === page ? " active" : ""}" type="button" data-writing-topic-page="${value}" aria-current="${value === page ? "page" : "false"}">${value}</button>`);
+  });
+  const start = (page - 1) * pageSize + 1;
+  const end = Math.min(total, page * pageSize);
+  root.hidden = false;
+  root.innerHTML = `
+    <div class="topic-pagination-summary">Showing ${start}-${end} of ${total} writing topics</div>
+    <div class="topic-pagination-controls">
+      <button class="topic-page-button" type="button" data-writing-topic-page="${page - 1}" ${page <= 1 ? "disabled" : ""}>Prev</button>
+      ${pageButtons.join("")}
+      <button class="topic-page-button" type="button" data-writing-topic-page="${page + 1}" ${page >= totalPages ? "disabled" : ""}>Next</button>
+    </div>`;
+  root.querySelectorAll("[data-writing-topic-page]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const nextPage = Number(button.dataset.writingTopicPage);
+      if (!Number.isFinite(nextPage) || nextPage < 1 || nextPage > totalPages || nextPage === state.writingTopicPage) return;
+      state.writingTopicPage = nextPage;
+      renderWritingUploadHub();
+      $("writingTopicList")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+}
+
+function renderWritingTopicCard(option, recommendedId = "") {
+  const group = option?.items ? option : {
+    id: `writing-topic:${writingTopicMeta(option).accent}`,
+    ...writingTopicMeta(option),
+    items: [option],
+  };
+  const featured = group.items.find((item) => item.id === recommendedId) || group.items[0] || {};
+  const task2 = writingTask2ForOption(featured) || {};
+  const meta = group;
+  const isRecommended = group.items.some((item) => item.id === recommendedId);
+  const chips = [
+    "Task 2",
+    `${group.items.length} ${group.items.length === 1 ? "question" : "questions"}`,
+  ].filter(Boolean).slice(0, 3);
+  const task2Summary = writingTaskPreview(task2, "Choose a Cambridge Task 2 question.");
+  const sourceLabel = task2.source === "Public topics" ? "Public Task 2" : "Cambridge Task 2";
+  return `<article class="bank-item speaking-topic-card writing-topic-card topic-accent-${escapeHtml(meta.accent)}${isRecommended ? " recommended" : ""}" data-writing-topic-group="${escapeHtml(group.id)}" role="button" tabindex="0" aria-label="Choose ${escapeHtml(meta.title)} writing topic">
+    <div class="topic-card-head">
+      <div class="topic-icon" aria-hidden="true"><i data-lucide="${escapeHtml(meta.iconName || "file-pen-line")}"></i></div>
+      ${isRecommended ? `<span class="writing-ai-pick">AI pick</span>` : ""}
+    </div>
+    <h3>${escapeHtml(meta.title)}</h3>
+    <div class="topic-card-body">
+      <div class="topic-keywords">${chips.map((chip) => `<span>${escapeHtml(chip)}</span>`).join("")}</div>
+      <p class="writing-topic-summary">${escapeHtml(task2Summary)}</p>
+    </div>
+    <div class="topic-card-foot">
+      <span class="topic-origin">${escapeHtml(sourceLabel)}</span>
+      <button class="primary small-button practice-writing-topic" type="button" data-writing-topic-group="${escapeHtml(group.id)}">Choose</button>
+    </div>
+  </article>`;
+}
+
+function buildWritingTopicGroups(options = [], recommendedId = "") {
+  const groups = new Map();
+  options.forEach((option) => {
+    const meta = writingTopicMeta(option);
+    const id = `writing-topic:${meta.accent}`;
+    if (!groups.has(id)) groups.set(id, { id, ...meta, iconName: meta.iconName || "file-pen-line", items: [] });
+    groups.get(id).items.push(option);
+  });
+  return [...groups.values()].sort((a, b) => {
+    const aPick = a.items.some((item) => item.id === recommendedId) ? 1 : 0;
+    const bPick = b.items.some((item) => item.id === recommendedId) ? 1 : 0;
+    return bPick - aPick || a.title.localeCompare(b.title);
+  });
+}
+
+function findWritingTopicGroup(groupId, options = writingSystemOptions(), recommendedId = "") {
+  return buildWritingTopicGroups(options, recommendedId).find((group) => group.id === groupId) || null;
+}
+
+function renderWritingSetChooser(group, recommendedId = "") {
+  const setup = $("writingSetupPanel");
+  const entry = $("writingEntry");
+  const workspace = $("writingWorkspace");
+  if (!setup || !entry || !workspace || !group) return;
+  entry.hidden = true;
+  workspace.hidden = true;
+  setup.hidden = false;
+  const ordered = [...group.items].sort((a, b) => Number(b.id === recommendedId) - Number(a.id === recommendedId));
+  setup.innerHTML = `<section class="topic-set-chooser writing-set-chooser">
+    <header class="bank-practice-head topic-set-chooser-head"><div><span>Task 2 topic</span><h3>${escapeHtml(group.title)}</h3><p>Choose the Task 2 question you want to answer.</p></div><button class="secondary small-button" type="button" data-writing-set-back>Back to topics</button></header>
+    <div class="topic-set-list" role="list">${ordered.map((option, index) => {
+      const task2 = writingTask2ForOption(option) || {};
+      return `<article class="topic-set-row" role="listitem">
+        <div class="topic-set-index">${index + 1}</div>
+        <div class="topic-set-main"><div class="topic-set-source">${escapeHtml(writingTopicSourceLabel(option))}${option.id === recommendedId ? " · AI pick" : ""}</div><h4>${escapeHtml(group.title)}</h4><p>${escapeHtml(writingTaskPreview(task2, "IELTS Writing Task 2"))}</p></div>
+        <button class="primary small-button choose-writing-set" type="button" data-writing-set-id="${escapeHtml(option.id)}" data-writing-task2-id="${escapeHtml(task2.id || "")}">Select question</button>
+      </article>`;
+    }).join("")}</div>
+  </section>`;
+  setup.querySelector("[data-writing-set-back]")?.addEventListener("click", () => {
+    setup.hidden = true;
+    setup.innerHTML = "";
+    entry.hidden = false;
+  });
+  setup.querySelectorAll("[data-writing-set-id]").forEach((button) => {
+    button.addEventListener("click", () => openWritingPracticeSetup("cambridge", button.dataset.writingSetId));
+  });
+  setup.scrollIntoView({ block: "start" });
+  window.lucide?.createIcons?.({ attrs: { "stroke-width": 1.8 } });
+}
+
+function renderWritingTopicBoard(options, recommended) {
+  const root = $("writingTopicList");
+  if (!root) return;
+  renderWritingTopicFilters(options);
+  renderWritingTopicCategoryBar(options);
+  let filtered = writingTopicCards(options, recommended?.id || "");
+  if (recommended?.id && filtered.some((option) => option.id === recommended.id)) {
+    filtered = [recommended, ...filtered.filter((option) => option.id !== recommended.id)];
+  }
+  if (!filtered.length) {
+    root.innerHTML = `<div class="notice">No writing topics match this search.</div>`;
+    renderWritingTopicPagination(0, 1, state.writingTopicPageSize);
+    return;
+  }
+  const groups = buildWritingTopicGroups(filtered, recommended?.id || "");
+  const totalPages = Math.max(1, Math.ceil(groups.length / state.writingTopicPageSize));
+  state.writingTopicPage = Math.min(Math.max(1, state.writingTopicPage || 1), totalPages);
+  const start = (state.writingTopicPage - 1) * state.writingTopicPageSize;
+  const displayItems = groups.slice(start, start + state.writingTopicPageSize);
+  root.innerHTML = displayItems.map((group) => renderWritingTopicCard(group, recommended?.id || "")).join("");
+  renderWritingTopicPagination(groups.length, state.writingTopicPage, state.writingTopicPageSize);
+  root.querySelectorAll(".writing-topic-card[data-writing-topic-group]").forEach((card) => {
+    card.addEventListener("click", (event) => {
+      if (event.target.closest("button")) return;
+      renderWritingSetChooser(findWritingTopicGroup(card.dataset.writingTopicGroup, filtered, recommended?.id || ""), recommended?.id || "");
+    });
+    card.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      renderWritingSetChooser(findWritingTopicGroup(card.dataset.writingTopicGroup, filtered, recommended?.id || ""), recommended?.id || "");
+    });
+  });
+  root.querySelectorAll(".practice-writing-topic[data-writing-topic-group]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      renderWritingSetChooser(findWritingTopicGroup(button.dataset.writingTopicGroup, filtered, recommended?.id || ""), recommended?.id || "");
+    });
+  });
+  window.lucide?.createIcons?.({ attrs: { "stroke-width": 1.8 } });
+}
+
+function renderWritingUploadHub() {
+  const select = $("writingSystemSelect");
+  const title = $("writingRecommendedTitle");
+  const reason = $("writingSystemReason");
+  const entryReason = $("writingRecommendedReason");
+  renderWritingResumeStrip();
+  if (!select || !title) return;
+  const taskNumber = Number(state.writingLibraryTaskNumber) === 1 ? 1 : 2;
+  document.querySelectorAll("[data-writing-library-task]").forEach((button) => {
+    const active = Number(button.dataset.writingLibraryTask) === taskNumber;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-selected", active ? "true" : "false");
+  });
+  const categoryBar = $("writingTopicCategoryBar");
+  if (categoryBar) categoryBar.hidden = taskNumber === 1;
+  if ($("writingTopicSearch")) $("writingTopicSearch").placeholder = taskNumber === 1
+    ? "Search Task 1 charts or visuals..."
+    : "Search Task 2 topics or questions...";
+  if (taskNumber === 1) {
+    const tasks = writingTask1Pool();
+    const recommended = chooseRotatingRecommendation("writing-task1", tasks);
+    title.textContent = recommended?.title || "Recommended Task 1 visual";
+    const task1Reason = recommended
+      ? `Task 1 visual practice · ${writingTaskKind(recommended)} · 20 minutes · scored independently.`
+      : "No Task 1 visual is available yet.";
+    if (reason) reason.textContent = task1Reason;
+    if (entryReason) entryReason.textContent = `Why this: ${task1Reason}`;
+    select.innerHTML = tasks.map((task) => `<option value="${escapeHtml(task.id)}">${escapeHtml(task.title || writingTask1OptionLabel(task))}</option>`).join("");
+    renderWritingTask1Board(tasks, recommended);
+    if (state.selectedWritingTask1Id && tasks.some((task) => task.id === state.selectedWritingTask1Id)) select.value = state.selectedWritingTask1Id;
+    $("startRecommendedWriting")?.toggleAttribute("disabled", !recommended);
+    $("startSelectedWriting")?.toggleAttribute("disabled", !tasks.length);
+    return;
+  }
+  const options = writingSystemOptions();
+  if (!options.length) {
+    title.textContent = "No Task 2 questions available";
+    if (reason) reason.textContent = "Import a Task 2 question before AI can recommend a writing topic.";
+    if (entryReason) entryReason.textContent = "No Cambridge Task 2 question is available yet.";
+    select.innerHTML = `<option value="">No system writing questions available</option>`;
+    renderWritingTopicBoard([], null);
+    $("startRecommendedWriting")?.setAttribute("disabled", "disabled");
+    $("startSelectedWriting")?.setAttribute("disabled", "disabled");
+    return;
+  }
+  const recommended = writingSystemRecommended(options);
+  title.textContent = recommended?.title || "Recommended Task 2 topic";
+  const recommendedReason = singleRecommendationReason("writing", recommended, options);
+  if (reason) reason.textContent = recommendedReason;
+  if (entryReason) entryReason.textContent = `Why this: ${recommendedReason}`;
+  select.innerHTML = options.map((item) => `<option value="${escapeHtml(item.id)}">${escapeHtml(singleOptionLabel(item, "writing"))}</option>`).join("");
+  renderWritingTopicBoard(options, recommended);
+  if (state.pendingWritingSetId && options.some((item) => item.id === state.pendingWritingSetId)) {
+    select.value = state.pendingWritingSetId;
+  } else if (state.selectedWritingTask2Id) {
+    const activeId = options.find((item) => writingTask2ForOption(item)?.id === state.selectedWritingTask2Id)?.id;
+    if (options.some((item) => item.id === activeId)) select.value = activeId;
+  } else if (recommended) {
+    select.value = recommended.id;
+  }
+  $("startRecommendedWriting")?.removeAttribute("disabled");
+  $("startSelectedWriting")?.removeAttribute("disabled");
+}
+
+function saveWritingUploadSessionPointer(setId = "", task1Id = "", task2Id = "") {
+  const resolvedSetId = setId || state.pendingWritingSetId || "";
+  if (!resolvedSetId) return;
+  try {
+    localStorage.setItem(writingUploadSessionStoreKey, JSON.stringify({
+      setId: resolvedSetId,
+      task1Id: task1Id || state.selectedWritingTask1Id || writingUploadTaskByNumber(1)?.id || "",
+      task2Id: task2Id || state.selectedWritingTask2Id || writingUploadTaskByNumber(2)?.id || "",
+      activeTaskNumber: state.writingActiveTaskNumber || 1,
+      setupMode: state.writingSetupMode,
+      updatedAt: new Date().toISOString(),
+    }));
+  } catch {}
+}
+
+function startWritingSystemPractice(mode = "recommended", config = {}) {
+  const taskNumber = Number(config.taskNumber || state.writingLibraryTaskNumber) === 1 ? 1 : 2;
+  let task = null;
+  let sessionId = config.setId || "";
+  if (taskNumber === 1) {
+    const tasks = writingTask1Pool();
+    const selectedId = config.taskId || (mode === "selected" ? $("writingSystemSelect")?.value : chooseRotatingRecommendation("writing-task1", tasks)?.id);
+    task = tasks.find((item) => item.id === selectedId) || chooseRotatingRecommendation("writing-task1", tasks) || tasks[0] || null;
+    if (!task) return;
+    sessionId = sessionId || `writing-task1:${task.id}`;
+    state.selectedWritingTask1Id = task.id;
+    state.selectedWritingTask2Id = "";
+    rememberPracticeRecommendation("writing-task1", task);
+  } else {
+    const options = writingSystemOptions();
+    if (!options.length) return;
+    const selectedId = config.setId || (mode === "selected" ? $("writingSystemSelect")?.value : writingSystemRecommended(options)?.id);
+    const selected = options.find((item) => item.id === selectedId) || writingSystemRecommended(options) || options[0];
+    task = config.taskId
+      ? options.map(writingTask2ForOption).find((item) => item?.id === config.taskId)
+      : writingTask2ForOption(selected);
+    if (!task) return;
+    sessionId = selected.id;
+    state.selectedWritingTask1Id = "";
+    state.selectedWritingTask2Id = task.id;
+    rememberPracticeRecommendation("writing", selected);
+  }
+  state.uploadWritingTasks = [normalizeItem(task)];
+  state.pendingWritingSetId = sessionId;
+  state.writingLibraryTaskNumber = taskNumber;
+  state.writingActiveTaskNumber = taskNumber;
+  state.writingTimerDuration = taskNumber === 1 ? 20 * 60 : 40 * 60;
+  saveWritingUploadSessionPointer(sessionId, state.selectedWritingTask1Id, state.selectedWritingTask2Id);
+  const content = $("writingSystemContent");
+  const actions = $("writingSystemActions");
+  if (!content || !actions) return;
+  content.innerHTML = renderWritingExamTwoColumn(state.uploadWritingTasks, "upload-system");
+  $("writingSystemWorkspace")?.classList.add("has-writing-task");
+  actions.hidden = false;
+  setWritingWorkspaceMode("cambridge");
+  if ($("writingWorkspaceTitle")) $("writingWorkspaceTitle").textContent = `Task ${taskNumber} practice`;
+  bindDynamicControls();
+  if (config.scroll !== false) content.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function restoreWritingUploadSessionAfterData() {
+  if (location.hash !== "#writing-upload") return false;
+  let session = null;
+  try {
+    session = JSON.parse(localStorage.getItem(writingUploadSessionStoreKey) || "null");
+  } catch {}
+  const setId = String(session?.setId || "");
+  const task1Id = String(session?.task1Id || "");
+  const task2Id = String(session?.task2Id || "");
+  const taskNumber = task1Id ? 1 : task2Id ? 2 : Number(session?.activeTaskNumber || 2);
+  const taskId = taskNumber === 1 ? task1Id : task2Id;
+  const taskExists = taskNumber === 1
+    ? writingTask1Pool().some((task) => task.id === taskId)
+    : writingSystemOptions().some((option) => writingTask2ForOption(option)?.id === taskId);
+  if (!setId || !taskId || !taskExists) return false;
+  state.pendingWritingSetId = setId;
+  state.selectedWritingTask1Id = task1Id;
+  state.selectedWritingTask2Id = task2Id;
+  state.writingLibraryTaskNumber = taskNumber;
+  state.writingSetupMode = session?.setupMode === "exam" ? "exam" : "coach";
+  state.writingActiveTaskNumber = taskNumber;
+  restoreWritingTimerState(setId);
+  startWritingSystemPractice("selected", { setId, taskNumber, taskId, scroll: false });
+  const draft = uniqueDrafts([...(state.serverDrafts || []), ...readLocalDrafts()])
+    .find((item) => item.payload?.activeView === "writing-upload"
+      && item.payload?.writingSetId === setId
+      && (!item.payload?.writingTask1Id || item.payload.writingTask1Id === state.selectedWritingTask1Id)
+      && (!item.payload?.writingTask2Id || item.payload.writingTask2Id === state.selectedWritingTask2Id));
+  if (draft?.payload?.values) applyDraftValues(draft.payload.values);
+  return true;
+}
+
+function roundWritingBand(value) {
+  const number = Number.parseFloat(value);
+  if (!Number.isFinite(number)) return "";
+  return (Math.round(number * 2) / 2).toFixed(1);
+}
+
+function weightedWritingOverall(task1, task2) {
+  const first = Number.parseFloat(task1);
+  const second = Number.parseFloat(task2);
+  if (!Number.isFinite(first) || !Number.isFinite(second)) return "";
+  return roundWritingBand((first + (second * 2)) / 3);
+}
+
+function writingTextEvidence(itemId, response, analysis = {}) {
+  const quote = String(analysis?.highestImpact?.evidence || "").trim();
+  const source = String(response || "");
+  let start = quote ? source.indexOf(quote) : -1;
+  const resolvedQuote = start >= 0 ? quote : writingEvidenceExcerpt(source, "");
+  if (start < 0) start = source.indexOf(resolvedQuote);
+  return resolvedQuote && start >= 0 ? [{
+    id: `evidence-${itemId}-${start}`,
+    kind: "text-range",
+    itemId,
+    quote: resolvedQuote,
+    range: { start, end: start + resolvedQuote.length, unit: "utf16-code-unit" },
+  }] : [];
+}
+
+function buildUnifiedAttemptContract({ module, mode = "coach", items = [], score = {}, highestImpact = null, evidence = [], nextAction = null, retest = null, provenance = {} } = {}) {
+  const attemptId = learningEntityId("attempt");
+  return {
+    schemaVersion: "scoring.v2",
+    attempt: {
+      id: attemptId,
+      module,
+      mode,
+      scope: items.length > 1 ? "full-test" : "single-task",
+      submittedAt: new Date().toISOString(),
+      items,
+    },
+    score,
+    highestImpact: highestImpact || null,
+    evidence,
+    nextAction: nextAction || { type: module === "writing" ? "rewrite" : "repeat", label: "Improve this skill" },
+    retest: retest || { type: module === "writing" ? "paragraph-rewrite" : "answer-repeat", parentAttemptId: attemptId },
+    provenance,
+  };
+}
+
+function combineWritingTaskResults(tasks, responses, results) {
+  const taskScores = results.map((result, index) => {
+    const scores = extractWritingScores(result.feedback || "", result.analysis);
+    const criteria = scores.criteria.map((criterion, criterionIndex) => ({
+      ...criterion,
+      label: index === 0 && criterionIndex === 0 ? "Task Achievement" : criterion.label,
+    }));
+    return {
+      taskNumber: index + 1,
+      itemId: tasks[index]?.id || `task${index + 1}`,
+      title: tasks[index]?.title || `Writing Task ${index + 1}`,
+      overall: scores.overall,
+      criteria,
+      analysis: result.analysis || null,
+      feedback: result.feedback || "",
+      evidence: writingTextEvidence(`task${index + 1}`, responses[index], result.analysis),
+      pdfUrl: result.pdfUrl || "",
+    };
+  });
+  const overall = weightedWritingOverall(taskScores[0]?.overall, taskScores[1]?.overall);
+  const sharedLabels = ["Task Achievement / Response", "Coherence & Cohesion", "Lexical Resource", "Grammatical Range & Accuracy"];
+  const criteria = sharedLabels.map((label, index) => ({
+    label,
+    score: weightedWritingOverall(taskScores[0]?.criteria[index]?.score, taskScores[1]?.criteria[index]?.score),
+    feedback: index === 0
+      ? "Task 1 achievement and Task 2 response are combined using the official 1:2 task weighting."
+      : taskScores[1]?.criteria[index]?.feedback || taskScores[0]?.criteria[index]?.feedback || "",
+  }));
+  const weakestTask = [...taskScores].sort((a, b) => Number.parseFloat(a.overall) - Number.parseFloat(b.overall))[0];
+  const impact = weakestTask?.analysis?.highestImpact || {};
+  const evidence = taskScores.flatMap((task) => task.evidence);
+  const contract = buildUnifiedAttemptContract({
+    module: "writing",
+    mode: state.writingSetupMode,
+    items: tasks.map((task, index) => ({
+      id: `task${index + 1}`,
+      sourceId: task.id || "",
+      kind: index === 0 ? "academic-task-1" : "task-2",
+      prompt: task.prompt || "",
+      response: responses[index],
+      wordCount: countWords(responses[index]),
+    })),
+    score: {
+      status: "final",
+      overall: { value: Number.parseFloat(overall), scale: "ielts-band", weighting: { task1: 1, task2: 2 } },
+      criteria,
+      tasks: taskScores,
+    },
+    highestImpact: {
+      criterionKey: impact.criterion || weakestTask?.criteria?.[0]?.label || "Task response",
+      itemId: `task${weakestTask?.taskNumber || 2}`,
+      issue: impact.issue || weakestTask?.criteria?.[0]?.feedback || "Develop the response more fully.",
+      evidenceIds: weakestTask?.evidence?.map((item) => item.id) || [],
+      successCriterion: impact.rewriteInstruction || "Rewrite the evidence paragraph with a clearer claim and development.",
+    },
+    evidence,
+    nextAction: { type: "rewrite", label: "Improve this skill", itemId: `task${weakestTask?.taskNumber || 2}` },
+    retest: { type: "paragraph-rewrite", itemId: `task${weakestTask?.taskNumber || 2}` },
+    provenance: { provider: "dashscope", weighting: "task1:1,task2:2" },
+  });
+  contract.retest.parentAttemptId = contract.attempt.id;
+  return { overall, criteria, taskScores, evidence, contract };
+}
+
+async function scoreSimulationWritingPair(tasks, prefixRoot = "upload-system", onStatus = null) {
+  const normalized = tasks.slice(0, 2).map(normalizeItem);
+  const responses = normalized.map((_task, index) => $(`${prefixRoot}-task${index + 1}-writing`)?.value.trim() || "");
+  if (responses.some((response) => !response)) throw new Error("Complete both Task 1 and Task 2 before scoring.");
+  onStatus?.(1);
+  const combined = await runWritingFeedbackJob("", "", () => onStatus?.(2), {
+    items: normalized.map((task, index) => ({
+      id: `task${index + 1}`,
+      taskNumber: index + 1,
+      kind: index === 0 ? "academic-task-1" : "task-2",
+      prompt: task.prompt || task.title || `Writing Task ${index + 1}`,
+      essay: responses[index],
+    })),
+  });
+  if (combined.contract?.score?.tasks?.length === 2) {
+    return {
+      overall: roundWritingBand(combined.contract.score.overall.value),
+      criteria: combined.contract.score.criteria.map((item) => ({ ...item, score: roundWritingBand(item.score) })),
+      taskScores: combined.contract.score.tasks.map((item) => ({ ...item, overall: roundWritingBand(item.overall), criteria: item.criteria.map((criterion) => ({ ...criterion, score: roundWritingBand(criterion.score) })) })),
+      evidence: combined.contract.evidence || [],
+      contract: combined.contract,
+      responses,
+      results: combined.taskResults || [],
+    };
+  }
+  const results = combined.taskResults || [];
+  return { ...combineWritingTaskResults(normalized, responses, results), responses, results };
+}
+
+async function submitSystemWriting() {
+  const tasks = (state.uploadWritingTasks || []).filter(Boolean).map(normalizeItem);
+  if (tasks.length !== 1) {
+    setFeedback("uploadWritingFeedback", "Please start one Task 1 or Task 2 practice first.", "uploadWritingMode", "error");
+    return;
+  }
+  const task = tasks[0];
+  const taskNumber = writingTaskNumber(task) || state.writingActiveTaskNumber || 2;
+  const response = $(`upload-system-task${taskNumber}-writing`)?.value.trim() || "";
+  if (!response) {
+    setFeedback("uploadWritingFeedback", `Complete Task ${taskNumber} before scoring.`, "uploadWritingMode", "error");
+    return;
+  }
+  setUnifiedPracticeStage("writing", "scoring");
+  setFeedback("uploadWritingFeedback", `Scoring Task ${taskNumber} independently...`, "uploadWritingMode", "");
+  try {
+    const prompt = [task.prompt, task.data].filter(Boolean).join("\n\nData: ") || task.title || `Writing Task ${taskNumber}`;
+    const json = await runWritingFeedbackJob(prompt, response, () => {
+      setFeedback("uploadWritingFeedback", `Generating Task ${taskNumber} feedback...`, "uploadWritingMode", "");
+    });
+    const canonicalScores = json.contract?.score
+      ? {
+          overall: roundWritingBand(json.contract.score.overall?.value),
+          criteria: (json.contract.score.criteria || []).map((item) => ({ ...item, score: roundWritingBand(item.score) })),
+        }
+      : extractWritingScores(json.feedback || "", json.analysis);
+    rememberWritingAttempt({
+      attemptId: json.contract?.attempt?.id,
+      source: "system",
+      title: `Task ${taskNumber} · ${task.title || "Writing practice"}`,
+      prompt,
+      essay: response,
+      feedback: json.feedback || "",
+      analysis: json.analysis || null,
+      scores: canonicalScores,
+      contract: json.contract || null,
+    });
+    setFeedbackHtml("uploadWritingFeedback", renderWritingReportHtml(json.feedback || "", { analysis: json.analysis, contract: json.contract }, "ielts-writing-feedback.pdf"), "uploadWritingMode", json.mode || "ai");
+    revealWritingFeedback();
+  } catch (error) {
+    setUnifiedPracticeStage("writing", "practice");
     setFeedback("uploadWritingFeedback", `Submission failed: ${error.message}`, "uploadWritingMode", "error");
   }
 }
@@ -9669,6 +15763,8 @@ function setImmersivePractice(moduleName, targetId) {
   Object.entries(state.listeningCaptionState).forEach(([prefix, captionState]) => {
     if (captionState?.enabled) mountListeningCaptionRail(prefix, moduleName === "listening");
   });
+  updateAnnotationToolbarAvailability();
+  refreshGlobalCoachPanelIfOpen();
 }
 
 function setSingleImmersive(moduleName = state.activeModule) {
@@ -9683,6 +15779,8 @@ function setSingleImmersive(moduleName = state.activeModule) {
   Object.entries(state.listeningCaptionState).forEach(([prefix, captionState]) => {
     if (captionState?.enabled) mountListeningCaptionRail(prefix, moduleName === "listening");
   });
+  updateAnnotationToolbarAvailability();
+  refreshGlobalCoachPanelIfOpen();
 }
 
 function exitImmersiveMode() {
@@ -9697,6 +15795,8 @@ function exitImmersiveMode() {
   document.querySelectorAll(".exam-quick-nav a[data-focus-module]").forEach((link) => {
     link.classList.remove("active");
   });
+  updateAnnotationToolbarAvailability();
+  refreshGlobalCoachPanelIfOpen();
 }
 
 function backAndScrollToSubmit(targetId) {
@@ -9732,6 +15832,12 @@ function bindListeningCaptionPlayers() {
   document.querySelectorAll(".listening-player[data-prefix]").forEach((audio) => {
     if (audio.dataset.captionBound === "1") return;
     audio.dataset.captionBound = "1";
+    const prefix = audio.dataset.prefix || "single";
+    const rule = listeningPlaybackRule(listeningModeForPrefix(prefix));
+    audio.controls = rule.canPause;
+    audio.setAttribute("controlslist", rule.canSeek ? "nodownload" : "nodownload noplaybackrate");
+    audio.disablePictureInPicture = true;
+    let lastAllowedTime = Number(audio.currentTime || 0);
     const sync = async ({ restart = false } = {}) => {
       const prefix = audio.dataset.prefix || "single";
       const captionState = state.listeningCaptionState[prefix];
@@ -9756,28 +15862,289 @@ function bindListeningCaptionPlayers() {
         else startTimedListeningCaptionLoop(prefix, audio);
       }
     };
-    audio.addEventListener("play", () => sync({ restart: true }));
-    audio.addEventListener("playing", () => sync({ restart: true }));
-    audio.addEventListener("canplay", () => sync({ restart: false }));
+    audio.addEventListener("loadstart", () => {
+      const record = listeningPlaybackRecord(audio.dataset.prefix || "single");
+      if (String(record.section || "") === String(audio.dataset.section || "")) setListeningPlaybackStatus(audio, "loading", "Loading");
+    });
+    audio.addEventListener("play", () => {
+      const prefix = audio.dataset.prefix || "single";
+      if (prefix === "single" && state.activeModule === "listening" && !state.singleTimerId) startSingleTimer();
+      setListeningPlaybackStatus(audio, "playing", "Playing");
+      sync({ restart: true });
+    });
+    audio.addEventListener("playing", () => {
+      setListeningPlaybackStatus(audio, "playing", "Playing");
+      sync({ restart: true });
+    });
+    audio.addEventListener("canplay", () => {
+      if (audio.paused && !audio.ended) setListeningPlaybackStatus(audio, "ready", "Ready to play");
+      sync({ restart: false });
+    });
     audio.addEventListener("timeupdate", () => sync({ restart: false }));
     audio.addEventListener("pause", () => {
-      if (!audio.seeking) stopTimedListeningCaptionLoop(audio.dataset.prefix || "single", audio.dataset.section || "");
+      const prefix = audio.dataset.prefix || "single";
+      if (!audio.seeking) stopTimedListeningCaptionLoop(prefix, audio.dataset.section || "");
+      if (prefix === "single" && state.activeModule === "listening" && currentSinglePracticeMode("listening") !== "exam" && state.singleTimerId) stopSingleTimer();
+      if (!audio.ended) setListeningPlaybackStatus(audio, "paused", "Paused");
     });
     audio.addEventListener("seeking", () => {
       const prefix = audio.dataset.prefix || "single";
       stopTimedListeningCaptionLoop(prefix, audio.dataset.section || "");
+      if (!rule.canSeek && Math.abs(Number(audio.currentTime || 0) - lastAllowedTime) > 1.25) audio.currentTime = lastAllowedTime;
     });
     audio.addEventListener("seeked", () => {
       resetTimedListeningCaptionAnchor(audio.dataset.prefix || "single", audio);
       sync({ restart: true });
     });
-    audio.addEventListener("loadedmetadata", () => sync({ restart: false }));
+    audio.addEventListener("loadedmetadata", () => {
+      lastAllowedTime = Number(audio.currentTime || 0);
+      setListeningPlaybackStatus(audio, "ready", "Ready to play");
+      sync({ restart: false });
+    });
+    audio.addEventListener("error", () => setListeningPlaybackStatus(audio, "failed", "Playback failed"));
     audio.addEventListener("ended", () => {
       const prefix = audio.dataset.prefix || "single";
       const section = audio.dataset.section || "";
       stopTimedListeningCaptionLoop(prefix, section);
       setListeningCaption(prefix, section, "Section finished.", section ? `Section ${section}` : "Cached captions");
+      handleListeningAnswerReviewTransition(prefix, section);
+      if (!advanceListeningExamSection(audio)) setListeningPlaybackStatus(audio, "finished", "Finished");
     });
+    audio.addEventListener("timeupdate", () => {
+      if (!audio.seeking) lastAllowedTime = Number(audio.currentTime || 0);
+    });
+  });
+}
+
+function bindListeningPlaybackControls() {
+  document.querySelectorAll("[data-listening-start]").forEach((button) => {
+    button.onclick = async () => {
+      const prefix = button.dataset.prefix || "single";
+      const section = button.dataset.section || "";
+      const selector = `.listening-player[data-prefix="${prefix}"]${section ? `[data-section="${section}"]` : ""}`;
+      const audio = document.querySelector(selector) || document.querySelector(`.listening-player[data-prefix="${prefix}"]`);
+      if (!audio) {
+        const status = button.closest("[data-listening-status]")?.querySelector("[data-listening-state]");
+        if (status) status.textContent = "Playback failed";
+        return;
+      }
+      document.querySelectorAll(`.listening-player[data-prefix="${prefix}"]`).forEach((other) => {
+        if (other !== audio && !other.paused) other.pause();
+      });
+      setListeningPlaybackStatus(audio, audio.readyState >= 3 ? "ready" : "loading", audio.readyState >= 3 ? "Ready to play" : "Loading");
+      try {
+        if (audio.readyState === 0) audio.load();
+        if (prefix === "single" && state.activeModule === "listening" && !state.singleTimerId) startSingleTimer();
+        await audio.play();
+      } catch {
+        if (prefix === "single" && state.activeModule === "listening" && state.singleTimerId) stopSingleTimer();
+        setListeningPlaybackStatus(audio, "failed", "Playback failed");
+      }
+    };
+  });
+  document.querySelectorAll(".listening-study .answer-input[data-prefix]").forEach((input) => {
+    input.addEventListener("input", () => {
+      const prefix = input.dataset.prefix || "single";
+      updateListeningProgress(prefix);
+      if (prefix === "single") {
+        saveSingleAnswersToState();
+        savePracticeSession();
+      }
+    });
+  });
+  document.querySelectorAll(".listening-caption-toggle[data-prefix]").forEach((button) => {
+    const rule = listeningPlaybackRule(listeningModeForPrefix(button.dataset.prefix || "single"));
+    if (!rule.captions) {
+      button.disabled = true;
+      button.title = "Captions are disabled in Exam mode.";
+    }
+  });
+}
+
+function updateReadingAnswerState(input) {
+  const row = input?.closest?.(".paper-answer-row");
+  if (!row) return;
+  const answered = Boolean(String(input.value || "").trim());
+  row.classList.toggle("answered", answered);
+  const status = row.querySelector(".reading-answer-state");
+  if (status) status.textContent = answered ? "Answered" : "Unanswered";
+  const number = row.dataset.questionNumber;
+  const nav = document.querySelector(`[data-reading-question-nav="${number}"]`);
+  nav?.classList.toggle("answered", answered);
+}
+
+function setReadingCurrentQuestion(workspace, number, scrollNav = true) {
+  if (!workspace || !number) return;
+  workspace.dataset.focusedQuestion = String(number);
+  workspace.querySelectorAll("[data-reading-question-nav]").forEach((button) => {
+    const current = String(button.dataset.readingQuestionNav) === String(number);
+    button.classList.toggle("current", current);
+    if (current) button.setAttribute("aria-current", "true");
+    else button.removeAttribute("aria-current");
+  });
+  if (!scrollNav) return;
+  const nav = workspace.querySelector(".reading-question-nav");
+  const currentButton = nav?.querySelector(`[data-reading-question-nav="${number}"]`);
+  if (nav && currentButton) {
+    const left = currentButton.offsetLeft - Math.max(8, (nav.clientWidth - currentButton.offsetWidth) / 2);
+    nav.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
+  }
+}
+
+function focusReadingQuestion(number) {
+  const workspace = document.querySelector(".reading-mobile-workspace");
+  if (!workspace) return;
+  state.readingMobilePane = "questions";
+  workspace.dataset.readingPane = "questions";
+  setReadingCurrentQuestion(workspace, number);
+  const questionPane = workspace.querySelector(".reading-question-pane");
+  workspace.querySelectorAll("[data-reading-pane-target]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.readingPaneTarget === "questions");
+  });
+  const target = workspace.querySelector(`.paper-answer-row[data-question-number="${number}"]`);
+  const answerScroll = target?.closest(".paper-answer-scroll");
+  if (target && answerScroll) {
+    const nextTop = target.offsetTop - Math.max(12, (answerScroll.clientHeight - target.offsetHeight) / 2);
+    answerScroll.scrollTo({ top: Math.max(0, nextTop), behavior: "smooth" });
+  }
+  const questionPage = target?.dataset.questionPage;
+  const passagePage = target?.dataset.readingPassagePage;
+  const passagePane = workspace.querySelector(".reading-passage-pane");
+  const passagePageNode = passagePage ? passagePane?.querySelector(`[data-pdf-page="${passagePage}"]`) : null;
+  if (passagePageNode && passagePane) {
+    passagePane.dataset.pendingPdfPage = passagePage;
+    const syncPassagePage = () => {
+      const passageTop = Math.max(0, passagePageNode.offsetTop - 8);
+      state.readingPaneScroll.passage = passageTop;
+      if (passagePane.getClientRects().length) passagePane.scrollTo({ top: passageTop, behavior: "auto" });
+    };
+    syncPassagePage();
+    const passageImage = passagePageNode.querySelector("img");
+    if (passageImage && !passageImage.complete) passageImage.addEventListener("load", syncPassagePage, { once: true });
+  }
+  const questionPaper = workspace.querySelector(".reading-question-paper");
+  const questionPageNode = questionPage ? questionPaper?.querySelector(`[data-pdf-page="${questionPage}"]`) : null;
+  if (questionPageNode && questionPaper) {
+    const syncQuestionPage = () => {
+      const questionTop = Math.max(0, questionPageNode.offsetTop - 8);
+      state.readingPaneScroll.questionPaper = questionTop;
+      questionPaper.scrollTo({ top: questionTop, behavior: "auto" });
+    };
+    syncQuestionPage();
+    const questionImage = questionPageNode.querySelector("img");
+    if (questionImage && !questionImage.complete) questionImage.addEventListener("load", syncQuestionPage, { once: true });
+  }
+  target?.querySelector("input")?.focus({ preventScroll: true });
+  if (answerScroll) {
+    requestAnimationFrame(() => {
+      const rect = answerScroll.getBoundingClientRect();
+      const headerBottom = document.querySelector("#single > .view-head")?.getBoundingClientRect().bottom || 0;
+      const visibleTop = Math.max(8, headerBottom + 8);
+      const visibleBottom = window.innerHeight - 12;
+      const delta = rect.bottom > visibleBottom
+        ? rect.bottom - visibleBottom
+        : rect.top < visibleTop
+          ? rect.top - visibleTop
+          : 0;
+      if (Math.abs(delta) > 1) window.scrollBy({ top: delta, behavior: "smooth" });
+    });
+  }
+  savePracticeSession();
+}
+
+async function runReadingHint(button) {
+  const qid = button.dataset.readingHint || "";
+  const context = currentReadingContext();
+  const question = context?.questions?.find((item) => item.id === qid);
+  const step = Math.max(1, Math.min(4, Number(button.dataset.hintStep) || 1));
+  state.coach.focusQuestion = question ? { module: "reading", ...question } : { module: "reading", id: qid };
+  const prompts = [
+    `For ${qid}, give only Hint 1. First state the exact location as \"位置：第X段，第Y句\" using the indexed passage context, then give a short locating clue. Do not reveal the answer. If the location cannot be verified, say \"位置：暂无法确认\" instead of guessing.`,
+    `For ${qid}, give Hint 2. First state \"位置：第X段，第Y句\", then quote or identify the key evidence sentence and its keywords. Do not reveal the answer.`,
+    `For ${qid}, give Hint 3. Keep \"位置：第X段，第Y句\" on the first line, then explain the paraphrase or reasoning needed. Do not reveal the final answer.`,
+    `For ${qid}, first state \"位置：第X段，第Y句\", then explain the evidence chain and why the correct answer follows.${currentSinglePracticeMode("reading") === "full" ? " I am still in exam practice, so check my reasoning without directly revealing the answer." : " You may show the answer after the reasoning."}`,
+  ];
+  openGlobalCoachPanel();
+  const next = Math.min(4, step + 1);
+  button.dataset.hintStep = String(next);
+  button.textContent = step >= 4 ? "Explain" : `Hint ${next}`;
+  refreshGlobalCoachPanelIfOpen();
+  button.disabled = true;
+  try {
+    await sendHelpChatMessage(prompts[step - 1]);
+  } finally {
+    button.disabled = false;
+  }
+}
+
+function bindReadingWorkspaceControls() {
+  document.querySelectorAll("[data-reading-question-nav]").forEach((button) => {
+    button.onclick = () => focusReadingQuestion(button.dataset.readingQuestionNav);
+  });
+  document.querySelectorAll("[data-reading-mark]").forEach((button) => {
+    button.onclick = () => {
+      const qid = button.dataset.readingMark || "";
+      const next = !state.readingReviewMarks?.[qid];
+      state.readingReviewMarks[qid] = next;
+      button.classList.toggle("active", next);
+      button.setAttribute("aria-pressed", next ? "true" : "false");
+      button.textContent = next ? "Marked" : "Mark";
+      button.closest(".paper-answer-row")?.classList.toggle("marked-review", next);
+      const number = button.closest(".paper-answer-row")?.dataset.questionNumber;
+      document.querySelector(`[data-reading-question-nav="${number}"]`)?.classList.toggle("marked", next);
+      savePracticeSession();
+    };
+  });
+  document.querySelectorAll("[data-reading-hint]").forEach((button) => {
+    button.onclick = () => runReadingHint(button);
+  });
+  document.querySelectorAll('.answer-input[data-prefix="single"]').forEach((input) => {
+    updateReadingAnswerState(input);
+    input.addEventListener("input", () => {
+      updateReadingAnswerState(input);
+      saveSingleAnswersToState();
+      savePracticeSession();
+    });
+    input.addEventListener("focus", () => {
+      const qid = input.dataset.qid;
+      const context = currentReadingContext();
+      const question = context?.questions?.find((item) => item.id === qid);
+      if (question) state.coach.focusQuestion = { module: "reading", ...question };
+      const workspace = input.closest(".reading-mobile-workspace");
+      if (workspace) setReadingCurrentQuestion(workspace, question?.number || input.closest(".paper-answer-row")?.dataset.questionNumber || "");
+      refreshGlobalCoachPanelIfOpen();
+    });
+  });
+  document.querySelectorAll(".reading-mobile-workspace").forEach((workspace) => {
+    setReadingCurrentQuestion(workspace, workspace.dataset.focusedQuestion || "1", false);
+  });
+  document.querySelectorAll("[data-reading-scroll-pane]").forEach((pane) => {
+    const key = pane.dataset.readingScrollPane;
+    pane.scrollTop = Number(state.readingPaneScroll?.[key]) || 0;
+    pane.addEventListener("scroll", () => {
+      state.readingPaneScroll[key] = pane.scrollTop;
+      schedulePracticeSessionSave();
+    }, { passive: true });
+  });
+  document.querySelectorAll(".reading-split-divider").forEach((divider) => {
+    divider.onpointerdown = (event) => {
+      const split = divider.parentElement;
+      if (!split || window.matchMedia("(max-width: 820px) and (orientation: portrait)").matches) return;
+      divider.setPointerCapture?.(event.pointerId);
+      const move = (moveEvent) => {
+        const rect = split.getBoundingClientRect();
+        const percent = Math.max(40, Math.min(72, ((moveEvent.clientX - rect.left) / rect.width) * 100));
+        split.style.setProperty("--reading-passage-width", `${percent}%`);
+      };
+      const end = () => {
+        divider.removeEventListener("pointermove", move);
+        divider.removeEventListener("pointerup", end);
+        divider.removeEventListener("pointercancel", end);
+      };
+      divider.addEventListener("pointermove", move);
+      divider.addEventListener("pointerup", end);
+      divider.addEventListener("pointercancel", end);
+    };
   });
 }
 
@@ -9785,6 +16152,9 @@ function bindDynamicControls() {
   bindHelpControls();
   bindPdfAnnotations();
   bindListeningCaptionPlayers();
+  bindListeningPlaybackControls();
+  bindReadingWorkspaceControls();
+  bindWritingTaskTabs();
   document.querySelectorAll(".back-submit-button").forEach((button) => {
     button.onclick = () => backAndScrollToSubmit(button.dataset.submitTarget || "");
   });
@@ -9792,6 +16162,71 @@ function bindDynamicControls() {
     button.onclick = () => {
       localStorage.setItem(sidebarStoreKey, "false");
       applySidebarState(false);
+    };
+  });
+  document.querySelectorAll(".start-single-practice").forEach((button) => {
+    button.onclick = () => startSinglePractice(button.dataset.singleStart || "recommended");
+  });
+  document.querySelectorAll("[data-single-section]").forEach((button) => {
+    button.onclick = () => {
+      const moduleName = button.dataset.module || state.activeModule;
+      const section = Number(button.dataset.singleSection);
+      if (!["listening", "reading"].includes(moduleName) || !Number.isFinite(section)) return;
+      saveSingleAnswersToState();
+      state.singlePracticeSections[moduleName] = section;
+      resetSingleTimer(moduleName);
+      renderSingle();
+      setSingleImmersive(moduleName);
+      savePracticeSession();
+    };
+  });
+  document.querySelectorAll("[data-review-empty-action]").forEach((button) => {
+    button.onclick = () => {
+      state.singlePracticeModes[state.activeModule] = button.dataset.reviewEmptyAction || (state.activeModule === "listening" ? "training" : "full");
+      resetSingleTimer(state.activeModule);
+      renderSingle();
+      setSingleImmersive(state.activeModule);
+    };
+  });
+  document.querySelectorAll("[data-reading-pane-target]").forEach((button) => {
+    button.onclick = () => {
+      const pane = button.dataset.readingPaneTarget || "passage";
+      const workspace = button.closest(".reading-mobile-workspace");
+      const previousPane = workspace?.dataset.readingPane || state.readingMobilePane;
+      const previousContent = workspace?.querySelector(`[data-reading-scroll-pane="${previousPane}"]`);
+      if (previousContent) state.readingPaneScroll[previousPane] = previousContent.scrollTop;
+      state.readingMobilePane = pane;
+      if (workspace) workspace.dataset.readingPane = pane;
+      workspace?.querySelectorAll("[data-reading-pane-target]").forEach((item) => item.classList.toggle("active", item.dataset.readingPaneTarget === pane));
+      const nextContent = workspace?.querySelector(`[data-reading-scroll-pane="${pane}"]`);
+      if (nextContent) requestAnimationFrame(() => {
+        const pendingPage = pane === "passage" ? nextContent.dataset.pendingPdfPage : "";
+        const pendingNode = pendingPage ? nextContent.querySelector(`[data-pdf-page="${pendingPage}"]`) : null;
+        const nextTop = pendingNode ? Math.max(0, pendingNode.offsetTop - 8) : Number(state.readingPaneScroll[pane]) || 0;
+        nextContent.scrollTop = nextTop;
+        state.readingPaneScroll[pane] = nextTop;
+        if (pendingPage) delete nextContent.dataset.pendingPdfPage;
+      });
+      savePracticeSession();
+    };
+  });
+  const readingQuestionType = $("readingQuestionType");
+  if (readingQuestionType) {
+    readingQuestionType.onchange = () => {
+      saveSingleAnswersToState();
+      state.readingQuestionType = readingQuestionType.value;
+      renderSingle();
+      setSingleImmersive("reading");
+      savePracticeSession();
+    };
+  }
+  document.querySelectorAll("input[name='singlePracticeMode']").forEach((input) => {
+    input.onchange = () => {
+      state.singlePracticeModes[state.activeModule] = input.value;
+      document.querySelectorAll(".single-mode-option").forEach((item) => {
+        item.classList.toggle("active", item.querySelector("input")?.checked);
+      });
+      savePracticeSession();
     };
   });
   const stickyTimerToggle = $("examStickyTimerToggle");
@@ -9837,6 +16272,10 @@ function bindDynamicControls() {
     textarea.oninput = () => {
       const wordNode = $(`${textarea.id.replace("-writing", "")}-words`);
       if (wordNode) wordNode.textContent = countWords(textarea.value);
+      if (textarea.closest("#single")) {
+        state.practiceWritingDrafts[textarea.id] = textarea.value;
+        schedulePracticeSessionSave();
+      }
     };
   });
   document.querySelectorAll(".speech-btn").forEach((button) => {
@@ -9991,6 +16430,20 @@ function buildSpeakingTopicGroups(items) {
       sources: [...new Set(group.items.map((item) => (isPublicSpeakingTopic(item) ? "Public" : "Cambridge")))],
     }))
     .sort((a, b) => a.firstIndex - b.firstIndex || a.title.localeCompare(b.title, undefined, { numeric: true }));
+}
+
+function speakingTopicIconName(category = "") {
+  return {
+    people: "user-round",
+    place: "map-pin",
+    lifestyle: "coffee",
+    education: "graduation-cap",
+    technology: "monitor-smartphone",
+    media: "headphones",
+    nature: "leaf",
+    work: "briefcase-business",
+    society: "users",
+  }[category] || "message-circle";
 }
 
 function findSpeakingTopicGroupById(groupId, items = getSpeakingTopicItems()) {
@@ -10160,14 +16613,12 @@ function speakingTopicEmoji(item, title = "") {
   return deriveSpeakingTopicMeta(item).emoji || item.emoji || "✨";
 }
 
-function renderBankPracticeTopic(topic, { autoStart = false } = {}) {
+function renderBankPracticeWorkspace(topic, mode = "exam") {
   const root = $("bankPracticePanel");
   if (!root || !topic) return;
+  setUnifiedPracticeStage("speaking", "practice", { mode, selectionId: topic.id || "" });
+  state.activeSpeakingTopic = topic;
   disconnectQwenSpeaking("bank");
-  const keywords = speakingTopicKeywords(topic);
-  const displayTitle = speakingTopicTitle(topic, keywords);
-  const emoji = speakingTopicEmoji(topic, displayTitle);
-  const chips = relatedTopicKeywords(topic, displayTitle, keywords).slice(0, 5).map((keyword) => `<span>${escapeHtml(keyword)}</span>`).join("");
   const source = topic.source === "Public topics"
     ? "Public topics"
     : [itemBook(topic) ? `Cambridge ${itemBook(topic)}` : topic.source, itemTest(topic) ? `Test ${itemTest(topic)}` : ""].filter(Boolean).join(" · ");
@@ -10177,21 +16628,13 @@ function renderBankPracticeTopic(topic, { autoStart = false } = {}) {
     <header class="bank-practice-head">
       <div>
         <span>${escapeHtml(source || "Speaking topic")}</span>
-        <h3>${escapeHtml(topic.title || "Speaking practice")}</h3>
+        <h3>${escapeHtml(topic.title || "Speaking with AI")}</h3>
       </div>
       <button id="closeBankPractice" class="secondary small-button" type="button">Back to topics</button>
     </header>
-    <div class="bank-practice-grid">
-      <section class="bank-practice-topic-card">
-        <div class="topic-icon topic-emoji topic-accent-${escapeHtml(speakingTopicAccent(topic))}" aria-hidden="true">${escapeHtml(emoji)}</div>
-        <h4>${escapeHtml(displayTitle || "Speaking")}</h4>
-        <div class="topic-keywords">${chips}</div>
-        ${topic.part1Topic ? `<p><strong>Part 1</strong>${escapeHtml(topic.part1Topic)}</p>` : ""}
-        ${topic.part2 ? `<p><strong>Part 2</strong>${escapeHtml(compactDialogueText(topic.part2).slice(0, 220))}</p>` : ""}
-        ${topic.part3Topics ? `<p><strong>Part 3</strong>${escapeHtml(Array.isArray(topic.part3Topics) ? topic.part3Topics.join(", ") : topic.part3Topics)}</p>` : ""}
-      </section>
+    <div class="bank-practice-grid speaking-practice-workspace">
       <aside class="bank-practice-chat">
-        ${renderRealtimeSpeakingPanel(topic, "bank", { showTranscript: true })}
+        ${renderRealtimeSpeakingPanel(topic, "bank", { showTranscript: mode === "coach", mode })}
       </aside>
     </div>
     <section class="bank-practice-result">
@@ -10210,18 +16653,47 @@ function renderBankPracticeTopic(topic, { autoStart = false } = {}) {
     root.innerHTML = "";
   });
   root.scrollIntoView({ behavior: "smooth", block: "start" });
-  if (autoStart) {
-    startQwenSpeaking("bank").catch((error) => {
-      qwenSetStatus("bank", `Start failed: ${error.message}`, false);
-    });
-  }
+}
+
+function renderBankPracticeTopic(topic) {
+  const root = $("bankPracticePanel");
+  if (!root || !topic) return;
+  setUnifiedPracticeStage("speaking", "setup", { selectionId: topic.id || "" });
+  state.activeSpeakingTopic = topic;
+  disconnectQwenSpeaking("bank");
+  const keywords = speakingTopicKeywords(topic);
+  const title = speakingTopicTitle(topic, keywords);
+  const source = topic.source === "Public topics"
+    ? "Public topics"
+    : [itemBook(topic) ? `Cambridge ${itemBook(topic)}` : topic.source, itemTest(topic) ? `Test ${itemTest(topic)}` : ""].filter(Boolean).join(" · ");
+  root.hidden = false;
+  root.closest(".panel")?.classList.add("bank-practice-active");
+  root.innerHTML = unifiedPracticeSetupHtml("speaking", {
+    title: title || "Speaking with AI",
+    source: source || "Speaking topic",
+    detail: "Choose Exam for a realistic test or Coach for post-answer hints. Full cue cards appear only when Part 2 begins.",
+    deviceCheck: true,
+  });
+  bindUnifiedSetup(root, {
+    deviceCheck: true,
+    onBack: () => {
+      root.closest(".panel")?.classList.remove("bank-practice-active");
+      root.hidden = true;
+      root.innerHTML = "";
+    },
+    onStart: (mode) => {
+      state.speakingSetupMode = mode;
+      renderBankPracticeWorkspace(topic, mode);
+    },
+  });
+  root.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function activateSpeakingTopicFromBank(id) {
   const topic = mergedItems("speaking").map(normalizeItem).find((item) => item.id === id);
   if (!topic) return;
   syncCurrentDraftNow();
-  renderBankPracticeTopic(topic, { autoStart: true });
+  renderBankPracticeTopic(topic);
 }
 
 function renderTopicSetChooser(group) {
@@ -10235,7 +16707,7 @@ function renderTopicSetChooser(group) {
   root.innerHTML = `<div class="topic-set-chooser">
     <header class="bank-practice-head topic-set-chooser-head">
       <div class="topic-set-title-row">
-        <div class="topic-icon topic-emoji topic-accent-${escapeHtml(group.accent)}" aria-hidden="true">${escapeHtml(group.emoji)}</div>
+        <div class="topic-icon topic-accent-${escapeHtml(group.accent)}" aria-hidden="true"><i data-lucide="${escapeHtml(speakingTopicIconName(group.category))}"></i></div>
         <div>
           <span>${escapeHtml(sourceLabel)} · ${escapeHtml(group.items.length)} ${group.items.length === 1 ? "set" : "sets"}</span>
           <h3>${escapeHtml(group.title)}</h3>
@@ -10271,6 +16743,7 @@ function renderTopicSetChooser(group) {
   document.querySelectorAll(".choose-speaking-set").forEach((button) => {
     button.onclick = () => activateSpeakingTopicFromBank(button.dataset.id);
   });
+  window.lucide?.createIcons?.({ attrs: { "stroke-width": 1.8 } });
   root.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
@@ -10369,8 +16842,8 @@ function renderBankList() {
         return `
       <div class="bank-item speaking-topic-card topic-accent-${escapeHtml(group.accent)}" data-group-id="${escapeHtml(group.id)}" role="button" tabindex="0">
         <div class="topic-card-head">
-          <div class="topic-icon topic-emoji" aria-hidden="true">${escapeHtml(group.emoji)}</div>
-          <button class="topic-favourite${liked ? " liked" : ""}" type="button" data-topic-group="${escapeHtml(group.id)}" aria-label="${liked ? "Remove from likes" : "Like topic"}">${liked ? "♥" : "♡"}</button>
+          <div class="topic-icon" aria-hidden="true"><i data-lucide="${escapeHtml(speakingTopicIconName(group.category))}"></i></div>
+          <button class="topic-favourite${liked ? " liked" : ""}" type="button" data-topic-group="${escapeHtml(group.id)}" aria-label="${liked ? "Remove from likes" : "Like topic"}"><i data-lucide="heart"></i></button>
         </div>
         <h3>${escapeHtml(group.title)}</h3>
         <div class="topic-card-body">
@@ -10411,6 +16884,7 @@ function renderBankList() {
       toggleLikedTopicGroup(button.dataset.topicGroup);
     };
   });
+  window.lucide?.createIcons?.({ attrs: { "stroke-width": 1.8 } });
 }
 
 function uniqueSpeakingTopicCards(items) {
@@ -10595,8 +17069,9 @@ function initSidebarToggle() {
   const toggle = $("toggleSidebar");
   if (!toggle) return;
   const stored = localStorage.getItem(sidebarStoreKey);
+  const compactViewport = window.matchMedia("(max-width: 1024px)").matches;
   const tabletDefault = window.matchMedia("(max-width: 1180px)").matches;
-  applySidebarState(stored === null ? tabletDefault : stored === "true");
+  applySidebarState(compactViewport || (stored === null ? tabletDefault : stored === "true"));
   toggle.addEventListener("click", () => {
     const shell = document.querySelector(".app-shell");
     const collapsed = !shell?.classList.contains("sidebar-collapsed");
@@ -10605,14 +17080,38 @@ function initSidebarToggle() {
   });
 }
 
-function activateView(viewId, updateHash = false) {
+function activateView(viewId, updateHash = false, options = {}) {
+  if (viewId === "coach") viewId = "home";
+  const previousView = activeViewId();
+  if (previousView === "bank" && viewId !== "bank" && state.qwenSpeaking?.bank) disconnectQwenSpeaking("bank");
+  if (previousView === "single" && viewId !== "single" && state.activeModule === "speaking" && state.qwenSpeaking?.single) disconnectQwenSpeaking("single");
+  if (previousView === "exam" && viewId !== "exam" && state.qwenSpeaking?.exam) disconnectQwenSpeaking("exam");
+  if (previousView === "sequence" && viewId !== "sequence" && state.qwenSpeaking?.sequence) disconnectQwenSpeaking("sequence");
   const view = $(viewId);
-  const tab = document.querySelector(".tab[data-view=\"" + viewId + "\"]");
+  const tab = viewId === "single" && state.activeModule
+    ? document.querySelector(`.tab[data-view="${viewId}"][data-module-target="${state.activeModule}"]`) || document.querySelector(".tab[data-view=\"" + viewId + "\"]")
+    : document.querySelector(".tab[data-view=\"" + viewId + "\"]");
   if (!view || !tab) return;
+  if (viewId !== "single") exitImmersiveMode();
   document.querySelectorAll(".tab").forEach((item) => item.classList.remove("active"));
   document.querySelectorAll(".view").forEach((item) => item.classList.remove("active"));
   tab.classList.add("active");
   view.classList.add("active");
+  if (!options.preservePageScroll) window.scrollTo({ top: 0, behavior: "auto" });
+  if (viewId === "coach") {
+    renderCoach();
+    if (window.matchMedia("(max-width: 900px)").matches) {
+      localStorage.setItem(sidebarStoreKey, "true");
+      applySidebarState(true);
+    }
+  }
+  if (viewId === "writing-upload") {
+    setWritingWorkspaceMode("entry");
+    renderWritingUploadHub();
+  }
+  if (viewId === "bank") renderBankList();
+  updateAnnotationToolbarAvailability();
+  refreshGlobalCoachPanelIfOpen();
   if (window.matchMedia("(min-width: 681px) and (max-width: 1024px)").matches) {
     localStorage.setItem(sidebarStoreKey, "true");
     applySidebarState(true);
@@ -10623,7 +17122,7 @@ function activateView(viewId, updateHash = false) {
 function applyInitialHash() {
   const hash = location.hash.replace("#", "");
   if (!hash) {
-    if (window.matchMedia("(max-width: 680px)").matches) activateView("bank", false);
+    activateView("home", false);
     return;
   }
   const sectionMatch = hash.match(/^(exam|sequence)-(listening|reading|writing|speaking)-section$/);
@@ -10633,7 +17132,9 @@ function applyInitialHash() {
     scrollToExamSection(hash);
     return;
   }
-  activateView(hash, false);
+  const viewId = hash === "coach" ? "home" : hash;
+  activateView(viewId, false);
+  if (viewId === "single" && state.singleStarted) setSingleImmersive(state.activeModule);
 }
 
 function bindEvents() {
@@ -10699,6 +17200,8 @@ function bindEvents() {
       closeListeningCaptionTranscript();
     }
   });
+  window.addEventListener("hashchange", applyInitialHash);
+  window.addEventListener("beforeunload", savePracticeSession);
   document.addEventListener("click", (event) => {
     const transcriptClose = event.target.closest?.("#captionTranscriptClose");
     if (transcriptClose) {
@@ -10723,20 +17226,24 @@ function bindEvents() {
     button.addEventListener("click", () => {
       syncCurrentDraftNow();
       setImmersivePractice("", "");
+      if (button.dataset.moduleTarget) {
+        activateSingleModule(button.dataset.moduleTarget, true);
+        renderMine();
+        renderDashboard();
+        renderCoach();
+        return;
+      }
       activateView(button.dataset.view, true);
       renderMine();
+      renderDashboard();
+      renderSubscription();
+      renderCoach();
+      renderVocabularyTrainer();
     });
   });
   document.querySelectorAll(".module-btn").forEach((button) => {
     button.addEventListener("click", () => {
-      syncCurrentDraftNow();
-      document.querySelectorAll(".module-btn").forEach((item) => item.classList.remove("active"));
-      button.classList.add("active");
-      state.activeModule = button.dataset.module;
-      state.activeSingle = null;
-      resetSingleTimer(state.activeModule);
-      renderSingle();
-      setSingleImmersive(state.activeModule);
+      activateSingleModule(button.dataset.module, true);
     });
   });
   $("singleSelect").addEventListener("change", (event) => {
@@ -10760,15 +17267,56 @@ function bindEvents() {
     });
   });
   $("submitUploadedWriting").addEventListener("click", submitUploadedWriting);
+  $("openCustomWriting")?.addEventListener("click", () => openWritingPracticeSetup("custom"));
+  $("continueWritingDraft")?.addEventListener("click", continueLatestWritingDraft);
+  $("changeWritingTask")?.addEventListener("click", () => setWritingWorkspaceMode("entry"));
+  $("toggleWritingPrompt")?.addEventListener("click", () => {
+    state.writingPromptCollapsed = !state.writingPromptCollapsed;
+    setWritingWorkspaceMode(state.writingWorkspaceMode);
+  });
+  $("startRecommendedWriting")?.addEventListener("click", () => startWritingSystemPractice("recommended"));
+  $("startSelectedWriting")?.addEventListener("click", () => startWritingSystemPractice("selected"));
+  document.querySelectorAll("[data-writing-library-task]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.writingLibraryTaskNumber = Number(button.dataset.writingLibraryTask) === 1 ? 1 : 2;
+      state.writingTopicCategory = "all";
+      state.writingTopicPage = 1;
+      document.querySelectorAll("[data-writing-topic-category]").forEach((item) => {
+        item.classList.toggle("active", item.dataset.writingTopicCategory === "all");
+      });
+      renderWritingUploadHub();
+    });
+  });
+  $("writingTopicSearch")?.addEventListener("input", () => {
+    state.writingTopicPage = 1;
+    renderWritingUploadHub();
+  });
+  $("writingTopicBook")?.addEventListener("change", () => {
+    state.writingTopicPage = 1;
+    renderWritingUploadHub();
+  });
+  document.querySelectorAll("[data-writing-topic-category]").forEach((button) => {
+    button.addEventListener("click", () => {
+      document.querySelectorAll("[data-writing-topic-category]").forEach((item) => item.classList.remove("active"));
+      button.classList.add("active");
+      state.writingTopicCategory = button.dataset.writingTopicCategory || "all";
+      state.writingTopicPage = 1;
+      renderWritingUploadHub();
+    });
+  });
+  $("submitSystemWriting")?.addEventListener("click", submitSystemWriting);
   $("clearUploadedWriting").addEventListener("click", () => {
     $("uploadPrompt").value = "";
     $("uploadEssay").value = "";
     $("uploadEssayWords").textContent = "0";
+    syncCustomWritingState();
     setFeedback("uploadWritingFeedback", "Submit a prompt and essay to get Amber-style feedback.", "uploadWritingMode", "");
   });
   $("uploadEssay").addEventListener("input", () => {
     $("uploadEssayWords").textContent = countWords($("uploadEssay").value);
+    syncCustomWritingState();
   });
+  $("uploadPrompt")?.addEventListener("input", syncCustomWritingState);
   $("examTimerToggle").addEventListener("click", () => (state.examTimerId ? stopExamTimer() : startExamTimer()));
   $("examTimerReset").addEventListener("click", () => {
     state.examSeconds = state.examTotal;
@@ -10832,11 +17380,33 @@ function bindEvents() {
   $("clearPublicTopic")?.addEventListener("click", clearPublicTopicForm);
 }
 
+async function fetchTaskDataWithRetry(attempts = 3) {
+  let lastError = null;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      const response = await fetch(`/api/tasks?fresh=${Date.now()}`, { cache: "no-store" });
+      if (!response.ok) throw new Error(`Task library returned ${response.status}`);
+      const json = await response.json();
+      if (!json || !Array.isArray(json.writingTasks) || !Array.isArray(json.speakingSets)) throw new Error("Task library response is incomplete");
+      return json;
+    } catch (error) {
+      lastError = error;
+      if (attempt < attempts) await sleep(attempt * 450);
+    }
+  }
+  throw lastError || new Error("Task library could not be loaded");
+}
+
 async function init() {
   bindEvents();
+  window.addEventListener("pagehide", () => {
+    if (state.writingWorkspaceMode !== "entry") saveWritingTimerState(Boolean(state.writingTimerStartedAt));
+  });
   state.authToken = localStorage.getItem(authStoreKey) || "";
   loadBank();
-  state.data = await fetch("/api/tasks").then((res) => res.json());
+  loadCoreVocabularyKnown();
+  state.data = await fetchTaskDataWithRetry();
+  const restoredPractice = restorePracticeSessionAfterData();
   $("aiStatus").textContent = state.data.aiEnabled
     ? `AI connected · ${state.data.model}${state.data.ttsEnabled ? " · Fish TTS" : " · Browser TTS"}`
     : "Local mode · OPENAI_API_KEY not detected";
@@ -10847,14 +17417,23 @@ async function init() {
   }
   renderBankList();
   updateUserChrome();
+  renderDashboard();
+  renderSubscription();
   renderMine();
+  renderVocabularyTrainer();
+  renderWritingUploadHub();
+  window.lucide?.createIcons?.({ attrs: { "stroke-width": 1.8 } });
+  renderCoach();
   refreshMineData();
   renderSingle();
+  document.querySelectorAll(".module-btn").forEach((item) => item.classList.toggle("active", item.dataset.module === state.activeModule));
+  bindHomeControls(document);
   $("examPaper").innerHTML = `<section class="panel notice">Click Generate random exam to load a full paper.</section>`;
   $("sequencePaper").innerHTML = `<section class="panel notice">Choose a Cambridge test, then click Generate same-test paper.</section>`;
   renderExamTimer();
   renderSequenceTimer();
-  resetSingleTimer(state.activeModule);
+  if (restoredPractice) renderSingleTimer();
+  else resetSingleTimer(state.activeModule);
 
   const singleActions = document.createElement("div");
   singleActions.className = "actions";
@@ -10862,8 +17441,15 @@ async function init() {
   $("singleContent").after(singleActions);
   $("submitSingle").addEventListener("click", submitSingle);
   applyInitialHash();
+  restoreWritingUploadSessionAfterData();
+  if (restoredPractice && location.hash === "#single") setSingleImmersive(state.activeModule);
 }
 
 init().catch((error) => {
-  document.body.innerHTML = `<pre style="padding:24px;color:#a00;">Startup failed: ${error.message}</pre>`;
+  const reason = $("writingRecommendedReason");
+  const list = $("writingTopicList");
+  if (reason) reason.textContent = `Writing topics could not load: ${error.message}`;
+  if (list) list.innerHTML = `<div class="notice startup-retry"><strong>Practice library unavailable</strong><p>Check the connection, then retry without losing local drafts.</p><button class="primary" type="button" data-retry-startup>Retry</button></div>`;
+  document.querySelector("[data-retry-startup]")?.addEventListener("click", () => location.reload());
+  setHelpStatus(`Startup failed: ${error.message}`);
 });
