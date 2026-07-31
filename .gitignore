@@ -9,6 +9,7 @@ data/*.sqlite
 data/*.sqlite-*
 data/listening-asr-cache.json
 data/listening-asr-cache-errors.json
+data/reading-ocr-page-cache.json
 data/audio-backups/
 public/generated/audio/
 artifacts/
