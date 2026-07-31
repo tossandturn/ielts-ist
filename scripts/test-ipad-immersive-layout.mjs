@@ -42,6 +42,11 @@ try {
         window.scrollTo({ top: 0, behavior: "auto" });
       }, moduleName);
       await page.locator("#single.single-started").waitFor({ state: "visible" });
+      if (moduleName === "speaking") {
+        await page.locator("#annotationToolbar").waitFor({ state: "hidden", timeout: 5_000 }).catch(() => {});
+      } else {
+        await page.locator("#annotationToolbar").waitFor({ state: "visible", timeout: 5_000 });
+      }
       await page.waitForTimeout(150);
 
       const layout = await page.evaluate((moduleName) => {
