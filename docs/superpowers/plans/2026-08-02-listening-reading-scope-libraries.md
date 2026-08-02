@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add independent Full test, Section/Passage, Topic, and Review libraries to Listening and Reading while preserving every existing Cambridge source paper and legacy saved session.
+**Goal:** Add independent Full test, Section/Passage, Topic, and Review libraries to Listening and Reading while preserving every existing Cambridge source paper, legacy saved session, audio, and timestamped Listening ASR transcript cache.
 
 **Architecture:** Extend the existing `/api/tasks` payload with truthful Listening question-type metadata parsed from the imported OCR paper. In the browser, derive stable virtual practice units from unchanged source papers, so each subset has its own ID, answers, timer, session, result, and recommendation history without duplicating Cambridge data or changing simulations.
 
@@ -18,6 +18,8 @@
 - Modify `public/index.html`: asset cache version only.
 - Create `scripts/test-listening-reading-scope-libraries.mjs`: API metadata, scope UI, virtual unit identity, subset content, refresh restoration, legacy restoration, multi-screen overflow.
 - Modify `scripts/test-learning-flow.mjs`: static behavior contracts for the new scope helpers and simulation isolation.
+
+ASR invariant: derived Listening units use a virtual `id` for student state, but retain `sourceItemId` for `/api/listening/asr-cache`, audioscripts, and AI Coach evidence. The runtime remains cache-only and never calls live ASR.
 
 ### Task 1: Isolated worktree and clean baseline
 

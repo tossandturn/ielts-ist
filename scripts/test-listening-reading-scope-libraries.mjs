@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { mkdir } from "node:fs/promises";
+import { existsSync } from "node:fs";
+import { mkdir, readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { resolve } from "node:path";
 
@@ -43,7 +44,7 @@ async function activateModule(page, moduleName) {
   await page.locator(`[data-view="single"][data-module-target="${moduleName}"]`).evaluate((node) => node.click());
   await page.waitForFunction((module) => document.querySelector("#single")?.classList.contains("active")
     && document.querySelector("#singleTitle")?.textContent?.toLowerCase().includes(module), moduleName);
-  await page.waitForFunction(() => document.querySelectorAll("[data-single-scope]").length === 4);
+  assert.equal(await page.locator("[data-single-scope]").count(), 4, `${moduleName} must expose four scope tabs`);
 }
 
 async function renderedQuestionIds(page) {
@@ -52,6 +53,8 @@ async function renderedQuestionIds(page) {
 
 async function installGuestState(page, session = null) {
   await page.addInitScript((savedSession) => {
+    if (sessionStorage.getItem("lrScopeTestInitialized") === "1") return;
+    sessionStorage.setItem("lrScopeTestInitialized", "1");
     localStorage.removeItem("ieltsistAuthToken");
     localStorage.removeItem("ieltsistLearningLoopHistory");
     if (savedSession) localStorage.setItem("ieltsistPracticeSessionV1", JSON.stringify(savedSession));
@@ -61,6 +64,7 @@ async function installGuestState(page, session = null) {
 
 await waitForServer();
 const tasks = await (await fetch(`${baseUrl}/api/tasks?test=lr-scope-contract`)).json();
+const cam15Source = JSON.parse(await readFile(resolve("data", "cambridge15-bank.json"), "utf8"));
 assert.equal(tasks.listeningTests.length, 72, "The existing Listening paper library must remain intact");
 assert.equal(tasks.readingTests.length, 72, "The existing Reading paper library must remain intact");
 assert.ok(tasks.listeningTests.every((item) => item.questions.length === 40), "Every Listening source paper must keep all 40 questions");
@@ -74,6 +78,25 @@ console.log(`PASS API preserves 72+72 full papers and exposes ${listeningTypes.s
 const listeningPaper = tasks.listeningTests.find((item) => item.id === "cam15-l-test1");
 const readingPaper = tasks.readingTests.find((item) => item.id === "cam15-r-test1");
 assert.ok(listeningPaper && readingPaper, "Cambridge 15 Test 1 fixtures are required");
+const preservedQuestionFields = (paper) => paper.questions.map(({ id, text, answer }) => ({ id, text, answer }));
+const sourceListeningPaper = cam15Source.listeningTests.find((item) => item.id === listeningPaper.id);
+const sourceReadingPaper = cam15Source.readingTests.find((item) => item.id === readingPaper.id);
+assert.deepEqual(preservedQuestionFields(listeningPaper), preservedQuestionFields(sourceListeningPaper), "Listening question ids, text and answers must remain unchanged");
+assert.deepEqual(preservedQuestionFields(readingPaper), preservedQuestionFields(sourceReadingPaper), "Reading question ids, text and answers must remain unchanged");
+assert.deepEqual(listeningPaper.audioUrls, sourceListeningPaper.audioUrls, "All existing Listening audio must remain unchanged");
+assert.deepEqual(listeningPaper.questionPageImages, sourceListeningPaper.questionPageImages.map(({ page, url }) => ({ page, url })), "All existing Listening paper images must remain unchanged");
+console.log("PASS original Cambridge question text, answers and Listening media are preserved");
+const questionType = (paper, id) => paper?.questions.find((question) => question.id === id)?.type;
+assert.equal(questionType(listeningPaper, "q21"), "matching", "Cambridge 15 Listening Q21 is matching, not multiple choice");
+assert.equal(questionType(listeningPaper, "q29"), "multiple_choice_multiple", "Cambridge 15 Listening Q29 is genuine multiple-answer multiple choice");
+const cam12Listening2 = tasks.listeningTests.find((item) => item.id === "cam12-l-test2");
+const cam10Listening2 = tasks.listeningTests.find((item) => item.id === "cam10-l-test2");
+assert.equal(questionType(cam12Listening2, "q26"), "diagram_completion");
+assert.equal(questionType(cam10Listening2, "q1"), "note_completion");
+assert.equal(questionType(cam10Listening2, "q15"), "matching");
+assert.equal(questionType(cam10Listening2, "q25"), "multiple_choice");
+assert.equal(questionType(cam10Listening2, "q31"), "note_completion");
+console.log("PASS Listening OCR metadata distinguishes completion, matching and real multiple choice");
 
 const browser = await chromium.launch({
   headless: true,
@@ -99,8 +122,16 @@ try {
   assert.deepEqual(await renderedQuestionIds(page), expectedQuestionIds(listeningPaper, (question, index) => questionNumber(question, index) <= 10));
   assert.equal(await page.locator("#singleTimer").innerText(), "00:10:00");
   assert.equal(await page.locator('[data-active-practice-unit="cam15-l-test1::section::1"]').count(), 1);
+  assert.equal(await page.locator('#single-listening-studio').getAttribute("data-listening-id"), "cam15-l-test1", "Section ASR cache lookup must use the source paper id");
   const activeAudioSections = await page.locator("[data-listening-section]").evaluateAll((nodes) => nodes.filter((node) => !node.hidden && getComputedStyle(node).display !== "none").length);
   assert.equal(activeAudioSections, 1, "A Listening Section unit must expose one audio section");
+  if (existsSync(resolve("data", "listening-asr-cache.json"))) {
+    const cached = await (await fetch(`${baseUrl}/api/listening/asr-cache?id=cam15-l-test1&section=1`)).json();
+    assert.ok(cached.available && cached.sentences.length && cached.timedWords.length && cached.speakers.length, "Section must reuse the timestamped offline ASR cache");
+    await page.locator('.listening-caption-toggle[data-section="1"]').click();
+    await page.waitForFunction(() => /ASR cache/i.test(document.querySelector("#singleCaptionKicker")?.textContent || ""));
+    console.log(`PASS Listening Section reuses ${cached.timedWords.length} cached timed words without live ASR`);
+  }
 
   const q1 = page.locator('.answer-input[data-prefix="single"][data-qid="q1"]');
   await q1.fill("Jamieson");
@@ -112,7 +143,13 @@ try {
   await page.reload({ waitUntil: "networkidle" });
   await page.waitForFunction(() => document.querySelector('[data-active-practice-unit="cam15-l-test1::section::1"]'));
   assert.equal(await q1.inputValue(), "Jamieson", "Scoped answers must restore after refresh");
-  console.log("PASS Listening Section identity, timer, media, answers and refresh restoration");
+  await page.locator("#submitSingle").click();
+  await page.waitForFunction(() => document.querySelector('[data-objective-module="listening"]'));
+  const scopedResult = await page.evaluate(() => JSON.parse(localStorage.getItem("ieltsistLearningLoopHistory")).objectiveItems["cam15-l-test1::section::1"]);
+  assert.equal(scopedResult.itemId, "cam15-l-test1::section::1");
+  assert.equal(scopedResult.total, 10);
+  assert.equal(scopedResult.band, null, "A 10-question Section score must not be presented as an official IELTS Band");
+  console.log("PASS Listening Section identity, timer, media, answers, refresh and independent raw score history");
 
   await activateModule(page, "listening");
   await page.locator('[data-single-scope="topic"]').click();
@@ -126,6 +163,7 @@ try {
   await listeningTopicCard.locator("[data-start-practice-unit]").click();
   assert.deepEqual(await renderedQuestionIds(page), listeningTopicExpected);
   assert.equal(await page.locator(`[data-active-topic-type="${listeningTopicType}"]`).count(), 1);
+  assert.equal(await page.locator('#single-listening-studio').getAttribute("data-listening-id"), listeningTopicBaseId, "Topic ASR cache lookup must use the source paper id");
   console.log("PASS Listening Topic contains one OCR-derived question type");
 
   await activateModule(page, "reading");
@@ -141,7 +179,12 @@ try {
   }));
   assert.equal(await page.locator("#singleTimer").innerText(), "00:20:00");
   assert.equal(await page.locator('[data-active-practice-unit="cam15-r-test1::section::2"]').count(), 1);
-  console.log("PASS Reading Passage identity, question range and timer");
+  await page.locator("#submitSingle").click();
+  await page.waitForFunction(() => document.querySelector('[data-objective-module="reading"]'));
+  const passageResult = await page.evaluate(() => JSON.parse(localStorage.getItem("ieltsistLearningLoopHistory")).objectiveItems["cam15-r-test1::section::2"]);
+  assert.equal(passageResult.total, 13);
+  assert.equal(passageResult.band, null, "A Passage score must remain raw correct/total rather than an official IELTS Band");
+  console.log("PASS Reading Passage identity, question range, timer and independent raw score history");
 
   await activateModule(page, "reading");
   await page.locator('[data-single-scope="topic"]').click();

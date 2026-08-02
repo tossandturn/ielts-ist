@@ -9910,6 +9910,10 @@ body.immersive-mode[data-immersive-module="speaking"] .exam-section.focused-sect
   display: none !important;
 }
 
+#single.single-launching:has([data-practice-library]) .single-filters {
+  display: flex !important;
+}
+
 #single.single-launching #singleContent {
   min-height: min(620px, calc(100vh - 210px));
 }
@@ -9939,6 +9943,110 @@ body.immersive-mode[data-immersive-module="speaking"] .exam-section.focused-sect
   font-size: 16px;
   line-height: 1.6;
 }
+
+.single-scope-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  padding: 8px;
+  border: 1px solid rgba(203, 213, 225, .72);
+  border-radius: 18px;
+  background: rgba(248, 250, 252, .88);
+}
+
+.single-scope-tab {
+  min-width: 0;
+  min-height: 72px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  gap: 3px 9px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid transparent;
+  border-radius: 13px;
+  background: transparent;
+  color: #475467;
+  text-align: left;
+  cursor: pointer;
+}
+
+.single-scope-tab > span {
+  grid-row: 1 / 3;
+  font-size: 24px;
+}
+
+.single-scope-tab strong,
+.single-scope-tab small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.single-scope-tab strong { color: #101828; font-size: 14px; }
+.single-scope-tab small { color: #667085; font-size: 11px; line-height: 1.2; white-space: normal; }
+
+.single-scope-tab:hover,
+.single-scope-tab.active {
+  border-color: rgba(99, 91, 255, .28);
+  background: #fff;
+  box-shadow: 0 10px 28px rgba(31, 41, 55, .08);
+}
+
+.single-scope-tab.active {
+  background: linear-gradient(135deg, rgba(238, 240, 255, .98), rgba(239, 248, 255, .98));
+}
+
+.practice-unit-library {
+  display: grid;
+  gap: 14px;
+}
+
+.practice-unit-library > header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.practice-unit-library > header h3 { margin: 4px 0 0; color: #101828; }
+.practice-unit-library > header > span { color: #667085; font-size: 13px; font-weight: 800; }
+
+.practice-unit-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  max-height: min(720px, 68vh);
+  overflow: auto;
+  padding: 2px 6px 10px 2px;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.practice-unit-card {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 17px;
+  border: 1px solid #e4e7ec;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 10px 26px rgba(31, 41, 55, .06);
+}
+
+.practice-unit-card.tone-listening { border-top: 3px solid #18a0fb; }
+.practice-unit-card.tone-reading { border-top: 3px solid #7c3aed; }
+.practice-unit-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.practice-unit-card-head > span { font-size: 23px; }
+.practice-unit-card-head em { color: #635bff; font-size: 12px; font-style: normal; font-weight: 900; }
+.practice-unit-card h4 { margin: 0; color: #101828; font-size: 17px; line-height: 1.3; }
+.practice-unit-card p { margin: 0; color: #667085; font-size: 12px; }
+.practice-unit-stats { display: flex; flex-wrap: wrap; gap: 6px; }
+.practice-unit-stats span { padding: 6px 8px; border-radius: 999px; background: #f2f4f7; color: #475467; font-size: 11px; }
+.practice-unit-stats strong { color: #101828; }
+.practice-unit-card button { min-height: 44px; margin-top: auto; }
+.practice-unit-empty { display: grid; place-items: center; gap: 8px; min-height: 180px; padding: 28px; border: 1px dashed #cbd5e1; border-radius: 16px; color: #667085; text-align: center; }
+.practice-unit-empty > span { font-size: 34px; }
 
 .single-launch-grid {
   display: grid;
@@ -10226,9 +10334,14 @@ body.immersive-mode[data-immersive-module="speaking"] .exam-section.focused-sect
 
 @media (max-width: 900px) {
   .single-launch-grid,
+  .practice-unit-grid,
   .vocab-trainer-shell {
     grid-template-columns: 1fr;
   }
+
+  .single-scope-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  .single-scope-tab { min-height: 64px; }
 
   .vocab-review-card,
   .vocab-review-side {

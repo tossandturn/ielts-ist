@@ -551,22 +551,48 @@ function readingPageRoles(images, paper) {
   return { passage, questions };
 }
 
-function readingQuestionType(instructions) {
+function objectiveQuestionType(instructions) {
   const text = String(instructions || "").replace(/\s+/g, " ").toLowerCase();
   if (/true\s*\/\s*false\s*\/\s*not given|true if .*false if .*not given/i.test(text)) return ["true_false_not_given", "True / False / Not Given"];
   if (/yes\s*\/\s*no\s*\/\s*not given|yes if .*no if .*not given/i.test(text)) return ["yes_no_not_given", "Yes / No / Not Given"];
   if (/list of headings|choose the correct heading/i.test(text)) return ["matching_headings", "Matching headings"];
   if (/which paragraph contains|match each statement with the correct paragraph|information given in paragraphs/i.test(text)) return ["matching_information", "Matching information"];
   if (/match each statement|match each person|list of people|correct person|correct researcher|correct expert/i.test(text)) return ["matching_features", "Matching features"];
-  if (/choose (?:two|three|four) letters|choose (?:two|three|four) answers/i.test(text)) return ["multiple_choice_multiple", "Multiple choice (multiple answers)"];
+  if (/choose (?:two|three|four|five|six) letters|choose (?:two|three|four|five|six) answers/i.test(text)) return ["multiple_choice_multiple", "Multiple choice (multiple answers)"];
   if (/choose the correct (?:letter|answer)/i.test(text)) return ["multiple_choice", "Multiple choice"];
+  if (/complete the form/i.test(text)) return ["form_completion", "Form completion"];
   if (/complete the summary/i.test(text)) return ["summary_completion", "Summary completion"];
   if (/complete the table/i.test(text)) return ["table_completion", "Table completion"];
   if (/complete the notes/i.test(text)) return ["note_completion", "Note completion"];
   if (/complete the sentences/i.test(text)) return ["sentence_completion", "Sentence completion"];
+  if (/label the (?:map|plan)/i.test(text)) return ["map_plan_labelling", "Map / plan labelling"];
   if (/answer the questions/i.test(text)) return ["short_answer", "Short answer"];
   if (/complete the (?:flow-chart|flow chart|diagram)/i.test(text)) return ["diagram_completion", "Diagram completion"];
+  if (/match each|write the correct letter.*next to questions|which .*? match/i.test(text)) return ["matching", "Matching"];
   return ["unknown", "Question"];
+}
+
+function listeningQuestionType(instructions) {
+  const text = String(instructions || "").replace(/\s+/g, " ").toLowerCase();
+  if (/complete the form/i.test(text)) return ["form_completion", "Form completion"];
+  if (/complete the (?:flow-chart|flow chart|diagram)/i.test(text)) return ["diagram_completion", "Diagram completion"];
+  if (/label the (?:map|plan)/i.test(text)) return ["map_plan_labelling", "Map / plan labelling"];
+  if (/label the diagram/i.test(text)) return ["diagram_completion", "Diagram completion"];
+  if (/complete the table/i.test(text)) return ["table_completion", "Table completion"];
+  if (/complete the notes/i.test(text)) return ["note_completion", "Note completion"];
+  if (/complete the summary/i.test(text)) return ["summary_completion", "Summary completion"];
+  if (/complete the sentences/i.test(text)) return ["sentence_completion", "Sentence completion"];
+  if (/from the box|next to questions|match each|which .*? match|each of the following/i.test(text)) return ["matching", "Matching"];
+  if (/choose (?:two|three|four|five|six) letters|choose (?:two|three|four|five|six) answers/i.test(text)) return ["multiple_choice_multiple", "Multiple choice (multiple answers)"];
+  if (/choose the correct (?:letter|answer)/i.test(text)) return ["multiple_choice", "Multiple choice"];
+  if (/answer the questions/i.test(text)) return ["short_answer", "Short answer"];
+  return ["unknown", "Question"];
+}
+
+function listeningTypeConfidence(type) {
+  if (["form_completion", "diagram_completion", "map_plan_labelling", "table_completion", "note_completion", "summary_completion", "sentence_completion"].includes(type)) return 4;
+  if (["matching", "multiple_choice", "multiple_choice_multiple", "short_answer"].includes(type)) return 3;
+  return 0;
 }
 
 function readingQuestionMetadata(paper) {
@@ -583,7 +609,7 @@ function readingQuestionMetadata(paper) {
       if (start < 1 || end > 40 || end < start) return;
       const nextIndex = headings[index + 1]?.index ?? String(text).length;
       const instructions = String(text).slice(heading.index, Math.min(nextIndex, heading.index + 1000));
-      const [type, typeLabel] = readingQuestionType(instructions);
+      const [type, typeLabel] = objectiveQuestionType(instructions);
       for (let number = start; number <= end; number += 1) {
         metadata.set(number, { type, typeLabel, questionPage: page });
       }
@@ -592,7 +618,32 @@ function readingQuestionMetadata(paper) {
   return metadata;
 }
 
+function listeningQuestionMetadata(paper) {
+  const metadata = new Map();
+  for (const [page, text] of parseReadingPaperPages(paper)) {
+    const headings = [...String(text).matchAll(/Questions?\s+((?:\d\s*){1,2})\s*(?:-|\u2013|\u2014|to|and|\+|\u4e00)\s*((?:\d\s*){1,2})(?=\D|$)/gim)];
+    headings.forEach((heading, index) => {
+      const start = Number(String(heading[1]).replace(/\s+/g, ""));
+      const end = Number(String(heading[2]).replace(/\s+/g, ""));
+      if (start < 1 || end > 40 || end < start) return;
+      const nextIndex = headings[index + 1]?.index ?? String(text).length;
+      const instructions = String(text).slice(heading.index, Math.min(nextIndex, heading.index + 1200));
+      const [type, typeLabel] = listeningQuestionType(instructions);
+      const confidence = listeningTypeConfidence(type);
+      const rangeSize = end - start + 1;
+      for (let number = start; number <= end; number += 1) {
+        const previous = metadata.get(number);
+        if (!previous || confidence > previous.confidence || (confidence === previous.confidence && rangeSize < previous.rangeSize)) {
+          metadata.set(number, { type, typeLabel, questionPage: page, confidence, rangeSize });
+        }
+      }
+    });
+  }
+  return metadata;
+}
+
 function slimListeningTest(test) {
+  const questionMetadata = listeningQuestionMetadata(test.questionPaper);
   return {
     id: test.id,
     module: test.module,
@@ -604,7 +655,7 @@ function slimListeningTest(test) {
     audioUrl: test.audioUrl,
     audioUrls: Array.isArray(test.audioUrls) ? test.audioUrls : [],
     questionPageImages: slimPageImages(test.questionPageImages),
-    questions: slimQuestions(test.questions),
+    questions: slimQuestions(test.questions, questionMetadata),
   };
 }
 

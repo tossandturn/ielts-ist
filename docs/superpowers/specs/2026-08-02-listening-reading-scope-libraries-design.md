@@ -72,6 +72,13 @@ In this feature, Topic means an IELTS objective question type, not a guessed sem
 - Listening Topic timer is 10 minutes. Reading Topic timer is 20 minutes.
 - A Topic unit has its own stable selection, answers, saved session, score record, and review source.
 
+### Listening ASR transcript cache
+
+- Listening audio captions remain cache-only: offline ASR runs once, then the browser reads timestamped text from `data/listening-asr-cache.json`.
+- A virtual unit keeps its virtual `id` for answers, sessions, scores, and history, plus the original `sourceItemId` for audio, `/api/listening/asr-cache`, audioscript, and AI Coach evidence.
+- Section units query `sourceItemId + section`; Topic units spanning sections reuse each original section cache. Virtual cache keys are never generated or duplicated.
+- The browser continues to prefer cached `sentences`, `timedWords.start/end`, and speaker labels and never falls back to realtime ASR.
+
 ### Review mistakes
 
 - The existing wrong-answer review remains available as a fourth library tab.
@@ -120,7 +127,7 @@ Full tests retain the current recommended and choose-yourself cards. Section/Pas
 - question count and time;
 - direct Choose action.
 
-The libraries use the existing Cambridge book/test filters and 12-card pagination. Mobile uses one column and 44px controls; iPad and desktop use responsive card grids. Once a unit starts, the current immersive workspace remains dominant and no new rail or overlay is introduced.
+The libraries use the existing Cambridge book/test filters and a bounded, independently scrollable card grid so the full library remains reachable without producing an extremely tall page. Mobile uses one column and 44px controls; iPad and desktop use responsive card grids. Once a unit starts, the current immersive workspace remains dominant and no new rail or overlay is introduced.
 
 ## Scoring and truthful labels
 
@@ -156,6 +163,7 @@ The libraries use the existing Cambridge book/test filters and 12-card paginatio
 - New scoped sessions restore after refresh; old saved sessions still restore.
 - Scoped results are raw subset scores and never create a Full Mock Band.
 - Same Test, Random Exam, captions, Reading evidence, AI Coach, and existing history continue to work.
+- Listening virtual units reuse the original 288 timestamped ASR Section caches without live recognition or duplicated cache entries.
 - No horizontal overflow or clipped primary controls at the four target viewports.
 
 ## Scope exclusions

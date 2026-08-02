@@ -10,6 +10,10 @@
     writing: "coach",
     speaking: "diagnostic",
   },
+  singlePracticeScopes: {
+    listening: "paper",
+    reading: "paper",
+  },
   singlePracticeSections: {
     listening: 1,
     reading: 1,
@@ -22,6 +26,7 @@
   readingPaneScroll: { passage: 0, questionPaper: 0, answers: 0 },
   readingContextCache: {},
   latestObjectiveResults: {},
+  latestObjectiveResultsByItem: {},
   latestWritingAttempt: null,
   latestSpeakingResult: null,
   speakingRetestParentAttemptId: "",
@@ -2413,6 +2418,7 @@ function updateLearningLoopHistory(patch = {}) {
     ...current,
     ...patch,
     objective: { ...(current.objective || {}), ...(patch.objective || {}) },
+    objectiveItems: { ...(current.objectiveItems || {}), ...(patch.objectiveItems || {}) },
     writingAttempts: mergeAttempts("writingAttempts", patch.writing),
     speakingAttempts: mergeAttempts("speakingAttempts", patch.speaking),
     updatedAt: new Date().toISOString(),
@@ -2513,8 +2519,17 @@ async function archiveLearningAttempt(moduleName, record) {
 }
 
 function latestObjectiveResult(moduleName, itemId = "") {
+  const history = readLearningLoopHistory();
+  const exact = itemId
+    ? state.latestObjectiveResultsByItem[itemId]
+      || history.objectiveItems?.[itemId]
+      || (state.learningState?.attempts || []).find((attempt) => {
+        return attempt.module === moduleName && attempt.itemId === itemId && attempt.result && typeof attempt.result === "object";
+      })?.result
+    : null;
+  if (exact) return exact;
   const memory = state.latestObjectiveResults[moduleName]
-    || readLearningLoopHistory().objective?.[moduleName]
+    || history.objective?.[moduleName]
     || (state.learningState?.attempts || []).find((attempt) => {
       if (attempt.module !== moduleName) return false;
       if (itemId && attempt.itemId && attempt.itemId !== itemId) return false;
@@ -2528,6 +2543,7 @@ function latestObjectiveResult(moduleName, itemId = "") {
 
 function rememberObjectiveResult(moduleName, item, json) {
   const details = (json?.result?.details || []).filter((entry) => entry?.correct !== null);
+  const practiceScope = item?.practiceScope || "paper";
   const result = {
     attemptId: learningEntityId("attempt"),
     module: moduleName,
@@ -2535,13 +2551,16 @@ function rememberObjectiveResult(moduleName, item, json) {
     title: item?.title || moduleDisplayName(moduleName),
     correct: Number(json?.result?.correct || 0),
     total: Number(json?.result?.scoredTotal ?? json?.result?.total ?? details.length),
-    band: json?.result?.band ?? null,
+    band: practiceScope === "paper" ? json?.result?.band ?? null : null,
+    practiceScope,
+    sourceItemId: practiceUnitBaseId(item),
     details: details.slice(0, 40),
     wrongQuestionIds: details.filter((entry) => entry.correct === false).map((entry) => entry.id || entry.qid || "").filter(Boolean),
     createdAt: new Date().toISOString(),
   };
   state.latestObjectiveResults[moduleName] = result;
-  updateLearningLoopHistory({ objective: { [moduleName]: result } });
+  state.latestObjectiveResultsByItem[result.itemId] = result;
+  updateLearningLoopHistory({ objective: { [moduleName]: result }, objectiveItems: { [result.itemId]: result } });
   archiveLearningAttempt(moduleName, result);
   resolveRetestedWeakAreas(moduleName, result);
   return result;
@@ -2600,6 +2619,8 @@ function currentSingleCoachContext(moduleName = state.activeModule) {
     practiceModeLabel: singleModeLabel(moduleName),
     answerPrefix: "single",
     id: item.id || "",
+    sourceItemId: practiceUnitBaseId(item),
+    practiceScope: item.practiceScope || "paper",
     title: item.title || "",
     source: item.source || "",
     period: item.period || "",
@@ -2717,7 +2738,7 @@ function buildCoachHelpContext(extra = {}) {
 
 async function hydrateCoachEvidenceContext(context) {
   const reading = context?.reading;
-  const id = String(reading?.id || "").trim();
+  const id = practiceUnitBaseId(reading);
   const focusedQuestion = Number(
     context?.coach?.focusedQuestion?.number
     || context?.surface?.focusedQuestion?.number
@@ -2744,7 +2765,7 @@ async function hydrateCoachEvidenceContext(context) {
     }
   }
   const listening = context?.listening;
-  const listeningId = String(listening?.id || "").trim();
+  const listeningId = practiceUnitBaseId(listening);
   if (listening && !listening.audioScript && listeningId) {
     try {
       const payload = await postJson("/api/listening/scripts", { id: listeningId, pageImageUrls: [], allowOcr: false });
@@ -3395,7 +3416,10 @@ function runHomeAction(action) {
     if (!["listening", "reading", "writing", "speaking"].includes(moduleName)) return;
     const itemId = decodeURIComponent(encodedItemId || "");
     const requestedMode = decodeURIComponent(encodedMode || "");
-    if (singleModeOptions(moduleName).some((mode) => mode.id === requestedMode)) state.singlePracticeModes[moduleName] = requestedMode;
+    if (singleModeOptions(moduleName).some((mode) => mode.id === requestedMode)) {
+      state.singlePracticeModes[moduleName] = requestedMode;
+      if (["listening", "reading"].includes(moduleName)) state.singlePracticeScopes[moduleName] = scopeFromLegacyMode(moduleName, requestedMode);
+    }
     activateSingleModule(moduleName, true);
     const options = singleOptions(moduleName);
     state.activeSingle = options.find((item) => item.id === itemId) || singleRecommendedOption(moduleName, options) || options[0] || null;
@@ -3416,6 +3440,7 @@ function runHomeAction(action) {
     const [, moduleName, mode] = action.split(":");
     if (["listening", "reading", "writing", "speaking"].includes(moduleName) && mode) {
       state.singlePracticeModes[moduleName] = mode;
+      if (["listening", "reading"].includes(moduleName)) state.singlePracticeScopes[moduleName] = scopeFromLegacyMode(moduleName, mode);
       activateSingleModule(moduleName, true);
     }
     return;
@@ -3424,6 +3449,7 @@ function runHomeAction(action) {
     const moduleName = action.split(":")[1];
     if (["listening", "reading"].includes(moduleName)) {
       state.singlePracticeModes[moduleName] = "review";
+      state.singlePracticeScopes[moduleName] = "review";
       activateSingleModule(moduleName, true);
       const review = latestObjectiveResult(moduleName);
       const options = singleOptions(moduleName);
@@ -4409,9 +4435,129 @@ function singleWritingTaskOption(task) {
   };
 }
 
+function scopeFromLegacyMode(moduleName, mode = "") {
+  if (moduleName === "listening") {
+    if (mode === "training") return "section";
+    if (mode === "review") return "review";
+    return "paper";
+  }
+  if (moduleName === "reading") {
+    if (mode === "evidence") return "section";
+    if (mode === "type") return "topic";
+    if (mode === "review") return "review";
+    return "paper";
+  }
+  return "paper";
+}
+
+function modeForPracticeScope(moduleName, scope = "paper") {
+  if (moduleName === "listening") return scope === "section" || scope === "topic" ? "training" : scope === "review" ? "review" : "exam";
+  if (moduleName === "reading") return scope === "section" ? "evidence" : scope === "topic" ? "type" : scope === "review" ? "review" : "full";
+  return currentSinglePracticeMode(moduleName);
+}
+
+function currentSinglePracticeScope(moduleName = state.activeModule) {
+  if (!["listening", "reading"].includes(moduleName)) return "paper";
+  const saved = state.singlePracticeScopes?.[moduleName];
+  if (["paper", "section", "topic", "review"].includes(saved)) return saved;
+  return scopeFromLegacyMode(moduleName, state.singlePracticeModes?.[moduleName]);
+}
+
+function setSinglePracticeScope(moduleName, scope) {
+  if (!["listening", "reading"].includes(moduleName) || !["paper", "section", "topic", "review"].includes(scope)) return;
+  state.singlePracticeScopes[moduleName] = scope;
+  state.singlePracticeModes[moduleName] = modeForPracticeScope(moduleName, scope);
+}
+
+function practiceUnitTopicLabel(question) {
+  return String(question?.typeLabel || question?.type || "Question type").trim();
+}
+
+function practiceUnitBaseId(item) {
+  return String(item?.sourceItemId || item?.baseItemId || item?.id || "").split("::")[0];
+}
+
+function latestObjectiveResultForSource(moduleName, sourceItemId) {
+  const historyItems = Object.values(readLearningLoopHistory().objectiveItems || {});
+  const memoryItems = Object.values(state.latestObjectiveResultsByItem || {});
+  const remoteItems = (state.learningState?.attempts || []).filter((attempt) => attempt.module === moduleName).map((attempt) => attempt.result).filter(Boolean);
+  return [...memoryItems, ...historyItems, ...remoteItems, latestObjectiveResult(moduleName, sourceItemId)]
+    .filter((result) => result?.module === moduleName && practiceUnitBaseId(result) === sourceItemId)
+    .sort((a, b) => String(b.createdAt || b.updatedAt || "").localeCompare(String(a.createdAt || a.updatedAt || "")))[0] || null;
+}
+
+function scopedPracticeUnit(moduleName, sourceItem, scope, value = "") {
+  const base = normalizeItem(sourceItem);
+  if (!base?.id || scope === "paper") return { ...base, sourceItemId: base.id, practiceScope: "paper" };
+  const allQuestions = base.questions || [];
+  let questions = allQuestions;
+  let title = base.title || moduleDisplayName(moduleName);
+  let minutes = Number(base.minutes) || (moduleName === "reading" ? 60 : 30);
+  const unit = { ...base, sourceItemId: base.id, baseItemId: base.id, practiceScope: scope };
+  if (scope === "section") {
+    const section = Math.max(1, Math.min(moduleName === "reading" ? 3 : 4, Number(value) || 1));
+    const [start, end] = singleSectionQuestionRange(moduleName, section);
+    questions = questionsInRange(allQuestions, start, end);
+    title = `${base.title || moduleDisplayName(moduleName)} · ${moduleName === "reading" ? "Passage" : "Section"} ${section}`;
+    minutes = moduleName === "reading" ? 20 : 10;
+    unit.id = `${base.id}::section::${section}`;
+    unit.practiceSection = section;
+  } else if (scope === "topic") {
+    const type = String(value || "").trim();
+    questions = allQuestions.filter((question) => question.type === type);
+    const label = practiceUnitTopicLabel(questions[0]) || type;
+    title = `${base.title || moduleDisplayName(moduleName)} · ${label}`;
+    minutes = 20;
+    unit.id = `${base.id}::topic::${type}`;
+    unit.practiceTopic = type;
+    unit.practiceTopicLabel = label;
+  } else if (scope === "review") {
+    const previous = latestObjectiveResultForSource(moduleName, base.id || "");
+    const wrongIds = new Set(previous?.wrongQuestionIds || []);
+    questions = allQuestions.filter((question) => wrongIds.has(question.id));
+    unit.id = `${base.id}::review`;
+    unit.reviewUnavailable = !questions.length;
+    title = `${base.title || moduleDisplayName(moduleName)} · Review mistakes`;
+    minutes = 15;
+  }
+  unit.title = title;
+  unit.minutes = minutes;
+  unit.questions = questions;
+  if (moduleName === "listening") {
+    const activeSections = new Set([...selectedQuestionNumbers(questions)].map((number) => Math.ceil(number / 10)));
+    unit.audioUrls = (base.audioUrls || []).map((url, index) => activeSections.has(index + 1) ? url : "");
+    unit.questionPageImages = paperImagesForQuestionSubset(base.questionPageImages || [], allQuestions, base.questionPaper, questions);
+  } else if (moduleName === "reading") {
+    unit.readingQuestionPageImages = paperImagesForQuestionSubset(base.readingQuestionPageImages || base.readingPageImages || [], allQuestions, base.readingPaper, questions);
+  }
+  return unit;
+}
+
+function scopedPracticeUnits(moduleName, papers, scope = currentSinglePracticeScope(moduleName)) {
+  if (!["listening", "reading"].includes(moduleName) || scope === "paper") return papers.map((item) => scopedPracticeUnit(moduleName, item, "paper"));
+  if (scope === "section") {
+    const count = moduleName === "reading" ? 3 : 4;
+    return papers.flatMap((paper) => Array.from({ length: count }, (_, index) => scopedPracticeUnit(moduleName, paper, "section", index + 1)));
+  }
+  if (scope === "topic") {
+    return papers.flatMap((paper) => [...new Set((paper.questions || []).map((question) => question.type).filter((type) => type && type !== "unknown"))]
+      .map((type) => scopedPracticeUnit(moduleName, paper, "topic", type))
+      .filter((item) => item.questions.length));
+  }
+  return papers.map((paper) => scopedPracticeUnit(moduleName, paper, "review")).filter((item) => !item.reviewUnavailable);
+}
+
+function scopedPracticeUnitById(moduleName, id) {
+  const match = String(id || "").match(/^(.*?)::(section|topic|review)(?:::(.+))?$/);
+  if (!match) return null;
+  const base = mergedItems(moduleName).map(normalizeItem).find((item) => item.id === match[1]);
+  return base ? scopedPracticeUnit(moduleName, base, match[2], match[3] || "") : null;
+}
+
 function singleOptions(moduleName) {
   const allOptions = mergedItems(moduleName).map(normalizeItem);
   const filtered = applySingleFilters(allOptions, moduleName);
+  if (["listening", "reading"].includes(moduleName)) return scopedPracticeUnits(moduleName, filtered);
   if (moduleName !== "writing") return filtered;
   return filtered.map(singleWritingTaskOption);
 }
@@ -4480,7 +4626,9 @@ function mergedItems(moduleName) {
 
 function findItemById(moduleName, id) {
   if (!id) return null;
-  return mergedItems(moduleName).map(normalizeItem).find((item) => item.id === id) || null;
+  const base = mergedItems(moduleName).map(normalizeItem).find((item) => item.id === id) || null;
+  if (base || !["listening", "reading"].includes(moduleName)) return base;
+  return scopedPracticeUnitById(moduleName, id);
 }
 
 function bundleDraftPayload(bundle) {
@@ -4577,6 +4725,10 @@ function resetSequenceTimer() {
 }
 
 function singleModuleTotal(moduleName = state.activeModule) {
+  if (state.activeSingle?.module === moduleName && state.activeSingle?.practiceScope && state.activeSingle.practiceScope !== "paper") {
+    const scopedMinutes = Number(state.activeSingle.minutes);
+    if (Number.isFinite(scopedMinutes) && scopedMinutes > 0) return scopedMinutes * 60;
+  }
   const mode = currentSinglePracticeMode(moduleName);
   if (moduleName === "listening" && mode === "training") return 10 * 60;
   if (["listening", "reading"].includes(moduleName) && mode === "review") return 15 * 60;
@@ -7465,7 +7617,7 @@ function renderAnswerGroup(group, prefix, options = {}) {
   const passagePageByQuestion = options.passagePageByQuestion instanceof Map
     ? options.passagePageByQuestion
     : new Map();
-  return `<section class="paper-answer-group">
+  return `<section class="paper-answer-group"${!isReading && group.section ? ` data-listening-section="${escapeHtml(group.section)}"` : ""}>
     <div class="paper-answer-group-title">${escapeHtml(group.title)}</div>
     ${renderSectionAudio(group.audioUrl, group.section, prefix)}
     <div class="paper-answer-grid">${group.entries
@@ -7566,6 +7718,7 @@ function practiceSessionRemotePayload(session, status = "in_progress") {
       answers: session.answers || {},
       seconds: session.seconds,
       total: session.total,
+      scopes: session.scopes || {},
       sections: session.sections || {},
       readingPane: session.readingPane || "passage",
       readingQuestionType: session.readingQuestionType || "",
@@ -7613,6 +7766,7 @@ function savePracticeSession() {
     itemId: state.activeSingle.id,
     started: true,
     modes: state.singlePracticeModes,
+    scopes: state.singlePracticeScopes,
     sections: state.singlePracticeSections,
     answers: state.singleAnswers,
     answerItemId: state.singleAnswerItemId,
@@ -7704,6 +7858,7 @@ function importRemotePracticeSession(remote) {
     itemId: remote.itemId,
     started: remote.status === "in_progress",
     modes: { ...state.singlePracticeModes, [remote.module]: remote.mode || state.singlePracticeModes[remote.module] },
+    scopes: { ...state.singlePracticeScopes, ...(sessionState.scopes || {}) },
     sections: { ...state.singlePracticeSections, ...(sessionState.sections || {}) },
     answers: sessionState.answers || {},
     answerItemId: remote.itemId,
@@ -7733,6 +7888,7 @@ function restorePracticeSessionAfterData(expectedModule = "", expectedItemId = "
         module: expectedModule,
         itemId: expectedItemId,
         modes: state.singlePracticeModes,
+        scopes: state.singlePracticeScopes,
         sections: state.singlePracticeSections,
         answers: {},
         answerItemId: expectedItemId,
@@ -7747,15 +7903,24 @@ function restorePracticeSessionAfterData(expectedModule = "", expectedItemId = "
       }
     : savedSession;
   if (!session || !["listening", "reading", "writing", "speaking"].includes(session.module)) return false;
-  const options = mergedItems(session.module).map(normalizeItem);
-  const item = options.find((candidate) => candidate.id === session.itemId);
+  state.singlePracticeModes = { ...state.singlePracticeModes, ...(session.modes || {}) };
+  state.singlePracticeScopes = { ...state.singlePracticeScopes, ...(session.scopes || {}) };
+  state.singlePracticeSections = { ...state.singlePracticeSections, ...(session.sections || {}) };
+  const baseItem = mergedItems(session.module).map(normalizeItem).find((candidate) => candidate.id === session.itemId) || null;
+  let item = findItemById(session.module, session.itemId);
+  if (baseItem && ["listening", "reading"].includes(session.module) && !session.scopes?.[session.module]) {
+    const legacyScope = scopeFromLegacyMode(session.module, session.modes?.[session.module]);
+    state.singlePracticeScopes[session.module] = legacyScope;
+    if (legacyScope === "section") item = scopedPracticeUnit(session.module, baseItem, "section", session.sections?.[session.module] || 1);
+    if (legacyScope === "topic") item = scopedPracticeUnit(session.module, baseItem, "topic", session.readingQuestionType || "");
+  } else if (item?.practiceScope) {
+    setSinglePracticeScope(session.module, item.practiceScope);
+  }
   if (!item) return false;
   state.activeModule = session.module;
   state.practiceSessionCompleted = false;
   state.activeSingle = item;
   state.singleStarted = true;
-  state.singlePracticeModes = { ...state.singlePracticeModes, ...(session.modes || {}) };
-  state.singlePracticeSections = { ...state.singlePracticeSections, ...(session.sections || {}) };
   state.singleAnswers = { ...(session.answers || {}) };
   state.singleAnswerItemId = session.answerItemId || item.id;
   state.singleSeconds = Number.isFinite(Number(session.seconds)) ? Number(session.seconds) : singleModuleTotal(session.module);
@@ -8675,6 +8840,7 @@ function renderReadingSplitPages(images, prefix, questions, paper, provided = {}
 
 function renderListening(test, prefix = "single") {
   const item = normalizeItem(test);
+  const sourceItemId = practiceUnitBaseId(item);
   const audioUrl = resolveAudioUrl(item.audioUrl);
   const audioUrls = Array.isArray(item.audioUrls) ? item.audioUrls.map((url) => url ? resolveAudioUrl(url) : "") : [];
   const transcript = item.transcript || item.prompt || "";
@@ -8686,7 +8852,11 @@ function renderListening(test, prefix = "single") {
   if (playback.itemId !== item.id || playback.mode !== practiceMode) {
     state.listeningPlayback[prefix] = { status: "ready", section: "", endedSections: {}, reviewStarted: false, itemId: item.id || "", mode: practiceMode };
   }
-  const activeSection = prefix === "single" && practiceMode === "training" ? state.singlePracticeSections.listening : "";
+  const activeSection = prefix === "single" && item.practiceScope === "section"
+    ? Number(item.practiceSection) || state.singlePracticeSections.listening
+    : prefix === "single" && practiceMode === "training" && !item.practiceScope
+      ? state.singlePracticeSections.listening
+      : "";
   const playbackRule = listeningPlaybackRule(practiceMode);
   const playbackActions = !audioUrls.length && !audioUrl
     ? `<button class="secondary play-audio" data-text="${encodeURIComponent(transcript)}">Play listening</button>`
@@ -8697,7 +8867,7 @@ function renderListening(test, prefix = "single") {
       ? `<details class="question-paper" open><summary>Listening OCR text</summary><pre>${escapeHtml(item.questionPaper)}</pre></details>`
       : `<div class="notice">This listening set has not been extracted from the PDF yet. Open the local PDF and answer directly.</div>`;
   return `
-    <div class="listening-study" id="${escapeHtml(prefix)}-listening-studio" data-listening-prefix="${escapeHtml(prefix)}" data-listening-mode="${escapeHtml(practiceMode)}" data-listening-id="${escapeHtml(item.id || "")}" data-page-images="${escapeHtml(encodeURIComponent(JSON.stringify(pageImageUrls)))}">
+    <div class="listening-study" id="${escapeHtml(prefix)}-listening-studio" data-listening-prefix="${escapeHtml(prefix)}" data-listening-mode="${escapeHtml(practiceMode)}" data-listening-id="${escapeHtml(sourceItemId)}" data-practice-unit-id="${escapeHtml(item.id || "")}" data-page-images="${escapeHtml(encodeURIComponent(JSON.stringify(pageImageUrls)))}">
       <div class="listening-main">
         <div class="listening-head-row">
           <div class="module-meta">${[item.source, item.period || "", `${item.minutes || 30} min`].filter(Boolean).join(" · ")} ${sourceLink}</div>
@@ -14126,6 +14296,7 @@ function singlePracticeItemForMode(moduleName, sourceItem) {
   const item = normalizeItem(sourceItem);
   const mode = currentSinglePracticeMode(moduleName);
   if (!["listening", "reading"].includes(moduleName)) return item;
+  if (item.practiceScope && item.practiceScope !== "paper") return item;
   const allQuestions = item.questions || [];
   let questions = allQuestions;
 
@@ -14169,6 +14340,7 @@ function singlePracticeItemForMode(moduleName, sourceItem) {
 }
 
 function renderSingleRuntimeControls(moduleName, mode) {
+  if (state.activeSingle?.practiceScope && state.activeSingle.practiceScope !== "paper") return "";
   if (moduleName === "listening" && mode === "training") {
     return `<div class="single-runtime-controls" aria-label="Listening section">
       <span>Section</span>
@@ -14208,6 +14380,55 @@ function renderSingleModePicker(moduleName) {
   </section>`;
 }
 
+function singleScopeOptions(moduleName) {
+  return [
+    { id: "paper", icon: "📝", label: "Full tests", detail: moduleName === "listening" ? "40 questions · 30 min" : "40 questions · 60 min" },
+    { id: "section", icon: moduleName === "listening" ? "🎧" : "📖", label: moduleName === "listening" ? "Sections" : "Passages", detail: moduleName === "listening" ? "10 questions each" : "13–14 questions each" },
+    { id: "topic", icon: "🧩", label: "Topics", detail: "Practise one IELTS question type" },
+    { id: "review", icon: "🔁", label: "Review mistakes", detail: "Your saved wrong answers" },
+  ];
+}
+
+function renderSingleScopeTabs(moduleName) {
+  if (!["listening", "reading"].includes(moduleName)) return "";
+  const selected = currentSinglePracticeScope(moduleName);
+  return `<nav class="single-scope-tabs" role="tablist" aria-label="${escapeHtml(moduleDisplayName(moduleName))} library">
+    ${singleScopeOptions(moduleName).map((scope) => `<button class="single-scope-tab ${scope.id === selected ? "active" : ""}" role="tab" type="button" data-single-scope="${scope.id}" aria-selected="${scope.id === selected ? "true" : "false"}">
+      <span aria-hidden="true">${scope.icon}</span><strong>${escapeHtml(scope.label)}</strong><small>${escapeHtml(scope.detail)}</small>
+    </button>`).join("")}
+  </nav>`;
+}
+
+function renderPracticeUnitCard(item, moduleName) {
+  const scope = item.practiceScope || "paper";
+  const questionCount = item.questions?.length || 0;
+  const topicAttr = item.practiceTopic ? ` data-topic-type="${escapeHtml(item.practiceTopic)}"` : "";
+  const unitLabel = scope === "section"
+    ? `${moduleName === "reading" ? "Passage" : "Section"} ${item.practiceSection}`
+    : scope === "topic"
+      ? item.practiceTopicLabel || "Question type"
+      : scope === "review" ? "Mistake review" : "Full test";
+  return `<article class="practice-unit-card tone-${escapeHtml(moduleName)}" data-practice-unit-id="${escapeHtml(item.id)}" data-practice-unit-scope="${escapeHtml(scope)}"${topicAttr}>
+    <div class="practice-unit-card-head"><span>${scope === "section" ? "🎯" : scope === "topic" ? "🧩" : "🔁"}</span><em>${escapeHtml(unitLabel)}</em></div>
+    <h4>${escapeHtml(item.title || unitLabel)}</h4>
+    <p>${escapeHtml(singlePracticeEvidenceLabel(item, moduleName) || item.source || moduleDisplayName(moduleName))}</p>
+    <div class="practice-unit-stats"><span><strong>${questionCount}</strong> questions</span><span><strong>${Number(item.minutes) || 20}</strong> min</span>${moduleName === "listening" ? "<span>💬 ASR captions</span>" : "<span>🔎 Evidence view</span>"}</div>
+    <button class="primary" type="button" data-start-practice-unit="${escapeHtml(item.id)}">Start this practice</button>
+  </article>`;
+}
+
+function renderScopedPracticeLibrary(moduleName, options) {
+  const scope = currentSinglePracticeScope(moduleName);
+  if (scope === "paper") return "";
+  const empty = scope === "review"
+    ? "Complete and score a practice first. Your wrong answers will appear here as an independent review set."
+    : "No practice units match the current Cambridge filters.";
+  return `<section class="practice-unit-library" data-practice-library="${escapeHtml(scope)}">
+    <header><div><span class="eyebrow">${escapeHtml(moduleDisplayName(moduleName))} library</span><h3>${escapeHtml(singleScopeOptions(moduleName).find((item) => item.id === scope)?.label || "Practice units")}</h3></div><span>${options.length} independent practice${options.length === 1 ? "" : "s"}</span></header>
+    ${options.length ? `<div class="practice-unit-grid">${options.map((item) => renderPracticeUnitCard(item, moduleName)).join("")}</div>` : `<div class="practice-unit-empty"><span aria-hidden="true">🌱</span><p>${escapeHtml(empty)}</p></div>`}
+  </section>`;
+}
+
 function renderSingleModeWorkspaceIntro(moduleName, mode = currentSinglePracticeMode(moduleName)) {
   const option = singleModeOptions(moduleName).find((item) => item.id === mode) || singleModeOptions(moduleName)[0];
   const moduleLabel = moduleDisplayName(moduleName);
@@ -14225,7 +14446,9 @@ function renderSingleModeWorkspaceIntro(moduleName, mode = currentSinglePractice
     },
   };
   const introHints = hints[moduleName]?.[mode] || ["Finish the task, submit, read the AI feedback, then retest the weak point."];
-  return `<section class="single-mode-workspace-intro tone-${escapeHtml(moduleName)}">
+  const unitId = state.activeSingle?.id || "";
+  const topicType = state.activeSingle?.practiceTopic || "";
+  return `<section class="single-mode-workspace-intro tone-${escapeHtml(moduleName)}" data-active-practice-unit="${escapeHtml(unitId)}"${topicType ? ` data-active-topic-type="${escapeHtml(topicType)}"` : ""}>
     <div>
       <span class="eyebrow">${escapeHtml(moduleLabel)} · ${escapeHtml(option?.title || "Practice mode")}</span>
       <h3>${escapeHtml(moduleName === "listening" ? "Listening evidence trainer" : moduleName === "reading" ? "Reading evidence locator" : `${moduleLabel} coach`)}</h3>
@@ -14394,13 +14617,24 @@ function renderSingleLaunch(moduleName, options) {
   const selectOptions = options
     .map((item) => `<option value="${escapeHtml(item.id)}"${selected?.id === item.id ? " selected" : ""}>${escapeHtml(singleOptionLabel(item, moduleName))}</option>`)
     .join("");
+  const scopeTabs = renderSingleScopeTabs(moduleName);
+  const scopedLibrary = renderScopedPracticeLibrary(moduleName, options);
+  if (scopedLibrary) return `<div class="single-launch-shell">
+    <section class="single-launch-hero">
+      <span class="eyebrow">${escapeHtml(meta.label)} library</span>
+      <h3>${escapeHtml(moduleName === "listening" ? "Train the exact listening skill you need" : "Choose the exact reading unit you need")}</h3>
+      <p>Every unit keeps its own timer, answers, score and history while the original Cambridge full tests stay untouched.</p>
+    </section>
+    ${scopeTabs}
+    ${scopedLibrary}
+  </div>`;
   return `<div class="single-launch-shell">
     <section class="single-launch-hero">
       <span class="eyebrow">${escapeHtml(meta.label)} module</span>
       <h3>${escapeHtml(moduleName === "listening" ? "Listening evidence trainer" : moduleName === "reading" ? "Reading evidence locator" : "Choose how to practise")}</h3>
       <p>${escapeHtml(moduleName === "listening" ? "Choose exam, training or review mode before opening the paper." : moduleName === "reading" ? "Choose full passage, evidence drill, question type practice or review mode before opening the paper." : "Each module is a standalone practice. Start with an AI recommendation, or choose a paper yourself.")}</p>
     </section>
-    ${renderSingleModePicker(moduleName)}
+    ${scopeTabs || renderSingleModePicker(moduleName)}
     <div class="single-launch-grid">
       <article class="single-launch-card recommended">
         <span class="single-launch-badge">AI recommended</span>
@@ -14430,6 +14664,28 @@ function renderSingleLaunch(moduleName, options) {
   </div>`;
 }
 
+function beginSinglePracticeUnit(item) {
+  if (!item) return;
+  const moduleName = state.activeModule;
+  state.activeSingle = item;
+  if (item.practiceScope) setSinglePracticeScope(moduleName, item.practiceScope);
+  if (item.practiceSection) state.singlePracticeSections[moduleName] = Number(item.practiceSection);
+  if (item.practiceTopic) state.readingQuestionType = item.practiceTopic;
+  rememberPracticeRecommendation(moduleName, item);
+  if (state.singleAnswerItemId !== item.id) {
+    state.singleAnswers = {};
+    state.readingReviewMarks = {};
+    state.singleAnswerItemId = item.id;
+  }
+  state.singleStarted = true;
+  state.practiceSessionCompleted = false;
+  resetSingleTimer(moduleName);
+  renderSingle();
+  setSingleImmersive(moduleName);
+  window.scrollTo({ top: 0, behavior: "auto" });
+  savePracticeSession();
+}
+
 function startSinglePractice(mode = "recommended") {
   const moduleName = state.activeModule;
   const options = singleOptions(moduleName);
@@ -14442,19 +14698,7 @@ function startSinglePractice(mode = "recommended") {
   } else {
     state.activeSingle = singleRecommendedOption(moduleName, options) || options[0];
   }
-  rememberPracticeRecommendation(moduleName, state.activeSingle);
-  const nextItemId = state.activeSingle?.id || "";
-  if (state.singleAnswerItemId !== nextItemId) {
-    state.singleAnswers = {};
-    state.singleAnswerItemId = nextItemId;
-  }
-  state.singleStarted = true;
-  state.practiceSessionCompleted = false;
-  resetSingleTimer(moduleName);
-  renderSingle();
-  setSingleImmersive(moduleName);
-  window.scrollTo({ top: 0, behavior: "auto" });
-  savePracticeSession();
+  beginSinglePracticeUnit(state.activeSingle);
 }
 
 function renderSingle() {
@@ -14466,6 +14710,13 @@ function renderSingle() {
   $("single")?.classList.toggle("single-launching", !state.singleStarted);
   $("single")?.classList.toggle("single-started", Boolean(state.singleStarted));
   if (!options.length) {
+    if (!state.singleStarted && ["listening", "reading"].includes(moduleName)) {
+      $("singleTitle").textContent = moduleDisplayName(moduleName);
+      $("singleSelect").innerHTML = "";
+      $("singleContent").innerHTML = renderSingleLaunch(moduleName, []);
+      bindDynamicControls();
+      return;
+    }
     $("singleTitle").textContent = "No questions available";
     $("singleSelect").innerHTML = "";
     $("singleContent").innerHTML = `<div class="notice">${moduleName === "writing" ? "No independent Writing task is available for this filter." : "This module has no imported questions yet. Add materials to the user bank first."}</div>`;
@@ -14871,6 +15122,7 @@ function bindObjectiveReviewActions(root = document) {
       if (action === "retest") {
         const previous = latestObjectiveResult(moduleName);
         state.singlePracticeModes[moduleName] = "review";
+        state.singlePracticeScopes[moduleName] = "review";
         saveSingleAnswersToState();
         (previous?.wrongQuestionIds || []).forEach((id) => {
           state.singleAnswers[id] = "";
@@ -16528,6 +16780,23 @@ function bindDynamicControls() {
   });
   document.querySelectorAll(".start-single-practice").forEach((button) => {
     button.onclick = () => startSinglePractice(button.dataset.singleStart || "recommended");
+  });
+  document.querySelectorAll("[data-single-scope]").forEach((button) => {
+    button.onclick = () => {
+      if (!["listening", "reading"].includes(state.activeModule)) return;
+      saveSingleAnswersToState();
+      setSinglePracticeScope(state.activeModule, button.dataset.singleScope || "paper");
+      state.activeSingle = null;
+      state.singleStarted = false;
+      renderSingle();
+    };
+  });
+  document.querySelectorAll("[data-start-practice-unit]").forEach((button) => {
+    button.onclick = () => {
+      const id = button.dataset.startPracticeUnit || "";
+      const item = singleOptions(state.activeModule).find((candidate) => candidate.id === id) || findItemById(state.activeModule, id);
+      beginSinglePracticeUnit(item);
+    };
   });
   document.querySelectorAll("[data-single-section]").forEach((button) => {
     button.onclick = () => {
