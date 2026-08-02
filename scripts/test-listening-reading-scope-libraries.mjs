@@ -4,7 +4,8 @@ import { existsSync } from "node:fs";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const require = createRequire(import.meta.url);
 const { chromium } = require("C:/Users/10604/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright");
@@ -13,6 +14,34 @@ const port = 6400 + (process.pid % 300);
 const baseUrl = `http://127.0.0.1:${port}`;
 const outputDir = resolve("artifacts", "listening-reading-scope-libraries");
 await mkdir(outputDir, { recursive: true });
+
+function resolveRequiredListeningAsrCache() {
+  const checked = [];
+  if (process.env.LISTENING_ASR_CACHE_PATH) {
+    const configured = resolve(process.env.LISTENING_ASR_CACHE_PATH);
+    if (!existsSync(configured)) throw new Error(`Configured LISTENING_ASR_CACHE_PATH does not exist: ${configured}`);
+    return configured;
+  }
+  const local = resolve(fileURLToPath(root), "data", "listening-asr-cache.json");
+  checked.push(local);
+  if (existsSync(local)) return local;
+  const commonDirResult = spawnSync("git", ["rev-parse", "--path-format=absolute", "--git-common-dir"], {
+    cwd: root,
+    encoding: "utf8",
+  });
+  if (commonDirResult.status === 0) {
+    const commonDir = resolve(commonDirResult.stdout.trim());
+    if (basename(commonDir).toLowerCase() === ".git") {
+      const shared = join(dirname(commonDir), "data", "listening-asr-cache.json");
+      checked.push(shared);
+      if (existsSync(shared)) return shared;
+    }
+  }
+  throw new Error(`Listening ASR cache is required for this suite. Set LISTENING_ASR_CACHE_PATH or provide the shared checkout cache. Checked: ${checked.join(", ")}`);
+}
+
+const listeningAsrCachePath = resolveRequiredListeningAsrCache();
+console.log(`REQUIRED ASR cache: ${listeningAsrCachePath}`);
 
 const validationTempDir = await mkdtemp(join(tmpdir(), "ieltsist-semantic-validation-"));
 try {
@@ -89,7 +118,7 @@ console.log("PASS semantic topic generator inputs and server startup catalog val
 
 const child = spawn(process.execPath, ["server.js"], {
   cwd: root,
-  env: { ...process.env, PORT: String(port) },
+  env: { ...process.env, PORT: String(port), LISTENING_ASR_CACHE_PATH: listeningAsrCachePath },
   stdio: ["ignore", "pipe", "pipe"],
 });
 let serverStderr = "";
@@ -357,6 +386,7 @@ const browser = await chromium.launch({
 
 try {
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  page.on("pageerror", (error) => { console.error(`BROWSER ERROR: ${error.stack || error.message}`); });
   await installGuestState(page);
   await page.goto(`${baseUrl}/?test=lr-scope-desktop#home`, { waitUntil: "networkidle" });
 
@@ -364,8 +394,31 @@ try {
   assert.deepEqual(await page.locator("[data-single-scope]").evaluateAll((nodes) => nodes.map((node) => node.dataset.singleScope)), ["paper", "section", "topic", "review"]);
   assert.match(await page.locator(".single-launch-shell").innerText(), /Full tests[\s\S]*Sections[\s\S]*Topics[\s\S]*Review mistakes/i);
   assert.ok(await page.locator("#singleLaunchSelect option").count() >= 72, "Full Listening must retain the original paper selector");
+  assert.match(await page.locator("#singleLaunchSelect option").first().innerText(), /(?:✓ Completed|○ Not completed)/, "Full-paper selector labels need text completion status");
+  assert.match(await page.locator(".single-launch-card.recommended").innerText(), /(?:✓ Completed|○ Not completed)/, "Recommended full-paper card needs text completion status");
+  for (const id of ["singleUnitFilter", "singleTopicFilter", "singleCompletionFilter"]) {
+    assert.equal(await page.locator(`#${id}`).count(), 1, `${id} control must exist`);
+  }
+  await page.locator("#singleCompletionFilter").selectOption("completed");
+  assert.match(await page.locator(".practice-unit-empty").innerText(), /No full tests match the current filters[\s\S]*adjust or clear/i, "Full-paper filters need a clear empty state");
+  await page.locator("#singleCompletionFilter").selectOption("all");
 
   await page.locator('[data-single-scope="section"]').click();
+  await page.locator("#singleBookFilter").selectOption("15");
+  await page.locator("#singleTestFilter").selectOption("1");
+  await page.locator("#singleUnitFilter").selectOption("3");
+  await page.locator("#singleCompletionFilter").selectOption("not-completed");
+  assert.deepEqual(
+    await page.locator('[data-practice-unit-scope="section"]').evaluateAll((nodes) => nodes.map((node) => node.dataset.practiceUnitId)),
+    ["cam15-l-test1::section::3"],
+    "Cambridge 15 + Test 1 + Section 3 + Not completed must combine",
+  );
+  assert.equal(await page.locator('[data-practice-unit-id="cam15-l-test1::section::3"]').getAttribute("data-practice-section"), "3");
+  assert.equal(await page.locator('[data-practice-unit-id="cam15-l-test1::section::3"]').getAttribute("data-practice-status"), "not-completed");
+  await page.locator("#singleCompletionFilter").selectOption("completed");
+  assert.match(await page.locator(".practice-unit-empty").innerText(), /No practice units match the current filters[\s\S]*adjust or clear/i, "Empty filter combinations need a clear recovery message");
+  await page.locator("#singleCompletionFilter").selectOption("not-completed");
+  await page.locator("#singleUnitFilter").selectOption("1");
   const listeningSectionCard = page.locator('[data-practice-unit-id="cam15-l-test1::section::1"]');
   assert.equal(await listeningSectionCard.count(), 1, "Listening Section 1 must be an independent unit");
   assert.match(await listeningSectionCard.innerText(), /Section 1[\s\S]*10 questions[\s\S]*10 min/i);
@@ -377,13 +430,21 @@ try {
   assert.equal(await page.locator('#single-listening-studio').getAttribute("data-listening-id"), "cam15-l-test1", "Section ASR cache lookup must use the source paper id");
   const activeAudioSections = await page.locator("[data-listening-section]").evaluateAll((nodes) => nodes.filter((node) => !node.hidden && getComputedStyle(node).display !== "none").length);
   assert.equal(activeAudioSections, 1, "A Listening Section unit must expose one audio section");
-  if (existsSync(resolve("data", "listening-asr-cache.json"))) {
-    const cached = await (await fetch(`${baseUrl}/api/listening/asr-cache?id=cam15-l-test1&section=1`)).json();
-    assert.ok(cached.available && cached.sentences.length && cached.timedWords.length && cached.speakers.length, "Section must reuse the timestamped offline ASR cache");
-    await page.locator('.listening-caption-toggle[data-section="1"]').click();
-    await page.waitForFunction(() => /ASR cache/i.test(document.querySelector("#singleCaptionKicker")?.textContent || ""));
-    console.log(`PASS Listening Section reuses ${cached.timedWords.length} cached timed words without live ASR`);
-  }
+  const cached = await (await fetch(`${baseUrl}/api/listening/asr-cache?id=cam15-l-test1&section=1`)).json();
+  assert.ok(cached.available && cached.sentences.length && cached.timedWords.length && cached.speakers.length, "Section must reuse the required timestamped offline ASR cache");
+  assert.ok(cached.timedWords.every((word) => Number.isFinite(Number(word.start)) && Number.isFinite(Number(word.end))), "Every cached word must expose real start/end timing");
+  await page.locator('.listening-caption-toggle[data-section="1"]').click();
+  await page.waitForFunction(() => /ASR cache/i.test(document.querySelector("#singleCaptionKicker")?.textContent || ""));
+  const captionSeekTime = Number(cached.timedWords[Math.min(20, cached.timedWords.length - 1)].start) + 0.05;
+  await page.locator('.listening-player[data-prefix="single"][data-section="1"]').evaluate((audio, time) => {
+    audio.currentTime = time;
+    audio.dispatchEvent(new Event("seeked"));
+    audio.dispatchEvent(new Event("timeupdate"));
+  }, captionSeekTime);
+  await page.waitForFunction(() => document.querySelectorAll("#singleCaptionLine .caption-display-line").length > 0);
+  assert.ok(await page.locator("#singleCaptionLine .caption-display-line").count() > 0, "Timed cache seek must render caption conversation lines");
+  assert.ok(await page.locator('#singleCaptionLine [class*="caption-voice-"]').count() > 0, "Rendered captions must retain speaker voice classes");
+  console.log(`PASS REQUIRED ASR assertion executed: ${cached.timedWords.length} timed words, ${cached.speakers.length} speakers, rendered caption bubbles`);
 
   const q1 = page.locator('.answer-input[data-prefix="single"][data-qid="q1"]');
   await q1.fill("Jamieson");
@@ -405,19 +466,36 @@ try {
 
   await activateModule(page, "listening");
   await page.locator('[data-single-scope="topic"]').click();
-  const listeningTopicCard = page.locator('[data-practice-unit-scope="topic"]').filter({ has: page.locator("[data-start-practice-unit]") }).first();
+  await page.locator("#singleBookFilter").selectOption("15");
+  await page.locator("#singleTestFilter").selectOption("1");
+  await page.locator("#singleCompletionFilter").selectOption("all");
+  await page.locator("#singleUnitFilter").selectOption("1");
+  await page.locator("#singleTopicFilter").selectOption("work");
+  assert.deepEqual(await page.locator('[data-practice-unit-scope="topic"]').evaluateAll((nodes) => nodes.map((node) => node.dataset.practiceUnitId)), ["cam15-l-test1::section::1"], "Semantic Topic must combine with Cambridge and Section filters");
+  await page.locator("#singleUnitFilter").selectOption("2");
+  assert.equal(await page.locator("#singleTopicFilter").inputValue(), "all", "Changing the unit must safely reset an unavailable dependent Topic");
+  await page.locator("#singleUnitFilter").selectOption("all");
+  await page.locator("#singleCompletionFilter").selectOption("completed");
+  const listeningTopicCard = page.locator('[data-practice-unit-scope="topic"][data-practice-unit-id="cam15-l-test1::section::1"]');
   const listeningTopicUnitId = await listeningTopicCard.getAttribute("data-practice-unit-id");
-  const listeningTopicType = await listeningTopicCard.getAttribute("data-topic-type");
-  assert.ok(listeningTopicUnitId?.startsWith("cam") && listeningTopicType && listeningTopicType !== "unknown");
+  const listeningContentTopic = await listeningTopicCard.getAttribute("data-content-topic");
+  assert.equal(listeningTopicUnitId, "cam15-l-test1::section::1", "Topic completion must share the Section canonical id immediately after submission");
+  assert.equal(listeningContentTopic, "work");
+  assert.equal(await listeningTopicCard.getAttribute("data-topic-type"), null, "Semantic Topic cards must never expose question-type data");
+  assert.equal(await listeningTopicCard.getAttribute("data-practice-status"), "completed");
+  assert.match(
+    await listeningTopicCard.innerText(),
+    new RegExp(`Work[\\s\\S]*${listeningPaper.contentTopics["1"].title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}[\\s\\S]*✓ Completed`, "i"),
+  );
   const listeningTopicBaseId = listeningTopicUnitId.split("::")[0];
-  const listeningTopicPaper = tasks.listeningTests.find((item) => item.id === listeningTopicBaseId);
-  const listeningTopicExpected = expectedQuestionIds(listeningTopicPaper, (question) => question.type === listeningTopicType);
   await listeningTopicCard.locator("[data-start-practice-unit]").click();
-  assert.deepEqual(await renderedQuestionIds(page), listeningTopicExpected);
-  assert.equal(await page.locator(`[data-active-topic-type="${listeningTopicType}"]`).count(), 1);
+  assert.deepEqual(await renderedQuestionIds(page), expectedQuestionIds(listeningPaper, (question, index) => questionNumber(question, index) <= 10));
+  assert.equal(await page.locator("[data-active-topic-type]").count(), 0);
   assert.equal(await page.locator('#single-listening-studio').getAttribute("data-listening-id"), listeningTopicBaseId, "Topic ASR cache lookup must use the source paper id");
-  console.log("PASS Listening Topic contains one OCR-derived question type");
+  console.log("PASS Listening Topic uses one complete semantic Section and shares canonical completion");
 
+  await page.evaluate(() => ["singleBookFilter", "singleTestFilter", "singleUnitFilter", "singleTopicFilter", "singleCompletionFilter"]
+    .forEach((id) => { const select = document.getElementById(id); if (select) select.value = "all"; }));
   await activateModule(page, "reading");
   assert.ok(await page.locator("#singleLaunchSelect option").count() >= 72, "Full Reading must retain the original paper selector");
   await page.locator('[data-single-scope="section"]').click();
@@ -438,19 +516,39 @@ try {
   assert.equal(passageResult.band, null, "A Passage score must remain raw correct/total rather than an official IELTS Band");
   console.log("PASS Reading Passage identity, question range, timer and independent raw score history");
 
+  await page.evaluate(() => ["singleBookFilter", "singleTestFilter", "singleUnitFilter", "singleTopicFilter", "singleCompletionFilter"]
+    .forEach((id) => { const select = document.getElementById(id); if (select) select.value = "all"; }));
+  await activateModule(page, "reading");
+  await page.locator('[data-single-scope="section"]').click();
+  await page.locator("#singleBookFilter").selectOption("15");
+  await page.locator("#singleTestFilter").selectOption("1");
+  await page.locator("#singleUnitFilter").selectOption("2");
+  await page.locator("#singleCompletionFilter").selectOption("completed");
+  const completedPassageCards = page.locator('[data-practice-unit-scope="section"]');
+  assert.equal(await completedPassageCards.count(), 1, "Reading Passage 2 + Completed must isolate the submitted canonical unit");
+  assert.equal(await completedPassageCards.first().getAttribute("data-practice-unit-id"), "cam15-r-test1::section::2");
+  assert.equal(await completedPassageCards.first().getAttribute("data-practice-status"), "completed");
+
   await activateModule(page, "reading");
   await page.locator('[data-single-scope="topic"]').click();
+  await page.locator("#singleBookFilter").selectOption("15");
+  await page.locator("#singleTestFilter").selectOption("1");
+  await page.locator("#singleUnitFilter").selectOption("2");
+  await page.locator("#singleCompletionFilter").selectOption("completed");
   const readingTopicCard = page.locator('[data-practice-unit-scope="topic"]').first();
   const readingTopicUnitId = await readingTopicCard.getAttribute("data-practice-unit-id");
-  const readingTopicType = await readingTopicCard.getAttribute("data-topic-type");
-  const readingTopicBaseId = readingTopicUnitId.split("::")[0];
-  const readingTopicPaper = tasks.readingTests.find((item) => item.id === readingTopicBaseId);
-  const readingTopicExpected = expectedQuestionIds(readingTopicPaper, (question) => question.type === readingTopicType);
+  assert.equal(readingTopicUnitId, "cam15-r-test1::section::2");
+  assert.equal(await readingTopicCard.getAttribute("data-content-topic"), readingPaper.contentTopics["2"].key);
+  assert.equal(await readingTopicCard.getAttribute("data-topic-type"), null);
+  assert.match(await readingTopicCard.innerText(), new RegExp(readingPaper.contentTopics["2"].title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"));
   await readingTopicCard.locator("[data-start-practice-unit]").click();
-  assert.deepEqual(await renderedQuestionIds(page), readingTopicExpected);
-  assert.equal(await page.locator(`[data-active-topic-type="${readingTopicType}"]`).count(), 1);
+  assert.deepEqual(await renderedQuestionIds(page), expectedQuestionIds(readingPaper, (question, index) => {
+    const number = questionNumber(question, index);
+    return number >= 14 && number <= 26;
+  }));
+  assert.equal(await page.locator("[data-active-topic-type]").count(), 0);
   await page.screenshot({ path: resolve(outputDir, "desktop-reading-topic.png"), fullPage: true });
-  console.log("PASS Reading Topic contains one question type");
+  console.log("PASS Reading Topic uses semantic Passage content rather than question type");
   await page.close();
 
   const legacyPage = await browser.newPage({ viewport: { width: 1024, height: 768 } });
@@ -477,27 +575,60 @@ try {
   console.log("PASS legacy Listening Training session maps to the Section library");
   await legacyPage.close();
 
-  for (const moduleName of ["listening", "reading"]) {
-    const mobilePage = await browser.newPage({ viewport: { width: 390, height: 844 } });
-    await installGuestState(mobilePage);
-    await mobilePage.goto(`${baseUrl}/?test=lr-scope-mobile-${moduleName}#home`, { waitUntil: "networkidle" });
-    await activateModule(mobilePage, moduleName);
-    await mobilePage.locator('[data-single-scope="section"]').click();
-    const metrics = await mobilePage.evaluate(() => ({
+  const legacyTopicType = readingPaper.questions.find((question) => question.type && question.type !== "unknown")?.type;
+  const legacyTopicPage = await browser.newPage({ viewport: { width: 1024, height: 768 } });
+  await installGuestState(legacyTopicPage, {
+    version: 1,
+    sessionId: "legacy-reading-question-type-topic",
+    revision: 0,
+    view: "single",
+    module: "reading",
+    itemId: `cam15-r-test1::topic::${legacyTopicType}`,
+    started: true,
+    modes: { listening: "exam", reading: "type" },
+    scopes: { listening: "paper", reading: "topic" },
+    sections: { listening: 1, reading: 1 },
+    readingQuestionType: legacyTopicType,
+    answers: {},
+    answerItemId: `cam15-r-test1::topic::${legacyTopicType}`,
+    seconds: 900,
+    total: 1200,
+    updatedAt: new Date().toISOString(),
+  });
+  await legacyTopicPage.goto(`${baseUrl}/?test=lr-scope-legacy-topic#single`, { waitUntil: "networkidle" });
+  await legacyTopicPage.waitForFunction((id) => document.querySelector(`[data-active-practice-unit="${id}"]`), `cam15-r-test1::topic::${legacyTopicType}`);
+  assert.deepEqual(await renderedQuestionIds(legacyTopicPage), expectedQuestionIds(readingPaper, (question) => question.type === legacyTopicType));
+  console.log("PASS old question-type Topic session remains restorable without new UI generation");
+  await legacyTopicPage.close();
+
+  for (const viewport of [{ name: "desktop", width: 1280, height: 800 }, { name: "ipad", width: 768, height: 1024 }, { name: "mobile", width: 390, height: 844 }]) {
+    for (const moduleName of ["listening", "reading"]) {
+      const responsivePage = await browser.newPage({ viewport });
+      await installGuestState(responsivePage);
+      await responsivePage.goto(`${baseUrl}/?test=lr-scope-${viewport.name}-${moduleName}#home`, { waitUntil: "networkidle" });
+      await activateModule(responsivePage, moduleName);
+      await responsivePage.locator('[data-single-scope="topic"]').click();
+      const metrics = await responsivePage.evaluate(() => ({
       overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
       tabs: document.querySelectorAll("[data-single-scope]").length,
-      cards: document.querySelectorAll('[data-practice-unit-scope="section"]').length,
-      shortestButton: Math.min(...[...document.querySelectorAll("#single button")]
+      cards: document.querySelectorAll('[data-practice-unit-scope="topic"]').length,
+      shortestControl: Math.min(...[...document.querySelectorAll("#single button, #single select")]
         .filter((node) => node.getBoundingClientRect().height > 0)
         .map((node) => node.getBoundingClientRect().height)),
+      libraryBounded: (() => {
+        const grid = document.querySelector(".practice-unit-grid");
+        return !grid || grid.getBoundingClientRect().height <= innerHeight * .75;
+      })(),
     }));
-    assert.ok(metrics.overflow <= 1, `${moduleName} mobile overflows by ${metrics.overflow}px`);
-    assert.equal(metrics.tabs, 4);
-    assert.ok(metrics.cards > 0);
-    assert.ok(metrics.shortestButton >= 43.5, `${moduleName} mobile has a ${metrics.shortestButton}px touch control`);
-    await mobilePage.screenshot({ path: resolve(outputDir, `mobile-${moduleName}-sections.png`), fullPage: true });
-    console.log(`PASS mobile ${moduleName} scope library`);
-    await mobilePage.close();
+      assert.ok(metrics.overflow <= 1, `${moduleName} ${viewport.name} overflows by ${metrics.overflow}px`);
+      assert.equal(metrics.tabs, 4);
+      assert.ok(metrics.cards > 0);
+      assert.ok(metrics.shortestControl >= 43.5, `${moduleName} ${viewport.name} has a ${metrics.shortestControl}px touch control`);
+      assert.ok(metrics.libraryBounded, `${moduleName} ${viewport.name} library must remain bounded and scrollable`);
+      await responsivePage.screenshot({ path: resolve(outputDir, `${viewport.name}-${moduleName}-topics.png`), fullPage: true });
+      console.log(`PASS ${viewport.name} ${moduleName} semantic Topic library`);
+      await responsivePage.close();
+    }
   }
 } finally {
   await browser.close();

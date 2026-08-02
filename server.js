@@ -34,7 +34,9 @@ const CAMBRIDGE15_PDF = path.join(CAMBRIDGE15_DIR, "剑15.pdf");
 const QUESTION_BANK_PATH = path.join(__dirname, "data", "cambridge15-bank.json");
 const CAMBRIDGE_LOCAL_BANK_PATH = path.join(__dirname, "data", "cambridge-local-bank.json");
 const SPEAKING_BANK_PATH = path.join(__dirname, "data", "speaking-bank.json");
-const LISTENING_ASR_CACHE_PATH = path.join(__dirname, "data", "listening-asr-cache.json");
+const LISTENING_ASR_CACHE_PATH = process.env.LISTENING_ASR_CACHE_PATH
+  ? path.resolve(process.env.LISTENING_ASR_CACHE_PATH)
+  : path.join(__dirname, "data", "listening-asr-cache.json");
 const READING_OCR_CACHE_PATH = path.join(__dirname, "data", "reading-ocr-page-cache.json");
 const OBJECTIVE_SEMANTIC_TOPICS_PATH = process.env.OBJECTIVE_SEMANTIC_TOPICS_PATH
   ? path.resolve(process.env.OBJECTIVE_SEMANTIC_TOPICS_PATH)

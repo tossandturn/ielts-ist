@@ -4616,7 +4616,7 @@ function itemBook(item) {
 }
 
 function itemTest(item) {
-  const match = String(item.id || item.title || "").match(/(?:test|t)(\d+)/i);
+  const match = String(item?.id || item?.title || "").match(/(?:test|t)(\d+)/i);
   return match ? Number(match[1]) : null;
 }
 
@@ -4635,6 +4635,23 @@ function applySingleFilters(items, moduleName) {
     const bookOk = book === "all" || String(itemBook(item)) === book;
     const testOk = test === "all" || String(itemTest(item)) === test;
     return bookOk && testOk;
+  });
+}
+
+function practiceCompletionFilterMatches(moduleName, item) {
+  const filter = filterValue("singleCompletionFilter");
+  if (filter === "all") return true;
+  const completed = practiceCompletionStatus(moduleName, item).completed;
+  return filter === "completed" ? completed : !completed;
+}
+
+function applySingleUnitFilters(items, moduleName, scope = currentSinglePracticeScope(moduleName)) {
+  const unit = filterValue("singleUnitFilter");
+  const topic = filterValue("singleTopicFilter");
+  return items.filter((item) => {
+    const unitOk = !["section", "topic"].includes(scope) || unit === "all" || String(item.practiceSection) === unit;
+    const topicOk = scope !== "topic" || topic === "all" || String(item.contentTopic?.key || "") === topic;
+    return unitOk && topicOk && practiceCompletionFilterMatches(moduleName, item);
   });
 }
 
@@ -4659,6 +4676,62 @@ function renderSingleFilters(items, moduleName) {
   renderFilterOptions("singleTestFilter", testItems.map(itemTest), "All tests");
   renderFilterOptions("singleTaskFilter", [], "All tasks");
   $("singleTaskFilter").style.display = "none";
+  const objectiveLibrary = ["listening", "reading"].includes(moduleName);
+  const scope = currentSinglePracticeScope(moduleName);
+  const unitSelect = $("singleUnitFilter");
+  const topicSelect = $("singleTopicFilter");
+  const completionSelect = $("singleCompletionFilter");
+  if (!objectiveLibrary) {
+    [unitSelect, topicSelect, completionSelect].forEach((select) => {
+      select.hidden = true;
+      select.innerHTML = '<option value="all">All</option>';
+      select.value = "all";
+    });
+    return;
+  }
+
+  const unitVisible = ["section", "topic"].includes(scope);
+  const unitLabel = moduleName === "reading" ? "Passage" : "Section";
+  const unitCount = moduleName === "reading" ? 3 : 4;
+  const currentUnit = unitSelect.value || "all";
+  unitSelect.innerHTML = [
+    `<option value="all">All ${escapeHtml(unitLabel.toLowerCase())}s</option>`,
+    ...Array.from({ length: unitCount }, (_, index) => `<option value="${index + 1}">${escapeHtml(unitLabel)} ${index + 1}</option>`),
+  ].join("");
+  unitSelect.value = Array.from({ length: unitCount }, (_, index) => String(index + 1)).includes(currentUnit) ? currentUnit : "all";
+  unitSelect.hidden = !unitVisible;
+  if (!unitVisible) unitSelect.value = "all";
+
+  const selectedTest = filterValue("singleTestFilter");
+  const contextPapers = items.filter((item) => {
+    const bookOk = selectedBook === "all" || String(itemBook(item)) === selectedBook;
+    const testOk = selectedTest === "all" || String(itemTest(item)) === selectedTest;
+    return bookOk && testOk;
+  });
+  const selectedUnit = filterValue("singleUnitFilter");
+  const topicMap = new Map();
+  contextPapers.forEach((paper) => {
+    Object.entries(paper.contentTopics || {}).forEach(([number, metadata]) => {
+      if (selectedUnit !== "all" && number !== selectedUnit) return;
+      const key = String(metadata?.key || "").trim();
+      if (key && !topicMap.has(key)) topicMap.set(key, metadata?.label || key);
+    });
+  });
+  const currentTopic = topicSelect.value || "all";
+  const topicOptions = [...topicMap.entries()].sort((a, b) => String(a[1]).localeCompare(String(b[1])));
+  topicSelect.innerHTML = [
+    '<option value="all">All content topics</option>',
+    ...topicOptions.map(([key, label]) => `<option value="${escapeHtml(key)}">${escapeHtml(label)}</option>`),
+  ].join("");
+  topicSelect.value = topicMap.has(currentTopic) ? currentTopic : "all";
+  topicSelect.hidden = scope !== "topic";
+  if (scope !== "topic") topicSelect.value = "all";
+
+  const currentCompletion = completionSelect.value || "all";
+  completionSelect.innerHTML = '<option value="all">All progress</option><option value="not-completed">Not completed</option><option value="completed">Completed</option>';
+  completionSelect.value = ["all", "not-completed", "completed"].includes(currentCompletion) ? currentCompletion : "all";
+  completionSelect.hidden = scope === "review";
+  if (scope === "review") completionSelect.value = "all";
 }
 
 function singleWritingTaskOption(task) {
@@ -4697,7 +4770,7 @@ function scopeFromLegacyMode(moduleName, mode = "") {
 
 function modeForPracticeScope(moduleName, scope = "paper") {
   if (moduleName === "listening") return scope === "section" || scope === "topic" ? "training" : scope === "review" ? "review" : "exam";
-  if (moduleName === "reading") return scope === "section" ? "evidence" : scope === "topic" ? "type" : scope === "review" ? "review" : "full";
+  if (moduleName === "reading") return scope === "section" || scope === "topic" ? "evidence" : scope === "review" ? "review" : "full";
   return currentSinglePracticeMode(moduleName);
 }
 
@@ -4716,6 +4789,16 @@ function setSinglePracticeScope(moduleName, scope) {
 
 function practiceUnitTopicLabel(question) {
   return String(question?.typeLabel || question?.type || "Question type").trim();
+}
+
+function contentTopicForUnit(item, section) {
+  const metadata = item?.contentTopics?.[String(section)] || item?.contentTopics?.[section] || {};
+  return {
+    key: String(metadata.key || "general").trim() || "general",
+    label: String(metadata.label || "General interest").trim() || "General interest",
+    emoji: String(metadata.emoji || "✨").trim() || "✨",
+    title: String(metadata.title || `${item?.title || "IELTS source"} · ${section}`).trim(),
+  };
 }
 
 function practiceUnitBaseId(item) {
@@ -4747,15 +4830,33 @@ function scopedPracticeUnit(moduleName, sourceItem, scope, value = "") {
     minutes = moduleName === "reading" ? 20 : 10;
     unit.id = `${base.id}::section::${section}`;
     unit.practiceSection = section;
+    unit.libraryScope = "section";
+    unit.contentTopic = contentTopicForUnit(base, section);
   } else if (scope === "topic") {
-    const type = String(value || "").trim();
-    questions = allQuestions.filter((question) => question.type === type);
-    const label = practiceUnitTopicLabel(questions[0]) || type;
-    title = `${base.title || moduleDisplayName(moduleName)} · ${label}`;
-    minutes = 20;
-    unit.id = `${base.id}::topic::${type}`;
-    unit.practiceTopic = type;
-    unit.practiceTopicLabel = label;
+    const section = Number(value);
+    const maxSection = moduleName === "reading" ? 3 : 4;
+    if (Number.isInteger(section) && section >= 1 && section <= maxSection) {
+      const [start, end] = singleSectionQuestionRange(moduleName, section);
+      const contentTopic = contentTopicForUnit(base, section);
+      questions = questionsInRange(allQuestions, start, end);
+      title = contentTopic.title;
+      minutes = moduleName === "reading" ? 20 : 10;
+      unit.id = `${base.id}::section::${section}`;
+      unit.practiceSection = section;
+      unit.libraryScope = "topic";
+      unit.contentTopic = contentTopic;
+    } else {
+      // Restore-only compatibility for sessions created by the old question-type Topic library.
+      const type = String(value || "").trim();
+      questions = allQuestions.filter((question) => question.type === type);
+      const label = practiceUnitTopicLabel(questions[0]) || type;
+      title = `${base.title || moduleDisplayName(moduleName)} · ${label}`;
+      minutes = 20;
+      unit.id = `${base.id}::topic::${type}`;
+      unit.practiceTopic = type;
+      unit.practiceTopicLabel = label;
+      unit.libraryScope = "legacy-topic";
+    }
   } else if (scope === "review") {
     const previous = latestObjectiveResultForSource(moduleName, base.id || "");
     const wrongIds = new Set(previous?.wrongQuestionIds || []);
@@ -4785,9 +4886,9 @@ function scopedPracticeUnits(moduleName, papers, scope = currentSinglePracticeSc
     return papers.flatMap((paper) => Array.from({ length: count }, (_, index) => scopedPracticeUnit(moduleName, paper, "section", index + 1)));
   }
   if (scope === "topic") {
-    return papers.flatMap((paper) => [...new Set((paper.questions || []).map((question) => question.type).filter((type) => type && type !== "unknown"))]
-      .map((type) => scopedPracticeUnit(moduleName, paper, "topic", type))
-      .filter((item) => item.questions.length));
+    const count = moduleName === "reading" ? 3 : 4;
+    return papers.flatMap((paper) => Array.from({ length: count }, (_, index) => scopedPracticeUnit(moduleName, paper, "topic", index + 1)))
+      .filter((item) => item.questions.length);
   }
   return papers.map((paper) => scopedPracticeUnit(moduleName, paper, "review")).filter((item) => !item.reviewUnavailable);
 }
@@ -4802,7 +4903,10 @@ function scopedPracticeUnitById(moduleName, id) {
 function singleOptions(moduleName) {
   const allOptions = mergedItems(moduleName).map(normalizeItem);
   const filtered = applySingleFilters(allOptions, moduleName);
-  if (["listening", "reading"].includes(moduleName)) return scopedPracticeUnits(moduleName, filtered);
+  if (["listening", "reading"].includes(moduleName)) {
+    const scope = currentSinglePracticeScope(moduleName);
+    return applySingleUnitFilters(scopedPracticeUnits(moduleName, filtered, scope), moduleName, scope);
+  }
   if (moduleName !== "writing") return filtered;
   return filtered.map(singleWritingTaskOption);
 }
@@ -8158,12 +8262,20 @@ function restorePracticeSessionAfterData(expectedModule = "", expectedItemId = "
   state.singlePracticeScopes = { ...state.singlePracticeScopes, ...(session.scopes || {}) };
   state.singlePracticeSections = { ...state.singlePracticeSections, ...(session.sections || {}) };
   const baseItem = mergedItems(session.module).map(normalizeItem).find((candidate) => candidate.id === session.itemId) || null;
-  let item = findItemById(session.module, session.itemId);
+  const canonicalUnitMatch = String(session.itemId || "").match(/^(.+)::section::([1-9]\d*)$/);
+  const canonicalUnitBase = canonicalUnitMatch
+    ? mergedItems(session.module).map(normalizeItem).find((candidate) => candidate.id === canonicalUnitMatch[1]) || null
+    : null;
+  let item = session.scopes?.[session.module] === "topic" && canonicalUnitBase
+    ? scopedPracticeUnit(session.module, canonicalUnitBase, "topic", Number(canonicalUnitMatch[2]))
+    : findItemById(session.module, session.itemId);
   if (baseItem && ["listening", "reading"].includes(session.module) && !session.scopes?.[session.module]) {
     const legacyScope = scopeFromLegacyMode(session.module, session.modes?.[session.module]);
     state.singlePracticeScopes[session.module] = legacyScope;
     if (legacyScope === "section") item = scopedPracticeUnit(session.module, baseItem, "section", session.sections?.[session.module] || 1);
     if (legacyScope === "topic") item = scopedPracticeUnit(session.module, baseItem, "topic", session.readingQuestionType || "");
+  } else if (item?.libraryScope === "topic") {
+    setSinglePracticeScope(session.module, "topic");
   } else if (item?.practiceScope) {
     setSinglePracticeScope(session.module, item.practiceScope);
   }
@@ -14635,7 +14747,7 @@ function singleScopeOptions(moduleName) {
   return [
     { id: "paper", icon: "📝", label: "Full tests", detail: moduleName === "listening" ? "40 questions · 30 min" : "40 questions · 60 min" },
     { id: "section", icon: moduleName === "listening" ? "🎧" : "📖", label: moduleName === "listening" ? "Sections" : "Passages", detail: moduleName === "listening" ? "10 questions each" : "13–14 questions each" },
-    { id: "topic", icon: "🧩", label: "Topics", detail: "Practise one IELTS question type" },
+    { id: "topic", icon: "🧭", label: "Topics", detail: moduleName === "listening" ? "Content topics · audio subject" : "Content topics · passage subject" },
     { id: "review", icon: "🔁", label: "Review mistakes", detail: "Your saved wrong answers" },
   ];
 }
@@ -14651,19 +14763,23 @@ function renderSingleScopeTabs(moduleName) {
 }
 
 function renderPracticeUnitCard(item, moduleName) {
-  const scope = item.practiceScope || "paper";
+  const scope = item.libraryScope === "topic" ? "topic" : item.practiceScope || "paper";
   const questionCount = item.questions?.length || 0;
-  const topicAttr = item.practiceTopic ? ` data-topic-type="${escapeHtml(item.practiceTopic)}"` : "";
+  const contentTopic = item.contentTopic || {};
+  const completion = practiceCompletionStatus(moduleName, item);
+  const status = completion.completed ? "completed" : "not-completed";
+  const statusLabel = completion.completed ? "✓ Completed" : "○ Not completed";
   const unitLabel = scope === "section"
     ? `${moduleName === "reading" ? "Passage" : "Section"} ${item.practiceSection}`
     : scope === "topic"
-      ? item.practiceTopicLabel || "Question type"
+      ? `${contentTopic.emoji || "✨"} ${contentTopic.label || "General interest"}`
       : scope === "review" ? "Mistake review" : "Full test";
-  return `<article class="practice-unit-card tone-${escapeHtml(moduleName)}" data-practice-unit-id="${escapeHtml(item.id)}" data-practice-unit-scope="${escapeHtml(scope)}"${topicAttr}>
-    <div class="practice-unit-card-head"><span>${scope === "section" ? "🎯" : scope === "topic" ? "🧩" : "🔁"}</span><em>${escapeHtml(unitLabel)}</em></div>
+  return `<article class="practice-unit-card tone-${escapeHtml(moduleName)}" data-practice-unit-id="${escapeHtml(item.id)}" data-practice-unit-scope="${escapeHtml(scope)}" data-practice-section="${escapeHtml(item.practiceSection || "")}" data-content-topic="${escapeHtml(contentTopic.key || "")}" data-practice-status="${status}">
+    <div class="practice-unit-card-head"><span>${scope === "section" ? "🎯" : scope === "topic" ? "🧭" : "🔁"}</span><em>${escapeHtml(unitLabel)}</em></div>
     <h4>${escapeHtml(item.title || unitLabel)}</h4>
     <p>${escapeHtml(singlePracticeEvidenceLabel(item, moduleName) || item.source || moduleDisplayName(moduleName))}</p>
     <div class="practice-unit-stats"><span><strong>${questionCount}</strong> questions</span><span><strong>${Number(item.minutes) || 20}</strong> min</span>${moduleName === "listening" ? "<span>💬 ASR captions</span>" : "<span>🔎 Evidence view</span>"}</div>
+    <span class="practice-status-badge ${status}" role="status">${statusLabel}</span>
     <button class="primary" type="button" data-start-practice-unit="${escapeHtml(item.id)}">Start this practice</button>
   </article>`;
 }
@@ -14673,7 +14789,7 @@ function renderScopedPracticeLibrary(moduleName, options) {
   if (scope === "paper") return "";
   const empty = scope === "review"
     ? "Complete and score a practice first. Your wrong answers will appear here as an independent review set."
-    : "No practice units match the current Cambridge filters.";
+    : "No practice units match the current filters. Adjust or clear a Cambridge, unit, topic, or progress filter to continue.";
   return `<section class="practice-unit-library" data-practice-library="${escapeHtml(scope)}">
     <header><div><span class="eyebrow">${escapeHtml(moduleDisplayName(moduleName))} library</span><h3>${escapeHtml(singleScopeOptions(moduleName).find((item) => item.id === scope)?.label || "Practice units")}</h3></div><span>${options.length} independent practice${options.length === 1 ? "" : "s"}</span></header>
     ${options.length ? `<div class="practice-unit-grid">${options.map((item) => renderPracticeUnitCard(item, moduleName)).join("")}</div>` : `<div class="practice-unit-empty"><span aria-hidden="true">🌱</span><p>${escapeHtml(empty)}</p></div>`}
@@ -14712,7 +14828,10 @@ function renderSingleModeWorkspaceIntro(moduleName, mode = currentSinglePractice
 function singleOptionLabel(item, moduleName = state.activeModule) {
   const title = item?.title || item?.type || "Untitled practice";
   const source = item?.source && moduleName !== "writing" ? ` · ${item.source}` : "";
-  return `${title}${source}`;
+  const status = ["listening", "reading"].includes(moduleName)
+    ? ` · ${practiceCompletionStatus(moduleName, item).completed ? "✓ Completed" : "○ Not completed"}`
+    : "";
+  return `${title}${source}${status}`;
 }
 
 function singleOptionTitle(item) {
@@ -14865,6 +14984,12 @@ function renderSingleLaunch(moduleName, options) {
   const recommended = singleRecommendedOption(moduleName, options);
   const recommendationReason = singleRecommendationReason(moduleName, recommended, options);
   const selected = state.activeSingle && options.some((item) => item.id === state.activeSingle.id) ? state.activeSingle : recommended || options[0];
+  const recommendedCompletion = recommended && ["listening", "reading"].includes(moduleName)
+    ? practiceCompletionStatus(moduleName, recommended)
+    : null;
+  const recommendedStatus = recommendedCompletion
+    ? `<span class="practice-status-badge ${recommendedCompletion.completed ? "completed" : "not-completed"}" role="status">${recommendedCompletion.completed ? "✓ Completed" : "○ Not completed"}</span>`
+    : "";
   const selectOptions = options
     .map((item) => `<option value="${escapeHtml(item.id)}"${selected?.id === item.id ? " selected" : ""}>${escapeHtml(singleOptionLabel(item, moduleName))}</option>`)
     .join("");
@@ -14874,22 +14999,32 @@ function renderSingleLaunch(moduleName, options) {
     <section class="single-launch-hero">
       <span class="eyebrow">${escapeHtml(meta.label)} library</span>
       <h3>${escapeHtml(moduleName === "listening" ? "Train the exact listening skill you need" : "Choose the exact reading unit you need")}</h3>
-      <p>Every unit keeps its own timer, answers, score and history while the original Cambridge full tests stay untouched.</p>
+      <p>Browse by Section or Passage number, or use Content topics to choose the audio or passage subject. Every unit keeps its own timer, answers, score and history.</p>
     </section>
     ${scopeTabs}
     ${scopedLibrary}
+  </div>`;
+  if (["listening", "reading"].includes(moduleName) && !options.length) return `<div class="single-launch-shell">
+    <section class="single-launch-hero">
+      <span class="eyebrow">${escapeHtml(meta.label)} module</span>
+      <h3>${escapeHtml(moduleName === "listening" ? "Listening evidence trainer" : "Reading evidence locator")}</h3>
+      <p>Choose a full test, ${moduleName === "listening" ? "Section" : "Passage"}, content topic or mistake review.</p>
+    </section>
+    ${scopeTabs}
+    <div class="practice-unit-empty"><span aria-hidden="true">🌱</span><p>No full tests match the current filters. Adjust or clear a Cambridge or progress filter to continue.</p></div>
   </div>`;
   return `<div class="single-launch-shell">
     <section class="single-launch-hero">
       <span class="eyebrow">${escapeHtml(meta.label)} module</span>
       <h3>${escapeHtml(moduleName === "listening" ? "Listening evidence trainer" : moduleName === "reading" ? "Reading evidence locator" : "Choose how to practise")}</h3>
-      <p>${escapeHtml(moduleName === "listening" ? "Choose exam, training or review mode before opening the paper." : moduleName === "reading" ? "Choose full passage, evidence drill, question type practice or review mode before opening the paper." : "Each module is a standalone practice. Start with an AI recommendation, or choose a paper yourself.")}</p>
+      <p>${escapeHtml(moduleName === "listening" ? "Choose a full test, Section, content topic or mistake review." : moduleName === "reading" ? "Choose a full test, Passage, content topic or mistake review." : "Each module is a standalone practice. Start with an AI recommendation, or choose a paper yourself.")}</p>
     </section>
     ${scopeTabs || renderSingleModePicker(moduleName)}
     <div class="single-launch-grid">
       <article class="single-launch-card recommended">
         <span class="single-launch-badge">AI recommended</span>
         <h4>${escapeHtml(recommended ? singleOptionTitle(recommended) : meta.title)}</h4>
+        ${recommendedStatus}
         <p>${escapeHtml(meta.recommended)}</p>
         <div class="single-launch-reason">
           <strong>Why this</strong>
@@ -14919,7 +15054,8 @@ function beginSinglePracticeUnit(item) {
   if (!item) return;
   const moduleName = state.activeModule;
   state.activeSingle = item;
-  if (item.practiceScope) setSinglePracticeScope(moduleName, item.practiceScope);
+  if (item.libraryScope === "topic") setSinglePracticeScope(moduleName, "topic");
+  else if (item.practiceScope) setSinglePracticeScope(moduleName, item.practiceScope);
   if (item.practiceSection) state.singlePracticeSections[moduleName] = Number(item.practiceSection);
   if (item.practiceTopic) state.readingQuestionType = item.practiceTopic;
   rememberPracticeRecommendation(moduleName, item);
@@ -14960,6 +15096,7 @@ function renderSingle() {
   const options = singleOptions(moduleName);
   $("single")?.classList.toggle("single-launching", !state.singleStarted);
   $("single")?.classList.toggle("single-started", Boolean(state.singleStarted));
+  $("single")?.classList.toggle("single-objective-library", ["listening", "reading"].includes(moduleName));
   if (!options.length) {
     if (!state.singleStarted && ["listening", "reading"].includes(moduleName)) {
       $("singleTitle").textContent = moduleDisplayName(moduleName);
@@ -14973,9 +15110,16 @@ function renderSingle() {
     $("singleContent").innerHTML = `<div class="notice">${moduleName === "writing" ? "No independent Writing task is available for this filter." : "This module has no imported questions yet. Add materials to the user bank first."}</div>`;
     return;
   }
-  state.activeSingle = state.activeSingle && state.activeSingle.module === moduleName && options.some((item) => item.id === state.activeSingle.id) ? state.activeSingle : options[0];
+  const restoringLegacyTopic = state.singleStarted
+    && state.activeSingle?.module === moduleName
+    && /::topic::/.test(String(state.activeSingle?.id || ""));
+  state.activeSingle = state.activeSingle
+    && state.activeSingle.module === moduleName
+    && (restoringLegacyTopic || options.some((item) => item.id === state.activeSingle.id))
+    ? state.activeSingle
+    : options[0];
   $("singleTitle").textContent = moduleDisplayName(moduleName);
-  $("singleSelect").innerHTML = options.map((item) => `<option value="${item.id}">${item.title || item.type || "Untitled"}${item.source && moduleName !== "writing" ? ` · ${item.source}` : ""}</option>`).join("");
+  $("singleSelect").innerHTML = options.map((item) => `<option value="${escapeHtml(item.id)}">${escapeHtml(singleOptionLabel(item, moduleName))}</option>`).join("");
   $("singleSelect").value = state.activeSingle.id;
   if (!state.singleStarted) {
     $("singleContent").innerHTML = renderSingleLaunch(moduleName, options);
@@ -18133,7 +18277,7 @@ function bindEvents() {
     state.activeSingle = singleOptions(state.activeModule).find((item) => item.id === event.target.value);
     renderSingle();
   });
-  ["singleBookFilter", "singleTestFilter", "singleTaskFilter"].forEach((id) => {
+  ["singleBookFilter", "singleTestFilter", "singleTaskFilter", "singleUnitFilter", "singleTopicFilter", "singleCompletionFilter"].forEach((id) => {
     $(id).addEventListener("change", () => {
       state.activeSingle = null;
       renderSingle();

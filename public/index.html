@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>IELTS-ist</title>
-    <link rel="stylesheet" href="/styles.css?v=20260802-scope-libraries" />
+    <link rel="stylesheet" href="/styles.css?v=20260802-semantic-topics-completion" />
   </head>
   <body class="focus-camp-system">
     <div class="app-shell">
@@ -133,9 +133,12 @@
               <select id="singleSelect"></select>
             </div>
             <div class="single-filters">
-              <select id="singleBookFilter"></select>
-              <select id="singleTestFilter"></select>
-              <select id="singleTaskFilter"></select>
+              <select id="singleBookFilter" aria-label="Cambridge book"></select>
+              <select id="singleTestFilter" aria-label="Cambridge test"></select>
+              <select id="singleTaskFilter" aria-label="Writing task"></select>
+              <select id="singleUnitFilter" aria-label="Section or passage"></select>
+              <select id="singleTopicFilter" aria-label="Content topic"></select>
+              <select id="singleCompletionFilter" aria-label="Practice completion"></select>
             </div>
             <div id="singleContent"></div>
           </section>
@@ -405,6 +408,6 @@
       <button id="clearAnnotation" class="icon-btn" type="button">Clear paper</button>
     </div>
   <script src="/vendor/lucide.min.js?v=20260730-1"></script>
-  <script src="/app.js?v=20260802-scope-libraries"></script>
+  <script src="/app.js?v=20260802-semantic-topics-completion"></script>
   </body>
 </html>

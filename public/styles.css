@@ -2337,18 +2337,23 @@ textarea:focus,
 
 #single .module-btn {
   min-width: 64px;
-  min-height: 38px;
+  min-height: 44px;
 }
 
 #single .back-submit-button {
-  min-height: 38px;
+  min-height: 44px;
 }
 
 .single-filters {
   display: grid;
-  grid-template-columns: repeat(3, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 8px;
   margin: 0 0 12px;
+}
+
+.single-filters select {
+  min-width: 0;
+  min-height: 44px;
 }
 
 .module-btn.active {
@@ -9914,6 +9919,10 @@ body.immersive-mode[data-immersive-module="speaking"] .exam-section.focused-sect
   display: flex !important;
 }
 
+#single.single-launching.single-objective-library .single-filters {
+  display: grid !important;
+}
+
 #single.single-launching #singleContent {
   min-height: min(620px, calc(100vh - 210px));
 }
@@ -10045,6 +10054,28 @@ body.immersive-mode[data-immersive-module="speaking"] .exam-section.focused-sect
 .practice-unit-stats span { padding: 6px 8px; border-radius: 999px; background: #f2f4f7; color: #475467; font-size: 11px; }
 .practice-unit-stats strong { color: #101828; }
 .practice-unit-card button { min-height: 44px; margin-top: auto; }
+.practice-status-badge {
+  width: fit-content;
+  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 9px;
+  border: 1px solid #d0d5dd;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #475467;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.2;
+  white-space: normal;
+}
+
+.practice-status-badge.completed {
+  border-color: #a6f4c5;
+  background: #ecfdf3;
+  color: #027a48;
+}
 .practice-unit-empty { display: grid; place-items: center; gap: 8px; min-height: 180px; padding: 28px; border: 1px dashed #cbd5e1; border-radius: 16px; color: #667085; text-align: center; }
 .practice-unit-empty > span { font-size: 34px; }
 
@@ -10346,6 +10377,23 @@ body.immersive-mode[data-immersive-module="speaking"] .exam-section.focused-sect
   .vocab-review-card,
   .vocab-review-side {
     min-height: auto;
+  }
+}
+
+@media (max-width: 620px) {
+  .single-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .practice-unit-library > header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .practice-unit-grid {
+    max-height: 68vh;
+    padding-right: 2px;
   }
 }
 
