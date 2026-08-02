@@ -1156,7 +1156,10 @@ function updateUserChrome() {
 }
 
 async function refreshMineData() {
-  if (!state.authToken) {
+  const authToken = state.authToken;
+  const ownerIdentityAtStart = practiceCompletionIdentityKey();
+  const ownerWasKnownAtStart = Boolean(state.currentUser?.id || state.currentUser?.username);
+  if (!authToken) {
     state.serverDrafts = [];
     state.vocabItems = [];
     state.learningState = null;
@@ -1167,21 +1170,29 @@ async function refreshMineData() {
     return;
   }
   try {
-    const me = await getJson("/api/me");
+    const me = await getJson("/api/me", { authToken });
+    if (state.authToken !== authToken || (ownerWasKnownAtStart && practiceCompletionIdentityKey() !== ownerIdentityAtStart)) return;
+    const responseIdentity = practiceCompletionIdentityForUser(me.user);
+    if (ownerWasKnownAtStart && responseIdentity !== ownerIdentityAtStart) return;
+    const ownerIdentity = ownerWasKnownAtStart ? ownerIdentityAtStart : responseIdentity;
     state.currentUser = me.user || null;
-    await retryPendingPracticeCompletion();
-    await retryPendingLearningAttempts();
+    if (!completionSyncOwnerIsCurrent(ownerIdentity, authToken)) return;
+    await retryPendingPracticeCompletion({ ownerIdentity, authToken });
+    if (!completionSyncOwnerIsCurrent(ownerIdentity, authToken)) return;
+    await retryPendingLearningAttempts({ ownerIdentity, authToken });
+    if (!completionSyncOwnerIsCurrent(ownerIdentity, authToken)) return;
     const [drafts, vocab, learning] = await Promise.all([
-      getJson("/api/drafts"),
-      getJson("/api/vocabulary"),
-      getJson("/api/learning/state"),
+      getJson("/api/drafts", { authToken }),
+      getJson("/api/vocabulary", { authToken }),
+      getJson("/api/learning/state", { authToken }),
     ]);
+    if (!completionSyncOwnerIsCurrent(ownerIdentity, authToken)) return;
     state.serverDrafts = drafts.drafts || [];
     state.vocabItems = vocab.items || [];
-    state.learningState = learning ? { ...learning, completionIdentity: practiceCompletionIdentityKey() } : null;
+    state.learningState = learning ? { ...learning, completionIdentity: ownerIdentity } : null;
     if (!readPendingPracticeCompletion()) importRemotePracticeSession(learning.activeSession);
   } catch (error) {
-    if (/log in|expired|401/i.test(error.message)) {
+    if (state.authToken === authToken && /log in|expired|401/i.test(error.message)) {
       state.authToken = "";
       state.currentUser = null;
       localStorage.removeItem(authStoreKey);
@@ -2430,10 +2441,17 @@ function updateLearningLoopHistory(patch = {}) {
   return next;
 }
 
-function practiceCompletionIdentityKey() {
-  const user = state.currentUser;
+function practiceCompletionIdentityForUser(user) {
   if (!user?.id && !user?.username) return "guest";
   return `user:${String(user.id || user.username).trim()}`;
+}
+
+function practiceCompletionIdentityKey() {
+  return practiceCompletionIdentityForUser(state.currentUser);
+}
+
+function completionSyncOwnerIsCurrent(ownerIdentity, authToken) {
+  return state.authToken === authToken && practiceCompletionIdentityKey() === ownerIdentity;
 }
 
 function canonicalPracticeCompletionId(moduleName, item = {}) {
@@ -2576,18 +2594,18 @@ function practiceCompletionStatus(moduleName, item) {
   return { completed: Boolean(completion), completedAt: completion?.completedAt || "", attemptId: completion?.attemptId || "" };
 }
 
-function readPendingLearningAttempts() {
+function readPendingLearningAttempts(identity = practiceCompletionIdentityKey()) {
   try {
     const value = JSON.parse(localStorage.getItem(pendingLearningAttemptsStoreKey) || "{}");
     const partitions = value?.version === 1 && value.partitions && typeof value.partitions === "object" ? value.partitions : {};
-    const pending = partitions[practiceCompletionIdentityKey()];
+    const pending = partitions[identity];
     return Array.isArray(pending) ? pending : [];
   } catch {
     return [];
   }
 }
 
-function writePendingLearningAttempts(attempts) {
+function writePendingLearningAttempts(attempts, identity = practiceCompletionIdentityKey()) {
   let value;
   try {
     value = JSON.parse(localStorage.getItem(pendingLearningAttemptsStoreKey) || "{}");
@@ -2595,36 +2613,40 @@ function writePendingLearningAttempts(attempts) {
     value = {};
   }
   const partitions = value?.version === 1 && value.partitions && typeof value.partitions === "object" ? value.partitions : {};
-  partitions[practiceCompletionIdentityKey()] = (Array.isArray(attempts) ? attempts : []).slice(-100);
+  partitions[identity] = (Array.isArray(attempts) ? attempts : []).slice(-100);
   localStorage.setItem(pendingLearningAttemptsStoreKey, JSON.stringify({ version: 1, partitions }));
 }
 
-function queuePendingLearningAttempt(payload) {
-  if (!payload?.attemptId) return readPendingLearningAttempts();
-  const pending = readPendingLearningAttempts().filter((item) => item?.attemptId !== payload.attemptId);
+function queuePendingLearningAttempt(payload, identity = practiceCompletionIdentityKey()) {
+  if (!payload?.attemptId) return readPendingLearningAttempts(identity);
+  const pending = readPendingLearningAttempts(identity).filter((item) => item?.attemptId !== payload.attemptId);
   pending.push({ ...payload, queuedAt: payload.queuedAt || new Date().toISOString() });
-  writePendingLearningAttempts(pending);
+  writePendingLearningAttempts(pending, identity);
   return pending;
 }
 
-function removePendingLearningAttempt(attemptId) {
-  const pending = readPendingLearningAttempts().filter((item) => item?.attemptId !== attemptId);
-  writePendingLearningAttempts(pending);
+function removePendingLearningAttempt(attemptId, identity = practiceCompletionIdentityKey()) {
+  const pending = readPendingLearningAttempts(identity).filter((item) => item?.attemptId !== attemptId);
+  writePendingLearningAttempts(pending, identity);
   return pending;
 }
 
-async function retryPendingLearningAttempts() {
-  const pending = readPendingLearningAttempts();
+async function retryPendingLearningAttempts(options = {}) {
+  const ownerIdentity = options.ownerIdentity || practiceCompletionIdentityKey();
+  const authToken = Object.prototype.hasOwnProperty.call(options, "authToken") ? options.authToken : state.authToken;
+  const pending = readPendingLearningAttempts(ownerIdentity);
   if (!pending.length) return true;
   let succeeded = true;
   for (const payload of pending) {
+    if (!completionSyncOwnerIsCurrent(ownerIdentity, authToken)) return false;
     try {
-      const json = await postJson("/api/learning/attempts", payload);
-      removePendingLearningAttempt(payload.attemptId);
+      const json = await postJson("/api/learning/attempts", payload, { authToken });
+      if (!completionSyncOwnerIsCurrent(ownerIdentity, authToken)) return false;
+      removePendingLearningAttempt(payload.attemptId, ownerIdentity);
       const attempt = json.attempt || null;
       if (attempt) {
         const attempts = [attempt, ...((state.learningState?.attempts || []).filter((item) => item.attemptId !== attempt.attemptId))].slice(0, 20);
-        state.learningState = { ...(state.learningState || {}), attempts };
+        state.learningState = { ...(state.learningState || {}), completionIdentity: ownerIdentity, attempts };
       }
     } catch {
       succeeded = false;
@@ -2698,7 +2720,9 @@ function compactLearningRecord(value) {
 }
 
 async function archiveLearningAttempt(moduleName, record) {
-  if (!state.authToken || !record?.attemptId) return;
+  const authToken = state.authToken;
+  const ownerIdentity = practiceCompletionIdentityKey();
+  if (!authToken || !record?.attemptId) return;
   const session = activeViewId() === "single" ? readPracticeSession() : null;
   const score = moduleName === "writing"
     ? record.scores || {}
@@ -2716,12 +2740,13 @@ async function archiveLearningAttempt(moduleName, record) {
     feedback: compactLearningRecord({ feedback: record.feedback || record.report || "" }),
     durationSeconds: Math.max(0, Number(state.singleTotal || 0) - Number(state.singleSeconds || 0)),
   };
-  queuePendingLearningAttempt(payload);
+  queuePendingLearningAttempt(payload, ownerIdentity);
   try {
-    const json = await postJson("/api/learning/attempts", payload);
-    removePendingLearningAttempt(record.attemptId);
+    const json = await postJson("/api/learning/attempts", payload, { authToken });
+    if (!completionSyncOwnerIsCurrent(ownerIdentity, authToken)) return;
+    removePendingLearningAttempt(record.attemptId, ownerIdentity);
     const attempts = [json.attempt, ...((state.learningState?.attempts || []).filter((item) => item.attemptId !== json.attempt?.attemptId))].filter(Boolean).slice(0, 20);
-    state.learningState = { ...(state.learningState || {}), attempts };
+    state.learningState = { ...(state.learningState || {}), completionIdentity: ownerIdentity, attempts };
   } catch {
     // The identity-partitioned outbox retries this idempotent attempt later.
   }
@@ -5005,15 +5030,17 @@ async function parseJsonResponse(response) {
   return json || {};
 }
 
-async function getJson(url) {
-  const headers = state.authToken ? { authorization: `Bearer ${state.authToken}` } : {};
+async function getJson(url, options = {}) {
+  const authToken = Object.prototype.hasOwnProperty.call(options, "authToken") ? options.authToken : state.authToken;
+  const headers = authToken ? { authorization: `Bearer ${authToken}` } : {};
   const response = await fetch(url, { cache: "no-store", headers });
   return parseJsonResponse(response);
 }
 
 async function postJson(url, payload, options = {}) {
   const headers = { "content-type": "application/json" };
-  if (state.authToken) headers.authorization = `Bearer ${state.authToken}`;
+  const authToken = Object.prototype.hasOwnProperty.call(options, "authToken") ? options.authToken : state.authToken;
+  if (authToken) headers.authorization = `Bearer ${authToken}`;
   const response = await fetch(url, {
     method: "POST",
     headers,
@@ -5023,9 +5050,10 @@ async function postJson(url, payload, options = {}) {
   return parseJsonResponse(response);
 }
 
-async function sendJsonRequest(url, method, payload) {
+async function sendJsonRequest(url, method, payload, options = {}) {
   const headers = { "content-type": "application/json" };
-  if (state.authToken) headers.authorization = `Bearer ${state.authToken}`;
+  const authToken = Object.prototype.hasOwnProperty.call(options, "authToken") ? options.authToken : state.authToken;
+  if (authToken) headers.authorization = `Bearer ${authToken}`;
   const response = await fetch(url, {
     method,
     headers,
@@ -5034,8 +5062,8 @@ async function sendJsonRequest(url, method, payload) {
   return parseJsonResponse(response);
 }
 
-const putJson = (url, payload) => sendJsonRequest(url, "PUT", payload);
-const patchJson = (url, payload) => sendJsonRequest(url, "PATCH", payload);
+const putJson = (url, payload, options) => sendJsonRequest(url, "PUT", payload, options);
+const patchJson = (url, payload, options) => sendJsonRequest(url, "PATCH", payload, options);
 
 async function postBlobWithTimeout(url, blob, timeoutMs = 0) {
   const headers = {};
@@ -8029,11 +8057,14 @@ function readPendingPracticeCompletion() {
   }
 }
 
-async function retryPendingPracticeCompletion() {
+async function retryPendingPracticeCompletion(options = {}) {
+  const ownerIdentity = options.ownerIdentity || practiceCompletionIdentityKey();
+  const authToken = Object.prototype.hasOwnProperty.call(options, "authToken") ? options.authToken : state.authToken;
   const session = readPendingPracticeCompletion();
-  if (!state.authToken || !session?.sessionId) return false;
+  if (!authToken || !session?.sessionId || !completionSyncOwnerIsCurrent(ownerIdentity, authToken)) return false;
   try {
-    await putJson(`/api/learning/sessions/${encodeURIComponent(session.sessionId)}`, practiceSessionRemotePayload(session, "completed"));
+    await putJson(`/api/learning/sessions/${encodeURIComponent(session.sessionId)}`, practiceSessionRemotePayload(session, "completed"), { authToken });
+    if (!completionSyncOwnerIsCurrent(ownerIdentity, authToken)) return false;
     localStorage.removeItem(pendingPracticeCompletionStoreKey);
     localStorage.removeItem(practiceSessionStoreKey);
     return true;

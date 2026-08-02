@@ -7,6 +7,7 @@ import { runInNewContext } from "node:vm";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const appSource = await readFile(path.join(root, "public", "app.js"), "utf8");
+const serverSource = await readFile(path.join(root, "server.js"), "utf8");
 
 function functionSource(source, name) {
   const match = new RegExp(`(?:async\\s+)?function\\s+${name}\\s*\\(`).exec(source);
@@ -40,7 +41,9 @@ assert.match(appSource, /const completionStoreKey\s*=\s*["']ieltsistCompletedIte
 assert.match(appSource, /const pendingLearningAttemptsStoreKey\s*=\s*["']ieltsistPendingLearningAttemptsV1["']/, "Failed attempt archival needs a durable outbox");
 
 const completionFunctions = [
+  "practiceCompletionIdentityForUser",
   "practiceCompletionIdentityKey",
+  "completionSyncOwnerIsCurrent",
   "canonicalPracticeCompletionId",
   "practiceCompletionKey",
   "readPracticeCompletionStore",
@@ -56,6 +59,7 @@ const completionFunctions = [
   "retryPendingLearningAttempts",
 ];
 const persistenceFunctions = [
+  "refreshMineData",
   "updateLearningLoopHistory",
   "compactLearningRecord",
   "archiveLearningAttempt",
@@ -105,6 +109,7 @@ function completionContext(storage, overrides = {}) {
       try { return JSON.parse(storage.getItem("ieltsistLearningLoopHistory") || "{}"); } catch { return {}; }
     },
     postJson: overrides.postJson || (async () => ({ attempt: null })),
+    getJson: overrides.getJson || (async () => ({})),
     activeViewId: () => "single",
     readPracticeSession: () => null,
     currentSinglePracticeMode: () => "practice",
@@ -112,6 +117,15 @@ function completionContext(storage, overrides = {}) {
     moduleDisplayName: (moduleName) => moduleName,
     practiceUnitBaseId: (item) => String(item?.sourceItemId || item?.baseItemId || item?.id || "").split("::")[0],
     resolveRetestedWeakAreas: () => null,
+    retryPendingPracticeCompletion: () => Promise.resolve(true),
+    readPendingPracticeCompletion: () => null,
+    importRemotePracticeSession: () => null,
+    updateUserChrome: () => null,
+    renderMine: () => null,
+    renderDashboard: () => null,
+    renderSubscription: () => null,
+    renderCoach: () => null,
+    authStoreKey: "ieltsistAuthToken",
   };
   runInNewContext(`${completionRuntime}\nthis.api = { ${runtimeFunctions.join(", ")} };`, context);
   return context;
@@ -266,6 +280,115 @@ shouldFail = false;
 assert.equal(await outbox.api.retryPendingLearningAttempts(), true);
 assert.deepEqual(outbox.api.readPendingLearningAttempts(), [], "Successful idempotent retry must clear the outbox entry");
 
+function deferred() {
+  let resolve;
+  let reject;
+  const promise = new Promise((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise;
+    reject = rejectPromise;
+  });
+  return { promise, resolve, reject };
+}
+
+function pendingPartition(storage, identity) {
+  return JSON.parse(storage.getItem("ieltsistPendingLearningAttemptsV1") || "{}").partitions?.[identity] || [];
+}
+
+const networkCalls = [];
+const networkContext = {
+  state: { authToken: "token-current-b" },
+  fetch: async (url, options) => {
+    networkCalls.push({ url, options });
+    return { ok: true, status: 200, headers: { get: () => "application/json" }, text: async () => "{}" };
+  },
+};
+runInNewContext(`${functionSource(appSource, "parseJsonResponse")}\n${functionSource(appSource, "getJson")}\n${functionSource(appSource, "postJson")}\nthis.api = { getJson, postJson };`, networkContext);
+await networkContext.api.getJson("/api/learning/state", { authToken: "token-owner-a" });
+await networkContext.api.postJson("/api/learning/attempts", { attemptId: "attempt_network_owner" }, { authToken: "token-owner-a" });
+assert.deepEqual(networkCalls.map((call) => call.options.headers.authorization), ["Bearer token-owner-a", "Bearer token-owner-a"], "Explicit request tokens must override mutable current-account state at the fetch boundary");
+
+const retryRaceStorage = memoryStorage();
+const retryRaceRequest = deferred();
+const retryRaceCalls = [];
+const retryRace = completionContext(retryRaceStorage, {
+  state: {
+    currentUser: { id: 501, username: "retry-a" },
+    authToken: "token-retry-a",
+    learningState: { completionIdentity: "user:501", attempts: [] },
+  },
+  postJson: (_url, payload, options) => {
+    retryRaceCalls.push({ payload, options });
+    return retryRaceRequest.promise;
+  },
+});
+retryRace.api.queuePendingLearningAttempt({ attemptId: "attempt_retry_race", module: "writing", itemId: "cam15-w-test1-task1" });
+const retryRaceRun = retryRace.api.retryPendingLearningAttempts();
+retryRace.state.currentUser = { id: 502, username: "retry-b" };
+retryRace.state.authToken = "token-retry-b";
+retryRace.state.learningState = { completionIdentity: "user:502", attempts: [{ attemptId: "attempt_b_visible" }] };
+retryRace.api.queuePendingLearningAttempt({ attemptId: "attempt_retry_race", module: "speaking", itemId: "cam16-s-test1" });
+retryRaceRequest.resolve({ attempt: { attemptId: "attempt_retry_race", module: "writing", itemId: "cam15-w-test1-task1" } });
+assert.equal(await retryRaceRun, false, "Retry must abort remaining stale work after an account switch");
+assert.equal(retryRaceCalls[0].options?.authToken, "token-retry-a", "Retry must send with the snapshotted owner token");
+assert.equal(pendingPartition(retryRaceStorage, "user:501").length, 1, "Stale retry completion must leave A's idempotent payload queued");
+assert.equal(pendingPartition(retryRaceStorage, "user:502").length, 1, "A retry must never remove B's queue entry");
+assert.deepEqual(retryRace.state.learningState.attempts.map((item) => item.attemptId), ["attempt_b_visible"], "A retry response must never enter B's visible learning state");
+
+const archiveRaceStorage = memoryStorage();
+const archiveRaceRequest = deferred();
+const archiveRaceCalls = [];
+const archiveRace = completionContext(archiveRaceStorage, {
+  state: {
+    currentUser: { id: 601, username: "archive-a" },
+    authToken: "token-archive-a",
+    learningState: { completionIdentity: "user:601", attempts: [] },
+  },
+  postJson: (_url, payload, options) => {
+    archiveRaceCalls.push({ payload, options });
+    return archiveRaceRequest.promise;
+  },
+});
+const archiveRaceRun = archiveRace.api.archiveLearningAttempt("speaking", { attemptId: "attempt_archive_race", itemId: "cam15-s-test1", topicId: "cam15-s-test1", band: 7 });
+archiveRace.state.currentUser = { id: 602, username: "archive-b" };
+archiveRace.state.authToken = "token-archive-b";
+archiveRace.state.learningState = { completionIdentity: "user:602", attempts: [{ attemptId: "attempt_archive_b_visible" }] };
+archiveRace.api.queuePendingLearningAttempt({ attemptId: "attempt_archive_race", module: "writing", itemId: "cam16-w-test1-task1" });
+archiveRaceRequest.resolve({ attempt: { attemptId: "attempt_archive_race", module: "speaking", itemId: "cam15-s-test1" } });
+await archiveRaceRun;
+assert.equal(archiveRaceCalls[0].options?.authToken, "token-archive-a", "Direct archival must send with the snapshotted owner token");
+assert.equal(pendingPartition(archiveRaceStorage, "user:601").length, 1, "Stale direct archival must leave A's idempotent payload queued");
+assert.equal(pendingPartition(archiveRaceStorage, "user:602").length, 1, "A direct archive response must never remove B's queue entry");
+assert.deepEqual(archiveRace.state.learningState.attempts.map((item) => item.attemptId), ["attempt_archive_b_visible"], "A direct archive response must never enter B's visible learning state");
+
+const refreshRaceStorage = memoryStorage();
+const refreshMeRequest = deferred();
+const refreshCalls = [];
+const refreshRace = completionContext(refreshRaceStorage, {
+  state: {
+    currentUser: { id: 701, username: "refresh-a" },
+    authToken: "token-refresh-a",
+    learningState: { completionIdentity: "user:701", attempts: [] },
+  },
+  getJson: (url, options) => {
+    refreshCalls.push({ url, options });
+    if (url === "/api/me") return refreshMeRequest.promise;
+    if (url === "/api/drafts") return Promise.resolve({ drafts: [{ key: "draft-a" }] });
+    if (url === "/api/vocabulary") return Promise.resolve({ items: [{ id: "vocab-a" }] });
+    if (url === "/api/learning/state") return Promise.resolve({ attempts: [{ attemptId: "attempt_refresh_a" }], completedItems: [] });
+    throw new Error(`Unexpected refresh URL ${url}`);
+  },
+});
+const refreshRaceRun = refreshRace.api.refreshMineData();
+refreshRace.state.currentUser = { id: 702, username: "refresh-b" };
+refreshRace.state.authToken = "token-refresh-b";
+refreshRace.state.learningState = { completionIdentity: "user:702", attempts: [{ attemptId: "attempt_refresh_b_visible" }] };
+refreshMeRequest.resolve({ user: { id: 701, username: "refresh-a" } });
+await refreshRaceRun;
+assert.equal(refreshCalls[0].options?.authToken, "token-refresh-a", "Refresh must fetch /api/me with the snapshotted token");
+assert.equal(refreshCalls.length, 1, "Refresh must abort stale follow-up requests after an account switch");
+assert.equal(refreshRace.state.currentUser.id, 702, "A stale refresh response must not replace the current user");
+assert.deepEqual(refreshRace.state.learningState.attempts.map((item) => item.attemptId), ["attempt_refresh_b_visible"], "A stale refresh response must not replace B's learning state");
+
 const overflow = completionContext(memoryStorage(), { state: { currentUser: { id: 10, username: "overflow-user" } } });
 for (let index = 0; index < 105; index += 1) {
   overflow.api.queuePendingLearningAttempt({ attemptId: `attempt_overflow_${index}`, module: "writing", itemId: `writing-task-${index}` });
@@ -274,6 +397,9 @@ const overflowPending = overflow.api.readPendingLearningAttempts();
 assert.equal(overflowPending.length, 100);
 assert.equal(overflowPending[0].attemptId, "attempt_overflow_5", "Outbox overflow must evict the oldest attempt first");
 assert.equal(overflowPending.at(-1).attemptId, "attempt_overflow_104", "Outbox overflow must never discard the newest attempt");
+
+assert.match(serverSource, /ROW_NUMBER\s*\(\s*\)\s*OVER\s*\(\s*PARTITION\s+BY\s+module\s*,\s*item_id/i, "Completed-item projection must rank latest distinct rows in one pass");
+assert.doesNotMatch(serverSource, /current\.rowid\s*=\s*\(\s*SELECT\s+latest\.rowid/i, "Completed-item projection must not run a correlated latest-row subquery per attempt");
 
 const port = 5400 + (process.pid % 400);
 const databasePath = path.join(root, "data", `completion-api-test-${process.pid}.sqlite`);

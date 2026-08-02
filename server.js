@@ -2323,17 +2323,16 @@ async function handleLearningApi(req, res) {
     const activeSession = db.prepare("SELECT * FROM practice_sessions WHERE user_id = ? AND status = 'in_progress' ORDER BY updated_at DESC LIMIT 1").get(user.id);
     const attempts = db.prepare("SELECT * FROM practice_attempts WHERE user_id = ? ORDER BY submitted_at DESC LIMIT 20").all(user.id);
     const completedItems = db.prepare(`
-      SELECT current.module, current.item_id, current.submitted_at, current.attempt_id
-      FROM practice_attempts AS current
-      WHERE current.user_id = ? AND TRIM(current.item_id) != ''
-        AND current.rowid = (
-          SELECT latest.rowid
-          FROM practice_attempts AS latest
-          WHERE latest.user_id = current.user_id AND latest.module = current.module AND latest.item_id = current.item_id
-          ORDER BY latest.submitted_at DESC, latest.rowid DESC
-          LIMIT 1
-        )
-      ORDER BY current.submitted_at DESC, current.rowid DESC
+      WITH ranked_completions AS (
+        SELECT module, item_id, submitted_at, attempt_id, rowid,
+          ROW_NUMBER() OVER (PARTITION BY module, item_id ORDER BY submitted_at DESC, rowid DESC) AS completion_rank
+        FROM practice_attempts
+        WHERE user_id = ? AND TRIM(item_id) != ''
+      )
+      SELECT module, item_id, submitted_at, attempt_id
+      FROM ranked_completions
+      WHERE completion_rank = 1
+      ORDER BY submitted_at DESC, rowid DESC
     `).all(user.id).map((row) => ({
       module: row.module,
       itemId: row.item_id,
