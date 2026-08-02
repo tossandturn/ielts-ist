@@ -2490,7 +2490,8 @@ function legacyPracticeCompletionEntries() {
   const entries = [];
   const identity = practiceCompletionIdentityKey();
   const add = (moduleName, item, result = {}, trustedCurrentIdentity = false) => {
-    if (!trustedCurrentIdentity && result.completionIdentity !== identity) return;
+    const recordIdentity = String(result.completionIdentity || "").trim();
+    if (!trustedCurrentIdentity && (recordIdentity ? recordIdentity !== identity : identity !== "guest")) return;
     const key = practiceCompletionKey(moduleName, item);
     if (!key) return;
     entries.push({

@@ -218,10 +218,7 @@ assert.equal(unitOnly.api.practiceCompletionStatus("listening", { id: "cam15-l-t
 const legacyStorage = memoryStorage({
   ieltsistLearningLoopHistory: JSON.stringify({
     writing: { prompt: "A prompt fragment without an item ID", attemptId: "legacy_prompt_only" },
-    writingAttempts: [
-      { completionIdentity: "guest", itemId: "cam15-w-test1-task1", attemptId: "legacy_exact_w", updatedAt: "2026-07-01T00:00:00.000Z" },
-      { itemId: "cam16-w-test1-task1", attemptId: "legacy_unowned_exact_w", updatedAt: "2026-06-01T00:00:00.000Z" },
-    ],
+    writingAttempts: [{ completionIdentity: "guest", itemId: "cam15-w-test1-task1", attemptId: "legacy_exact_w", updatedAt: "2026-07-01T00:00:00.000Z" }],
     speaking: { completionIdentity: "guest", topicId: "cam15-s-test1", attemptId: "legacy_exact_s", updatedAt: "2026-07-02T00:00:00.000Z" },
     objective: { listening: { completionIdentity: "guest", module: "listening", itemId: "cam15-l-test1::section::4", attemptId: "legacy_latest_l", createdAt: "2026-07-04T00:00:00.000Z" } },
     objectiveItems: { "cam15-r-test1::section::1": { completionIdentity: "guest", module: "reading", itemId: "cam15-r-test1::section::1", attemptId: "legacy_exact_r", createdAt: "2026-07-03T00:00:00.000Z" } },
@@ -234,7 +231,24 @@ assert.ok(legacyIndex["speaking:cam15-s-test1"]);
 assert.ok(legacyIndex["reading:cam15-r-test1::section::1"]);
 assert.ok(legacyIndex["listening:cam15-l-test1::section::4"], "Exact legacy objective summaries must migrate even when objectiveItems is unavailable");
 assert.equal(Object.values(legacyIndex).some((entry) => entry.attemptId === "legacy_prompt_only"), false, "Legacy Writing completion must never be guessed from prompt text");
-assert.equal(legacyIndex["writing:cam16-w-test1-task1"], undefined, "Unowned global history must not be guessed into the current identity partition");
+
+const unstampedLegacyStorage = memoryStorage({
+  ieltsistLearningLoopHistory: JSON.stringify({
+    objective: { reading: { module: "reading", itemId: "cam16-r-test1::section::3", attemptId: "pre_identity_r", createdAt: "2026-06-01T00:00:00.000Z" } },
+    writing: { itemId: "cam16-w-test1-task1", attemptId: "pre_identity_w", updatedAt: "2026-06-02T00:00:00.000Z" },
+    writingAttempts: [{ prompt: "Unstamped prompt with no canonical task ID", attemptId: "pre_identity_prompt_only" }],
+    speaking: { topicId: "cam16-s-test1", attemptId: "pre_identity_s", updatedAt: "2026-06-03T00:00:00.000Z" },
+  }),
+});
+const unstampedLegacy = completionContext(unstampedLegacyStorage);
+for (const completionKey of ["reading:cam16-r-test1::section::3", "writing:cam16-w-test1-task1", "speaking:cam16-s-test1"]) {
+  assert.ok(unstampedLegacy.api.readPracticeCompletionIndex()[completionKey], `Guest migration must retain exact unstamped legacy completion ${completionKey}`);
+}
+assert.equal(Object.values(unstampedLegacy.api.readPracticeCompletionIndex()).some((entry) => entry.attemptId === "pre_identity_prompt_only"), false, "Guest migration must not guess an unstamped Writing prompt ID");
+unstampedLegacy.state.currentUser = { id: 404, username: "new-login" };
+for (const completionKey of ["reading:cam16-r-test1::section::3", "writing:cam16-w-test1-task1", "speaking:cam16-s-test1"]) {
+  assert.equal(unstampedLegacy.api.readPracticeCompletionIndex()[completionKey], undefined, `Unstamped guest migration must not leak into logged-in identity ${completionKey}`);
+}
 
 let shouldFail = true;
 const outboxStorage = memoryStorage();
