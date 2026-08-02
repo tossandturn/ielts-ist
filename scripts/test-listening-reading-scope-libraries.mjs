@@ -95,7 +95,7 @@ assert.deepEqual(readingPaper.contentTopics?.["1"], {
   label: "History & Archaeology",
   emoji: "🏺",
   title: "Nutmeg – a valuable spice",
-  source: "readingPaper:semantic-override",
+  source: "readingPaper:curated-title+semantic-override",
   confidence: readingPaper.contentTopics?.["1"]?.confidence,
   schemaVersion: 1,
 }, "Cambridge 15 Test 1 Passage 1 must describe the history of nutmeg, not instructions or answer mechanics");
@@ -105,6 +105,36 @@ assert.equal(cam15Reading3?.contentTopics?.["1"]?.key, "culture");
 assert.equal(cam15Reading3?.contentTopics?.["1"]?.title, "Henry Moore (1898–1986)");
 assert.equal(cam15Reading3?.contentTopics?.["2"]?.key, "science");
 assert.equal(cam15Reading3?.contentTopics?.["2"]?.title, "The Desolenator: producing clean water");
+const expectedCam15ReadingTopics = {
+  "cam15-r-test1": [
+    ["history", "Nutmeg – a valuable spice"],
+    ["transport", "Driverless cars"],
+    ["travel", "What is exploration?"],
+  ],
+  "cam15-r-test2": [
+    ["architecture", "Could urban engineers learn from dance?"],
+    ["environment", "Should we try to bring extinct species back to life?"],
+    ["psychology", "Having a laugh"],
+  ],
+  "cam15-r-test3": [
+    ["culture", "Henry Moore (1898–1986)"],
+    ["science", "The Desolenator: producing clean water"],
+    ["culture", "Why fairy tales are really scary tales"],
+  ],
+  "cam15-r-test4": [
+    ["environment", "The return of the huarango"],
+    ["culture", "Silbo Gomero – the whistle ‘language’ of the Canary Islands"],
+    ["business", "Environmental practices of big businesses"],
+  ],
+};
+for (const [paperId, expectedTopics] of Object.entries(expectedCam15ReadingTopics)) {
+  const paper = tasks.readingTests.find((item) => item.id === paperId);
+  assert.ok(paper, `${paperId} is required for the Cambridge 15 semantic audit`);
+  expectedTopics.forEach(([key, title], index) => {
+    assert.equal(paper.contentTopics?.[String(index + 1)]?.key, key, `${paperId} Passage ${index + 1} semantic key`);
+    assert.equal(paper.contentTopics?.[String(index + 1)]?.title, title, `${paperId} Passage ${index + 1} source title`);
+  });
+}
 const questionTypeKeys = new Set([...listeningTypes, ...readingTypes]);
 for (const paper of [...tasks.listeningTests, ...tasks.readingTests]) {
   for (const topic of Object.values(paper.contentTopics || {})) {
@@ -130,6 +160,26 @@ for (const [id, topic] of semanticEntries) {
     );
   }
 }
+const unsafeReadingTitles = semanticEntries
+  .filter(([id]) => /-r-test\d+::section::[1-3]$/.test(id))
+  .map(([id, topic]) => {
+    const title = String(topic.topicTitle || "").trim();
+    const reasons = [];
+    if (/ — Passage \d$/i.test(title)) reasons.push("category placeholder");
+    if (/\b(?:below|following pages|answer sheet|write your answers|complete the|choose the|questions? \d|in boxes|list of headings)\b/i.test(title)) reasons.push("IELTS instruction");
+    if (/^Reading Passage \d$/i.test(title)) reasons.push("generic passage title");
+    if (/\.\.\.$/.test(title) || /\b(?:and|or|the|a|an|of|to|with|for|from|in|on|by|as|that|which|who|were|was|is|are)[|. ]*$/i.test(title)) reasons.push("truncated fragment");
+    if (/^[a-z]|^\d+\s|[|~@]{2,}|[•·]{2,}|[^\p{L}\p{N}\s'’“”‘’().:,?!&+\-–—]/u.test(title)) reasons.push("OCR garbage or body fragment");
+    if (title.length < 4 || title.length > 100) reasons.push("unsafe length");
+    return reasons.length ? { id, title, reasons } : null;
+  })
+  .filter(Boolean);
+assert.deepEqual(unsafeReadingTitles, [], `All 216 Reading passages need safe source-derived human titles:\n${JSON.stringify(unsafeReadingTitles, null, 2)}`);
+assert.equal(
+  semanticEntries.filter(([id, topic]) => /-r-test\d+::section::[1-3]$/.test(id) && /^readingPaper:curated-title/.test(topic.source)).length,
+  216,
+  "Every Reading passage title must come from the reviewed source-title catalog",
+);
 const cam9MismatchSection3 = semanticCatalog["cam9-l-test4::section::3"];
 const cam9MismatchSection4 = semanticCatalog["cam9-l-test4::section::4"];
 assert.match(cam9MismatchSection3?.source || "", /cache-repair:cam9-l-test4::4/, "Cambridge 9 Test 4 Section 3 must use the explicitly repaired cache entry");

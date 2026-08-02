@@ -26,6 +26,119 @@ const TAXONOMY = [
 ];
 
 const GENERAL_TOPIC = { key: "general", label: "General interest", emoji: "✨" };
+const CURATED_READING_TITLES_BY_BOOK = {
+  4: [
+    ["Adults and Children: Loss of Tropical Rainforests", "What Do Whales Feel?", "Visual Symbols and the Blind"],
+    ["Lost for Words", "Alternative Medicine in Australia", "Play Is a Serious Business"],
+    ["Micro-enterprise Credit for Street Youth", "Volcanoes: Earth-shattering News", "Obtaining Linguistic Data"],
+    ["How Much Higher? How Much Faster?", "The Nature and Aims of Archaeology", "The Problem of Scarce Resources"],
+  ],
+  5: [
+    ["Johnson’s Dictionary", "Nature or Nurture?", "The Truth about the Environment"],
+    ["Bakelite: The Birth of Modern Plastics", "What’s So Funny?", "The Birth of Scientific English"],
+    ["Early Childhood Education", "Disappearing Delta", "The Return of Artificial Intelligence"],
+    ["The Impact of Wilderness Tourism", "Flawed Beauty", "Effects of Light on Plants and Animals"],
+  ],
+  6: [
+    ["Australia’s Sporting Success", "Delivering the Goods", "Climate Change and the Inuit"],
+    ["Advantages of Public Transport", "Greying Population Stays in the Pink", "Numeration"],
+    ["The Lumière Brothers", "Motivating Employees under Adverse Conditions", "The Search for the Anti-aging Pill"],
+    ["Doctoring Sales", "Do Literate Women Make Better Mothers?", "Bullying"],
+  ],
+  7: [
+    ["Let’s Go Bats", "Making Every Drop Count", "Educating Psyche"],
+    ["Why Pagodas Don’t Fall Down", "The True Cost of Food", "Makete Integrated Rural Transport Project"],
+    ["Ant Intelligence", "Population Movements and Genetics", "Forests: Our Natural Heritage"],
+    ["Pulling Strings to Build Pyramids", "Endless Harvest", "Effects of Noise"],
+  ],
+  8: [
+    ["A Chronicle of Timekeeping", "Air Traffic Control in the USA", "Telepathy"],
+    ["Sheet Glass Manufacture", "The Little Ice Age", "The Meaning and Power of Smell"],
+    ["Striking Back at Lightning with Lasers", "The Nature of Genius", "How Does the Biological Clock Tick?"],
+    ["Land of the Rising Sum", "Biological Control of Pests", "Collecting Ant Specimens"],
+  ],
+  9: [
+    ["William Henry Perkin", "Is There Anybody Out There?", "The History of the Tortoise"],
+    ["Hearing Impairment", "Venus in Transit", "A Neuroscientist Reveals How to Think Differently"],
+    ["Attitudes to Language", "Tidal Power", "Information Theory: The Big Idea"],
+    ["The Life and Work of Marie Curie", "Young Children’s Sense of Identity", "The Development of Museums"],
+  ],
+  10: [
+    ["Stepwells", "European Transport Systems 1990–2010", "The Psychology of Innovation"],
+    ["Tea and the Industrial Revolution", "Gifted Children and Learning", "Museums of Fine Art and Their Public"],
+    ["The Context, Meaning and Scope of Tourism", "Autumn Leaves", "Beyond the Blue Horizon"],
+    ["The Megafires of California", "Second Nature", "When Evolution Runs Backwards"],
+  ],
+  11: [
+    ["Crop-growing Skyscrapers", "The Falkirk Wheel", "Reducing the Effects of Climate Change"],
+    ["Raising the Mary Rose", "What Destroyed the Civilisation of Easter Island?", "Neuroaesthetics"],
+    ["The Story of Silk", "Great Migrations", "How the Other Half Thinks"],
+    ["Research Using Twins", "An Introduction to Film Sound", "This Marvellous Invention"],
+  ],
+  12: [
+    ["Cork", "Collecting as a Hobby", "What’s the Purpose of Gaining Knowledge?"],
+    ["The Risks Agriculture Faces in Developing Countries", "The Lost City", "The Benefits of Being Bilingual"],
+    ["Flying Tortoises", "The Intersection of Health Sciences and Geography", "Music and the Emotions"],
+    ["The History of Glass", "Bring Back the Big Cats", "UK Companies Need More Effective Boards of Directors"],
+  ],
+  13: [
+    ["Case Study: Tourism New Zealand Website", "Why Being Bored Is Stimulating – and Useful Too", "Artificial Artists"],
+    ["Bringing Cinnamon to Europe", "Oxytocin", "Making the Most of Trends"],
+    ["The Coconut Palm", "How Baby Talk Gives Infant Brains a Boost", "Whatever Happened to the Harappan Civilisation?"],
+    ["Cutty Sark: The Fastest Sailing Ship of All Time", "Saving the Soil", "Book Review"],
+  ],
+  14: [
+    ["The Importance of Children’s Play", "The Growth of Bike-sharing Schemes", "Motivational Factors and the Hospitality Industry"],
+    ["Alexander Henderson (1831–1913)", "Back to the Future of Skyscraper Design", "Why Companies Should Welcome Disorder"],
+    ["The Concept of Intelligence", "Saving Bugs to Find New Drugs", "The Power of Play"],
+    ["The Secret of Staying Young", "Why Zoos Are Good", "Chelsea Rochman"],
+  ],
+  15: [
+    ["Nutmeg – a valuable spice", "Driverless cars", "What is exploration?"],
+    ["Could urban engineers learn from dance?", "Should we try to bring extinct species back to life?", "Having a laugh"],
+    ["Henry Moore (1898–1986)", "The Desolenator: producing clean water", "Why fairy tales are really scary tales"],
+    ["The return of the huarango", "Silbo Gomero – the whistle ‘language’ of the Canary Islands", "Environmental practices of big businesses"],
+  ],
+  16: [
+    ["Why We Need to Protect Polar Bears", "The Step Pyramid of Djoser", "The Future of Work"],
+    ["The White Horse of Uffington", "I Contain Multitudes", "How to Make Wise Decisions"],
+    ["Roman Shipbuilding and Navigation", "Climate Change Reveals Ancient Artefacts in Norway’s Glaciers", "Plant ‘Thermometer’ Triggers Springtime Growth"],
+    ["Roman Tunnels", "Changes in Reading Habits", "Attitudes towards Artificial Intelligence"],
+  ],
+  17: [
+    ["The Development of the London Underground Railway", "Stadiums: Past, Present and Future", "To Catch a King"],
+    ["The Dead Sea Scrolls", "A Second Attempt at Domesticating the Tomato", "Insight or Evolution?"],
+    ["The Thylacine", "Palm Oil", "Building the Skyline: The Birth and Growth of Manhattan’s Skyscrapers"],
+    ["Bats to the Rescue", "Does Education Fuel Economic Growth?", "Timur Gareyev: Blindfold Chess Champion"],
+  ],
+  18: [
+    ["Urban Farming", "Forest Management in Pennsylvania, USA", "Conquering Earth’s Space Junk Problem"],
+    ["Stonehenge", "Living with Artificial Intelligence", "An Ideal City"],
+    ["Materials to Take Us beyond Concrete", "The Steam Car", "The Case for Mixed-ability Classes"],
+    ["Green Roofs", "The Growth Mindset", "Alfred Wegener: Science, Exploration and the Theory of Continental Drift"],
+  ],
+  19: [
+    ["How Tennis Rackets Have Changed", "The Pirates of the Ancient Mediterranean", "The Persistence and Peril of Misinformation"],
+    ["The Industrial Revolution in Britain", "Athletes and Stress", "An Inquiry into the Existence of the Gifted Child"],
+    ["Archaeologists Discover Evidence of Prehistoric Island Settlers", "The Global Importance of Wetlands", "Is the Era of Artificial Speech Translation upon Us?"],
+    ["The Impact of Climate Change on Butterflies in Britain", "Deep-sea Mining", "The Unselfish Gene"],
+  ],
+  20: [
+    ["The Kākāpō", "Return of the Elm: Reintroducing the Beloved Tree to Britain", "How Stress Affects Our Judgement"],
+    ["Manatees", "Procrastination", "Invasion of the Robot Umpires"],
+    ["Frozen Food", "Can the Planet’s Coral Reefs Be Saved?", "Robots and Us"],
+    ["Georgia O’Keeffe", "Adapting to the Effects of Climate Change", "A New Role for Livestock Guard Dogs"],
+  ],
+  21: [
+    ["The Davies Sisters", "Why We Need Silence", "Book Review: The World of Sugar by Ulbe Bosma"],
+    ["Do Animals Dream?", "Mapungubwe", "Artificial Intelligence"],
+    ["Saving the Saiga", "The Problems of Getting Around the City of Dar es Salaam", "Rethinking the Past"],
+    ["The Problems and Benefits Created by the Spread of the Water Hyacinth in Kenya", "How Could Multilingualism Benefit India’s Poorest Schoolchildren?", "The Globemakers: The Curious Story of an Ancient Craft"],
+  ],
+};
+const CURATED_READING_TITLES = new Map(Object.entries(CURATED_READING_TITLES_BY_BOOK).flatMap(([book, tests]) =>
+  tests.flatMap((passages, testIndex) => passages.map((title, passageIndex) =>
+    [`cam${book}-r-test${testIndex + 1}::section::${passageIndex + 1}`, title]))));
 const SEMANTIC_OVERRIDES = new Map([
   ["cam15-l-test1::section::1", "work"],
   ["cam15-l-test1::section::2", "travel"],
@@ -33,10 +146,19 @@ const SEMANTIC_OVERRIDES = new Map([
   ["cam9-l-test4::section::4", "environment"],
 ]);
 const READING_OVERRIDES = new Map([
-  ["cam15-r-test1::section::1", { topicKey: "history", topicTitle: "Nutmeg – a valuable spice" }],
-  ["cam15-r-test2::section::1", { topicKey: "architecture", topicTitle: "Could urban engineers learn from dance?" }],
-  ["cam15-r-test3::section::1", { topicKey: "culture", topicTitle: "Henry Moore (1898–1986)" }],
-  ["cam15-r-test3::section::2", { topicKey: "science", topicTitle: "The Desolenator: producing clean water" }],
+  ["cam15-r-test1::section::1", "history"],
+  ["cam15-r-test1::section::2", "transport"],
+  ["cam15-r-test1::section::3", "travel"],
+  ["cam15-r-test2::section::1", "architecture"],
+  ["cam15-r-test2::section::2", "environment"],
+  ["cam15-r-test2::section::3", "psychology"],
+  ["cam15-r-test3::section::1", "culture"],
+  ["cam15-r-test3::section::2", "science"],
+  ["cam15-r-test3::section::3", "culture"],
+  ["cam15-r-test4::section::1", "environment"],
+  ["cam15-r-test4::section::2", "culture"],
+  ["cam15-r-test4::section::3", "business"],
+  ["cam20-r-test1::section::2", "environment"],
 ]);
 const CACHE_KEY_OVERRIDES = new Map([
   ["cam9-l-test4::section::3", "cam9-l-test4::4"],
@@ -251,19 +373,20 @@ function readingTitle(chunk, passage) {
 function readingEntry(paper, passage, chunk) {
   const canonicalId = `${paper.id}::section::${passage}`;
   if (!chunk) throw new Error(`Missing Reading Passage ${passage} marker for ${paper.id}`);
-  const override = READING_OVERRIDES.get(canonicalId);
-  const extractedTitle = readingTitle(chunk, passage);
-  const classified = classifyTopic({ canonicalId, title: override?.topicTitle || extractedTitle, intro: String(chunk).slice(0, 2200), body: chunk });
-  const topic = override
-    ? { ...TAXONOMY.find((item) => item.key === override.topicKey), confidence: 0.99 }
+  const overrideKey = READING_OVERRIDES.get(canonicalId);
+  const curatedTitle = CURATED_READING_TITLES.get(canonicalId);
+  if (!curatedTitle) throw new Error(`Missing curated Reading title for ${canonicalId}`);
+  const classified = classifyTopic({ canonicalId, title: curatedTitle, intro: String(chunk).slice(0, 2200), body: chunk });
+  const topic = overrideKey
+    ? { ...TAXONOMY.find((item) => item.key === overrideKey), confidence: 0.99 }
     : classified;
-  const topicTitle = override?.topicTitle || extractedTitle || `${topic.label} — Passage ${passage}`;
+  const topicTitle = curatedTitle;
   return {
     topicKey: topic.key,
     topicLabel: topic.label,
     emoji: topic.emoji,
     topicTitle,
-    source: override ? "readingPaper:semantic-override" : "readingPaper:heading+weighted-text",
+    source: overrideKey ? "readingPaper:curated-title+semantic-override" : "readingPaper:curated-title+weighted-text",
     confidence: topic.confidence,
     schemaVersion: SCHEMA_VERSION,
   };
