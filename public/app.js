@@ -157,6 +157,8 @@ const coachHistoryStoreKey = "ieltsistCoachHistoryV1";
 const practiceSessionStoreKey = "ieltsistPracticeSessionV1";
 const guestLearningProfileStoreKey = "ieltsistGuestLearningProfileV1";
 const pendingPracticeCompletionStoreKey = "ieltsistPendingPracticeCompletionV1";
+const completionStoreKey = "ieltsistCompletedItemsV1";
+const pendingLearningAttemptsStoreKey = "ieltsistPendingLearningAttemptsV1";
 const writingUploadSessionStoreKey = "ieltsistWritingUploadSessionV1";
 const writingTimerStoreKey = "ieltsistWritingTimerV1";
 const recommendationHistoryStoreKey = "ieltsistRecommendationHistoryV1";
@@ -1165,14 +1167,15 @@ async function refreshMineData() {
     return;
   }
   try {
+    const me = await getJson("/api/me");
+    state.currentUser = me.user || null;
     await retryPendingPracticeCompletion();
-    const [me, drafts, vocab, learning] = await Promise.all([
-      getJson("/api/me"),
+    await retryPendingLearningAttempts();
+    const [drafts, vocab, learning] = await Promise.all([
       getJson("/api/drafts"),
       getJson("/api/vocabulary"),
       getJson("/api/learning/state"),
     ]);
-    state.currentUser = me.user || null;
     state.serverDrafts = drafts.drafts || [];
     state.vocabItems = vocab.items || [];
     state.learningState = learning || null;
@@ -2427,6 +2430,204 @@ function updateLearningLoopHistory(patch = {}) {
   return next;
 }
 
+function practiceCompletionIdentityKey() {
+  const user = state.currentUser;
+  if (!user?.id && !user?.username) return "guest";
+  return `user:${String(user.id || user.username).trim()}`;
+}
+
+function canonicalPracticeCompletionId(moduleName, item = {}) {
+  const moduleKey = String(moduleName || item?.module || "").trim().toLowerCase();
+  if (!["listening", "reading", "writing", "speaking"].includes(moduleKey)) return "";
+  const value = typeof item === "string" ? { id: item } : (item || {});
+  const itemId = String(
+    moduleKey === "speaking"
+      ? value.topicId || value.itemId || value.id || ""
+      : value.itemId || value.id || "",
+  ).trim();
+  if (!itemId) return "";
+  if (moduleKey === "writing" || moduleKey === "speaking") return itemId;
+  const practiceScope = String(value.practiceScope || "").toLowerCase();
+  if (["section", "topic"].includes(practiceScope)) {
+    const section = Number(value.practiceSection || value.contentNumber || value.section || value.passage);
+    const baseId = String(value.sourceItemId || value.baseItemId || itemId).split("::")[0];
+    if (Number.isInteger(section) && section >= 1 && section <= (moduleKey === "listening" ? 4 : 3)) return `${baseId}::section::${section}`;
+  }
+  if (/::(?:review|topic)(?:::|$)/i.test(itemId) || practiceScope === "review") return "";
+  const sectionMatch = itemId.match(/^(.+)::section::([1-9]\d*)$/i);
+  if (sectionMatch) {
+    const section = Number(sectionMatch[2]);
+    return section <= (moduleKey === "listening" ? 4 : 3) ? `${sectionMatch[1]}::section::${section}` : "";
+  }
+  if (itemId.includes("::")) return "";
+  return itemId;
+}
+
+function practiceCompletionKey(moduleName, item) {
+  const moduleKey = String(moduleName || item?.module || "").trim().toLowerCase();
+  const itemId = canonicalPracticeCompletionId(moduleKey, item);
+  return itemId ? `${moduleKey}:${itemId}` : "";
+}
+
+function readPracticeCompletionStore() {
+  try {
+    const value = JSON.parse(localStorage.getItem(completionStoreKey) || "{}");
+    if (!value || typeof value !== "object") return { version: 1, partitions: {} };
+    if (value.version === 1 && value.partitions && typeof value.partitions === "object") return value;
+    return { version: 1, partitions: {} };
+  } catch {
+    return { version: 1, partitions: {} };
+  }
+}
+
+function writePracticeCompletionStore(value) {
+  const safeValue = value && typeof value === "object" ? value : { version: 1, partitions: {} };
+  localStorage.setItem(completionStoreKey, JSON.stringify({ version: 1, partitions: safeValue.partitions || {} }));
+}
+
+function legacyPracticeCompletionEntries() {
+  const history = readLearningLoopHistory();
+  const entries = [];
+  const add = (moduleName, item, result = {}) => {
+    const key = practiceCompletionKey(moduleName, item);
+    if (!key) return;
+    entries.push({
+      key,
+      module: moduleName,
+      itemId: canonicalPracticeCompletionId(moduleName, item),
+      completedAt: result.completedAt || result.submittedAt || result.createdAt || result.updatedAt || "",
+      attemptId: result.attemptId || "",
+    });
+  };
+  [...Object.values(history.objective || {}), ...Object.values(history.objectiveItems || {})]
+    .forEach((result) => add(result?.module, { itemId: result?.itemId }, result));
+  [history.writing, ...(history.writingAttempts || [])].filter(Boolean).forEach((result) => add("writing", { itemId: result.itemId }, result));
+  [history.speaking, ...(history.speakingAttempts || [])].filter(Boolean).forEach((result) => add("speaking", { topicId: result.topicId || result.itemId }, result));
+  (state.learningState?.completedItems || []).forEach((result) => add(result.module, { itemId: result.itemId }, result));
+  return entries;
+}
+
+function readPracticeCompletionIndex() {
+  const store = readPracticeCompletionStore();
+  const local = store.partitions?.[practiceCompletionIdentityKey()];
+  const index = local && typeof local === "object" ? { ...local } : {};
+  const merge = (entry) => {
+    if (!entry?.key || !entry.itemId) return;
+    const current = index[entry.key];
+    if (!current || String(entry.completedAt || "") >= String(current.completedAt || "")) {
+      index[entry.key] = {
+        completedAt: entry.completedAt || current?.completedAt || "",
+        attemptId: entry.attemptId || current?.attemptId || "",
+      };
+    }
+    if (!["listening", "reading"].includes(entry.module) || entry.itemId.includes("::")) return;
+    const unitCount = entry.module === "listening" ? 4 : 3;
+    for (let section = 1; section <= unitCount; section += 1) {
+      const unitKey = `${entry.module}:${entry.itemId}::section::${section}`;
+      const unitCurrent = index[unitKey];
+      if (!unitCurrent || String(entry.completedAt || "") >= String(unitCurrent.completedAt || "")) {
+        index[unitKey] = {
+          completedAt: entry.completedAt || unitCurrent?.completedAt || "",
+          attemptId: entry.attemptId || unitCurrent?.attemptId || "",
+          impliedBy: entry.itemId,
+        };
+      }
+    }
+  };
+  legacyPracticeCompletionEntries().forEach(merge);
+  return index;
+}
+
+function rememberPracticeCompletion(moduleName, item, result = {}) {
+  const moduleKey = String(moduleName || item?.module || "").trim().toLowerCase();
+  const itemId = canonicalPracticeCompletionId(moduleKey, item);
+  const key = practiceCompletionKey(moduleKey, item);
+  if (!key || !itemId) return readPracticeCompletionIndex();
+  const store = readPracticeCompletionStore();
+  const identity = practiceCompletionIdentityKey();
+  const partition = { ...(store.partitions?.[identity] || {}) };
+  const completedAt = result.completedAt || result.submittedAt || result.createdAt || result.updatedAt || new Date().toISOString();
+  const attemptId = result.attemptId || "";
+  const remember = (targetKey, extra = {}) => {
+    const current = partition[targetKey];
+    if (current && String(current.completedAt || "") > String(completedAt)) return;
+    partition[targetKey] = { completedAt, attemptId, ...extra };
+  };
+  remember(key);
+  if (["listening", "reading"].includes(moduleKey) && !itemId.includes("::")) {
+    const unitCount = moduleKey === "listening" ? 4 : 3;
+    for (let section = 1; section <= unitCount; section += 1) {
+      remember(`${moduleKey}:${itemId}::section::${section}`, { impliedBy: itemId });
+    }
+  }
+  store.partitions = { ...(store.partitions || {}), [identity]: partition };
+  writePracticeCompletionStore(store);
+  return readPracticeCompletionIndex();
+}
+
+function practiceCompletionStatus(moduleName, item) {
+  const key = practiceCompletionKey(moduleName, item);
+  const completion = key ? readPracticeCompletionIndex()[key] : null;
+  return { completed: Boolean(completion), completedAt: completion?.completedAt || "", attemptId: completion?.attemptId || "" };
+}
+
+function readPendingLearningAttempts() {
+  try {
+    const value = JSON.parse(localStorage.getItem(pendingLearningAttemptsStoreKey) || "{}");
+    const partitions = value?.version === 1 && value.partitions && typeof value.partitions === "object" ? value.partitions : {};
+    const pending = partitions[practiceCompletionIdentityKey()];
+    return Array.isArray(pending) ? pending : [];
+  } catch {
+    return [];
+  }
+}
+
+function writePendingLearningAttempts(attempts) {
+  let value;
+  try {
+    value = JSON.parse(localStorage.getItem(pendingLearningAttemptsStoreKey) || "{}");
+  } catch {
+    value = {};
+  }
+  const partitions = value?.version === 1 && value.partitions && typeof value.partitions === "object" ? value.partitions : {};
+  partitions[practiceCompletionIdentityKey()] = (Array.isArray(attempts) ? attempts : []).slice(0, 100);
+  localStorage.setItem(pendingLearningAttemptsStoreKey, JSON.stringify({ version: 1, partitions }));
+}
+
+function queuePendingLearningAttempt(payload) {
+  if (!payload?.attemptId) return readPendingLearningAttempts();
+  const pending = readPendingLearningAttempts().filter((item) => item?.attemptId !== payload.attemptId);
+  pending.push({ ...payload, queuedAt: payload.queuedAt || new Date().toISOString() });
+  writePendingLearningAttempts(pending);
+  return pending;
+}
+
+function removePendingLearningAttempt(attemptId) {
+  const pending = readPendingLearningAttempts().filter((item) => item?.attemptId !== attemptId);
+  writePendingLearningAttempts(pending);
+  return pending;
+}
+
+async function retryPendingLearningAttempts() {
+  const pending = readPendingLearningAttempts();
+  if (!pending.length) return true;
+  let succeeded = true;
+  for (const payload of pending) {
+    try {
+      const json = await postJson("/api/learning/attempts", payload);
+      removePendingLearningAttempt(payload.attemptId);
+      const attempt = json.attempt || null;
+      if (attempt) {
+        const attempts = [attempt, ...((state.learningState?.attempts || []).filter((item) => item.attemptId !== attempt.attemptId))].slice(0, 20);
+        state.learningState = { ...(state.learningState || {}), attempts };
+      }
+    } catch {
+      succeeded = false;
+    }
+  }
+  return succeeded;
+}
+
 function coachBindingKey(binding = {}) {
   return [binding.sessionId || "", binding.module || "", binding.paperId || "", binding.questionId || "", binding.view || ""].join("|");
 }
@@ -2499,22 +2700,25 @@ async function archiveLearningAttempt(moduleName, record) {
     : moduleName === "speaking"
       ? { band: record.band || "", criteria: record.criteria || record.scores || {} }
       : { correct: record.correct, total: record.total, band: record.band };
+  const payload = {
+    attemptId: record.attemptId,
+    sessionId: session?.sessionId || "",
+    module: moduleName,
+    itemId: record.itemId || "",
+    mode: currentSinglePracticeMode(moduleName),
+    score: compactLearningRecord(score),
+    result: compactLearningRecord(record),
+    feedback: compactLearningRecord({ feedback: record.feedback || record.report || "" }),
+    durationSeconds: Math.max(0, Number(state.singleTotal || 0) - Number(state.singleSeconds || 0)),
+  };
+  queuePendingLearningAttempt(payload);
   try {
-    const json = await postJson("/api/learning/attempts", {
-      attemptId: record.attemptId,
-      sessionId: session?.sessionId || "",
-      module: moduleName,
-      itemId: record.itemId || state.activeSingle?.id || "",
-      mode: currentSinglePracticeMode(moduleName),
-      score: compactLearningRecord(score),
-      result: compactLearningRecord(record),
-      feedback: compactLearningRecord({ feedback: record.feedback || record.report || "" }),
-      durationSeconds: Math.max(0, Number(state.singleTotal || 0) - Number(state.singleSeconds || 0)),
-    });
+    const json = await postJson("/api/learning/attempts", payload);
+    removePendingLearningAttempt(record.attemptId);
     const attempts = [json.attempt, ...((state.learningState?.attempts || []).filter((item) => item.attemptId !== json.attempt?.attemptId))].filter(Boolean).slice(0, 20);
     state.learningState = { ...(state.learningState || {}), attempts };
   } catch {
-    // Local learning history remains authoritative while offline.
+    // The identity-partitioned outbox retries this idempotent attempt later.
   }
 }
 
@@ -2561,23 +2765,26 @@ function rememberObjectiveResult(moduleName, item, json) {
   state.latestObjectiveResults[moduleName] = result;
   state.latestObjectiveResultsByItem[result.itemId] = result;
   updateLearningLoopHistory({ objective: { [moduleName]: result }, objectiveItems: { [result.itemId]: result } });
+  rememberPracticeCompletion(moduleName, item, result);
   archiveLearningAttempt(moduleName, result);
   resolveRetestedWeakAreas(moduleName, result);
   return result;
 }
 
 function rememberWritingAttempt(attempt = {}) {
-  const value = { ...attempt, attemptId: attempt.attemptId || learningEntityId("attempt"), updatedAt: new Date().toISOString() };
+  const value = { ...attempt, itemId: String(attempt.itemId || "").trim(), attemptId: attempt.attemptId || learningEntityId("attempt"), updatedAt: new Date().toISOString() };
   state.latestWritingAttempt = value;
   updateLearningLoopHistory({ writing: value });
+  rememberPracticeCompletion("writing", { itemId: value.itemId }, value);
   archiveLearningAttempt("writing", value);
   return value;
 }
 
 function rememberSpeakingResult(result = {}) {
-  const value = { ...result, attemptId: result.attemptId || learningEntityId("attempt"), updatedAt: new Date().toISOString() };
+  const value = { ...result, itemId: String(result.itemId || result.topicId || "").trim(), attemptId: result.attemptId || learningEntityId("attempt"), updatedAt: new Date().toISOString() };
   state.latestSpeakingResult = value;
   updateLearningLoopHistory({ speaking: value });
+  rememberPracticeCompletion("speaking", { topicId: value.topicId || value.itemId }, value);
   archiveLearningAttempt("speaking", value);
   return value;
 }
@@ -14973,7 +15180,7 @@ async function submitSingle() {
       const json = await runWritingFeedbackJob(prompt, essay, () => {
         setFeedback("singleFeedback", "Writing feedback is being generated. Estimated time: 1-10 min.", "singleMode", "");
       });
-      rememberWritingAttempt({ source: "single", title: state.activeSingle.title || "Writing with AI", prompt, essay, feedback: json.feedback || "", analysis: json.analysis || null, scores: extractWritingScores(json.feedback || "", json.analysis) });
+      rememberWritingAttempt({ itemId: tasks.length === 1 ? tasks[0].id || "" : "", source: "single", title: state.activeSingle.title || "Writing with AI", prompt, essay, feedback: json.feedback || "", analysis: json.analysis || null, scores: extractWritingScores(json.feedback || "", json.analysis) });
       setFeedbackHtml("singleFeedback", feedbackWithPdfHtml(json.feedback, json, "ielts-writing-feedback.pdf"), "singleMode", json.mode);
     } else {
       const item = normalizeItem(state.activeSingle);
@@ -16340,6 +16547,7 @@ async function submitSystemWriting() {
       : extractWritingScores(json.feedback || "", json.analysis);
     rememberWritingAttempt({
       attemptId: json.contract?.attempt?.id,
+      itemId: task.id || "",
       source: "system",
       title: `Task ${taskNumber} · ${task.title || "Writing practice"}`,
       prompt,
