@@ -2454,6 +2454,10 @@ function completionSyncOwnerIsCurrent(ownerIdentity, authToken) {
   return state.authToken === authToken && practiceCompletionIdentityKey() === ownerIdentity;
 }
 
+function learningStateForCompletionOwner(ownerIdentity) {
+  return state.learningState?.completionIdentity === ownerIdentity ? state.learningState : {};
+}
+
 function canonicalPracticeCompletionId(moduleName, item = {}) {
   const moduleKey = String(moduleName || item?.module || "").trim().toLowerCase();
   if (!["listening", "reading", "writing", "speaking"].includes(moduleKey)) return "";
@@ -2645,8 +2649,9 @@ async function retryPendingLearningAttempts(options = {}) {
       removePendingLearningAttempt(payload.attemptId, ownerIdentity);
       const attempt = json.attempt || null;
       if (attempt) {
-        const attempts = [attempt, ...((state.learningState?.attempts || []).filter((item) => item.attemptId !== attempt.attemptId))].slice(0, 20);
-        state.learningState = { ...(state.learningState || {}), completionIdentity: ownerIdentity, attempts };
+        const ownerState = learningStateForCompletionOwner(ownerIdentity);
+        const attempts = [attempt, ...((ownerState.attempts || []).filter((item) => item.attemptId !== attempt.attemptId))].slice(0, 20);
+        state.learningState = { ...ownerState, completionIdentity: ownerIdentity, attempts };
       }
     } catch {
       succeeded = false;
@@ -2745,8 +2750,9 @@ async function archiveLearningAttempt(moduleName, record) {
     const json = await postJson("/api/learning/attempts", payload, { authToken });
     if (!completionSyncOwnerIsCurrent(ownerIdentity, authToken)) return;
     removePendingLearningAttempt(record.attemptId, ownerIdentity);
-    const attempts = [json.attempt, ...((state.learningState?.attempts || []).filter((item) => item.attemptId !== json.attempt?.attemptId))].filter(Boolean).slice(0, 20);
-    state.learningState = { ...(state.learningState || {}), completionIdentity: ownerIdentity, attempts };
+    const ownerState = learningStateForCompletionOwner(ownerIdentity);
+    const attempts = [json.attempt, ...((ownerState.attempts || []).filter((item) => item.attemptId !== json.attempt?.attemptId))].filter(Boolean).slice(0, 20);
+    state.learningState = { ...ownerState, completionIdentity: ownerIdentity, attempts };
   } catch {
     // The identity-partitioned outbox retries this idempotent attempt later.
   }

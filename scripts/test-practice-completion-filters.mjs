@@ -44,6 +44,7 @@ const completionFunctions = [
   "practiceCompletionIdentityForUser",
   "practiceCompletionIdentityKey",
   "completionSyncOwnerIsCurrent",
+  "learningStateForCompletionOwner",
   "canonicalPracticeCompletionId",
   "practiceCompletionKey",
   "readPracticeCompletionStore",
@@ -388,6 +389,45 @@ assert.equal(refreshCalls[0].options?.authToken, "token-refresh-a", "Refresh mus
 assert.equal(refreshCalls.length, 1, "Refresh must abort stale follow-up requests after an account switch");
 assert.equal(refreshRace.state.currentUser.id, 702, "A stale refresh response must not replace the current user");
 assert.deepEqual(refreshRace.state.learningState.attempts.map((item) => item.attemptId), ["attempt_refresh_b_visible"], "A stale refresh response must not replace B's learning state");
+
+const staleRetryStorage = memoryStorage();
+const staleRetry = completionContext(staleRetryStorage, {
+  state: {
+    currentUser: { id: 802, username: "owner-b" },
+    authToken: "token-owner-b",
+    learningState: {
+      completionIdentity: "user:801",
+      attempts: [{ attemptId: "attempt_stale_a" }],
+      completedItems: [{ module: "speaking", itemId: "cam15-s-test1", attemptId: "completed_stale_a" }],
+    },
+  },
+  getJson: async () => { throw new Error("refresh offline"); },
+  postJson: async (_url, payload) => ({ attempt: { attemptId: payload.attemptId, module: payload.module, itemId: payload.itemId } }),
+});
+await staleRetry.api.refreshMineData();
+assert.equal(staleRetry.state.learningState.completionIdentity, "user:801", "Failed refresh fixture must retain stale A state before B syncs");
+staleRetry.api.queuePendingLearningAttempt({ attemptId: "attempt_retry_b", module: "writing", itemId: "cam16-w-test1-task1" });
+assert.equal(await staleRetry.api.retryPendingLearningAttempts(), true);
+assert.equal(staleRetry.state.learningState.completionIdentity, "user:802");
+assert.equal(staleRetry.state.learningState.attempts.map((item) => item.attemptId).join(","), "attempt_retry_b", "B retry must not inherit stale A attempts");
+assert.deepEqual(staleRetry.state.learningState.completedItems || [], [], "B retry must not retag stale A completions as B");
+
+const staleArchive = completionContext(memoryStorage(), {
+  state: {
+    currentUser: { id: 902, username: "archive-owner-b" },
+    authToken: "token-archive-owner-b",
+    learningState: {
+      completionIdentity: "user:901",
+      attempts: [{ attemptId: "attempt_archive_stale_a" }],
+      completedItems: [{ module: "writing", itemId: "cam15-w-test1-task1", attemptId: "completed_archive_stale_a" }],
+    },
+  },
+  postJson: async (_url, payload) => ({ attempt: { attemptId: payload.attemptId, module: payload.module, itemId: payload.itemId } }),
+});
+await staleArchive.api.archiveLearningAttempt("speaking", { attemptId: "attempt_archive_b", itemId: "cam16-s-test1", topicId: "cam16-s-test1", band: 7 });
+assert.equal(staleArchive.state.learningState.completionIdentity, "user:902");
+assert.equal(staleArchive.state.learningState.attempts.map((item) => item.attemptId).join(","), "attempt_archive_b", "B direct archive must not inherit stale A attempts");
+assert.deepEqual(staleArchive.state.learningState.completedItems || [], [], "B direct archive must not retag stale A completions as B");
 
 const overflow = completionContext(memoryStorage(), { state: { currentUser: { id: 10, username: "overflow-user" } } });
 for (let index = 0; index < 105; index += 1) {
