@@ -4639,8 +4639,8 @@ function applySingleFilters(items, moduleName) {
   });
 }
 
-function practiceCompletionFilterMatches(moduleName, item, completionIndex) {
-  const filter = filterValue("singleCompletionFilter");
+function practiceCompletionFilterMatches(moduleName, item, completionIndex, filterId = "singleCompletionFilter") {
+  const filter = filterValue(filterId);
   if (filter === "all") return true;
   const completed = practiceCompletionStatus(moduleName, item, completionIndex).completed;
   return filter === "completed" ? completed : !completed;
@@ -14775,6 +14775,19 @@ function practiceCompletionDisplay(status = {}) {
   return `✓ Completed${date ? ` · ${date}` : ""}`;
 }
 
+function practiceCompletionGroupSummary(moduleName, items = [], completionIndex = null) {
+  const normalized = items.filter(Boolean);
+  const completedCount = normalized.reduce(
+    (count, item) => count + Number(practiceCompletionStatus(moduleName, item, completionIndex).completed),
+    0,
+  );
+  return {
+    completedCount,
+    totalCount: normalized.length,
+    label: `${completedCount}/${normalized.length} completed`,
+  };
+}
+
 function renderPracticeUnitCard(item, moduleName, completionIndex) {
   const scope = item.libraryScope === "topic" ? "topic" : item.practiceScope || "paper";
   const questionCount = item.questions?.length || 0;
@@ -16180,12 +16193,12 @@ function renderWritingTopicFilters(options) {
     : books.map(String).includes(current) ? current : "all";
 }
 
-function writingTask1Cards(tasks = writingTask1Pool()) {
+function writingTask1Cards(tasks = writingTask1Pool(), completionIndex = null) {
   const query = ($("writingTopicSearch")?.value || "").trim().toLowerCase();
   const source = $("writingTopicBook")?.value || "all";
   return tasks.filter((task) => {
     const sourceOk = source === "all" || String(itemBook(task)) === source;
-    if (!sourceOk) return false;
+    if (!sourceOk || !practiceCompletionFilterMatches("writing", task, completionIndex, "writingCompletionFilter")) return false;
     if (!query) return true;
     return [task.title, task.prompt, task.data, task.source, writingTaskKind(task)]
       .filter(Boolean).join(" ").toLowerCase().includes(query);
@@ -16205,12 +16218,14 @@ function renderWritingTask1Filters(tasks) {
   select.value = books.map(String).includes(current) ? current : "all";
 }
 
-function renderWritingTask1Card(task, recommendedId = "") {
+function renderWritingTask1Card(task, recommendedId = "", completionIndex = null) {
   const item = normalizeItem(task);
   const kind = writingTaskKind(item);
   const isRecommended = item.id === recommendedId;
-  return `<article class="bank-item speaking-topic-card writing-topic-card writing-task1-card${isRecommended ? " recommended" : ""}" data-writing-task1-id="${escapeHtml(item.id)}" role="button" tabindex="0" aria-label="Choose ${escapeHtml(item.title || "Task 1 visual")}">
-    <div class="topic-card-head"><div class="topic-icon" aria-hidden="true"><i data-lucide="chart-no-axes-combined"></i></div>${isRecommended ? `<span class="writing-ai-pick">AI pick</span>` : ""}</div>
+  const completion = practiceCompletionStatus("writing", item, completionIndex);
+  const status = completion.completed ? "completed" : "not-completed";
+  return `<article class="bank-item speaking-topic-card writing-topic-card writing-task1-card${isRecommended ? " recommended" : ""}" data-writing-task1-id="${escapeHtml(item.id)}" data-practice-status="${status}" role="button" tabindex="0" aria-label="Choose ${escapeHtml(item.title || "Task 1 visual")}">
+    <div class="topic-card-head"><div class="topic-icon" aria-hidden="true"><i data-lucide="chart-no-axes-combined"></i></div><span class="practice-status-badge ${status}">${practiceCompletionDisplay(completion)}</span>${isRecommended ? `<span class="writing-ai-pick">AI pick</span>` : ""}</div>
     <h3>${escapeHtml(item.title || "Task 1 visual")}</h3>
     <div class="topic-card-body">
       <div class="topic-keywords"><span>Task 1</span><span>${escapeHtml(kind === "task 1" ? "visual" : kind)}</span></div>
@@ -16224,7 +16239,8 @@ function renderWritingTask1Board(tasks, recommended) {
   const root = $("writingTopicList");
   if (!root) return;
   renderWritingTask1Filters(tasks);
-  const filtered = writingTask1Cards(tasks);
+  const completionIndex = readPracticeCompletionIndex();
+  const filtered = writingTask1Cards(tasks, completionIndex);
   if (!filtered.length) {
     root.innerHTML = `<div class="notice">No Task 1 charts match this search.</div>`;
     renderWritingTopicPagination(0, 1, state.writingTopicPageSize);
@@ -16237,7 +16253,7 @@ function renderWritingTask1Board(tasks, recommended) {
   state.writingTopicPage = Math.min(Math.max(1, state.writingTopicPage || 1), totalPages);
   const start = (state.writingTopicPage - 1) * state.writingTopicPageSize;
   const visible = ordered.slice(start, start + state.writingTopicPageSize);
-  root.innerHTML = visible.map((task) => renderWritingTask1Card(task, recommended?.id || "")).join("");
+  root.innerHTML = visible.map((task) => renderWritingTask1Card(task, recommended?.id || "", completionIndex)).join("");
   renderWritingTopicPagination(ordered.length, state.writingTopicPage, state.writingTopicPageSize);
   root.querySelectorAll(".writing-task1-card[data-writing-task1-id]").forEach((card) => {
     const open = () => openWritingPracticeSetup("task1", card.dataset.writingTask1Id);
@@ -16299,7 +16315,7 @@ function renderWritingTopicPagination(total, page, pageSize) {
   });
 }
 
-function renderWritingTopicCard(option, recommendedId = "") {
+function renderWritingTopicCard(option, recommendedId = "", completionIndex = null) {
   const group = option?.items ? option : {
     id: `writing-topic:${writingTopicMeta(option).accent}`,
     ...writingTopicMeta(option),
@@ -16315,9 +16331,12 @@ function renderWritingTopicCard(option, recommendedId = "") {
   ].filter(Boolean).slice(0, 3);
   const task2Summary = writingTaskPreview(task2, "Choose a Cambridge Task 2 question.");
   const sourceLabel = task2.source === "Public topics" ? "Public Task 2" : "Cambridge Task 2";
-  return `<article class="bank-item speaking-topic-card writing-topic-card topic-accent-${escapeHtml(meta.accent)}${isRecommended ? " recommended" : ""}" data-writing-topic-group="${escapeHtml(group.id)}" role="button" tabindex="0" aria-label="Choose ${escapeHtml(meta.title)} writing topic">
+  const tasks = group.items.map(writingTask2ForOption).filter(Boolean);
+  const summary = practiceCompletionGroupSummary("writing", tasks, completionIndex);
+  return `<article class="bank-item speaking-topic-card writing-topic-card topic-accent-${escapeHtml(meta.accent)}${isRecommended ? " recommended" : ""}" data-writing-topic-group="${escapeHtml(group.id)}" data-writing-completed-count="${summary.completedCount}" role="button" tabindex="0" aria-label="Choose ${escapeHtml(meta.title)} writing topic">
     <div class="topic-card-head">
       <div class="topic-icon" aria-hidden="true"><i data-lucide="${escapeHtml(meta.iconName || "file-pen-line")}"></i></div>
+      <span class="practice-status-badge ${summary.completedCount === summary.totalCount && summary.totalCount ? "completed" : "not-completed"}">${escapeHtml(summary.label)}</span>
       ${isRecommended ? `<span class="writing-ai-pick">AI pick</span>` : ""}
     </div>
     <h3>${escapeHtml(meta.title)}</h3>
@@ -16351,7 +16370,7 @@ function findWritingTopicGroup(groupId, options = writingSystemOptions(), recomm
   return buildWritingTopicGroups(options, recommendedId).find((group) => group.id === groupId) || null;
 }
 
-function renderWritingSetChooser(group, recommendedId = "") {
+function renderWritingSetChooser(group, recommendedId = "", completionIndex = readPracticeCompletionIndex()) {
   const setup = $("writingSetupPanel");
   const entry = $("writingEntry");
   const workspace = $("writingWorkspace");
@@ -16359,14 +16378,18 @@ function renderWritingSetChooser(group, recommendedId = "") {
   entry.hidden = true;
   workspace.hidden = true;
   setup.hidden = false;
-  const ordered = [...group.items].sort((a, b) => Number(b.id === recommendedId) - Number(a.id === recommendedId));
+  const ordered = [...group.items]
+    .filter((option) => practiceCompletionFilterMatches("writing", writingTask2ForOption(option), completionIndex, "writingCompletionFilter"))
+    .sort((a, b) => Number(b.id === recommendedId) - Number(a.id === recommendedId));
   setup.innerHTML = `<section class="topic-set-chooser writing-set-chooser">
     <header class="bank-practice-head topic-set-chooser-head"><div><span>Task 2 topic</span><h3>${escapeHtml(group.title)}</h3><p>Choose the Task 2 question you want to answer.</p></div><button class="secondary small-button" type="button" data-writing-set-back>Back to topics</button></header>
     <div class="topic-set-list" role="list">${ordered.map((option, index) => {
       const task2 = writingTask2ForOption(option) || {};
-      return `<article class="topic-set-row" role="listitem">
+      const completion = practiceCompletionStatus("writing", task2, completionIndex);
+      const status = completion.completed ? "completed" : "not-completed";
+      return `<article class="topic-set-row" role="listitem" data-practice-status="${status}" data-writing-task2-id="${escapeHtml(task2.id || "")}">
         <div class="topic-set-index">${index + 1}</div>
-        <div class="topic-set-main"><div class="topic-set-source">${escapeHtml(writingTopicSourceLabel(option))}${option.id === recommendedId ? " · AI pick" : ""}</div><h4>${escapeHtml(group.title)}</h4><p>${escapeHtml(writingTaskPreview(task2, "IELTS Writing Task 2"))}</p></div>
+        <div class="topic-set-main"><div class="topic-set-source">${escapeHtml(writingTopicSourceLabel(option))}${option.id === recommendedId ? " · AI pick" : ""}</div><h4>${escapeHtml(group.title)}</h4><p>${escapeHtml(writingTaskPreview(task2, "IELTS Writing Task 2"))}</p><span class="practice-status-badge ${status}">${practiceCompletionDisplay(completion)}</span></div>
         <button class="primary small-button choose-writing-set" type="button" data-writing-set-id="${escapeHtml(option.id)}" data-writing-task2-id="${escapeHtml(task2.id || "")}">Select question</button>
       </article>`;
     }).join("")}</div>
@@ -16397,28 +16420,30 @@ function renderWritingTopicBoard(options, recommended) {
     renderWritingTopicPagination(0, 1, state.writingTopicPageSize);
     return;
   }
-  const groups = buildWritingTopicGroups(filtered, recommended?.id || "");
+  const completionIndex = readPracticeCompletionIndex();
+  const groups = buildWritingTopicGroups(filtered, recommended?.id || "")
+    .filter((group) => group.items.some((option) => practiceCompletionFilterMatches("writing", writingTask2ForOption(option), completionIndex, "writingCompletionFilter")));
   const totalPages = Math.max(1, Math.ceil(groups.length / state.writingTopicPageSize));
   state.writingTopicPage = Math.min(Math.max(1, state.writingTopicPage || 1), totalPages);
   const start = (state.writingTopicPage - 1) * state.writingTopicPageSize;
   const displayItems = groups.slice(start, start + state.writingTopicPageSize);
-  root.innerHTML = displayItems.map((group) => renderWritingTopicCard(group, recommended?.id || "")).join("");
+  root.innerHTML = displayItems.map((group) => renderWritingTopicCard(group, recommended?.id || "", completionIndex)).join("");
   renderWritingTopicPagination(groups.length, state.writingTopicPage, state.writingTopicPageSize);
   root.querySelectorAll(".writing-topic-card[data-writing-topic-group]").forEach((card) => {
     card.addEventListener("click", (event) => {
       if (event.target.closest("button")) return;
-      renderWritingSetChooser(findWritingTopicGroup(card.dataset.writingTopicGroup, filtered, recommended?.id || ""), recommended?.id || "");
+      renderWritingSetChooser(findWritingTopicGroup(card.dataset.writingTopicGroup, filtered, recommended?.id || ""), recommended?.id || "", completionIndex);
     });
     card.addEventListener("keydown", (event) => {
       if (event.key !== "Enter" && event.key !== " ") return;
       event.preventDefault();
-      renderWritingSetChooser(findWritingTopicGroup(card.dataset.writingTopicGroup, filtered, recommended?.id || ""), recommended?.id || "");
+      renderWritingSetChooser(findWritingTopicGroup(card.dataset.writingTopicGroup, filtered, recommended?.id || ""), recommended?.id || "", completionIndex);
     });
   });
   root.querySelectorAll(".practice-writing-topic[data-writing-topic-group]").forEach((button) => {
     button.addEventListener("click", (event) => {
       event.stopPropagation();
-      renderWritingSetChooser(findWritingTopicGroup(button.dataset.writingTopicGroup, filtered, recommended?.id || ""), recommended?.id || "");
+      renderWritingSetChooser(findWritingTopicGroup(button.dataset.writingTopicGroup, filtered, recommended?.id || ""), recommended?.id || "", completionIndex);
     });
   });
   window.lucide?.createIcons?.({ attrs: { "stroke-width": 1.8 } });
@@ -17738,11 +17763,12 @@ function activateSpeakingTopicFromBank(id) {
   renderBankPracticeTopic(topic);
 }
 
-function renderTopicSetChooser(group) {
+function renderTopicSetChooser(group, completionIndex = readPracticeCompletionIndex()) {
   const root = $("bankPracticePanel");
   if (!root || !group) return;
   disconnectQwenSpeaking("bank");
   const chips = group.related.slice(0, 5).map((keyword) => `<span>${escapeHtml(keyword)}</span>`).join("");
+  const visibleItems = group.items.filter((item) => practiceCompletionFilterMatches("speaking", item, completionIndex, "bankCompletionFilter"));
   const sourceLabel = group.sources.length > 1 ? "Cambridge + Public" : (group.sources[0] || "Speaking");
   root.hidden = false;
   root.closest(".panel")?.classList.add("bank-practice-active");
@@ -17759,18 +17785,21 @@ function renderTopicSetChooser(group) {
       <button id="closeBankPractice" class="secondary small-button" type="button">Back to topics</button>
     </header>
     <div class="topic-set-list" role="list">
-      ${group.items.map((item, index) => {
+      ${visibleItems.map((item, index) => {
         const source = speakingSetSourceLabel(item);
         const preview = speakingSetPreview(item);
         const setTitle = item.title && !String(item.title).toLowerCase().includes("speaking")
           ? item.title
           : source;
-        return `<article class="topic-set-row" role="listitem">
+        const completion = practiceCompletionStatus("speaking", item, completionIndex);
+        const status = completion.completed ? "completed" : "not-completed";
+        return `<article class="topic-set-row" role="listitem" data-practice-status="${status}" data-speaking-topic-id="${escapeHtml(item.id)}">
           <div class="topic-set-index">${index + 1}</div>
           <div class="topic-set-main">
             <div class="topic-set-source">${escapeHtml(source)}</div>
             <h4>${escapeHtml(setTitle)}</h4>
             <p>${escapeHtml(preview || "IELTS Speaking Part 1, Part 2 and Part 3 practice set.")}</p>
+            <span class="practice-status-badge ${status}">${practiceCompletionDisplay(completion)}</span>
           </div>
           <button class="primary small-button choose-speaking-set" type="button" data-id="${escapeHtml(item.id)}">Practice</button>
         </article>`;
@@ -17793,7 +17822,7 @@ function activateSpeakingTopicGroupFromBank(groupId) {
   const group = findSpeakingTopicGroupById(groupId);
   if (!group) return;
   syncCurrentDraftNow();
-  renderTopicSetChooser(group);
+  renderTopicSetChooser(group, readPracticeCompletionIndex());
 }
 
 function renderBankPagination(total, page, pageSize) {
@@ -17847,6 +17876,7 @@ function renderBankList() {
   const book = $("bankTopicBook")?.value || "all";
   const category = document.querySelector(".topic-category-pill.active")?.dataset.topicCategory || "all";
   const likedIds = new Set(readLikedTopicIds());
+  const completionIndex = readPracticeCompletionIndex();
   const filtered = topics.filter((item) => {
     const publicTopic = isPublicSpeakingTopic(item);
     const bookOk = category === "liked"
@@ -17861,7 +17891,8 @@ function renderBankList() {
     const searchOk = !query || speakingTopicSearchText(item).includes(query);
     return bookOk && categoryOk && searchOk;
   });
-  const groups = buildSpeakingTopicGroups(filtered);
+  const groups = buildSpeakingTopicGroups(filtered)
+    .filter((group) => group.items.some((item) => practiceCompletionFilterMatches("speaking", item, completionIndex, "bankCompletionFilter")));
   if (!groups.length) {
     renderBankPagination(0, 1, state.bankTopicPageSize);
     root.innerHTML = `<div class="notice">No speaking topics match this search.</div>`;
@@ -17881,10 +17912,12 @@ function renderBankList() {
         const liked = isSpeakingTopicGroupLiked(group, likedIds);
         const sourceLabel = group.sources.length > 1 ? "Cambridge + Public" : (group.sources[0] || "Speaking");
         const origin = `${group.items.length} ${group.items.length === 1 ? "set" : "sets"} · ${sourceLabel}`;
+        const completion = practiceCompletionGroupSummary("speaking", group.items, completionIndex);
         return `
-      <div class="bank-item speaking-topic-card topic-accent-${escapeHtml(group.accent)}" data-group-id="${escapeHtml(group.id)}" role="button" tabindex="0">
+      <div class="bank-item speaking-topic-card topic-accent-${escapeHtml(group.accent)}" data-group-id="${escapeHtml(group.id)}" data-speaking-completed-count="${completion.completedCount}" role="button" tabindex="0">
         <div class="topic-card-head">
           <div class="topic-icon" aria-hidden="true"><i data-lucide="${escapeHtml(speakingTopicIconName(group.category))}"></i></div>
+          <span class="practice-status-badge ${completion.completedCount === completion.totalCount && completion.totalCount ? "completed" : "not-completed"}">${escapeHtml(completion.label)}</span>
           <button class="topic-favourite${liked ? " liked" : ""}" type="button" data-topic-group="${escapeHtml(group.id)}" aria-label="${liked ? "Remove from likes" : "Like topic"}"><i data-lucide="heart"></i></button>
         </div>
         <h3>${escapeHtml(group.title)}</h3>
@@ -18337,6 +18370,10 @@ function bindEvents() {
     state.writingTopicPage = 1;
     renderWritingUploadHub();
   });
+  $("writingCompletionFilter")?.addEventListener("change", () => {
+    state.writingTopicPage = 1;
+    renderWritingUploadHub();
+  });
   document.querySelectorAll("[data-writing-topic-category]").forEach((button) => {
     button.addEventListener("click", () => {
       document.querySelectorAll("[data-writing-topic-category]").forEach((item) => item.classList.remove("active"));
@@ -18403,6 +18440,10 @@ function bindEvents() {
     renderBankList();
   });
   $("bankTopicBook")?.addEventListener("change", () => {
+    state.bankTopicPage = 1;
+    renderBankList();
+  });
+  $("bankCompletionFilter")?.addEventListener("change", () => {
     state.bankTopicPage = 1;
     renderBankList();
   });

@@ -10076,6 +10076,19 @@ body.immersive-mode[data-immersive-module="speaking"] .exam-section.focused-sect
   background: #ecfdf3;
   color: #027a48;
 }
+
+#writingCompletionFilter,
+#bankCompletionFilter {
+  min-height: 44px;
+}
+
+.topic-card-head .practice-status-badge {
+  margin-left: auto;
+}
+
+.topic-card-head .practice-status-badge + .topic-favourite {
+  margin-left: 0;
+}
 .practice-unit-empty { display: grid; place-items: center; gap: 8px; min-height: 180px; padding: 28px; border: 1px dashed #cbd5e1; border-radius: 16px; color: #667085; text-align: center; }
 .practice-unit-empty > span { font-size: 34px; }
 

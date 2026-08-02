@@ -1,9 +1,13 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
+import { createRequire } from "node:module";
 import { readFile, rm } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { runInNewContext } from "node:vm";
+
+const require = createRequire(import.meta.url);
+const { chromium } = require("C:/Users/10604/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright");
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const appSource = await readFile(path.join(root, "public", "app.js"), "utf8");
@@ -477,8 +481,129 @@ function jsonOptions(method, body, token = "") {
   };
 }
 
+let browser;
 try {
   await waitForServer();
+  browser = await chromium.launch({
+    headless: true,
+    executablePath: "C:/Program Files/Google/Chrome/Application/chrome.exe",
+  });
+  const completedAt = "2026-08-02T09:30:00.000Z";
+  const completionSeed = {
+    version: 1,
+    partitions: {
+      guest: {
+        "writing:cam15-w-test1-task1": { completedAt, attemptId: "ui-writing-task1" },
+        "writing:cam15-w-test1-task2": { completedAt, attemptId: "ui-writing-task2" },
+        "speaking:cam15-s-test1": { completedAt, attemptId: "ui-speaking" },
+      },
+    },
+  };
+  const uiErrors = [];
+
+  async function openSeededPage(viewport, hash) {
+    const page = await browser.newPage({ viewport });
+    page.on("pageerror", (error) => uiErrors.push(error.message));
+    await page.addInitScript(({ seed }) => {
+      localStorage.clear();
+      localStorage.setItem("ieltsistCompletedItemsV1", JSON.stringify(seed));
+    }, { seed: completionSeed });
+    await page.goto(`http://127.0.0.1:${port}/${hash}`, { waitUntil: "networkidle" });
+    return page;
+  }
+
+  const desktop = await openSeededPage({ width: 1440, height: 900 }, "#writing-upload");
+  await desktop.locator("#writingCompletionFilter").waitFor({ state: "visible", timeout: 5_000 });
+  assert.deepEqual(
+    await desktop.locator("#writingCompletionFilter option").allTextContents(),
+    ["All", "Not completed", "Completed"],
+    "Writing completion filter must expose the shared three states",
+  );
+  assert.deepEqual(
+    await desktop.locator("#bankCompletionFilter option").allTextContents(),
+    ["All", "Not completed", "Completed"],
+    "Speaking completion filter must expose the shared three states",
+  );
+
+  const task2CompletedGroup = desktop.locator('.writing-topic-card[data-writing-completed-count="1"]').first();
+  assert.ok(await task2CompletedGroup.count(), "Task 2 needs a grouped x/y completion card");
+  assert.match(await task2CompletedGroup.innerText(), /1\/\d+ completed/i);
+  await desktop.locator("#writingCompletionFilter").selectOption("completed");
+  assert.equal(await desktop.locator(".writing-topic-card[data-writing-topic-group]").count(), 1, "Only the Task 2 group containing the completed question should remain");
+  await desktop.locator(".practice-writing-topic").click();
+  const completedTask2Rows = desktop.locator('.writing-set-chooser .topic-set-row[data-practice-status="completed"]');
+  assert.equal(await completedTask2Rows.count(), 1, "Completed Task 2 chooser must re-filter individual question rows");
+  assert.equal(await completedTask2Rows.first().getAttribute("data-writing-task2-id"), "cam15-w-test1-task2", "Task 2 completion must retain the exact independent task ID");
+  assert.match(await completedTask2Rows.first().innerText(), /Completed · 2026-08-02/);
+  await desktop.locator("[data-writing-set-back]").click();
+  await desktop.locator("#writingCompletionFilter").selectOption("not-completed");
+  assert.ok(await desktop.locator(".writing-topic-card[data-writing-topic-group]").count() > 0, "Untouched Task 2 groups should remain");
+  await desktop.locator(".practice-writing-topic").first().click();
+  assert.equal(await desktop.locator('.writing-set-chooser .topic-set-row[data-practice-status="completed"]').count(), 0, "Not-completed Task 2 chooser must remove completed rows");
+  assert.ok(await desktop.locator('.writing-set-chooser .topic-set-row[data-practice-status="not-completed"]').count() > 0);
+  await desktop.locator("[data-writing-set-back]").click();
+
+  await desktop.locator('[data-writing-library-task="1"]').click();
+  await desktop.locator("#writingCompletionFilter").selectOption("completed");
+  assert.equal(await desktop.locator(".writing-task1-card").count(), 1, "Task 1 completion filtering must operate on individual visual-task IDs");
+  const completedTask1 = desktop.locator('.writing-task1-card[data-writing-task1-id="cam15-w-test1-task1"]');
+  assert.equal(await completedTask1.count(), 1);
+  assert.match(await completedTask1.innerText(), /Completed · 2026-08-02/);
+  assert.equal(await desktop.locator('[data-writing-task1-id="cam15-w-test1-task2"]').count(), 0, "Task 1 status must never couple to Task 2 history");
+  await desktop.locator("#writingCompletionFilter").selectOption("not-completed");
+  assert.equal(await desktop.locator('.writing-task1-card[data-writing-task1-id="cam15-w-test1-task1"]').count(), 0);
+  assert.ok(await desktop.locator(".writing-task1-card").count() > 0, "Untouched Task 1 cards should remain");
+
+  await desktop.goto(`http://127.0.0.1:${port}/#bank`, { waitUntil: "networkidle" });
+  const speakingCompletedGroup = desktop.locator('.speaking-topic-card[data-speaking-completed-count="1"]').first();
+  assert.ok(await speakingCompletedGroup.count(), "Speaking topic cards need grouped x/y completion");
+  assert.match(await speakingCompletedGroup.innerText(), /1\/\d+ completed/i);
+  await desktop.locator("#bankCompletionFilter").selectOption("completed");
+  assert.equal(await desktop.locator(".speaking-topic-card[data-group-id]").count(), 1, "Only the Speaking group containing the completed set should remain");
+  await desktop.locator(".practice-speaking-topic").click();
+  const completedSpeakingRows = desktop.locator('.topic-set-chooser .topic-set-row[data-practice-status="completed"]');
+  assert.equal(await completedSpeakingRows.count(), 1, "Completed Speaking chooser must re-filter individual set rows");
+  assert.equal(await completedSpeakingRows.first().getAttribute("data-speaking-topic-id"), "cam15-s-test1", "Speaking completion must use the exact topicId");
+  assert.match(await completedSpeakingRows.first().innerText(), /Completed · 2026-08-02/);
+  await desktop.locator("#closeBankPractice").click();
+  await desktop.locator("#bankCompletionFilter").selectOption("not-completed");
+  assert.ok(await desktop.locator(".speaking-topic-card[data-group-id]").count() > 0, "Untouched Speaking groups should remain");
+  await desktop.locator(".practice-speaking-topic").first().click();
+  assert.equal(await desktop.locator('.topic-set-chooser .topic-set-row[data-practice-status="completed"]').count(), 0, "Not-completed Speaking chooser must remove completed rows");
+  assert.ok(await desktop.locator('.topic-set-chooser .topic-set-row[data-practice-status="not-completed"]').count() > 0);
+  await desktop.close();
+
+  for (const viewport of [
+    { width: 1440, height: 900 },
+    { width: 1024, height: 768 },
+    { width: 768, height: 1024 },
+    { width: 390, height: 844 },
+  ]) {
+    for (const hash of ["#writing-upload", "#bank"]) {
+      const page = await openSeededPage(viewport, hash);
+      const filterId = hash === "#bank" ? "#bankCompletionFilter" : "#writingCompletionFilter";
+      const filterBox = await page.locator(filterId).boundingBox();
+      assert.ok(filterBox && filterBox.height >= 44, `${hash} completion control must remain at least 44px tall at ${viewport.width}px`);
+      assert.ok(filterBox.x >= -1 && filterBox.x + filterBox.width <= viewport.width + 1, `${hash} completion control must stay inside the viewport at ${viewport.width}px`);
+      const geometry = await page.evaluate(() => {
+        const root = document.documentElement;
+        const overlaps = [...document.querySelectorAll(".practice-status-badge")].some((badge) => {
+          const card = badge.closest(".writing-topic-card, .speaking-topic-card, .topic-set-row");
+          const button = card?.querySelector("button.primary");
+          if (!button) return false;
+          const a = badge.getBoundingClientRect();
+          const b = button.getBoundingClientRect();
+          return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+        });
+        return { overflow: root.scrollWidth - root.clientWidth, overlaps };
+      });
+      assert.ok(geometry.overflow <= 1, `${hash} must not overflow horizontally at ${viewport.width}px`);
+      assert.equal(geometry.overlaps, false, `${hash} completion badges must not overlap card actions at ${viewport.width}px`);
+      await page.close();
+    }
+  }
+  assert.deepEqual(uiErrors, [], "Completion UI must not raise browser page errors");
+
   const username = `complete_${process.pid}`.slice(0, 24);
   const registered = await request("/api/auth/register", jsonOptions("POST", { username, password: "testing123" }));
   assert.equal(registered.response.status, 200);
@@ -527,6 +652,7 @@ try {
   const latestDuplicate = learningState.json.completedItems.find((item) => item.module === canonicalItems[0].module && item.itemId === canonicalItems[0].itemId);
   assert.equal(latestDuplicate.attemptId, `completion_${process.pid}_duplicate`, "Distinct completion rows must retain the latest attempt metadata");
 } finally {
+  await browser?.close();
   child.kill();
   await new Promise((resolve) => child.once("exit", resolve));
   await Promise.all([

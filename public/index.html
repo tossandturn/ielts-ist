@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>IELTS-ist</title>
-    <link rel="stylesheet" href="/styles.css?v=20260802-semantic-topics-completion" />
+    <link rel="stylesheet" href="/styles.css?v=20260802-writing-speaking-completion" />
   </head>
   <body class="focus-camp-system">
     <div class="app-shell">
@@ -173,6 +173,11 @@
             <div class="topic-toolbar writing-topic-toolbar">
               <input id="writingTopicSearch" class="text-input" type="search" autocomplete="off" placeholder="Search Task 2 topics or questions..." />
               <select id="writingTopicBook" class="text-input" aria-label="Filter Writing topics by source"></select>
+              <select id="writingCompletionFilter" class="text-input" aria-label="Filter Writing by completion">
+                <option value="all">All</option>
+                <option value="not-completed">Not completed</option>
+                <option value="completed">Completed</option>
+              </select>
               <button id="openCustomWriting" class="secondary small-button" type="button">Custom essay</button>
             </div>
             <div id="writingTopicCategoryBar" class="topic-category-bar" aria-label="Writing topic categories">
@@ -308,6 +313,11 @@
             <div class="topic-toolbar">
               <input id="bankTopicSearch" class="text-input" placeholder="Search topics, Cambridge book, or Part 2 cue cards..." />
               <select id="bankTopicBook"></select>
+              <select id="bankCompletionFilter" aria-label="Filter Speaking by completion">
+                <option value="all">All</option>
+                <option value="not-completed">Not completed</option>
+                <option value="completed">Completed</option>
+              </select>
             </div>
             <div id="topicCategoryBar" class="topic-category-bar" aria-label="Speaking topic categories">
               <button class="topic-category-pill active" type="button" data-topic-category="all">All Topics</button>
@@ -408,6 +418,6 @@
       <button id="clearAnnotation" class="icon-btn" type="button">Clear paper</button>
     </div>
   <script src="/vendor/lucide.min.js?v=20260730-1"></script>
-  <script src="/app.js?v=20260802-semantic-topics-completion"></script>
+  <script src="/app.js?v=20260802-writing-speaking-completion"></script>
   </body>
 </html>
