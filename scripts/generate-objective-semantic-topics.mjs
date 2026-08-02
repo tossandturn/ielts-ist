@@ -419,8 +419,13 @@ function parseArgs(argv) {
   for (let index = 0; index < argv.length; index += 1) {
     const value = argv[index];
     if (value === "--check") result.check = true;
-    else if (value === "--output") result.output = resolve(argv[++index]);
-    else if (value === "--asr-cache") result.asrCache = resolve(argv[++index]);
+    else if (value === "--output" || value === "--asr-cache") {
+      const pathValue = argv[index + 1];
+      if (!pathValue || pathValue.startsWith("--")) throw new Error(`${value} requires a path argument`);
+      if (value === "--output") result.output = resolve(pathValue);
+      else result.asrCache = resolve(pathValue);
+      index += 1;
+    }
     else throw new Error(`Unknown argument: ${value}`);
   }
   return result;
@@ -644,12 +649,20 @@ function readingEntry(paper, passage, chunk) {
 }
 
 function resolveAsrCache(explicitPath) {
+  if (explicitPath) {
+    const resolvedExplicitPath = resolve(explicitPath);
+    if (!existsSync(resolvedExplicitPath)) throw new Error(`Explicit ASR cache not found: ${resolvedExplicitPath}`);
+    return resolvedExplicitPath;
+  }
+  if (process.env.LISTENING_ASR_CACHE_PATH) {
+    const resolvedConfiguredPath = resolve(process.env.LISTENING_ASR_CACHE_PATH);
+    if (!existsSync(resolvedConfiguredPath)) throw new Error(`Configured ASR cache not found: ${resolvedConfiguredPath}`);
+    return resolvedConfiguredPath;
+  }
   const candidates = [
-    explicitPath,
-    process.env.LISTENING_ASR_CACHE_PATH,
     resolve(ROOT, "data", "listening-asr-cache.json"),
     resolve(ROOT, "..", "..", "data", "listening-asr-cache.json"),
-  ].filter(Boolean).map((value) => resolve(value));
+  ].map((value) => resolve(value));
   const found = candidates.find(existsSync);
   if (!found) throw new Error(`Offline ASR cache not found. Tried: ${candidates.join(", ")}`);
   return found;

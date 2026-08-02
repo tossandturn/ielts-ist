@@ -36,7 +36,9 @@ const CAMBRIDGE_LOCAL_BANK_PATH = path.join(__dirname, "data", "cambridge-local-
 const SPEAKING_BANK_PATH = path.join(__dirname, "data", "speaking-bank.json");
 const LISTENING_ASR_CACHE_PATH = path.join(__dirname, "data", "listening-asr-cache.json");
 const READING_OCR_CACHE_PATH = path.join(__dirname, "data", "reading-ocr-page-cache.json");
-const OBJECTIVE_SEMANTIC_TOPICS_PATH = path.join(__dirname, "data", "objective-semantic-topics.json");
+const OBJECTIVE_SEMANTIC_TOPICS_PATH = process.env.OBJECTIVE_SEMANTIC_TOPICS_PATH
+  ? path.resolve(process.env.OBJECTIVE_SEMANTIC_TOPICS_PATH)
+  : path.join(__dirname, "data", "objective-semantic-topics.json");
 const MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
 const OPENAI_BASE_URL = (process.env.OPENAI_BASE_URL || process.env.UUAPI_BASE_URL || "https://api.openai.com/v1").replace(/\/+$/, "");
@@ -76,7 +78,7 @@ const AMBER_WRITING_SKILL = fs.existsSync(AMBER_SKILL_PATH)
   : "";
 const CAMBRIDGE15_BANK = loadQuestionBank(QUESTION_BANK_PATH);
 const LOCAL_CAMBRIDGE_BANK = loadQuestionBank(CAMBRIDGE_LOCAL_BANK_PATH);
-const OBJECTIVE_SEMANTIC_TOPICS = loadQuestionBank(OBJECTIVE_SEMANTIC_TOPICS_PATH);
+const OBJECTIVE_SEMANTIC_TOPICS = loadSemanticTopicCatalog(OBJECTIVE_SEMANTIC_TOPICS_PATH);
 const IMPORTED_BANKS = [CAMBRIDGE15_BANK, LOCAL_CAMBRIDGE_BANK];
 const LOCAL_FILE_INDEX = new Map((LOCAL_CAMBRIDGE_BANK.localFiles || []).map((file) => [file.id, file]));
 
@@ -925,6 +927,66 @@ function loadQuestionBank(filePath) {
     console.warn(`Failed to load question bank ${filePath}: ${error.message}`);
     return {};
   }
+}
+
+function requiredSemanticTopicIds() {
+  const ids = [];
+  for (let book = 4; book <= 21; book += 1) {
+    for (let test = 1; test <= 4; test += 1) {
+      for (let section = 1; section <= 4; section += 1) ids.push(`cam${book}-l-test${test}::section::${section}`);
+      for (let passage = 1; passage <= 3; passage += 1) ids.push(`cam${book}-r-test${test}::section::${passage}`);
+    }
+  }
+  return ids;
+}
+
+function loadSemanticTopicCatalog(filePath) {
+  if (!fs.existsSync(filePath)) throw new Error(`Semantic topic catalog is missing: ${filePath}`);
+  let catalog;
+  try {
+    catalog = JSON.parse(fs.readFileSync(filePath, "utf8"));
+  } catch (error) {
+    throw new Error(`Semantic topic catalog is not valid JSON (${filePath}): ${error.message}`);
+  }
+  if (!catalog || typeof catalog !== "object" || Array.isArray(catalog)) {
+    throw new Error(`Semantic topic catalog must be a JSON object: ${filePath}`);
+  }
+
+  const requiredIds = requiredSemanticTopicIds();
+  const actualIds = Object.keys(catalog);
+  if (actualIds.length !== requiredIds.length) {
+    throw new Error(`Semantic topic catalog must contain exactly 504 entries (288 Listening + 216 Reading); found ${actualIds.length}: ${filePath}`);
+  }
+  const actualIdSet = new Set(actualIds);
+  const missingIds = requiredIds.filter((id) => !actualIdSet.has(id));
+  const requiredIdSet = new Set(requiredIds);
+  const unexpectedIds = actualIds.filter((id) => !requiredIdSet.has(id));
+  if (missingIds.length || unexpectedIds.length) {
+    throw new Error(`Semantic topic catalog canonical IDs are invalid; missing: ${missingIds.join(", ") || "none"}; unexpected: ${unexpectedIds.join(", ") || "none"}`);
+  }
+
+  const allowedTopicKeys = new Set([
+    "work", "travel", "education", "environment", "health", "science", "history",
+    "culture", "society", "business", "transport", "architecture", "psychology", "food",
+  ]);
+  const requiredEntryKeys = ["confidence", "emoji", "schemaVersion", "source", "topicKey", "topicLabel", "topicTitle"];
+  for (const id of requiredIds) {
+    const entry = catalog[id];
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) throw new Error(`Semantic topic catalog entry ${id} must be an object`);
+    const entryKeys = Object.keys(entry).sort();
+    if (entryKeys.length !== requiredEntryKeys.length || entryKeys.some((key, index) => key !== requiredEntryKeys[index])) {
+      throw new Error(`Semantic topic catalog entry ${id} must have exactly: ${requiredEntryKeys.join(", ")}`);
+    }
+    for (const key of ["emoji", "source", "topicKey", "topicLabel", "topicTitle"]) {
+      if (typeof entry[key] !== "string" || !entry[key].trim()) throw new Error(`Semantic topic catalog entry ${id}.${key} must be a non-empty string`);
+    }
+    if (!allowedTopicKeys.has(entry.topicKey)) throw new Error(`Semantic topic catalog entry ${id}.topicKey is invalid: ${entry.topicKey}`);
+    if (entry.schemaVersion !== 1) throw new Error(`Semantic topic catalog entry ${id}.schemaVersion must be 1`);
+    if (!Number.isFinite(entry.confidence) || entry.confidence < 0 || entry.confidence > 1) {
+      throw new Error(`Semantic topic catalog entry ${id}.confidence must be a number from 0 to 1`);
+    }
+  }
+  return catalog;
 }
 
 function asrCacheKey(id, section) {

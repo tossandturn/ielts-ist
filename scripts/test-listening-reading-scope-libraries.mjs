@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import { spawn, spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
-import { mkdir, readFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
-import { resolve } from "node:path";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 
 const require = createRequire(import.meta.url);
 const { chromium } = require("C:/Users/10604/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright");
@@ -12,6 +13,79 @@ const port = 6400 + (process.pid % 300);
 const baseUrl = `http://127.0.0.1:${port}`;
 const outputDir = resolve("artifacts", "listening-reading-scope-libraries");
 await mkdir(outputDir, { recursive: true });
+
+const validationTempDir = await mkdtemp(join(tmpdir(), "ieltsist-semantic-validation-"));
+try {
+  const missingAsrPath = join(validationTempDir, "missing-asr-cache.json");
+  const explicitMissingAsr = spawnSync(process.execPath, [resolve("scripts", "generate-objective-semantic-topics.mjs"), "--check", "--asr-cache", missingAsrPath], {
+    cwd: root,
+    encoding: "utf8",
+  });
+  assert.notEqual(explicitMissingAsr.status, 0, "An explicit missing --asr-cache path must not fall back");
+  assert.match(explicitMissingAsr.stderr, /explicit ASR cache.*not found/i);
+
+  const envMissingAsr = spawnSync(process.execPath, [resolve("scripts", "generate-objective-semantic-topics.mjs"), "--check"], {
+    cwd: root,
+    env: { ...process.env, LISTENING_ASR_CACHE_PATH: missingAsrPath },
+    encoding: "utf8",
+  });
+  assert.notEqual(envMissingAsr.status, 0, "A missing LISTENING_ASR_CACHE_PATH must not fall back");
+  assert.match(envMissingAsr.stderr, /configured ASR cache.*not found/i);
+
+  for (const option of ["--output", "--asr-cache"]) {
+    const missingValue = spawnSync(process.execPath, [resolve("scripts", "generate-objective-semantic-topics.mjs"), option], {
+      cwd: root,
+      encoding: "utf8",
+    });
+    assert.notEqual(missingValue.status, 0, `${option} without a value must fail`);
+    assert.match(missingValue.stderr, new RegExp(`${option} requires a path argument`));
+  }
+
+  const missingCatalogPath = join(validationTempDir, "missing-semantic-catalog.json");
+  const missingCatalog = spawnSync(process.execPath, ["server.js"], {
+    cwd: root,
+    env: { ...process.env, PORT: "0", OBJECTIVE_SEMANTIC_TOPICS_PATH: missingCatalogPath },
+    encoding: "utf8",
+    timeout: 5_000,
+  });
+  assert.notEqual(missingCatalog.status, 0, "Server startup must reject a missing semantic catalog");
+  assert.match(missingCatalog.stderr, /Semantic topic catalog is missing/i);
+
+  const corruptCatalogPath = join(validationTempDir, "corrupt-semantic-catalog.json");
+  await writeFile(corruptCatalogPath, "{not-json", "utf8");
+  const corruptCatalog = spawnSync(process.execPath, ["server.js"], {
+    cwd: root,
+    env: { ...process.env, PORT: "0", OBJECTIVE_SEMANTIC_TOPICS_PATH: corruptCatalogPath },
+    encoding: "utf8",
+    timeout: 5_000,
+  });
+  assert.notEqual(corruptCatalog.status, 0, "Server startup must reject a corrupt semantic catalog");
+  assert.match(corruptCatalog.stderr, /Semantic topic catalog is not valid JSON/i);
+
+  const partialCatalogPath = join(validationTempDir, "partial-semantic-catalog.json");
+  await writeFile(partialCatalogPath, JSON.stringify({
+    "cam4-l-test1::section::1": {
+      topicKey: "travel",
+      topicLabel: "Travel",
+      emoji: "✈️",
+      topicTitle: "A school trip",
+      source: "test-fixture",
+      confidence: 0.9,
+      schemaVersion: 1,
+    },
+  }), "utf8");
+  const partialCatalog = spawnSync(process.execPath, ["server.js"], {
+    cwd: root,
+    env: { ...process.env, PORT: "0", OBJECTIVE_SEMANTIC_TOPICS_PATH: partialCatalogPath },
+    encoding: "utf8",
+    timeout: 5_000,
+  });
+  assert.notEqual(partialCatalog.status, 0, "Server startup must reject a partial semantic catalog");
+  assert.match(partialCatalog.stderr, /Semantic topic catalog must contain exactly 504 entries/i);
+} finally {
+  await rm(validationTempDir, { recursive: true, force: true });
+}
+console.log("PASS semantic topic generator inputs and server startup catalog validation");
 
 const child = spawn(process.execPath, ["server.js"], {
   cwd: root,
