@@ -16,7 +16,7 @@ Correct Listening and Reading Topic practice so Topic means the subject of the s
 
 ## Semantic-topic architecture
 
-The server derives one deterministic content-topic record for every Listening Section and Reading Passage from the existing OCR/source text:
+An offline generator derives one deterministic content-topic record for every Listening Section and Reading Passage from the existing ASR/OCR source text and writes a small, reviewable cache at `data/objective-semantic-topics.json`:
 
 ```js
 {
@@ -27,7 +27,7 @@ The server derives one deterministic content-topic record for every Listening Se
 }
 ```
 
-Classification uses explicit content titles and weighted keyword matches. IELTS boilerplate and question instructions do not count as topic evidence. If no safe category wins, the unit is labelled `General interest`; the application does not guess a specific subject.
+Classification uses explicit content titles and weighted keyword matches. IELTS boilerplate and question instructions do not count as topic evidence. The generator validates Listening Section markers and question ranges before accepting a cache entry; known mismatches use explicit overrides instead of silent guessing. If no safe category wins, the unit is labelled `General interest`.
 
 `/api/tasks` adds `contentTopics` maps to Listening and Reading papers without changing question text, answers, audio, pages, question-type metadata, or original paper IDs.
 
@@ -60,7 +60,9 @@ Completion keys use stable selectable item identities:
 
 The Topic view and Section/Passage view share the same completion key because they open the same source content. Completing a Passage through Topics therefore marks it completed in both views.
 
-Guest completion is stored durably in the existing learning-loop history under `completedItems`. Logged-in completion is also projected from every server `practice_attempts` row, not only the latest 20 attempts. Existing local and remote attempts are migrated into the index at read time.
+Guest completion is stored in a dedicated, user-partitioned `ieltsistCompletedItemsV1` index. Logged-in completion is also projected from every server `practice_attempts` row, not only the latest 20 attempts. A small `ieltsistPendingLearningAttemptsV1` outbox retries remote archival without changing local completion truth. Existing local and remote attempts are migrated into the index only when an exact canonical item ID is available; the application never guesses a Writing task from prompt fragments.
+
+Completing a full Listening or Reading paper also marks each contained Section or Passage completed. Completing one Section or Passage does not mark the full paper completed.
 
 ## Status presentation
 
