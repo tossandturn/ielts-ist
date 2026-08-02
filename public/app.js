@@ -150,6 +150,7 @@ const coreVocabularyStoreKey = "ieltsistCoreVocabularyKnown";
 const learningHistoryStoreKey = "ieltsistLearningLoopHistory";
 const coachHistoryStoreKey = "ieltsistCoachHistoryV1";
 const practiceSessionStoreKey = "ieltsistPracticeSessionV1";
+const guestLearningProfileStoreKey = "ieltsistGuestLearningProfileV1";
 const pendingPracticeCompletionStoreKey = "ieltsistPendingPracticeCompletionV1";
 const writingUploadSessionStoreKey = "ieltsistWritingUploadSessionV1";
 const writingTimerStoreKey = "ieltsistWritingTimerV1";
@@ -1932,8 +1933,190 @@ function renderDashboardFocusHistory(attempts = mineLearningAttempts()) {
   </section>`;
 }
 
+function readGuestLearningProfile() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(guestLearningProfileStoreKey) || "null");
+    if (!stored || stored.version !== 1) return null;
+    const currentBand = Number(stored.currentBand);
+    const targetBand = Number(stored.targetBand);
+    const dailyMinutes = Number(stored.dailyMinutes);
+    return {
+      currentBand: Number.isFinite(currentBand) ? currentBand : 6,
+      targetBand: Number.isFinite(targetBand) ? targetBand : 7.5,
+      examDate: String(stored.examDate || ""),
+      dailyMinutes: Number.isFinite(dailyMinutes) ? dailyMinutes : 30,
+      onboardingCompleted: true,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function dashboardEffectiveProfile() {
+  if (state.currentUser) return state.learningState?.profile || {};
+  return readGuestLearningProfile() || {};
+}
+
+function dashboardBandOptions(values, selected, fallback) {
+  const current = Number.isFinite(Number(selected)) ? Number(selected) : fallback;
+  return values.map((value) => `<option value="${value}"${value === current ? " selected" : ""}>${value.toFixed(1)}</option>`).join("");
+}
+
+function renderDashboardGoalDialog(profile = dashboardEffectiveProfile()) {
+  const currentBand = Number(profile.currentBand);
+  const targetBand = Number(profile.targetBand);
+  const dailyMinutes = Number(profile.dailyMinutes);
+  return `<dialog id="dashboardGoalDialog" class="dashboard-goal-dialog" aria-labelledby="dashboardGoalTitle" aria-describedby="dashboardGoalDescription">
+    <form id="dashboardGoalForm" method="dialog">
+      <header>
+        <div><span>🎯 YOUR IELTS GOAL</span><h2 id="dashboardGoalTitle">Make the plan yours</h2></div>
+        <button class="dashboard-goal-close" type="button" data-dashboard-goal-close aria-label="Close goal editor">×</button>
+      </header>
+      <p id="dashboardGoalDescription">Set all four details so practice recommendations fit your target and available time.</p>
+      <div class="dashboard-goal-fields">
+        <label><span>Current Band</span><select name="currentBand" required>${dashboardBandOptions([4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8], currentBand, 6)}</select></label>
+        <label><span>Target Band</span><select name="targetBand" required>${dashboardBandOptions([5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9], targetBand, 7.5)}</select></label>
+        <label><span>Exam date</span><input name="examDate" type="date" value="${escapeHtml(String(profile.examDate || ""))}" required /></label>
+        <label><span>Minutes / day</span><input name="dailyMinutes" type="number" min="5" max="360" step="5" value="${Number.isFinite(dailyMinutes) ? dailyMinutes : 30}" required /></label>
+      </div>
+      ${state.currentUser ? "" : `<p class="dashboard-goal-sync-note">☁️ Sign in to sync this goal across devices. It will stay saved on this device for now.</p>`}
+      <p class="dashboard-goal-error" data-dashboard-goal-error aria-live="polite"></p>
+      <footer>
+        <button class="secondary" type="button" data-dashboard-goal-close>Cancel</button>
+        <button class="dashboard-goal-save" type="submit">Save goal <span aria-hidden="true">→</span></button>
+      </footer>
+    </form>
+  </dialog>`;
+}
+
+function dashboardRoundToHalf(value) {
+  return Math.round(value * 2) / 2;
+}
+
+function dashboardRadarProfile(attempts = mineLearningAttempts(), profile = dashboardEffectiveProfile()) {
+  const modules = ["listening", "reading", "writing", "speaking"];
+  const evidence = modules.map((moduleName) => {
+    const attempt = attempts.find((item) => (item?.module || mineAttemptResult(item).module) === moduleName) || null;
+    const result = mineAttemptResult(attempt);
+    const score = attempt?.score || {};
+    const rawBand = result.band ?? score.band ?? result.scores?.overall ?? result.scores?.Overall;
+    const band = Number.parseFloat(normalizeSpeakingBand(rawBand || ""));
+    if (Number.isFinite(band)) {
+      return { module: moduleName, label: moduleName[0].toUpperCase() + moduleName.slice(1), value: band, kind: "recorded", source: "Recorded Band", hasResult: true };
+    }
+    const correct = Number(result.correct ?? score.correct);
+    const total = Number(result.total ?? score.total);
+    if (Number.isFinite(correct) && Number.isFinite(total) && total > 0) {
+      const value = dashboardRoundToHalf(Math.max(3, Math.min(9, (correct / total) * 9)));
+      return { module: moduleName, label: moduleName[0].toUpperCase() + moduleName.slice(1), value, kind: "estimated", source: `${correct}/${total} estimate`, hasResult: true };
+    }
+    return { module: moduleName, label: moduleName[0].toUpperCase() + moduleName.slice(1), value: NaN, kind: "estimated", source: "", hasResult: false };
+  });
+  const available = evidence.map((item) => item.value).filter(Number.isFinite);
+  const currentBand = Number(profile.currentBand);
+  const fallback = Number.isFinite(currentBand)
+    ? currentBand
+    : available.length
+      ? dashboardRoundToHalf(available.reduce((sum, value) => sum + value, 0) / available.length)
+      : 5.5;
+  evidence.forEach((item) => {
+    if (Number.isFinite(item.value)) return;
+    item.value = fallback;
+    item.source = Number.isFinite(currentBand) ? "Current Band baseline" : available.length ? "Profile average" : "Starter estimate";
+  });
+  return {
+    axes: evidence,
+    recordedCount: evidence.filter((item) => item.kind === "recorded").length,
+    estimatedCount: evidence.filter((item) => item.kind === "estimated").length,
+  };
+}
+
+function renderDashboardRadar(attempts = mineLearningAttempts(), profile = dashboardEffectiveProfile()) {
+  const radar = dashboardRadarProfile(attempts, profile);
+  return `<article class="dashboard-focus-radar" data-dashboard-radar aria-label="Four-skill learning profile">
+    <header>
+      <div><span>📡 SKILL PROFILE</span><h3>Your four-skill shape</h3></div>
+      <strong>${radar.recordedCount} recorded · ${radar.estimatedCount} estimated</strong>
+    </header>
+    <div class="dashboard-radar-visual"><canvas data-dashboard-radar-canvas aria-hidden="true"></canvas></div>
+    <ul class="dashboard-radar-summary">
+      ${radar.axes.map((axis) => `<li><i class="tone-${axis.module}" data-radar-point="${axis.kind}" aria-hidden="true"></i><span><b>${axis.label}</b><small>${escapeHtml(axis.source)}</small></span><strong>${axis.value.toFixed(1)}</strong><em>${axis.kind}</em></li>`).join("")}
+    </ul>
+    <p>Estimated strengths guide practice only — they are not official IELTS Bands.</p>
+    <script type="application/json" data-dashboard-radar-data>${JSON.stringify(radar.axes.map(({ module, label, value, kind }) => ({ module, label, value, kind })))}</script>
+  </article>`;
+}
+
+function drawDashboardRadar(root = document) {
+  const card = root.querySelector?.("[data-dashboard-radar]");
+  const canvas = card?.querySelector("[data-dashboard-radar-canvas]");
+  const dataNode = card?.querySelector("[data-dashboard-radar-data]");
+  if (!canvas || !dataNode) return;
+  let axes = [];
+  try { axes = JSON.parse(dataNode.textContent || "[]"); } catch { return; }
+  const size = Math.max(210, Math.min(290, Math.floor(card.querySelector(".dashboard-radar-visual")?.clientWidth || 250)));
+  const ratio = Math.max(1, window.devicePixelRatio || 1);
+  canvas.width = size * ratio;
+  canvas.height = size * ratio;
+  canvas.style.width = `${size}px`;
+  canvas.style.height = `${size}px`;
+  const context = canvas.getContext("2d");
+  if (!context) return;
+  context.scale(ratio, ratio);
+  const center = size / 2;
+  const radius = size * .34;
+  const angle = (index) => (-Math.PI / 2) + (index * Math.PI * 2 / 4);
+  const point = (index, strength) => ({ x: center + Math.cos(angle(index)) * radius * strength, y: center + Math.sin(angle(index)) * radius * strength });
+  context.lineJoin = "round";
+  for (let level = 1; level <= 4; level += 1) {
+    context.beginPath();
+    axes.forEach((_, index) => {
+      const current = point(index, level / 4);
+      if (index === 0) context.moveTo(current.x, current.y); else context.lineTo(current.x, current.y);
+    });
+    context.closePath();
+    context.strokeStyle = level === 4 ? "#d8d4ea" : "#eceaf4";
+    context.lineWidth = 1;
+    context.stroke();
+  }
+  axes.forEach((_, index) => {
+    const outer = point(index, 1);
+    context.beginPath();
+    context.moveTo(center, center);
+    context.lineTo(outer.x, outer.y);
+    context.strokeStyle = "#e8e5f1";
+    context.stroke();
+  });
+  const valuePoints = axes.map((axis, index) => point(index, Math.max(0, Math.min(1, Number(axis.value) / 9))));
+  context.beginPath();
+  valuePoints.forEach((current, index) => index ? context.lineTo(current.x, current.y) : context.moveTo(current.x, current.y));
+  context.closePath();
+  context.fillStyle = "rgba(115, 87, 232, .18)";
+  context.strokeStyle = "#7357e8";
+  context.lineWidth = 2.5;
+  context.fill();
+  context.stroke();
+  valuePoints.forEach((current, index) => {
+    context.beginPath();
+    context.arc(current.x, current.y, 5, 0, Math.PI * 2);
+    context.fillStyle = axes[index].kind === "recorded" ? "#7357e8" : "#ffffff";
+    context.fill();
+    context.strokeStyle = "#7357e8";
+    context.lineWidth = 2;
+    context.stroke();
+  });
+  context.fillStyle = "#6f7892";
+  context.font = "700 11px system-ui, sans-serif";
+  context.textAlign = "center";
+  context.textBaseline = "middle";
+  axes.forEach((axis, index) => {
+    const labelPoint = point(index, 1.18);
+    context.fillText(axis.label, labelPoint.x, labelPoint.y);
+  });
+}
+
 function dashboardPersonalSnapshot(signals, currentTask, resumableSession = null) {
-  const profile = state.learningState?.profile || {};
+  const profile = dashboardEffectiveProfile();
   const attempts = mineLearningAttempts();
   const coachThreads = readCoachHistoryThreads();
   const username = String(state.currentUser?.username || "").trim();
@@ -2071,6 +2254,7 @@ function renderDashboard() {
     : "Build my next IELTS practice plan from my recent learning history.";
   const todayLabel = new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
   const streak = dashboardStudyStreak(attempts);
+  const effectiveProfile = dashboardEffectiveProfile();
   node.innerHTML = `<section class="dashboard-cockpit dashboard-focus-camp">
     <header class="dashboard-focus-header">
       <div>
@@ -2079,9 +2263,9 @@ function renderDashboard() {
         <p>One clear task now, every score and saved practice ready when you need it.</p>
       </div>
       <dl class="dashboard-focus-badges" aria-label="Personal IELTS goals">
-        <div><dt>🎯 Target</dt><dd>${personal.targetLabel === "Set goal" ? "" : "Band "}${escapeHtml(personal.targetLabel)}</dd></div>
+        <div class="is-editable"><dt>🎯 Target</dt><dd><button type="button" data-dashboard-goal="target" aria-label="Edit IELTS target Band">${personal.targetLabel === "Set goal" ? "" : "Band "}${escapeHtml(personal.targetLabel)} <span aria-hidden="true">✎</span></button></dd></div>
         <div><dt>🔥 Streak</dt><dd>${streak} day${streak === 1 ? "" : "s"}</dd></div>
-        <div><dt>📅 Exam</dt><dd>${escapeHtml(personal.examLabel)}</dd></div>
+        <div class="is-editable"><dt>📅 Exam</dt><dd><button type="button" data-dashboard-goal="exam" aria-label="Edit IELTS exam date">${escapeHtml(personal.examLabel)} <span aria-hidden="true">✎</span></button></dd></div>
       </dl>
     </header>
 
@@ -2110,8 +2294,11 @@ function renderDashboard() {
 
     <section class="dashboard-focus-skills" aria-label="Practice by skill">
       <header><div><span>YOUR SCOREBOARD</span><h2>Train every skill <span aria-hidden="true">🚀</span></h2></div><p>Each skill keeps its own latest result and history.</p></header>
-      <div class="dashboard-focus-skill-grid">
-        ${["listening", "reading", "writing", "speaking"].map((moduleName) => renderDashboardFocusSkill(moduleName, currentTask, resumableSession, attempts)).join("")}
+      <div class="dashboard-focus-scoreboard">
+        ${renderDashboardRadar(attempts, effectiveProfile)}
+        <div class="dashboard-focus-skill-grid">
+          ${["listening", "reading", "writing", "speaking"].map((moduleName) => renderDashboardFocusSkill(moduleName, currentTask, resumableSession, attempts)).join("")}
+        </div>
       </div>
     </section>
 
@@ -2131,9 +2318,11 @@ function renderDashboard() {
     </div>
     ${latestFeedbackHtml}
     ${historyHtml}
+    ${renderDashboardGoalDialog(effectiveProfile)}
   </section>`;
   bindHomeControls(node);
   bindDashboardHistoryControls(node);
+  requestAnimationFrame(() => drawDashboardRadar(node));
   window.lucide?.createIcons?.({ attrs: { "stroke-width": 1.9 } });
   renderCoach();
 }
@@ -3555,8 +3744,63 @@ function bindHomeControls(root = document) {
   root.querySelectorAll?.("[data-dashboard-coach-prompt]").forEach((button) => {
     if (button.dataset.boundDashboardCoachPrompt === "1") return;
     button.dataset.boundDashboardCoachPrompt = "1";
-    button.addEventListener("click", () => sendHelpChatMessage(button.dataset.dashboardCoachPrompt || ""));
+      button.addEventListener("click", () => sendHelpChatMessage(button.dataset.dashboardCoachPrompt || ""));
   });
+  const goalDialog = root.querySelector?.("#dashboardGoalDialog");
+  let goalOpener = null;
+  root.querySelectorAll?.("[data-dashboard-goal]").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (!goalDialog) return;
+      goalOpener = button;
+      goalDialog.showModal();
+      setTimeout(() => goalDialog.querySelector("select, input")?.focus(), 0);
+    });
+  });
+  goalDialog?.querySelectorAll("[data-dashboard-goal-close]").forEach((button) => {
+    button.addEventListener("click", () => goalDialog.close());
+  });
+  goalDialog?.addEventListener("close", () => goalOpener?.focus?.());
+  const goalForm = root.querySelector?.("#dashboardGoalForm");
+  if (goalForm) {
+    goalForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const submit = goalForm.querySelector("button[type='submit']");
+      const errorNode = goalForm.querySelector("[data-dashboard-goal-error]");
+      const values = new FormData(goalForm);
+      const profile = {
+        currentBand: Number(values.get("currentBand")),
+        targetBand: Number(values.get("targetBand")),
+        examDate: String(values.get("examDate") || ""),
+        dailyMinutes: Number(values.get("dailyMinutes")),
+      };
+      if (submit) {
+        submit.disabled = true;
+        submit.textContent = "Saving...";
+      }
+      if (errorNode) errorNode.textContent = "";
+      try {
+        if (state.currentUser) {
+          const json = await patchJson("/api/learning/profile", { ...profile, onboardingCompleted: true });
+          let todayPlan = state.learningState?.todayPlan || null;
+          try {
+            const planJson = await getJson("/api/learning/today-plan");
+            todayPlan = planJson.plan || todayPlan;
+          } catch {}
+          state.learningState = { ...(state.learningState || {}), profile: json.profile, todayPlan };
+        } else {
+          localStorage.setItem(guestLearningProfileStoreKey, JSON.stringify({ version: 1, ...profile }));
+        }
+        goalDialog?.close();
+        renderDashboard();
+      } catch (error) {
+        if (submit) {
+          submit.disabled = false;
+          submit.textContent = "Save goal →";
+        }
+        if (errorNode) errorNode.textContent = error.message || "Could not save your goal. Try again.";
+      }
+    });
+  }
   const profileForm = root.querySelector?.("#learningProfileForm");
   if (profileForm && profileForm.dataset.boundProfile !== "1") {
     profileForm.dataset.boundProfile = "1";

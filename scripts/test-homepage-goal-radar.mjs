@@ -72,6 +72,7 @@ async function routeCommonApis(page, fixture = learningState) {
   await page.route("**/api/drafts", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ drafts: [] }) }));
   await page.route("**/api/vocabulary", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ items: [] }) }));
   await page.route("**/api/learning/state", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(fixture) }));
+  await page.route("**/api/learning/today-plan", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ plan: fixture?.todayPlan || null }) }));
 }
 
 await waitForServer();
@@ -121,13 +122,14 @@ try {
     targetBand: 7.5,
     examDate: "2026-12-12",
     dailyMinutes: 45,
+    onboardingCompleted: true,
   }, "Signed-in goal changes must be sent to the learning profile API");
 
   const radar = memberPage.locator("[data-dashboard-radar]");
   assert.equal(await radar.count(), 1, "Homepage must render one progress radar");
   assert.equal(await radar.locator("canvas").count(), 1, "Progress radar must have a canvas visualization");
   const radarText = await radar.innerText();
-  assert.match(radarText, /1 recorded\s*·\s*1 estimated/i, "Radar must distinguish recorded and estimated evidence");
+  assert.match(radarText, /1 recorded\s*·\s*3 estimated/i, "Radar must distinguish all recorded and estimated axes");
   assert.match(radarText, /Speaking[\s\S]*6\.5[\s\S]*recorded/i, "Recorded Speaking Band must remain canonical");
   assert.match(radarText, /Reading[\s\S]*7\.5[\s\S]*estimated/i, "Reading strength must be visibly labelled as an estimate");
   assert.match(await memberPage.locator(".dashboard-focus-mock").innerText(), /No full mock yet/i, "Radar estimates must never create an overall full-mock Band");
@@ -140,7 +142,6 @@ try {
   const guestPage = await browser.newPage({ viewport: { width: 390, height: 844 } });
   await guestPage.addInitScript(() => {
     localStorage.removeItem("ieltsistAuthToken");
-    localStorage.removeItem("ieltsistGuestLearningProfileV1");
     localStorage.setItem("ieltsistPracticeSessionV1", JSON.stringify({
       version: 1,
       sessionId: "guest-resume-test",
@@ -160,7 +161,7 @@ try {
   await guestPage.route("**/api/me", (route) => route.fulfill({ status: 401, contentType: "application/json", body: JSON.stringify({ error: "Unauthorized" }) }));
   await routeCommonApis(guestPage, null);
   await guestPage.goto(`${baseUrl}/?test=goal-radar-guest#home`, { waitUntil: "networkidle" });
-  await guestPage.waitForFunction(() => document.querySelector("#dashboardContent")?.textContent?.includes("Resume"));
+  await guestPage.waitForFunction(() => document.querySelector("#dashboardContent")?.textContent?.includes("Continue practice"));
   assert.equal(await guestPage.locator("[data-dashboard-goal='target']").count(), 1, "A resume task must not suppress guest goal editing");
   await guestPage.locator("[data-dashboard-goal='target']").click();
   const guestEditor = guestPage.locator("#dashboardGoalDialog");
@@ -183,7 +184,7 @@ try {
   const guestLayout = await guestPage.evaluate(() => ({
     overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
     radarTop: document.querySelector("[data-dashboard-radar]")?.getBoundingClientRect().top,
-    skillTop: document.querySelector(".dashboard-focus-skills")?.getBoundingClientRect().top,
+    skillTop: document.querySelector(".dashboard-focus-skill-grid")?.getBoundingClientRect().top,
   }));
   assert.ok(guestLayout.overflow <= 1, `Guest mobile homepage overflows horizontally by ${guestLayout.overflow}px`);
   assert.ok(guestLayout.radarTop < guestLayout.skillTop, "Mobile radar must stack above the skill cards");
