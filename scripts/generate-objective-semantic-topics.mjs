@@ -30,6 +30,13 @@ const SEMANTIC_OVERRIDES = new Map([
   ["cam15-l-test1::section::1", "work"],
   ["cam15-l-test1::section::2", "travel"],
   ["cam15-l-test1::section::4", "environment"],
+  ["cam9-l-test4::section::4", "environment"],
+]);
+const READING_OVERRIDES = new Map([
+  ["cam15-r-test1::section::1", { topicKey: "history", topicTitle: "Nutmeg – a valuable spice" }],
+  ["cam15-r-test2::section::1", { topicKey: "architecture", topicTitle: "Could urban engineers learn from dance?" }],
+  ["cam15-r-test3::section::1", { topicKey: "culture", topicTitle: "Henry Moore (1898–1986)" }],
+  ["cam15-r-test3::section::2", { topicKey: "science", topicTitle: "The Desolenator: producing clean water" }],
 ]);
 const CACHE_KEY_OVERRIDES = new Map([
   ["cam9-l-test4::section::3", "cam9-l-test4::4"],
@@ -234,20 +241,29 @@ function readingTitle(chunk, passage) {
   const lines = normalized.split("\n").map((line) => line.trim()).filter(Boolean);
   const fallback = lines.find((line) => line.length >= 8 && line.length <= 120
     && !/^(?:---|READING PASSAGE|You should|Questions?|Reading|Test|Write |Choose |List of|Which |In boxes|TRUE|FALSE|NOT GIVEN|\d+\s)/i.test(line));
-  return cleanTitle(afterInstructions || pageHeading || beforeParagraph || fallback || "", `Reading Passage ${passage}`);
+  const title = cleanTitle(afterInstructions || pageHeading || beforeParagraph || fallback || "", "");
+  if (!title || title.length > 100 || /\.\.\.$/.test(title)
+    || /^(?:complete|choose|write|questions?|in boxes|true|false|not given)\b/i.test(title)
+    || /\b(?:and|or|the|a|an|of|to|with|for|from|in|on|by|as|that|which|who|were|was|is|are)[|. ]*$/i.test(title)) return "";
+  return title;
 }
 
 function readingEntry(paper, passage, chunk) {
   const canonicalId = `${paper.id}::section::${passage}`;
   if (!chunk) throw new Error(`Missing Reading Passage ${passage} marker for ${paper.id}`);
-  const topicTitle = readingTitle(chunk, passage);
-  const topic = classifyTopic({ canonicalId, title: topicTitle, intro: String(chunk).slice(0, 2200), body: chunk });
+  const override = READING_OVERRIDES.get(canonicalId);
+  const extractedTitle = readingTitle(chunk, passage);
+  const classified = classifyTopic({ canonicalId, title: override?.topicTitle || extractedTitle, intro: String(chunk).slice(0, 2200), body: chunk });
+  const topic = override
+    ? { ...TAXONOMY.find((item) => item.key === override.topicKey), confidence: 0.99 }
+    : classified;
+  const topicTitle = override?.topicTitle || extractedTitle || `${topic.label} — Passage ${passage}`;
   return {
     topicKey: topic.key,
     topicLabel: topic.label,
     emoji: topic.emoji,
     topicTitle,
-    source: "readingPaper:heading+weighted-text",
+    source: override ? "readingPaper:semantic-override" : "readingPaper:heading+weighted-text",
     confidence: topic.confidence,
     schemaVersion: SCHEMA_VERSION,
   };

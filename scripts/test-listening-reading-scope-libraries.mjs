@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { mkdir, readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
@@ -77,6 +77,8 @@ console.log(`PASS API preserves 72+72 full papers and exposes ${listeningTypes.s
 
 const listeningPaper = tasks.listeningTests.find((item) => item.id === "cam15-l-test1");
 const readingPaper = tasks.readingTests.find((item) => item.id === "cam15-r-test1");
+const cam15Reading2 = tasks.readingTests.find((item) => item.id === "cam15-r-test2");
+const cam15Reading3 = tasks.readingTests.find((item) => item.id === "cam15-r-test3");
 assert.ok(listeningPaper && readingPaper, "Cambridge 15 Test 1 fixtures are required");
 assert.equal(listeningPaper.contentTopics?.["1"]?.key, "work", "Cambridge 15 Test 1 Section 1 recruitment must be a Work topic");
 assert.equal(listeningPaper.contentTopics?.["2"]?.key, "travel", "Cambridge 15 Test 1 Section 2 holidays must be a Travel topic");
@@ -88,6 +90,21 @@ for (const passage of ["1", "2", "3"]) {
   assert.ok(readingPaper.contentTopics?.[passage]?.key, `Cambridge 15 Test 1 Passage ${passage} needs a semantic topic key`);
   assert.ok(readingPaper.contentTopics?.[passage]?.title, `Cambridge 15 Test 1 Passage ${passage} needs a source-derived topic title`);
 }
+assert.deepEqual(readingPaper.contentTopics?.["1"], {
+  key: "history",
+  label: "History & Archaeology",
+  emoji: "🏺",
+  title: "Nutmeg – a valuable spice",
+  source: "readingPaper:semantic-override",
+  confidence: readingPaper.contentTopics?.["1"]?.confidence,
+  schemaVersion: 1,
+}, "Cambridge 15 Test 1 Passage 1 must describe the history of nutmeg, not instructions or answer mechanics");
+assert.equal(cam15Reading2?.contentTopics?.["1"]?.key, "architecture");
+assert.equal(cam15Reading2?.contentTopics?.["1"]?.title, "Could urban engineers learn from dance?");
+assert.equal(cam15Reading3?.contentTopics?.["1"]?.key, "culture");
+assert.equal(cam15Reading3?.contentTopics?.["1"]?.title, "Henry Moore (1898–1986)");
+assert.equal(cam15Reading3?.contentTopics?.["2"]?.key, "science");
+assert.equal(cam15Reading3?.contentTopics?.["2"]?.title, "The Desolenator: producing clean water");
 const questionTypeKeys = new Set([...listeningTypes, ...readingTypes]);
 for (const paper of [...tasks.listeningTests, ...tasks.readingTests]) {
   for (const topic of Object.values(paper.contentTopics || {})) {
@@ -102,11 +119,30 @@ for (const [id, topic] of semanticEntries) {
   assert.ok(topic.topicKey && topic.topicLabel && topic.emoji && topic.topicTitle, `${id} needs complete semantic display metadata`);
   assert.ok(topic.source && Number.isFinite(topic.confidence) && topic.schemaVersion, `${id} needs reproducibility metadata`);
   assert.ok(!questionTypeKeys.has(topic.topicKey), `${id} catalog key ${topic.topicKey} is an IELTS question type`);
+  if (/-r-test\d+::section::[1-3]$/.test(id)) {
+    assert.doesNotMatch(topic.topicTitle, /^(?:complete|choose|write|questions?|in boxes|true|false|not given)\b/i, `${id} title is an IELTS instruction`);
+    assert.doesNotMatch(topic.topicTitle, /\.\.\.$/, `${id} title is a truncated paragraph fragment`);
+    assert.doesNotMatch(topic.topicTitle, /^Reading Passage \d$/i, `${id} title is a generic passage placeholder`);
+    assert.doesNotMatch(
+      topic.topicTitle,
+      /\b(?:and|or|the|a|an|of|to|with|for|from|in|on|by|as|that|which|who|were|was|is|are)[|. ]*$/i,
+      `${id} title ends as an incomplete paragraph fragment`,
+    );
+  }
 }
 const cam9MismatchSection3 = semanticCatalog["cam9-l-test4::section::3"];
 const cam9MismatchSection4 = semanticCatalog["cam9-l-test4::section::4"];
 assert.match(cam9MismatchSection3?.source || "", /cache-repair:cam9-l-test4::4/, "Cambridge 9 Test 4 Section 3 must use the explicitly repaired cache entry");
 assert.match(cam9MismatchSection4?.source || "", /cache-repair:cam9-l-test4::3/, "Cambridge 9 Test 4 Section 4 must use the explicitly repaired cache entry");
+assert.equal(cam9MismatchSection3?.topicKey, "education");
+assert.equal(cam9MismatchSection3?.topicTitle, "a conversation between an English teacher called Paul and a former student of his called Kira");
+assert.equal(cam9MismatchSection4?.topicKey, "environment");
+assert.equal(cam9MismatchSection4?.topicTitle, "a project on the wildlife found in city gardens in Britain");
+const reproducibility = spawnSync(process.execPath, [resolve("scripts", "generate-objective-semantic-topics.mjs"), "--check"], {
+  cwd: root,
+  encoding: "utf8",
+});
+assert.equal(reproducibility.status, 0, `Semantic topic catalog must be reproducible:\n${reproducibility.stdout}\n${reproducibility.stderr}`);
 console.log("PASS semantic catalog covers 288 Listening Sections and 216 Reading Passages with the Cambridge 9 cache mismatch repaired");
 const preservedQuestionFields = (paper) => paper.questions.map(({ id, text, answer }) => ({ id, text, answer }));
 const sourceListeningPaper = cam15Source.listeningTests.find((item) => item.id === listeningPaper.id);

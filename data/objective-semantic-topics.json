@@ -855,12 +855,12 @@
     "schemaVersion": 1
   },
   "cam9-l-test4::section::4": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
     "topicTitle": "a project on the wildlife found in city gardens in Britain",
     "source": "asr:intro:cache-repair:cam9-l-test4::3",
-    "confidence": 0.94,
+    "confidence": 0.83,
     "schemaVersion": 1
   },
   "cam10-l-test1::section::1": {
@@ -2595,7 +2595,7 @@
     "topicKey": "education",
     "topicLabel": "Education",
     "emoji": "🎓",
-    "topicTitle": "Adults and children are frequently confronted with",
+    "topicTitle": "Education — Passage 1",
     "source": "readingPaper:heading+weighted-text",
     "confidence": 0.81,
     "schemaVersion": 1
@@ -2604,7 +2604,7 @@
     "topicKey": "environment",
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
-    "topicTitle": "An examination of the functioning of thtt sensu in cetac.-ns, the",
+    "topicTitle": "Environment & Nature — Passage 2",
     "source": "readingPaper:heading+weighted-text",
     "confidence": 0.81,
     "schemaVersion": 1
@@ -2658,7 +2658,7 @@
     "topicKey": "environment",
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
-    "topicTitle": "Volcanoes- earth-shattering news When Mount Pinatubo suddenly erupted on 9 June 1991, the power of volcanoes past...",
+    "topicTitle": "Environment & Nature — Passage 2",
     "source": "readingPaper:heading+weighted-text",
     "confidence": 0.65,
     "schemaVersion": 1
@@ -2829,7 +2829,7 @@
     "topicKey": "environment",
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
-    "topicTitle": "Reading Passage 3",
+    "topicTitle": "Environment & Nature — Passage 3",
     "source": "readingPaper:heading+weighted-text",
     "confidence": 0.99,
     "schemaVersion": 1
@@ -3027,7 +3027,7 @@
     "topicKey": "history",
     "topicLabel": "History & Archaeology",
     "emoji": "🏺",
-    "topicTitle": "Reading Passage 1",
+    "topicTitle": "History & Archaeology — Passage 1",
     "source": "readingPaper:heading+weighted-text",
     "confidence": 0.61,
     "schemaVersion": 1
@@ -3045,7 +3045,7 @@
     "topicKey": "society",
     "topicLabel": "Society",
     "emoji": "🏘️",
-    "topicTitle": "Can human beings communicate by thought alone? For more than a",
+    "topicTitle": "Society — Passage 3",
     "source": "readingPaper:heading+weighted-text",
     "confidence": 0.74,
     "schemaVersion": 1
@@ -3135,7 +3135,7 @@
     "topicKey": "education",
     "topicLabel": "Education",
     "emoji": "🎓",
-    "topicTitle": "Reading Passage 1",
+    "topicTitle": "Education — Passage 1",
     "source": "readingPaper:heading+weighted-text",
     "confidence": 0.89,
     "schemaVersion": 1
@@ -3207,7 +3207,7 @@
     "topicKey": "science",
     "topicLabel": "Science & Technology",
     "emoji": "🔬",
-    "topicTitle": "Reading Passage 3",
+    "topicTitle": "Science & Technology — Passage 3",
     "source": "readingPaper:heading+weighted-text",
     "confidence": 0.99,
     "schemaVersion": 1
@@ -3225,7 +3225,7 @@
     "topicKey": "society",
     "topicLabel": "Society",
     "emoji": "🏘️",
-    "topicTitle": "Reading Passage 2",
+    "topicTitle": "Society — Passage 2",
     "source": "readingPaper:heading+weighted-text",
     "confidence": 0.85,
     "schemaVersion": 1
@@ -3252,7 +3252,7 @@
     "topicKey": "transport",
     "topicLabel": "Transport",
     "emoji": "🚆",
-    "topicTitle": "EUR O PEA N TR A N SP O RT SYST E M S 1 9 9 0 - 2 0 1 0 W hat have been the trends and what are the prospects for...",
+    "topicTitle": "Transport — Passage 2",
     "source": "readingPaper:heading+weighted-text",
     "confidence": 0.99,
     "schemaVersion": 1
@@ -3495,9 +3495,9 @@
     "topicKey": "society",
     "topicLabel": "Society",
     "emoji": "🏘️",
-    "topicTitle": "The Lost City An explorer’s encounter with the ruined city of Machu Picchu, the most famous icon of the Inca...",
+    "topicTitle": "Society — Passage 2",
     "source": "readingPaper:heading+weighted-text",
-    "confidence": 0.99,
+    "confidence": 0.75,
     "schemaVersion": 1
   },
   "cam12-r-test2::section::3": {
@@ -3513,7 +3513,7 @@
     "topicKey": "environment",
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
-    "topicTitle": "rests Flying tortoises An airborne reintroduction programme has helped conservationists take significant steps to...",
+    "topicTitle": "Environment & Nature — Passage 1",
     "source": "readingPaper:heading+weighted-text",
     "confidence": 0.91,
     "schemaVersion": 1
@@ -3576,7 +3576,7 @@
     "topicKey": "society",
     "topicLabel": "Society",
     "emoji": "🏘️",
-    "topicTitle": "Why being bored is stimulating — and useful, too This most common of emotions is turning out to be more interesting...",
+    "topicTitle": "Society — Passage 2",
     "source": "readingPaper:heading+weighted-text",
     "confidence": 0.69,
     "schemaVersion": 1
@@ -3648,7 +3648,7 @@
     "topicKey": "transport",
     "topicLabel": "Transport",
     "emoji": "🚆",
-    "topicTitle": "Steam ships posed a growing threat to clippers, as their speed and cargo capacity increased. In",
+    "topicTitle": "Transport — Passage 1",
     "source": "readingPaper:heading+weighted-text",
     "confidence": 0.99,
     "schemaVersion": 1
@@ -3675,7 +3675,7 @@
     "topicKey": "education",
     "topicLabel": "Education",
     "emoji": "🎓",
-    "topicTitle": "Dr Jenny Gibson agrees, pointing out that although some of the steps in the puzzle of how and",
+    "topicTitle": "Education — Passage 1",
     "source": "readingPaper:heading+weighted-text",
     "confidence": 0.99,
     "schemaVersion": 1
@@ -3780,12 +3780,12 @@
     "schemaVersion": 1
   },
   "cam15-r-test1::section::1": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
-    "topicTitle": "The Banda Islands were ruled by local sultans who insisted on maintaining a neutral trading",
-    "source": "readingPaper:heading+weighted-text",
-    "confidence": 0.81,
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
+    "topicTitle": "Nutmeg – a valuable spice",
+    "source": "readingPaper:semantic-override",
+    "confidence": 0.99,
     "schemaVersion": 1
   },
   "cam15-r-test1::section::2": {
@@ -3807,12 +3807,12 @@
     "schemaVersion": 1
   },
   "cam15-r-test2::section::1": {
-    "topicKey": "transport",
-    "topicLabel": "Transport",
-    "emoji": "🚆",
-    "topicTitle": "Complete the summary below. |",
-    "source": "readingPaper:heading+weighted-text",
-    "confidence": 0.76,
+    "topicKey": "architecture",
+    "topicLabel": "Architecture & Design",
+    "emoji": "🏛️",
+    "topicTitle": "Could urban engineers learn from dance?",
+    "source": "readingPaper:semantic-override",
+    "confidence": 0.99,
     "schemaVersion": 1
   },
   "cam15-r-test2::section::2": {
@@ -3834,21 +3834,21 @@
     "schemaVersion": 1
   },
   "cam15-r-test3::section::1": {
-    "topicKey": "education",
-    "topicLabel": "Education",
-    "emoji": "🎓",
-    "topicTitle": "Around this time, Moore moved away from the human figure to experiment with abstract shapes. |",
-    "source": "readingPaper:heading+weighted-text",
-    "confidence": 0.84,
+    "topicKey": "culture",
+    "topicLabel": "Culture & Arts",
+    "emoji": "🎭",
+    "topicTitle": "Henry Moore (1898–1986)",
+    "source": "readingPaper:semantic-override",
+    "confidence": 0.99,
     "schemaVersion": 1
   },
   "cam15-r-test3::section::2": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
-    "topicTitle": "| | The Desolenator: producing clean water",
-    "source": "readingPaper:heading+weighted-text",
-    "confidence": 0.74,
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
+    "topicTitle": "The Desolenator: producing clean water",
+    "source": "readingPaper:semantic-override",
+    "confidence": 0.99,
     "schemaVersion": 1
   },
   "cam15-r-test3::section::3": {
@@ -3864,18 +3864,18 @@
     "topicKey": "environment",
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
-    "topicTitle": "“In order to get people interested in habitat restoration, you need to plant a tree that is useful to",
+    "topicTitle": "Environment & Nature — Passage 1",
     "source": "readingPaper:heading+weighted-text",
-    "confidence": 0.99,
+    "confidence": 0.96,
     "schemaVersion": 1
   },
   "cam15-r-test4::section::2": {
-    "topicKey": "culture",
-    "topicLabel": "Culture & Arts",
-    "emoji": "🎭",
-    "topicTitle": "Silbo Gomero — the whistle ‘language’ of",
+    "topicKey": "psychology",
+    "topicLabel": "Psychology & Behaviour",
+    "emoji": "🧠",
+    "topicTitle": "Psychology & Behaviour — Passage 2",
     "source": "readingPaper:heading+weighted-text",
-    "confidence": 0.79,
+    "confidence": 0.88,
     "schemaVersion": 1
   },
   "cam15-r-test4::section::3": {
@@ -3963,7 +3963,7 @@
     "topicKey": "environment",
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
-    "topicTitle": "Plant ‘thermometer’ triggers springtime growth by",
+    "topicTitle": "Environment & Nature — Passage 3",
     "source": "readingPaper:heading+weighted-text",
     "confidence": 0.99,
     "schemaVersion": 1
@@ -3999,7 +3999,7 @@
     "topicKey": "transport",
     "topicLabel": "Transport",
     "emoji": "🚆",
-    "topicTitle": "The development of the London underground railway In the first half of the 1800s, London’s population grew at an...",
+    "topicTitle": "Transport — Passage 1",
     "source": "readingPaper:heading+weighted-text",
     "confidence": 0.99,
     "schemaVersion": 1
@@ -4008,7 +4008,7 @@
     "topicKey": "society",
     "topicLabel": "Society",
     "emoji": "🏘️",
-    "topicTitle": "Stadiums: past, present and future A Stadiums are among the oldest forms of urban architecture: vast stadiums where...",
+    "topicTitle": "Society — Passage 2",
     "source": "readingPaper:heading+weighted-text",
     "confidence": 0.99,
     "schemaVersion": 1
@@ -4017,7 +4017,7 @@
     "topicKey": "society",
     "topicLabel": "Society",
     "emoji": "🏘️",
-    "topicTitle": "To catch a king Anna Keay reviews Charles Spencer’s book about the hunt for King Charles II during the English Civil...",
+    "topicTitle": "Society — Passage 3",
     "source": "readingPaper:heading+weighted-text",
     "confidence": 0.67,
     "schemaVersion": 1
@@ -4026,7 +4026,7 @@
     "topicKey": "history",
     "topicLabel": "History & Archaeology",
     "emoji": "🏺",
-    "topicTitle": "The Dead Sea Scrolls In late 1946 or early 1947, three Bedouin teenagers were tending their goats and sheep near the...",
+    "topicTitle": "History & Archaeology — Passage 1",
     "source": "readingPaper:heading+weighted-text",
     "confidence": 0.85,
     "schemaVersion": 1
@@ -4035,7 +4035,7 @@
     "topicKey": "environment",
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
-    "topicTitle": "A second attempt at domesticating the tomato A It took at least 3,000 years for humans to learn how to domesticate...",
+    "topicTitle": "Environment & Nature — Passage 2",
     "source": "readingPaper:heading+weighted-text",
     "confidence": 0.66,
     "schemaVersion": 1
@@ -4044,7 +4044,7 @@
     "topicKey": "science",
     "topicLabel": "Science & Technology",
     "emoji": "🔬",
-    "topicTitle": "Insight or evolution? Two scientists consider the origins of discoveries and other innovative behavior Scientific...",
+    "topicTitle": "Science & Technology — Passage 3",
     "source": "readingPaper:heading+weighted-text",
     "confidence": 0.99,
     "schemaVersion": 1
@@ -4053,7 +4053,7 @@
     "topicKey": "environment",
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
-    "topicTitle": "The thylacine The extinct thylacine, also known as the Tasmanian tiger, was a marsupial * that bore a superficial...",
+    "topicTitle": "Environment & Nature — Passage 1",
     "source": "readingPaper:heading+weighted-text",
     "confidence": 0.97,
     "schemaVersion": 1
@@ -4062,7 +4062,7 @@
     "topicKey": "environment",
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
-    "topicTitle": "Palm oil A Palm oil is an edible oil derived from the fruit of the African oil palm tree, and is currently the most...",
+    "topicTitle": "Environment & Nature — Passage 2",
     "source": "readingPaper:heading+weighted-text",
     "confidence": 0.99,
     "schemaVersion": 1
@@ -4071,16 +4071,16 @@
     "topicKey": "society",
     "topicLabel": "Society",
     "emoji": "🏘️",
-    "topicTitle": "Building the Skyline: The Birth and Growth of Manhattan’s Skyscrapers Katharine L. Shester reviews a book by Jason...",
+    "topicTitle": "Society — Passage 3",
     "source": "readingPaper:heading+weighted-text",
-    "confidence": 0.84,
+    "confidence": 0.85,
     "schemaVersion": 1
   },
   "cam17-r-test4::section::1": {
     "topicKey": "environment",
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
-    "topicTitle": "Bats to the rescue How Madagascar’s bats are helping to save the rainforest There are few places in the world where...",
+    "topicTitle": "Environment & Nature — Passage 1",
     "source": "readingPaper:heading+weighted-text",
     "confidence": 0.99,
     "schemaVersion": 1
@@ -4089,16 +4089,16 @@
     "topicKey": "education",
     "topicLabel": "Education",
     "emoji": "🎓",
-    "topicTitle": "Does education fuel economic growth? A Over the last decade, a huge database about the lives of southwest German...",
+    "topicTitle": "Education — Passage 2",
     "source": "readingPaper:heading+weighted-text",
-    "confidence": 0.85,
+    "confidence": 0.78,
     "schemaVersion": 1
   },
   "cam17-r-test4::section::3": {
     "topicKey": "education",
     "topicLabel": "Education",
     "emoji": "🎓",
-    "topicTitle": "Timur Gareyev – blindfold chess champion A Next month, a chess player named Timur Gareyev will take on nearly 50...",
+    "topicTitle": "Education — Passage 3",
     "source": "readingPaper:heading+weighted-text",
     "confidence": 0.71,
     "schemaVersion": 1
@@ -4260,7 +4260,7 @@
     "topicKey": "education",
     "topicLabel": "Education",
     "emoji": "🎓",
-    "topicTitle": "An inquiry into the existence of the",
+    "topicTitle": "Education — Passage 3",
     "source": "readingPaper:heading+weighted-text",
     "confidence": 0.82,
     "schemaVersion": 1
@@ -4269,7 +4269,7 @@
     "topicKey": "history",
     "topicLabel": "History & Archaeology",
     "emoji": "🏺",
-    "topicTitle": "Archaeologists discover evidence of",
+    "topicTitle": "History & Archaeology — Passage 1",
     "source": "readingPaper:heading+weighted-text",
     "confidence": 0.77,
     "schemaVersion": 1
@@ -4332,7 +4332,7 @@
     "topicKey": "health",
     "topicLabel": "Health",
     "emoji": "🩺",
-    "topicTitle": "Return of the elm: reintroducing the",
+    "topicTitle": "Health — Passage 2",
     "source": "readingPaper:heading+weighted-text",
     "confidence": 0.69,
     "schemaVersion": 1
@@ -4449,7 +4449,7 @@
     "topicKey": "history",
     "topicLabel": "History & Archaeology",
     "emoji": "🏺",
-    "topicTitle": "Book review: The World of Sugar by",
+    "topicTitle": "History & Archaeology — Passage 3",
     "source": "readingPaper:heading+weighted-text",
     "confidence": 0.98,
     "schemaVersion": 1
@@ -4494,7 +4494,7 @@
     "topicKey": "society",
     "topicLabel": "Society",
     "emoji": "🏘️",
-    "topicTitle": "The problems of getting around the city of",
+    "topicTitle": "Society — Passage 2",
     "source": "readingPaper:heading+weighted-text",
     "confidence": 0.99,
     "schemaVersion": 1
@@ -4530,7 +4530,7 @@
     "topicKey": "history",
     "topicLabel": "History & Archaeology",
     "emoji": "🏺",
-    "topicTitle": "The Globemakers: The Curious Story of",
+    "topicTitle": "History & Archaeology — Passage 3",
     "source": "readingPaper:heading+weighted-text",
     "confidence": 0.89,
     "schemaVersion": 1
