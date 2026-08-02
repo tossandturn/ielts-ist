@@ -36,6 +36,7 @@ const CAMBRIDGE_LOCAL_BANK_PATH = path.join(__dirname, "data", "cambridge-local-
 const SPEAKING_BANK_PATH = path.join(__dirname, "data", "speaking-bank.json");
 const LISTENING_ASR_CACHE_PATH = path.join(__dirname, "data", "listening-asr-cache.json");
 const READING_OCR_CACHE_PATH = path.join(__dirname, "data", "reading-ocr-page-cache.json");
+const OBJECTIVE_SEMANTIC_TOPICS_PATH = path.join(__dirname, "data", "objective-semantic-topics.json");
 const MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
 const OPENAI_BASE_URL = (process.env.OPENAI_BASE_URL || process.env.UUAPI_BASE_URL || "https://api.openai.com/v1").replace(/\/+$/, "");
@@ -75,6 +76,7 @@ const AMBER_WRITING_SKILL = fs.existsSync(AMBER_SKILL_PATH)
   : "";
 const CAMBRIDGE15_BANK = loadQuestionBank(QUESTION_BANK_PATH);
 const LOCAL_CAMBRIDGE_BANK = loadQuestionBank(CAMBRIDGE_LOCAL_BANK_PATH);
+const OBJECTIVE_SEMANTIC_TOPICS = loadQuestionBank(OBJECTIVE_SEMANTIC_TOPICS_PATH);
 const IMPORTED_BANKS = [CAMBRIDGE15_BANK, LOCAL_CAMBRIDGE_BANK];
 const LOCAL_FILE_INDEX = new Map((LOCAL_CAMBRIDGE_BANK.localFiles || []).map((file) => [file.id, file]));
 
@@ -500,6 +502,24 @@ function slimQuestions(questions, metadata = new Map()) {
     : [];
 }
 
+function contentTopicsForPaper(test, count) {
+  const topics = {};
+  for (let section = 1; section <= count; section += 1) {
+    const entry = OBJECTIVE_SEMANTIC_TOPICS[`${test.id}::section::${section}`];
+    if (!entry) continue;
+    topics[section] = {
+      key: entry.topicKey,
+      label: entry.topicLabel,
+      emoji: entry.emoji,
+      title: entry.topicTitle,
+      source: entry.source,
+      confidence: entry.confidence,
+      schemaVersion: entry.schemaVersion,
+    };
+  }
+  return topics;
+}
+
 function parseReadingPaperPages(paper) {
   const pages = new Map();
   for (const match of String(paper || "").matchAll(/--- Page (\d+) ---\n([\s\S]*?)(?=\n--- Page \d+ ---|$)/g)) {
@@ -656,6 +676,7 @@ function slimListeningTest(test) {
     audioUrls: Array.isArray(test.audioUrls) ? test.audioUrls : [],
     questionPageImages: slimPageImages(test.questionPageImages),
     questions: slimQuestions(test.questions, questionMetadata),
+    contentTopics: contentTopicsForPaper(test, 4),
   };
 }
 
@@ -677,6 +698,7 @@ function slimReadingTest(test) {
     readingQuestionPageImages: pageRoles.questions,
     readingPassageStartPages: passageStartPages,
     questions: slimQuestions(test.questions, questionMetadata),
+    contentTopics: contentTopicsForPaper(test, 3),
   };
 }
 

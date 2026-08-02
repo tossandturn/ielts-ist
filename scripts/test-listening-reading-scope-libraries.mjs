@@ -78,6 +78,36 @@ console.log(`PASS API preserves 72+72 full papers and exposes ${listeningTypes.s
 const listeningPaper = tasks.listeningTests.find((item) => item.id === "cam15-l-test1");
 const readingPaper = tasks.readingTests.find((item) => item.id === "cam15-r-test1");
 assert.ok(listeningPaper && readingPaper, "Cambridge 15 Test 1 fixtures are required");
+assert.equal(listeningPaper.contentTopics?.["1"]?.key, "work", "Cambridge 15 Test 1 Section 1 recruitment must be a Work topic");
+assert.equal(listeningPaper.contentTopics?.["2"]?.key, "travel", "Cambridge 15 Test 1 Section 2 holidays must be a Travel topic");
+assert.ok(
+  ["nature", "environment"].includes(listeningPaper.contentTopics?.["4"]?.key),
+  "Cambridge 15 Test 1 Section 4 eucalyptus must be a Nature or Environment topic",
+);
+for (const passage of ["1", "2", "3"]) {
+  assert.ok(readingPaper.contentTopics?.[passage]?.key, `Cambridge 15 Test 1 Passage ${passage} needs a semantic topic key`);
+  assert.ok(readingPaper.contentTopics?.[passage]?.title, `Cambridge 15 Test 1 Passage ${passage} needs a source-derived topic title`);
+}
+const questionTypeKeys = new Set([...listeningTypes, ...readingTypes]);
+for (const paper of [...tasks.listeningTests, ...tasks.readingTests]) {
+  for (const topic of Object.values(paper.contentTopics || {})) {
+    assert.ok(!questionTypeKeys.has(topic.key), `${paper.id} uses question type ${topic.key} as a semantic topic`);
+  }
+}
+const semanticCatalog = JSON.parse(await readFile(resolve("data", "objective-semantic-topics.json"), "utf8"));
+const semanticEntries = Object.entries(semanticCatalog);
+assert.equal(semanticEntries.filter(([id]) => /-l-test\d+::section::[1-4]$/.test(id)).length, 288, "Semantic catalog needs all 288 Listening Sections");
+assert.equal(semanticEntries.filter(([id]) => /-r-test\d+::section::[1-3]$/.test(id)).length, 216, "Semantic catalog needs all 216 Reading Passages");
+for (const [id, topic] of semanticEntries) {
+  assert.ok(topic.topicKey && topic.topicLabel && topic.emoji && topic.topicTitle, `${id} needs complete semantic display metadata`);
+  assert.ok(topic.source && Number.isFinite(topic.confidence) && topic.schemaVersion, `${id} needs reproducibility metadata`);
+  assert.ok(!questionTypeKeys.has(topic.topicKey), `${id} catalog key ${topic.topicKey} is an IELTS question type`);
+}
+const cam9MismatchSection3 = semanticCatalog["cam9-l-test4::section::3"];
+const cam9MismatchSection4 = semanticCatalog["cam9-l-test4::section::4"];
+assert.match(cam9MismatchSection3?.source || "", /cache-repair:cam9-l-test4::4/, "Cambridge 9 Test 4 Section 3 must use the explicitly repaired cache entry");
+assert.match(cam9MismatchSection4?.source || "", /cache-repair:cam9-l-test4::3/, "Cambridge 9 Test 4 Section 4 must use the explicitly repaired cache entry");
+console.log("PASS semantic catalog covers 288 Listening Sections and 216 Reading Passages with the Cambridge 9 cache mismatch repaired");
 const preservedQuestionFields = (paper) => paper.questions.map(({ id, text, answer }) => ({ id, text, answer }));
 const sourceListeningPaper = cam15Source.listeningTests.find((item) => item.id === listeningPaper.id);
 const sourceReadingPaper = cam15Source.readingTests.find((item) => item.id === readingPaper.id);

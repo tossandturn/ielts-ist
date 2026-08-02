@@ -1,0 +1,4538 @@
+{
+  "cam4-l-test1::section::1": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "Section one, you'll hear a Young student asking the social organizer of his school for information about organized trips",
+    "source": "asr:intro:cam4-l-test1::1",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam4-l-test1::section::2": {
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
+    "topicTitle": "you'll hear a tour guide giving a talk about a Museum Center called riverside industrial village",
+    "source": "asr:intro:cam4-l-test1::2",
+    "confidence": 0.93,
+    "schemaVersion": 1
+  },
+  "cam4-l-test1::section::3": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "you'll hear Melanie, a student, talking to one of her lecturers about her studies",
+    "source": "asr:intro:cam4-l-test1::3",
+    "confidence": 0.96,
+    "schemaVersion": 1
+  },
+  "cam4-l-test1::section::4": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "you'll hear a talk on the subject of the urban landscape",
+    "source": "asr:intro:cam4-l-test1::4",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam4-l-test2::section::1": {
+    "topicKey": "business",
+    "topicLabel": "Business & Economics",
+    "emoji": "📈",
+    "topicTitle": "Section one, you'll hear two tourists, Sally and Peter, talking in a coffee shop",
+    "source": "asr:intro:cam4-l-test2::1",
+    "confidence": 0.64,
+    "schemaVersion": 1
+  },
+  "cam4-l-test2::section::2": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "you'll hear part of a talk given by an international student counselor speaking to a group of overseas students...",
+    "source": "asr:intro:cam4-l-test2::2",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam4-l-test2::section::3": {
+    "topicKey": "work",
+    "topicLabel": "Work",
+    "emoji": "💼",
+    "topicTitle": "you'll hear three friends discussing an assignment they're going to work on together",
+    "source": "asr:intro:cam4-l-test2::3",
+    "confidence": 0.7,
+    "schemaVersion": 1
+  },
+  "cam4-l-test2::section::4": {
+    "topicKey": "business",
+    "topicLabel": "Business & Economics",
+    "emoji": "📈",
+    "topicTitle": "you'll hear the beginning of one lecture in a series of lectures about crime",
+    "source": "asr:intro:cam4-l-test2::4",
+    "confidence": 0.84,
+    "schemaVersion": 1
+  },
+  "cam4-l-test3::section::1": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "Section one, you will hear a student talking to the accommodation coordinator at her school",
+    "source": "asr:intro:cam4-l-test3::1",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam4-l-test3::section::2": {
+    "topicKey": "culture",
+    "topicLabel": "Culture & Arts",
+    "emoji": "🎭",
+    "topicTitle": "you'll hear Jane Hamilton talking about this year's summer festival",
+    "source": "asr:intro:cam4-l-test3::2",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam4-l-test3::section::3": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "you'll hear a conversation in a University student services office",
+    "source": "asr:intro:cam4-l-test3::3",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam4-l-test3::section::4": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "you'll hear a student union representative presenting the views of college students about the design of a new building",
+    "source": "asr:intro:cam4-l-test3::4",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam4-l-test4::section::1": {
+    "topicKey": "work",
+    "topicLabel": "Work",
+    "emoji": "💼",
+    "topicTitle": "Section one, you'll hear two teachers discussing arrangements for a goodbye party for a colleague",
+    "source": "asr:intro:cam4-l-test4::1",
+    "confidence": 0.75,
+    "schemaVersion": 1
+  },
+  "cam4-l-test4::section::2": {
+    "topicKey": "travel",
+    "topicLabel": "Travel",
+    "emoji": "✈️",
+    "topicTitle": "you'll hear a pre ecorded message on the travel light travel agency information line",
+    "source": "asr:intro:cam4-l-test4::2",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam4-l-test4::section::3": {
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
+    "topicTitle": "science experiments",
+    "source": "asr:intro:cam4-l-test4::3",
+    "confidence": 0.84,
+    "schemaVersion": 1
+  },
+  "cam4-l-test4::section::4": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "you'll hear a lecturer talking about the meshing of sharks in Australia",
+    "source": "asr:intro:cam4-l-test4::4",
+    "confidence": 0.66,
+    "schemaVersion": 1
+  },
+  "cam5-l-test1::section::1": {
+    "topicKey": "travel",
+    "topicLabel": "Travel",
+    "emoji": "✈️",
+    "topicTitle": "Section one, you will hear a telephone conversation between a travel consultant and a customer",
+    "source": "asr:intro:cam5-l-test1::1",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam5-l-test1::section::2": {
+    "topicKey": "health",
+    "topicLabel": "Health",
+    "emoji": "🩺",
+    "topicTitle": "a radio program giving parents advice about buying cots for their babies to sleep in",
+    "source": "asr:intro:cam5-l-test1::2",
+    "confidence": 0.8,
+    "schemaVersion": 1
+  },
+  "cam5-l-test1::section::3": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "a diploma course",
+    "source": "asr:intro:cam5-l-test1::3",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam5-l-test1::section::4": {
+    "topicKey": "business",
+    "topicLabel": "Business & Economics",
+    "emoji": "📈",
+    "topicTitle": "part of a lecture given by an economist about North American women's attitude to money and saving",
+    "source": "asr:intro:cam5-l-test1::4",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam5-l-test2::section::1": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "Section one, you will hear a man telephoning a library to find out about joining",
+    "source": "asr:intro:cam5-l-test2::1",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam5-l-test2::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "called Dan Paman talking on the radio about pedal power, a uk charity which sends bicycles to people in developing...",
+    "source": "asr:intro:cam5-l-test2::2",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam5-l-test2::section::3": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "a discussion between a college tutor and two students, Christina and Ibrahim",
+    "source": "asr:intro:cam5-l-test2::3",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam5-l-test2::section::4": {
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
+    "topicTitle": "scientific research in the continent of Antarctica",
+    "source": "asr:intro:cam5-l-test2::4",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam5-l-test3::section::1": {
+    "topicKey": "transport",
+    "topicLabel": "Transport",
+    "emoji": "🚆",
+    "topicTitle": "Section one, you will hear a conversation between a customer and a salesman at a car showroom",
+    "source": "asr:intro:cam5-l-test3::1",
+    "confidence": 0.88,
+    "schemaVersion": 1
+  },
+  "cam5-l-test3::section::2": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "an admissions officer from a uk University talking to a group of postgraduate students in a University abroad about...",
+    "source": "asr:intro:cam5-l-test3::2",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam5-l-test3::section::3": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "two friends discussing a course they have just done",
+    "source": "asr:intro:cam5-l-test3::3",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam5-l-test3::section::4": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "giving a presentation about a project on household waste recycling",
+    "source": "asr:intro:cam5-l-test3::4",
+    "confidence": 0.92,
+    "schemaVersion": 1
+  },
+  "cam5-l-test4::section::1": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "Section one, you will hear a conversation between a student looking for a host family and a housing advisor",
+    "source": "asr:intro:cam5-l-test4::1",
+    "confidence": 0.87,
+    "schemaVersion": 1
+  },
+  "cam5-l-test4::section::2": {
+    "topicKey": "work",
+    "topicLabel": "Work",
+    "emoji": "💼",
+    "topicTitle": "a speech by an official at a meeting of a local football club at the start of a new football season",
+    "source": "asr:intro:cam5-l-test4::2",
+    "confidence": 0.73,
+    "schemaVersion": 1
+  },
+  "cam5-l-test4::section::3": {
+    "topicKey": "business",
+    "topicLabel": "Business & Economics",
+    "emoji": "📈",
+    "topicTitle": "a tutor and two students discussing a business case study",
+    "source": "asr:intro:cam5-l-test4::3",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam5-l-test4::section::4": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "a University librarian giving a talk to new students",
+    "source": "asr:intro:cam5-l-test4::4",
+    "confidence": 0.9,
+    "schemaVersion": 1
+  },
+  "cam6-l-test1::section::1": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "telephoning a sports club to ask about membership and facilities",
+    "source": "asr:intro:cam6-l-test1::1",
+    "confidence": 0.69,
+    "schemaVersion": 1
+  },
+  "cam6-l-test1::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "a local radio broadcast about the rivendon city theatre",
+    "source": "asr:intro:cam6-l-test1::2",
+    "confidence": 0.94,
+    "schemaVersion": 1
+  },
+  "cam6-l-test1::section::3": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "inquiring about college courses",
+    "source": "asr:intro:cam6-l-test1::3",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam6-l-test1::section::4": {
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
+    "topicTitle": "a social history of the east end of London",
+    "source": "asr:intro:cam6-l-test1::4",
+    "confidence": 0.86,
+    "schemaVersion": 1
+  },
+  "cam6-l-test2::section::1": {
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
+    "topicTitle": "calling a local museum about children's art and craft workshops",
+    "source": "asr:intro:cam6-l-test2::1",
+    "confidence": 0.76,
+    "schemaVersion": 1
+  },
+  "cam6-l-test2::section::2": {
+    "topicKey": "transport",
+    "topicLabel": "Transport",
+    "emoji": "🚆",
+    "topicTitle": "services official giving information to a passenger at a railway station in a town called treberch",
+    "source": "asr:intro:cam6-l-test2::2",
+    "confidence": 0.79,
+    "schemaVersion": 1
+  },
+  "cam6-l-test2::section::3": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "the student's dissertation",
+    "source": "asr:intro:cam6-l-test2::3",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam6-l-test2::section::4": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "part of a lecture about the history of moving pictures",
+    "source": "asr:intro:cam6-l-test2::4",
+    "confidence": 0.81,
+    "schemaVersion": 1
+  },
+  "cam6-l-test3::section::1": {
+    "topicKey": "business",
+    "topicLabel": "Business & Economics",
+    "emoji": "📈",
+    "topicTitle": "talking to the customer services manager of a bank",
+    "source": "asr:intro:cam6-l-test3::1",
+    "confidence": 0.78,
+    "schemaVersion": 1
+  },
+  "cam6-l-test3::section::2": {
+    "topicKey": "architecture",
+    "topicLabel": "Architecture & Design",
+    "emoji": "🏛️",
+    "topicTitle": "a guide giving visitors to a country house information about the house and gardens",
+    "source": "asr:intro:cam6-l-test3::2",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam6-l-test3::section::3": {
+    "topicKey": "culture",
+    "topicLabel": "Culture & Arts",
+    "emoji": "🎭",
+    "topicTitle": "two students, Jack and Lucy, discussing a marketing assignment they are working on together",
+    "source": "asr:intro:cam6-l-test3::3",
+    "confidence": 0.77,
+    "schemaVersion": 1
+  },
+  "cam6-l-test3::section::4": {
+    "topicKey": "food",
+    "topicLabel": "Food & Agriculture",
+    "emoji": "🌾",
+    "topicTitle": "a lecturer talking about farming in ancient Ireland",
+    "source": "asr:intro:cam6-l-test3::4",
+    "confidence": 0.85,
+    "schemaVersion": 1
+  },
+  "cam6-l-test4::section::1": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "a telephone conversation between a woman and the reservations clerk at a conference center",
+    "source": "asr:intro:cam6-l-test4::1",
+    "confidence": 0.65,
+    "schemaVersion": 1
+  },
+  "cam6-l-test4::section::2": {
+    "topicKey": "work",
+    "topicLabel": "Work",
+    "emoji": "💼",
+    "topicTitle": "an introductory talk to a group of temporary workers at an international travel exhibition",
+    "source": "asr:intro:cam6-l-test4::2",
+    "confidence": 0.8,
+    "schemaVersion": 1
+  },
+  "cam6-l-test4::section::3": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "a conversation between a librarian and an education student",
+    "source": "asr:intro:cam6-l-test4::3",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam6-l-test4::section::4": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "part of a lecture given by a conservationist on the subject of lions",
+    "source": "asr:intro:cam6-l-test4::4",
+    "confidence": 0.77,
+    "schemaVersion": 1
+  },
+  "cam7-l-test1::section::1": {
+    "topicKey": "transport",
+    "topicLabel": "Transport",
+    "emoji": "🚆",
+    "topicTitle": "Section one, you will hear a telephone conversation between a passenger and an official at the land transport...",
+    "source": "asr:intro:cam7-l-test1::1",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam7-l-test1::section::2": {
+    "topicKey": "business",
+    "topicLabel": "Business & Economics",
+    "emoji": "📈",
+    "topicTitle": "a representative from a holiday company called ps camping giving a talk about the holidays the company organizes",
+    "source": "asr:intro:cam7-l-test1::2",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam7-l-test1::section::3": {
+    "topicKey": "business",
+    "topicLabel": "Business & Economics",
+    "emoji": "📈",
+    "topicTitle": "a tutor talking to two business students called Philip and Janice about their research on managing individuals",
+    "source": "asr:intro:cam7-l-test1::3",
+    "confidence": 0.9,
+    "schemaVersion": 1
+  },
+  "cam7-l-test1::section::4": {
+    "topicKey": "culture",
+    "topicLabel": "Culture & Arts",
+    "emoji": "🎭",
+    "topicTitle": "part of a lecture about cave paintings and other types of rock art",
+    "source": "asr:intro:cam7-l-test1::4",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam7-l-test2::section::1": {
+    "topicKey": "transport",
+    "topicLabel": "Transport",
+    "emoji": "🚆",
+    "topicTitle": "Section one, you will hear a telephone conversation between a customer and a representative of an insurance company",
+    "source": "asr:intro:cam7-l-test2::1",
+    "confidence": 0.73,
+    "schemaVersion": 1
+  },
+  "cam7-l-test2::section::2": {
+    "topicKey": "travel",
+    "topicLabel": "Travel",
+    "emoji": "✈️",
+    "topicTitle": "a recorded message giving tourists travel information in a large city",
+    "source": "asr:intro:cam7-l-test2::2",
+    "confidence": 0.89,
+    "schemaVersion": 1
+  },
+  "cam7-l-test2::section::3": {
+    "topicKey": "health",
+    "topicLabel": "Health",
+    "emoji": "🩺",
+    "topicTitle": "a seminar with Doctor Martin merryweof the Antarctic centre in Christchurch, New Zealand",
+    "source": "asr:intro:cam7-l-test2::3",
+    "confidence": 0.69,
+    "schemaVersion": 1
+  },
+  "cam7-l-test2::section::4": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "a presentation given by a sports science student on her project on left and right handedness in sport",
+    "source": "asr:intro:cam7-l-test2::4",
+    "confidence": 0.77,
+    "schemaVersion": 1
+  },
+  "cam7-l-test3::section::1": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "Section one, you will hear a conversation between a student and a job advisor",
+    "source": "asr:intro:cam7-l-test3::1",
+    "confidence": 0.84,
+    "schemaVersion": 1
+  },
+  "cam7-l-test3::section::2": {
+    "topicKey": "business",
+    "topicLabel": "Business & Economics",
+    "emoji": "📈",
+    "topicTitle": "a talk given by a group offering a walking holiday to raise money for charity",
+    "source": "asr:intro:cam7-l-test3::2",
+    "confidence": 0.82,
+    "schemaVersion": 1
+  },
+  "cam7-l-test3::section::3": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "part of a seminar on ocean research given by a climate scientist",
+    "source": "asr:intro:cam7-l-test3::3",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam7-l-test3::section::4": {
+    "topicKey": "travel",
+    "topicLabel": "Travel",
+    "emoji": "✈️",
+    "topicTitle": "part of a lecture about hotels and the tourist industry",
+    "source": "asr:intro:cam7-l-test3::4",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam7-l-test4::section::1": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "Section one, you will hear a student talking to a housing officer about living with a homestay family",
+    "source": "asr:intro:cam7-l-test4::1",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam7-l-test4::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "a guide giving a tour of a park",
+    "source": "asr:intro:cam7-l-test4::2",
+    "confidence": 0.92,
+    "schemaVersion": 1
+  },
+  "cam7-l-test4::section::3": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "two students discussing a geography presentation they're going to give first. You have some time to look at",
+    "source": "asr:intro:cam7-l-test4::3",
+    "confidence": 0.9,
+    "schemaVersion": 1
+  },
+  "cam7-l-test4::section::4": {
+    "topicKey": "food",
+    "topicLabel": "Food & Agriculture",
+    "emoji": "🌾",
+    "topicTitle": "part of a lecture about a chemical substance called monosodium glutamate",
+    "source": "asr:intro:cam7-l-test4::4",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam8-l-test1::section::1": {
+    "topicKey": "culture",
+    "topicLabel": "Culture & Arts",
+    "emoji": "🎭",
+    "topicTitle": "Section one, you will hear a conversation between two friends called George and Nina about a summer music festival",
+    "source": "asr:intro:cam8-l-test1::1",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam8-l-test1::section::2": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "the education officer of a dinosaur museum giving information to some teachers who are planning a school visit",
+    "source": "asr:intro:cam8-l-test1::2",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam8-l-test1::section::3": {
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
+    "topicTitle": "called Sandra talking to her tutor about a draft proposal she has written for a competition",
+    "source": "asr:intro:cam8-l-test1::3",
+    "confidence": 0.61,
+    "schemaVersion": 1
+  },
+  "cam8-l-test1::section::4": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "a lecturer's introduction to a geography module",
+    "source": "asr:intro:cam8-l-test1::4",
+    "confidence": 0.84,
+    "schemaVersion": 1
+  },
+  "cam8-l-test2::section::1": {
+    "topicKey": "business",
+    "topicLabel": "Business & Economics",
+    "emoji": "📈",
+    "topicTitle": "Section one, you will hear a conversation between a representative of an insurance company and a customer",
+    "source": "asr:intro:cam8-l-test2::1",
+    "confidence": 0.91,
+    "schemaVersion": 1
+  },
+  "cam8-l-test2::section::2": {
+    "topicKey": "food",
+    "topicLabel": "Food & Agriculture",
+    "emoji": "🌾",
+    "topicTitle": "an introductory talk about a new agricultural park",
+    "source": "asr:intro:cam8-l-test2::2",
+    "confidence": 0.82,
+    "schemaVersion": 1
+  },
+  "cam8-l-test2::section::3": {
+    "topicKey": "work",
+    "topicLabel": "Work",
+    "emoji": "💼",
+    "topicTitle": "part of a seminar in which a researcher called grant Freeman discusses his work on Australian honeybees with a group...",
+    "source": "asr:intro:cam8-l-test2::3",
+    "confidence": 0.76,
+    "schemaVersion": 1
+  },
+  "cam8-l-test2::section::4": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "called Shona giving a presentation on her research report",
+    "source": "asr:intro:cam8-l-test2::4",
+    "confidence": 0.91,
+    "schemaVersion": 1
+  },
+  "cam8-l-test3::section::1": {
+    "topicKey": "architecture",
+    "topicLabel": "Architecture & Design",
+    "emoji": "🏛️",
+    "topicTitle": "Section one, you will hear an estate agent talking to a customer who wants to rent a house first. You have some time...",
+    "source": "asr:intro:cam8-l-test3::1",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam8-l-test3::section::2": {
+    "topicKey": "culture",
+    "topicLabel": "Culture & Arts",
+    "emoji": "🎭",
+    "topicTitle": "talking on the radio about a National Arts center",
+    "source": "asr:intro:cam8-l-test3::2",
+    "confidence": 0.93,
+    "schemaVersion": 1
+  },
+  "cam8-l-test3::section::3": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "a University tutor and a new student called Paul discussing Paul's work experience and Latin American Studies course",
+    "source": "asr:intro:cam8-l-test3::3",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam8-l-test3::section::4": {
+    "topicKey": "business",
+    "topicLabel": "Business & Economics",
+    "emoji": "📈",
+    "topicTitle": "success in business systems",
+    "source": "asr:intro:cam8-l-test3::4",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam8-l-test4::section::1": {
+    "topicKey": "work",
+    "topicLabel": "Work",
+    "emoji": "💼",
+    "topicTitle": "Section one, you will hear a man telephoning to ask about a job in a hotel",
+    "source": "asr:intro:cam8-l-test4::1",
+    "confidence": 0.88,
+    "schemaVersion": 1
+  },
+  "cam8-l-test4::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "being interviewed on local radio about a plan to improve a suburb called Red Hill",
+    "source": "asr:intro:cam8-l-test4::2",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam8-l-test4::section::3": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "two students called Dan and Jeane discussing their studies at University",
+    "source": "asr:intro:cam8-l-test4::3",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam8-l-test4::section::4": {
+    "topicKey": "culture",
+    "topicLabel": "Culture & Arts",
+    "emoji": "🎭",
+    "topicTitle": "a lecturer giving a talk about Australian rock art to a group of archaeology students",
+    "source": "asr:intro:cam8-l-test4::4",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam9-l-test1::section::1": {
+    "topicKey": "work",
+    "topicLabel": "Work",
+    "emoji": "💼",
+    "topicTitle": "Section one, you will hear a man phoning to inquire about a job vacancy",
+    "source": "asr:intro:cam9-l-test1::1",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam9-l-test1::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "part of a radio program about the opening of a new local sports shop",
+    "source": "asr:intro:cam9-l-test1::2",
+    "confidence": 0.67,
+    "schemaVersion": 1
+  },
+  "cam9-l-test1::section::3": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "two overseas students called spios and Hiroko have just finished the first semester of their University course. They...",
+    "source": "asr:intro:cam9-l-test1::3",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam9-l-test1::section::4": {
+    "topicKey": "psychology",
+    "topicLabel": "Psychology & Behaviour",
+    "emoji": "🧠",
+    "topicTitle": "part of a lecture about a problem related to the behavior of certain sea creatures",
+    "source": "asr:intro:cam9-l-test1::4",
+    "confidence": 0.86,
+    "schemaVersion": 1
+  },
+  "cam9-l-test2::section::1": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "Section one, you will hear a student talking to the student accommodation officer at a college",
+    "source": "asr:intro:cam9-l-test2::1",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam9-l-test2::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "giving a talk to new members of a wildlife club in the south of England",
+    "source": "asr:intro:cam9-l-test2::2",
+    "confidence": 0.74,
+    "schemaVersion": 1
+  },
+  "cam9-l-test2::section::3": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "the director of studies in an English language center and a student representative talking about their self Access...",
+    "source": "asr:intro:cam9-l-test2::3",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam9-l-test2::section::4": {
+    "topicKey": "business",
+    "topicLabel": "Business & Economics",
+    "emoji": "📈",
+    "topicTitle": "the beginning of a lecture about business cultures",
+    "source": "asr:intro:cam9-l-test2::4",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam9-l-test3::section::1": {
+    "topicKey": "travel",
+    "topicLabel": "Travel",
+    "emoji": "✈️",
+    "topicTitle": "Section one, you will hear a telephone conversation between a travel company employee and a customer",
+    "source": "asr:intro:cam9-l-test3::1",
+    "confidence": 0.74,
+    "schemaVersion": 1
+  },
+  "cam9-l-test3::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "local radio about a children's theme park",
+    "source": "asr:intro:cam9-l-test3::2",
+    "confidence": 0.84,
+    "schemaVersion": 1
+  },
+  "cam9-l-test3::section::3": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "a geography student called Caroline discussing her dissertation with her tutor",
+    "source": "asr:intro:cam9-l-test3::3",
+    "confidence": 0.91,
+    "schemaVersion": 1
+  },
+  "cam9-l-test3::section::4": {
+    "topicKey": "architecture",
+    "topicLabel": "Architecture & Design",
+    "emoji": "🏛️",
+    "topicTitle": "part of a lecture about an experimental design for a house",
+    "source": "asr:intro:cam9-l-test3::4",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam9-l-test4::section::1": {
+    "topicKey": "health",
+    "topicLabel": "Health",
+    "emoji": "🩺",
+    "topicTitle": "Section one, you will hear a man asking for information about health services in the place where he is living",
+    "source": "asr:intro:cam9-l-test4::1",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam9-l-test4::section::2": {
+    "topicKey": "travel",
+    "topicLabel": "Travel",
+    "emoji": "✈️",
+    "topicTitle": "who owns a holiday home talking on the phone to a woman who is staying there",
+    "source": "asr:intro:cam9-l-test4::2",
+    "confidence": 0.75,
+    "schemaVersion": 1
+  },
+  "cam9-l-test4::section::3": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "a conversation between an English teacher called Paul and a former student of his called Kira",
+    "source": "asr:intro:cache-repair:cam9-l-test4::4",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam9-l-test4::section::4": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "a project on the wildlife found in city gardens in Britain",
+    "source": "asr:intro:cache-repair:cam9-l-test4::3",
+    "confidence": 0.94,
+    "schemaVersion": 1
+  },
+  "cam10-l-test1::section::1": {
+    "topicKey": "travel",
+    "topicLabel": "Travel",
+    "emoji": "✈️",
+    "topicTitle": "Section one, you will hear a telephone conversation between a travel agent and a customer",
+    "source": "asr:intro:cam10-l-test1::1",
+    "confidence": 0.79,
+    "schemaVersion": 1
+  },
+  "cam10-l-test1::section::2": {
+    "topicKey": "health",
+    "topicLabel": "Health",
+    "emoji": "🩺",
+    "topicTitle": "a fitness manager of a leisure club talking to some new members",
+    "source": "asr:intro:cam10-l-test1::2",
+    "confidence": 0.95,
+    "schemaVersion": 1
+  },
+  "cam10-l-test1::section::3": {
+    "topicKey": "architecture",
+    "topicLabel": "Architecture & Design",
+    "emoji": "🏛️",
+    "topicTitle": "called John talking to a professor about a design competition he is entering",
+    "source": "asr:intro:cam10-l-test1::3",
+    "confidence": 0.92,
+    "schemaVersion": 1
+  },
+  "cam10-l-test1::section::4": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "a University lecture about an endangered bear in British Columbia, Canada, known as the spirit bear",
+    "source": "asr:intro:cam10-l-test1::4",
+    "confidence": 0.95,
+    "schemaVersion": 1
+  },
+  "cam10-l-test2::section::1": {
+    "topicKey": "transport",
+    "topicLabel": "Transport",
+    "emoji": "🚆",
+    "topicTitle": "Section one, you will hear a man interviewing a woman in the street about her use of transport",
+    "source": "asr:intro:cam10-l-test2::1",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam10-l-test2::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "a representative of a city council giving information about two new facilities, which are opening soon in the city",
+    "source": "asr:intro:cam10-l-test2::2",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam10-l-test2::section::3": {
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
+    "topicTitle": "two anthropology students called Victor and Olivia discussing their joint presentation about a Norwegian explorer...",
+    "source": "asr:intro:cam10-l-test2::3",
+    "confidence": 0.69,
+    "schemaVersion": 1
+  },
+  "cam10-l-test2::section::4": {
+    "topicKey": "business",
+    "topicLabel": "Business & Economics",
+    "emoji": "📈",
+    "topicTitle": "a business student predicting how management might change in the next few years",
+    "source": "asr:intro:cam10-l-test2::4",
+    "confidence": 0.9,
+    "schemaVersion": 1
+  },
+  "cam10-l-test3::section::1": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "Section one, you will hear a conversation between the director of a child care center and a parent enrolling her...",
+    "source": "asr:intro:cam10-l-test3::1",
+    "confidence": 0.59,
+    "schemaVersion": 1
+  },
+  "cam10-l-test3::section::2": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "called Alice bustle talking on the radio about the Dolphin Conservation trust, an organization which tries to...",
+    "source": "asr:intro:cam10-l-test3::2",
+    "confidence": 0.97,
+    "schemaVersion": 1
+  },
+  "cam10-l-test3::section::3": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "called rob, who is in the first year of a theatre studies course, talking to another student called miir, who's in...",
+    "source": "asr:intro:cam10-l-test3::3",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam10-l-test3::section::4": {
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
+    "topicTitle": "part of a lecture about leadership introducing a theory called self regulatory focus theory",
+    "source": "asr:intro:cam10-l-test3::4",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam10-l-test4::section::1": {
+    "topicKey": "work",
+    "topicLabel": "Work",
+    "emoji": "💼",
+    "topicTitle": "Section one, you will hear a customer phoning a builder to discuss some work she would like him to do on her home",
+    "source": "asr:intro:cam10-l-test4::1",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam10-l-test4::section::2": {
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
+    "topicTitle": "a recorded talk giving an introduction to the historical theme park of Manam Riverport in England",
+    "source": "asr:intro:cam10-l-test4::2",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam10-l-test4::section::3": {
+    "topicKey": "work",
+    "topicLabel": "Work",
+    "emoji": "💼",
+    "topicTitle": "two psychology students called Tim and Laura talking about Laura's work placement",
+    "source": "asr:intro:cam10-l-test4::3",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam10-l-test4::section::4": {
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
+    "topicTitle": "talking to a group of first year science undergraduates about the developing science of nanotechnology",
+    "source": "asr:intro:cam10-l-test4::4",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam11-l-test1::section::1": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "Section one, you will hear a telephone conversation between an official at a village hall and a woman who wants to...",
+    "source": "asr:intro:cam11-l-test1::1",
+    "confidence": 0.87,
+    "schemaVersion": 1
+  },
+  "cam11-l-test1::section::2": {
+    "topicKey": "food",
+    "topicLabel": "Food & Agriculture",
+    "emoji": "🌾",
+    "topicTitle": "a guide talking to a group of visitors to a farm",
+    "source": "asr:intro:cam11-l-test1::2",
+    "confidence": 0.92,
+    "schemaVersion": 1
+  },
+  "cam11-l-test1::section::3": {
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
+    "topicTitle": "two psychology students called Lisa and Greg discussing a project they have to do first. You have some time to look at",
+    "source": "asr:intro:cam11-l-test1::3",
+    "confidence": 0.78,
+    "schemaVersion": 1
+  },
+  "cam11-l-test1::section::4": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "You will hear part of a student presentation about the variety of different species that live in the world's oceans",
+    "source": "asr:intro:cam11-l-test1::4",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam11-l-test2::section::1": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "Section one, you will hear a Young man phoning a town's Youth Council",
+    "source": "asr:intro:cam11-l-test2::1",
+    "confidence": 0.79,
+    "schemaVersion": 1
+  },
+  "cam11-l-test2::section::2": {
+    "topicKey": "work",
+    "topicLabel": "Work",
+    "emoji": "💼",
+    "topicTitle": "who works in a theatre talking to two new staff members on their first day of work",
+    "source": "asr:intro:cam11-l-test2::2",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam11-l-test2::section::3": {
+    "topicKey": "travel",
+    "topicLabel": "Travel",
+    "emoji": "✈️",
+    "topicTitle": "you will hear two. biology students called Helen and Colin talking about the report they're writing on their recent...",
+    "source": "asr:intro:cam11-l-test2::3",
+    "confidence": 0.84,
+    "schemaVersion": 1
+  },
+  "cam11-l-test2::section::4": {
+    "topicKey": "architecture",
+    "topicLabel": "Architecture & Design",
+    "emoji": "🏛️",
+    "topicTitle": "part of a lecture to students of architecture about the design of a public building",
+    "source": "asr:intro:cam11-l-test2::4",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam11-l-test3::section::1": {
+    "topicKey": "work",
+    "topicLabel": "Work",
+    "emoji": "💼",
+    "topicTitle": "section one. You will hear a woman telephoning a tourist office to ask about free activities",
+    "source": "asr:intro:cam11-l-test3::1",
+    "confidence": 0.7,
+    "schemaVersion": 1
+  },
+  "cam11-l-test3::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "a talk given by a woman called Shoner Ferguson about changes in a town called Barford",
+    "source": "asr:intro:cam11-l-test3::2",
+    "confidence": 0.8,
+    "schemaVersion": 1
+  },
+  "cam11-l-test3::section::3": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "you will hear two students. called Helen and Jeremy who are studying creative writing, discussing a project for...",
+    "source": "asr:intro:cam11-l-test3::3",
+    "confidence": 0.85,
+    "schemaVersion": 1
+  },
+  "cam11-l-test3::section::4": {
+    "topicKey": "business",
+    "topicLabel": "Business & Economics",
+    "emoji": "📈",
+    "topicTitle": "part of a lecture to business students about the use of one particular type of research known as ethnography",
+    "source": "asr:intro:cam11-l-test3::4",
+    "confidence": 0.95,
+    "schemaVersion": 1
+  },
+  "cam11-l-test4::section::1": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "section one. You will hear a woman telephoning for information about a festival",
+    "source": "asr:intro:cam11-l-test4::1",
+    "confidence": 0.75,
+    "schemaVersion": 1
+  },
+  "cam11-l-test4::section::2": {
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
+    "topicTitle": "a guide at an art museum talking to a group of visitors",
+    "source": "asr:intro:cam11-l-test4::2",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam11-l-test4::section::3": {
+    "topicKey": "culture",
+    "topicLabel": "Culture & Arts",
+    "emoji": "🎭",
+    "topicTitle": "called Joanna talking to her new supervisor about some research she has done on psychology and music",
+    "source": "asr:intro:cam11-l-test4::3",
+    "confidence": 0.73,
+    "schemaVersion": 1
+  },
+  "cam11-l-test4::section::4": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "part of a lecture about a way of reducing the amount of carbon dioxide in the atmosphere",
+    "source": "asr:intro:cam11-l-test4::4",
+    "confidence": 0.95,
+    "schemaVersion": 1
+  },
+  "cam12-l-test1::section::1": {
+    "topicKey": "travel",
+    "topicLabel": "Travel",
+    "emoji": "✈️",
+    "topicTitle": "Section one, you will hear a man inquiring in a tourist center about activities suitable for families",
+    "source": "asr:intro:cache-alias:cam12-l-test5::1",
+    "confidence": 0.84,
+    "schemaVersion": 1
+  },
+  "cam12-l-test1::section::2": {
+    "topicKey": "work",
+    "topicLabel": "Work",
+    "emoji": "💼",
+    "topicTitle": "You will hear a restaurant manager talking to a small group of new staff who are starting work as kitchen assistants...",
+    "source": "asr:intro:cache-alias:cam12-l-test5::2",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam12-l-test1::section::3": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "two students called Trudy and Stuart, who are both studying to be librarians, discussing a paper that they are going...",
+    "source": "asr:intro:cache-alias:cam12-l-test5::3",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam12-l-test1::section::4": {
+    "topicKey": "business",
+    "topicLabel": "Business & Economics",
+    "emoji": "📈",
+    "topicTitle": "You will hear part of a lecture for business students about business values",
+    "source": "asr:intro:cache-alias:cam12-l-test5::4",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam12-l-test2::section::1": {
+    "topicKey": "culture",
+    "topicLabel": "Culture & Arts",
+    "emoji": "🎭",
+    "topicTitle": "Section one. You will hear a woman phoning a box office to ask about a festival in the town of Kenton",
+    "source": "asr:intro:cache-alias:cam12-l-test6::1",
+    "confidence": 0.89,
+    "schemaVersion": 1
+  },
+  "cam12-l-test2::section::2": {
+    "topicKey": "travel",
+    "topicLabel": "Travel",
+    "emoji": "✈️",
+    "topicTitle": "You will hear a man talking to a group of people about a tour of theatres in the city of Munich in Germany that he...",
+    "source": "asr:intro:cache-alias:cam12-l-test6::2",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam12-l-test2::section::3": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "You will hear James, who is in the Scandinavian studies department at his University, talking to his tutor, Beth",
+    "source": "asr:intro:cache-alias:cam12-l-test6::3",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam12-l-test2::section::4": {
+    "topicKey": "business",
+    "topicLabel": "Business & Economics",
+    "emoji": "📈",
+    "topicTitle": "part of a lecture about conflict at work given by a business studies lecturer",
+    "source": "asr:intro:cache-alias:cam12-l-test6::4",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam12-l-test3::section::1": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "Section one, you will hear a man telephoning a friend to find out about their local public library",
+    "source": "asr:intro:cache-alias:cam12-l-test7::1",
+    "confidence": 0.91,
+    "schemaVersion": 1
+  },
+  "cam12-l-test3::section::2": {
+    "topicKey": "travel",
+    "topicLabel": "Travel",
+    "emoji": "✈️",
+    "topicTitle": "part of a training session for new employees at a large travel company",
+    "source": "asr:intro:cache-alias:cam12-l-test7::2",
+    "confidence": 0.78,
+    "schemaVersion": 1
+  },
+  "cam12-l-test3::section::3": {
+    "topicKey": "travel",
+    "topicLabel": "Travel",
+    "emoji": "✈️",
+    "topicTitle": "You will hear two tourism students called Natalie and Dave talking about the tourism case study they are doing",
+    "source": "asr:intro:cache-alias:cam12-l-test7::3",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam12-l-test3::section::4": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "a lecturer on an environmental studies course discussing how birds are affected by environmental change",
+    "source": "asr:intro:cache-alias:cam12-l-test7::4",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam12-l-test4::section::1": {
+    "topicKey": "work",
+    "topicLabel": "Work",
+    "emoji": "💼",
+    "topicTitle": "Section one. You will hear a telephone conversation between a woman who is looking for a job and a man from a...",
+    "source": "asr:intro:cache-alias:cam12-l-test8::1",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam12-l-test4::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "a podcast about an area called the sheep market in a New Zealand city",
+    "source": "asr:intro:cache-alias:cam12-l-test8::2",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam12-l-test4::section::3": {
+    "topicKey": "culture",
+    "topicLabel": "Culture & Arts",
+    "emoji": "🎭",
+    "topicTitle": "two students, Katie and Joe, discussing a presentation in their film studies course",
+    "source": "asr:intro:cache-alias:cam12-l-test8::3",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam12-l-test4::section::4": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "part of a lecture about noise in cities",
+    "source": "asr:intro:cache-alias:cam12-l-test8::4",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam13-l-test1::section::1": {
+    "topicKey": "food",
+    "topicLabel": "Food & Agriculture",
+    "emoji": "🌾",
+    "topicTitle": "Section one, you will hear a telephone conversation between a woman who wants to attend a cookery class and an...",
+    "source": "asr:intro:cam13-l-test1::1",
+    "confidence": 0.82,
+    "schemaVersion": 1
+  },
+  "cam13-l-test1::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "the chairman of the highways committee of Granford speaking to members of the public about proposed changes to...",
+    "source": "asr:intro:cam13-l-test1::2",
+    "confidence": 0.82,
+    "schemaVersion": 1
+  },
+  "cam13-l-test1::section::3": {
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
+    "topicTitle": "two biology students called Emma and Jack discussing an experiment they are going to do together",
+    "source": "asr:intro:cam13-l-test1::3",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam13-l-test1::section::4": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "part of a lecture on an environmental studies course about recent research on how animals are adapting to urban...",
+    "source": "asr:intro:cam13-l-test1::4",
+    "confidence": 0.9,
+    "schemaVersion": 1
+  },
+  "cam13-l-test2::section::1": {
+    "topicKey": "transport",
+    "topicLabel": "Transport",
+    "emoji": "🚆",
+    "topicTitle": "Section one, you will hear a woman phoning the secretary of a cycling club to find out about becoming a member",
+    "source": "asr:intro:cam13-l-test2::1",
+    "confidence": 0.87,
+    "schemaVersion": 1
+  },
+  "cam13-l-test2::section::2": {
+    "topicKey": "work",
+    "topicLabel": "Work",
+    "emoji": "💼",
+    "topicTitle": "a manager in a company talking to employees about volunteering for charity work",
+    "source": "asr:intro:cam13-l-test2::2",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam13-l-test2::section::3": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "called Russ consulting his tutor about a presentation he is preparing on nanotechnology, a study of materials on an...",
+    "source": "asr:intro:cam13-l-test2::3",
+    "confidence": 0.84,
+    "schemaVersion": 1
+  },
+  "cam13-l-test2::section::4": {
+    "topicKey": "psychology",
+    "topicLabel": "Psychology & Behaviour",
+    "emoji": "🧠",
+    "topicTitle": "a lecturer in psychology talking about a type of memory",
+    "source": "asr:intro:cam13-l-test2::4",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam13-l-test3::section::1": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "Section one, you will hear a man phoning a woman who lives in an English city called Banford to get some advice...",
+    "source": "asr:intro:cam13-l-test3::1",
+    "confidence": 0.96,
+    "schemaVersion": 1
+  },
+  "cam13-l-test3::section::2": {
+    "topicKey": "health",
+    "topicLabel": "Health",
+    "emoji": "🩺",
+    "topicTitle": "a fitness instructor talking on the radio about different ways of keeping fit",
+    "source": "asr:intro:cam13-l-test3::2",
+    "confidence": 0.98,
+    "schemaVersion": 1
+  },
+  "cam13-l-test3::section::3": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "a textile design student called Jim discussing his project on using natural dyes for coloring fabrics with his tutor",
+    "source": "asr:intro:cam13-l-test3::3",
+    "confidence": 0.66,
+    "schemaVersion": 1
+  },
+  "cam13-l-test3::section::4": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "part of a biology lecture about an animal called the sleepy lizard that is common in parts of Australia",
+    "source": "asr:intro:cam13-l-test3::4",
+    "confidence": 0.86,
+    "schemaVersion": 1
+  },
+  "cam13-l-test4::section::1": {
+    "topicKey": "work",
+    "topicLabel": "Work",
+    "emoji": "💼",
+    "topicTitle": "Section one, you will hear a phone conversation between Alex, an employee at a company called jpnw, and Martha, who...",
+    "source": "asr:intro:cam13-l-test4::1",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam13-l-test4::section::2": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "called Annie, who works at the snow center in New Zealand, welcoming a group of visitors to the centre",
+    "source": "asr:intro:cam13-l-test4::2",
+    "confidence": 0.67,
+    "schemaVersion": 1
+  },
+  "cam13-l-test4::section::3": {
+    "topicKey": "food",
+    "topicLabel": "Food & Agriculture",
+    "emoji": "🌾",
+    "topicTitle": "two students called Jack and Alice discussing food labels that give information on the nutritional value of foods",
+    "source": "asr:intro:cam13-l-test4::3",
+    "confidence": 0.81,
+    "schemaVersion": 1
+  },
+  "cam13-l-test4::section::4": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "part of a presentation by a history student about the history of coffee",
+    "source": "asr:intro:cam13-l-test4::4",
+    "confidence": 0.98,
+    "schemaVersion": 1
+  },
+  "cam14-l-test1::section::1": {
+    "topicKey": "business",
+    "topicLabel": "Business & Economics",
+    "emoji": "📈",
+    "topicTitle": "Section one, you will hear a woman reporting a theft to an officer in a police station",
+    "source": "asr:intro:cam14-l-test1::1",
+    "confidence": 0.61,
+    "schemaVersion": 1
+  },
+  "cam14-l-test1::section::2": {
+    "topicKey": "work",
+    "topicLabel": "Work",
+    "emoji": "💼",
+    "topicTitle": "a manager giving a welcome talk to a group of apprentices who are starting their training at the company",
+    "source": "asr:intro:cam14-l-test1::2",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam14-l-test1::section::3": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "two urban planning students called Carla and rob discussing their presentation on cities built by the sea following...",
+    "source": "asr:intro:cam14-l-test1::3",
+    "confidence": 0.79,
+    "schemaVersion": 1
+  },
+  "cam14-l-test1::section::4": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "You now have half a minute to check your answers. That is the end of the listening test. In the ielts test, you...",
+    "source": "asr:intro:cam14-l-test1::4",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam14-l-test2::section::1": {
+    "topicKey": "health",
+    "topicLabel": "Health",
+    "emoji": "🩺",
+    "topicTitle": "Section one, you will hear a woman talking to a doctor at a clinic about a medical problem",
+    "source": "asr:intro:cam14-l-test2::1",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam14-l-test2::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "a guide talking to a group of tourists who are about to visit an English castle",
+    "source": "asr:intro:cam14-l-test2::2",
+    "confidence": 0.81,
+    "schemaVersion": 1
+  },
+  "cam14-l-test2::section::3": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "two environmental science students called Rosie and Martin discussing their presentation on an extinct animal called...",
+    "source": "asr:intro:cam14-l-test2::3",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam14-l-test2::section::4": {
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
+    "topicTitle": "the history of weather forecasting",
+    "source": "asr:intro:cam14-l-test2::4",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam14-l-test3::section::1": {
+    "topicKey": "work",
+    "topicLabel": "Work",
+    "emoji": "💼",
+    "topicTitle": "Section one, you will hear a man phoning the customer services manager of a hotel to get information about holding a...",
+    "source": "asr:intro:cam14-l-test3::1",
+    "confidence": 0.81,
+    "schemaVersion": 1
+  },
+  "cam14-l-test3::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "talking to a group of college students about volunteering to help other people",
+    "source": "asr:intro:cam14-l-test3::2",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam14-l-test3::section::3": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "a trainee music teacher called Joe talking to his supervisor about the school marching band that he has been given...",
+    "source": "asr:intro:cam14-l-test3::3",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam14-l-test3::section::4": {
+    "topicKey": "culture",
+    "topicLabel": "Culture & Arts",
+    "emoji": "🎭",
+    "topicTitle": "a British University lecturer in music talking about concerts in an arts festival",
+    "source": "asr:intro:cam14-l-test3::4",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam14-l-test4::section::1": {
+    "topicKey": "travel",
+    "topicLabel": "Travel",
+    "emoji": "✈️",
+    "topicTitle": "Section one, you will hear a woman phoning a hotel about holding a party there",
+    "source": "asr:intro:cam14-l-test4::1",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam14-l-test4::section::2": {
+    "topicKey": "travel",
+    "topicLabel": "Travel",
+    "emoji": "✈️",
+    "topicTitle": "a holiday company representative talking to a group of tourists in a large hotel about things they can do during...",
+    "source": "asr:intro:cam14-l-test4::2",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam14-l-test4::section::3": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "Stephanie, who is thinking about taking a one year course in children's literature, talking to Trevor, who is...",
+    "source": "asr:intro:cam14-l-test4::3",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam14-l-test4::section::4": {
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
+    "topicTitle": "part of a lecture about a branch of archaeology called marine archaeology",
+    "source": "asr:intro:cam14-l-test4::4",
+    "confidence": 0.96,
+    "schemaVersion": 1
+  },
+  "cam15-l-test1::section::1": {
+    "topicKey": "work",
+    "topicLabel": "Work",
+    "emoji": "💼",
+    "topicTitle": "Part one, you will hear a woman phoning a friend to get information about a job agency",
+    "source": "asr:intro:cam15-l-test1::1",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam15-l-test1::section::2": {
+    "topicKey": "travel",
+    "topicLabel": "Travel",
+    "emoji": "✈️",
+    "topicTitle": "giving a presentation about a holiday on an island in Britain that her company organizes",
+    "source": "asr:intro:cam15-l-test1::2",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam15-l-test1::section::3": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "two psychology students discussing the effects of the order in which the children in a family are born",
+    "source": "asr:intro:cam15-l-test1::3",
+    "confidence": 0.96,
+    "schemaVersion": 1
+  },
+  "cam15-l-test1::section::4": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "giving a presentation about a type of tree known as the eucalyptus, which is common in Australia",
+    "source": "asr:intro:cam15-l-test1::4",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam15-l-test2::section::1": {
+    "topicKey": "culture",
+    "topicLabel": "Culture & Arts",
+    "emoji": "🎭",
+    "topicTitle": "Part one, you will hear a woman calling a tourist information office to ask about a festival",
+    "source": "asr:intro:cam15-l-test2::1",
+    "confidence": 0.9,
+    "schemaVersion": 1
+  },
+  "cam15-l-test2::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "part of a talk to a gardening club about a local park",
+    "source": "asr:intro:cam15-l-test2::2",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam15-l-test2::section::3": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "two students of English called Kathy and Graham planning a display on nineteenth century British life and literature...",
+    "source": "asr:intro:cam15-l-test2::3",
+    "confidence": 0.88,
+    "schemaVersion": 1
+  },
+  "cam15-l-test2::section::4": {
+    "topicKey": "food",
+    "topicLabel": "Food & Agriculture",
+    "emoji": "🌾",
+    "topicTitle": "part of a presentation about an agricultural program in the country of Mozambique",
+    "source": "asr:intro:cam15-l-test2::4",
+    "confidence": 0.9,
+    "schemaVersion": 1
+  },
+  "cam15-l-test3::section::1": {
+    "topicKey": "work",
+    "topicLabel": "Work",
+    "emoji": "💼",
+    "topicTitle": "Part one, you will hear a woman who works at an employment agency talking to a man about jobs he could apply for",
+    "source": "asr:intro:cam15-l-test3::1",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam15-l-test3::section::2": {
+    "topicKey": "transport",
+    "topicLabel": "Transport",
+    "emoji": "🚆",
+    "topicTitle": "called Alice riches talking on the radio about a scheme which involves closing streets to traffic to allow children...",
+    "source": "asr:intro:cam15-l-test3::2",
+    "confidence": 0.98,
+    "schemaVersion": 1
+  },
+  "cam15-l-test3::section::3": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "two students called hazel and Tom talking about hazel's media studies assignment",
+    "source": "asr:intro:cam15-l-test3::3",
+    "confidence": 0.72,
+    "schemaVersion": 1
+  },
+  "cam15-l-test3::section::4": {
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
+    "topicTitle": "you will hear. part of a lecture on the early history of keeping clean",
+    "source": "asr:intro:cam15-l-test3::4",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam15-l-test4::section::1": {
+    "topicKey": "transport",
+    "topicLabel": "Transport",
+    "emoji": "🚆",
+    "topicTitle": "Part one, you will hear a representative from a train company talking to a woman about her train journey",
+    "source": "asr:intro:cam15-l-test4::1",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam15-l-test4::section::2": {
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
+    "topicTitle": "the chair of a committee on park facilities addressing her local town council about changes that have been made to...",
+    "source": "asr:intro:cam15-l-test4::2",
+    "confidence": 0.77,
+    "schemaVersion": 1
+  },
+  "cam15-l-test4::section::3": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "two students of social history called Annie and Jack discussing their presentation about refrigeration",
+    "source": "asr:intro:cam15-l-test4::3",
+    "confidence": 0.85,
+    "schemaVersion": 1
+  },
+  "cam15-l-test4::section::4": {
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
+    "topicTitle": "a history student giving part of a presentation about changes in British society in the nineteenth century",
+    "source": "asr:intro:cam15-l-test4::4",
+    "confidence": 0.92,
+    "schemaVersion": 1
+  },
+  "cam16-l-test1::section::1": {
+    "topicKey": "architecture",
+    "topicLabel": "Architecture & Design",
+    "emoji": "🏛️",
+    "topicTitle": "Part one, you will hear a man phoning to find out about some children's engineering workshops",
+    "source": "asr:intro:cam16-l-test1::1",
+    "confidence": 0.73,
+    "schemaVersion": 1
+  },
+  "cam16-l-test1::section::2": {
+    "topicKey": "business",
+    "topicLabel": "Business & Economics",
+    "emoji": "📈",
+    "topicTitle": "the managing director of a company called Stevenson's welcoming a group of work experience students",
+    "source": "asr:intro:cam16-l-test1::2",
+    "confidence": 0.87,
+    "schemaVersion": 1
+  },
+  "cam16-l-test1::section::3": {
+    "topicKey": "culture",
+    "topicLabel": "Culture & Arts",
+    "emoji": "🎭",
+    "topicTitle": "two students called Jess and Tom discussing their art projects",
+    "source": "asr:intro:cam16-l-test1::3",
+    "confidence": 0.79,
+    "schemaVersion": 1
+  },
+  "cam16-l-test1::section::4": {
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
+    "topicTitle": "a professor of philosophy giving a talk on the ancient philosophy of stoicism",
+    "source": "asr:intro:cam16-l-test1::4",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam16-l-test2::section::1": {
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
+    "topicTitle": "Part one, you will hear a woman phoning a company that converts old photographs to digital format",
+    "source": "asr:intro:cam16-l-test2::1",
+    "confidence": 0.75,
+    "schemaVersion": 1
+  },
+  "cam16-l-test2::section::2": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "a head teacher talking to parents of pupils about changes at the school",
+    "source": "asr:intro:cam16-l-test2::2",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam16-l-test2::section::3": {
+    "topicKey": "psychology",
+    "topicLabel": "Psychology & Behaviour",
+    "emoji": "🧠",
+    "topicTitle": "two psychology students called Luke and Susie discussing their assignment on sleep and dreams",
+    "source": "asr:intro:cam16-l-test2::3",
+    "confidence": 0.72,
+    "schemaVersion": 1
+  },
+  "cam16-l-test2::section::4": {
+    "topicKey": "health",
+    "topicLabel": "Health",
+    "emoji": "🩺",
+    "topicTitle": "a sports science student giving a presentation on the health benefits of dance",
+    "source": "asr:intro:cam16-l-test2::4",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam16-l-test3::section::1": {
+    "topicKey": "transport",
+    "topicLabel": "Transport",
+    "emoji": "🚆",
+    "topicTitle": "Part one, you will hear a woman phoning to ask about a summer cycling camp for her Young son, who is called Charlie",
+    "source": "asr:intro:cam16-l-test3::1",
+    "confidence": 0.9,
+    "schemaVersion": 1
+  },
+  "cam16-l-test3::section::2": {
+    "topicKey": "work",
+    "topicLabel": "Work",
+    "emoji": "💼",
+    "topicTitle": "a recruitment officer called Meghan Baker giving a talk at a jobs fair about opportunities for those interested in...",
+    "source": "asr:intro:cam16-l-test3::2",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam16-l-test3::section::3": {
+    "topicKey": "food",
+    "topicLabel": "Food & Agriculture",
+    "emoji": "🌾",
+    "topicTitle": "two food science students called Adam and Rosie starting to plan their presentation on diet and obesity",
+    "source": "asr:intro:cam16-l-test3::3",
+    "confidence": 0.94,
+    "schemaVersion": 1
+  },
+  "cam16-l-test3::section::4": {
+    "topicKey": "business",
+    "topicLabel": "Business & Economics",
+    "emoji": "📈",
+    "topicTitle": "a lecturer on a fashion design course introducing the subject of hand knitting, which involves making things like...",
+    "source": "asr:intro:cam16-l-test3::4",
+    "confidence": 0.74,
+    "schemaVersion": 1
+  },
+  "cam16-l-test4::section::1": {
+    "topicKey": "travel",
+    "topicLabel": "Travel",
+    "emoji": "✈️",
+    "topicTitle": "Part one, you will hear a man phoning the owner of a holiday cottage",
+    "source": "asr:intro:cam16-l-test4::1",
+    "confidence": 0.79,
+    "schemaVersion": 1
+  },
+  "cam16-l-test4::section::2": {
+    "topicKey": "transport",
+    "topicLabel": "Transport",
+    "emoji": "🚆",
+    "topicTitle": "a town councillor reporting on the local transport network and a recreation facility",
+    "source": "asr:intro:cam16-l-test4::2",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam16-l-test4::section::3": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "two urban planning students discussing bike sharing schemes in different cities",
+    "source": "asr:intro:cam16-l-test4::3",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam16-l-test4::section::4": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "part of an environmental science lecture about a large bird called the dodo, which is now extinct",
+    "source": "asr:intro:cam16-l-test4::4",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam17-l-test1::section::1": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "Part one, you will hear a woman called Jan phoning a man about their local conservation group",
+    "source": "asr:intro:cam17-l-test1::1",
+    "confidence": 0.73,
+    "schemaVersion": 1
+  },
+  "cam17-l-test1::section::2": {
+    "topicKey": "travel",
+    "topicLabel": "Travel",
+    "emoji": "✈️",
+    "topicTitle": "a tour guide, Lou Miller, speaking to a group of people about a boat trip they are going to take around the...",
+    "source": "asr:intro:cam17-l-test1::2",
+    "confidence": 0.87,
+    "schemaVersion": 1
+  },
+  "cam17-l-test1::section::3": {
+    "topicKey": "food",
+    "topicLabel": "Food & Agriculture",
+    "emoji": "🌾",
+    "topicTitle": "two veterinary science students called Diana and Tim discussing their work placements and their course modules",
+    "source": "asr:intro:cam17-l-test1::3",
+    "confidence": 0.85,
+    "schemaVersion": 1
+  },
+  "cam17-l-test1::section::4": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "an anthropology student giving a presentation on spiral path designs known as labyrinths",
+    "source": "asr:intro:cam17-l-test1::4",
+    "confidence": 0.71,
+    "schemaVersion": 1
+  },
+  "cam17-l-test2::section::1": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "Part one, you will hear a man asking about voluntary work in the village that he has just moved to",
+    "source": "asr:intro:cam17-l-test2::1",
+    "confidence": 0.73,
+    "schemaVersion": 1
+  },
+  "cam17-l-test2::section::2": {
+    "topicKey": "architecture",
+    "topicLabel": "Architecture & Design",
+    "emoji": "🏛️",
+    "topicTitle": "a guide at a tourist attraction called onton hall talking to a group of visitors",
+    "source": "asr:intro:cam17-l-test2::2",
+    "confidence": 0.76,
+    "schemaVersion": 1
+  },
+  "cam17-l-test2::section::3": {
+    "topicKey": "culture",
+    "topicLabel": "Culture & Arts",
+    "emoji": "🎭",
+    "topicTitle": "two theatre studies students discussing stage and screen performances of Shakespeare's play Romeo and Juliet",
+    "source": "asr:intro:cam17-l-test2::3",
+    "confidence": 0.86,
+    "schemaVersion": 1
+  },
+  "cam17-l-test2::section::4": {
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
+    "topicTitle": "a lecturer on a languages course talking about the impact of digital technology on Icelandic, the native language of...",
+    "source": "asr:intro:cam17-l-test2::4",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam17-l-test3::section::1": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "Part one, you will hear a man called Jack giving advice to a friend about surfing holidays",
+    "source": "asr:intro:cam17-l-test3::1",
+    "confidence": 0.76,
+    "schemaVersion": 1
+  },
+  "cam17-l-test3::section::2": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "the manager of a child care service at a primary school talking to parents at an open day about the school's child...",
+    "source": "asr:intro:cam17-l-test3::2",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam17-l-test3::section::3": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "Holly, a student on an events management course, talking to her tutor about her work placement",
+    "source": "asr:intro:cam17-l-test3::3",
+    "confidence": 0.86,
+    "schemaVersion": 1
+  },
+  "cam17-l-test3::section::4": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "a zoology student giving a presentation on bird migration",
+    "source": "asr:intro:cam17-l-test3::4",
+    "confidence": 0.94,
+    "schemaVersion": 1
+  },
+  "cam17-l-test4::section::1": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "Part one, you will hear a man phoning to inquire about a cleaning service for his apartment",
+    "source": "asr:intro:cam17-l-test4::1",
+    "confidence": 0.69,
+    "schemaVersion": 1
+  },
+  "cam17-l-test4::section::2": {
+    "topicKey": "work",
+    "topicLabel": "Work",
+    "emoji": "💼",
+    "topicTitle": "a training manager giving a talk to a group of senior staff from a hotel chain about the problem of high staff turnover",
+    "source": "asr:intro:cam17-l-test4::2",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam17-l-test4::section::3": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "two students called Jean and Thomas discussing their sports science course",
+    "source": "asr:intro:cam17-l-test4::3",
+    "confidence": 0.96,
+    "schemaVersion": 1
+  },
+  "cam17-l-test4::section::4": {
+    "topicKey": "food",
+    "topicLabel": "Food & Agriculture",
+    "emoji": "🌾",
+    "topicTitle": "a presentation by a food science student about the production of maple syrup",
+    "source": "asr:intro:cam17-l-test4::4",
+    "confidence": 0.94,
+    "schemaVersion": 1
+  },
+  "cam18-l-test1::section::1": {
+    "topicKey": "transport",
+    "topicLabel": "Transport",
+    "emoji": "🚆",
+    "topicTitle": "Part one, you will hear an interview with a woman who is doing a survey on transport",
+    "source": "asr:intro:cam18-l-test1::1",
+    "confidence": 0.86,
+    "schemaVersion": 1
+  },
+  "cam18-l-test1::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "speaking to a group of people who are interested in becoming volunteers for an organization called ace",
+    "source": "asr:intro:cam18-l-test1::2",
+    "confidence": 0.88,
+    "schemaVersion": 1
+  },
+  "cam18-l-test1::section::3": {
+    "topicKey": "work",
+    "topicLabel": "Work",
+    "emoji": "💼",
+    "topicTitle": "two students called Hugo and Chantal discussing a talk they have just attended at the start of their course in...",
+    "source": "asr:intro:cam18-l-test1::3",
+    "confidence": 0.94,
+    "schemaVersion": 1
+  },
+  "cam18-l-test1::section::4": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "a zoology student giving a presentation on the process of moving wild elephants to a new reserve known as translocation",
+    "source": "asr:intro:cam18-l-test1::4",
+    "confidence": 0.73,
+    "schemaVersion": 1
+  },
+  "cam18-l-test2::section::1": {
+    "topicKey": "work",
+    "topicLabel": "Work",
+    "emoji": "💼",
+    "topicTitle": "Part one, you will hear a woman from a job agency giving information to a man about work in a chain of restaurants",
+    "source": "asr:intro:cam18-l-test2::1",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam18-l-test2::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "a talk to members of the public about plans for a new housing development near a town called nunston",
+    "source": "asr:intro:cam18-l-test2::2",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam18-l-test2::section::3": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "two geography students, Adam and Michelle, talking about a volcanic eruption which took place in Iceland in 1783",
+    "source": "asr:intro:cam18-l-test2::3",
+    "confidence": 0.82,
+    "schemaVersion": 1
+  },
+  "cam18-l-test2::section::4": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "on a fashion design course giving a talk about the history of pockets",
+    "source": "asr:intro:cam18-l-test2::4",
+    "confidence": 0.73,
+    "schemaVersion": 1
+  },
+  "cam18-l-test3::section::1": {
+    "topicKey": "culture",
+    "topicLabel": "Culture & Arts",
+    "emoji": "🎭",
+    "topicTitle": "Part one, you will hear a man talking to the coordinator of a photography club",
+    "source": "asr:intro:cam18-l-test3::1",
+    "confidence": 0.7,
+    "schemaVersion": 1
+  },
+  "cam18-l-test3::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "an expert on picking wild mushrooms called Dan talking on the radio",
+    "source": "asr:intro:cam18-l-test3::2",
+    "confidence": 0.73,
+    "schemaVersion": 1
+  },
+  "cam18-l-test3::section::3": {
+    "topicKey": "work",
+    "topicLabel": "Work",
+    "emoji": "💼",
+    "topicTitle": "two business students discussing automation and the future of work",
+    "source": "asr:intro:cam18-l-test3::3",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam18-l-test3::section::4": {
+    "topicKey": "transport",
+    "topicLabel": "Transport",
+    "emoji": "🚆",
+    "topicTitle": "part of a lecture for astronomy students about the need for a system to manage satellites and other objects orbiting...",
+    "source": "asr:intro:cam18-l-test3::4",
+    "confidence": 0.77,
+    "schemaVersion": 1
+  },
+  "cam18-l-test4::section::1": {
+    "topicKey": "work",
+    "topicLabel": "Work",
+    "emoji": "💼",
+    "topicTitle": "Part one, you will hear a man who works at an employment agency phoning a woman who is looking for a job",
+    "source": "asr:intro:cam18-l-test4::1",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam18-l-test4::section::2": {
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
+    "topicTitle": "a guide at a farming museum talking to a group of visitors",
+    "source": "asr:intro:cam18-l-test4::2",
+    "confidence": 0.89,
+    "schemaVersion": 1
+  },
+  "cam18-l-test4::section::3": {
+    "topicKey": "work",
+    "topicLabel": "Work",
+    "emoji": "💼",
+    "topicTitle": "following instructions from their tutor, you will hear two trainee teachers discussing the use of origami, a paper...",
+    "source": "asr:intro:cam18-l-test4::3",
+    "confidence": 0.81,
+    "schemaVersion": 1
+  },
+  "cam18-l-test4::section::4": {
+    "topicKey": "culture",
+    "topicLabel": "Culture & Arts",
+    "emoji": "🎭",
+    "topicTitle": "a literature student giving a talk about Victor Hugo, a famous nineteenth century French writer",
+    "source": "asr:intro:cam18-l-test4::4",
+    "confidence": 0.8,
+    "schemaVersion": 1
+  },
+  "cam19-l-test1::section::1": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "Part one, you will hear a teaching assistant calling a country park about a school visit",
+    "source": "asr:intro:cam19-l-test1::1",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam19-l-test1::section::2": {
+    "topicKey": "architecture",
+    "topicLabel": "Architecture & Design",
+    "emoji": "🏛️",
+    "topicTitle": "the chairman of Stanthorpe twinning association, which organizes the link between Stanthorpe in England and a town...",
+    "source": "asr:intro:cam19-l-test1::2",
+    "confidence": 0.72,
+    "schemaVersion": 1
+  },
+  "cam19-l-test1::section::3": {
+    "topicKey": "food",
+    "topicLabel": "Food & Agriculture",
+    "emoji": "🌾",
+    "topicTitle": "two food science students called Marie and Colin discussing their final year projects",
+    "source": "asr:intro:cam19-l-test1::3",
+    "confidence": 0.97,
+    "schemaVersion": 1
+  },
+  "cam19-l-test1::section::4": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "an archaeology student giving a presentation on an important site in Ireland called the kgey fields",
+    "source": "asr:intro:cam19-l-test1::4",
+    "confidence": 0.97,
+    "schemaVersion": 1
+  },
+  "cam19-l-test2::section::1": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "Part one, you will hear two friends talking about a guitar group",
+    "source": "asr:intro:cam19-l-test2::1",
+    "confidence": 0.7,
+    "schemaVersion": 1
+  },
+  "cam19-l-test2::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "called David talking on the radio about his work as a lifeboat volunteer",
+    "source": "asr:intro:cam19-l-test2::2",
+    "confidence": 0.82,
+    "schemaVersion": 1
+  },
+  "cam19-l-test2::section::3": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "two students called Bella and don discussing a presentation they plan to do on recycling footwear",
+    "source": "asr:intro:cam19-l-test2::3",
+    "confidence": 0.66,
+    "schemaVersion": 1
+  },
+  "cam19-l-test2::section::4": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "a zoology student giving a presentation about an animal called Attardi grade",
+    "source": "asr:intro:cam19-l-test2::4",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam19-l-test3::section::1": {
+    "topicKey": "food",
+    "topicLabel": "Food & Agriculture",
+    "emoji": "🌾",
+    "topicTitle": "Part one, you will hear two neighbors who live in an apartment block talking about shopping for food",
+    "source": "asr:intro:cam19-l-test3::1",
+    "confidence": 0.9,
+    "schemaVersion": 1
+  },
+  "cam19-l-test3::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "the organizer of a children's Book Festival giving some information about it on a local radio program",
+    "source": "asr:intro:cam19-l-test3::2",
+    "confidence": 0.87,
+    "schemaVersion": 1
+  },
+  "cam19-l-test3::section::3": {
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
+    "topicTitle": "a trainee science teacher called Claire talking about her practical teaching work to another trainee called Jake",
+    "source": "asr:intro:cam19-l-test3::3",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam19-l-test3::section::4": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "part of an environmental science lecture about microplastics",
+    "source": "asr:intro:cam19-l-test3::4",
+    "confidence": 0.92,
+    "schemaVersion": 1
+  },
+  "cam19-l-test4::section::1": {
+    "topicKey": "work",
+    "topicLabel": "Work",
+    "emoji": "💼",
+    "topicTitle": "Part one, you will hear a supervisor in a supermarket talking to a new worker on her first day",
+    "source": "asr:intro:cam19-l-test4::1",
+    "confidence": 0.8,
+    "schemaVersion": 1
+  },
+  "cam19-l-test4::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "a podcast by a running coach giving advice about taking up running and giving information about her club",
+    "source": "asr:intro:cam19-l-test4::2",
+    "confidence": 0.74,
+    "schemaVersion": 1
+  },
+  "cam19-l-test4::section::3": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "two students called Jane and Karen talking about books",
+    "source": "asr:intro:cam19-l-test4::3",
+    "confidence": 0.89,
+    "schemaVersion": 1
+  },
+  "cam19-l-test4::section::4": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "part of an environmental studies lecture on tree planting",
+    "source": "asr:intro:cam19-l-test4::4",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam20-l-test1::section::1": {
+    "topicKey": "food",
+    "topicLabel": "Food & Agriculture",
+    "emoji": "🌾",
+    "topicTitle": "Part one, you will hear a woman asking a friend for restaurant recommendations",
+    "source": "asr:intro:cam20-l-test1::1",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam20-l-test1::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "a Potter, Heather McCallum, speaking to a group of people who are visiting a pottery, a place where people make pots...",
+    "source": "asr:intro:cam20-l-test1::2",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam20-l-test1::section::3": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "two sociology students called Tamara and Dev discussing their research for a presentation on loneliness",
+    "source": "asr:intro:cam20-l-test1::3",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam20-l-test1::section::4": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "part of a presentation by an urban planning student about the role of rivers in cities around the world",
+    "source": "asr:intro:cam20-l-test1::4",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam20-l-test2::section::1": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "Part one, you will hear a woman who is caring for her elderly mother talking to a friend",
+    "source": "asr:intro:cam20-l-test2::1",
+    "confidence": 0.59,
+    "schemaVersion": 1
+  },
+  "cam20-l-test2::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "who works for elm Lee town council talking to some people who want to join the small town's volunteer scheme",
+    "source": "asr:intro:cam20-l-test2::2",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam20-l-test2::section::3": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "two students called Rosie and Colin discussing their human geography assignment",
+    "source": "asr:intro:cam20-l-test2::3",
+    "confidence": 0.8,
+    "schemaVersion": 1
+  },
+  "cam20-l-test2::section::4": {
+    "topicKey": "food",
+    "topicLabel": "Food & Agriculture",
+    "emoji": "🌾",
+    "topicTitle": "part of a food science lecture on fashions in food",
+    "source": "asr:intro:cam20-l-test2::4",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam20-l-test3::section::1": {
+    "topicKey": "architecture",
+    "topicLabel": "Architecture & Design",
+    "emoji": "🏛️",
+    "topicTitle": "Part one, you will hear a woman phoning the owner of a house she is going to rent about companies that she could...",
+    "source": "asr:intro:cam20-l-test3::1",
+    "confidence": 0.78,
+    "schemaVersion": 1
+  },
+  "cam20-l-test3::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "an archaeologist who is part of a community project to excavate an ancient village talking to members of the public...",
+    "source": "asr:intro:cam20-l-test3::2",
+    "confidence": 0.86,
+    "schemaVersion": 1
+  },
+  "cam20-l-test3::section::3": {
+    "topicKey": "culture",
+    "topicLabel": "Culture & Arts",
+    "emoji": "🎭",
+    "topicTitle": "two theatre studies students, Maya and Finn, discussing their project on theatre programs",
+    "source": "asr:intro:cam20-l-test3::3",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam20-l-test3::section::4": {
+    "topicKey": "architecture",
+    "topicLabel": "Architecture & Design",
+    "emoji": "🏛️",
+    "topicTitle": "a design and technology lecturer talking about inclusive design",
+    "source": "asr:intro:cam20-l-test3::4",
+    "confidence": 0.91,
+    "schemaVersion": 1
+  },
+  "cam20-l-test4::section::1": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "Part one, you will hear a man asking a friend for advice on things to do in the city with a family of visitors",
+    "source": "asr:intro:cam20-l-test4::1",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam20-l-test4::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "a guide talking to members of the public who are visiting a football stadium in the uk",
+    "source": "asr:intro:cam20-l-test4::2",
+    "confidence": 0.75,
+    "schemaVersion": 1
+  },
+  "cam20-l-test4::section::3": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "two education students discussing an assignment on teaching handwriting to children",
+    "source": "asr:intro:cam20-l-test4::3",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam20-l-test4::section::4": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "part of an environmental science lecture about the impact of birds of prey on a farming community in Africa",
+    "source": "asr:intro:cam20-l-test4::4",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam21-l-test1::section::1": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "Part one, you will hear a man phoning a sailing club to ask about learning to sail first. You have some time to look at",
+    "source": "asr:intro:cam21-l-test1::1",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam21-l-test1::section::2": {
+    "topicKey": "culture",
+    "topicLabel": "Culture & Arts",
+    "emoji": "🎭",
+    "topicTitle": "giving advice on a podcast about how to become a makeup artist in the film industry",
+    "source": "asr:intro:cam21-l-test1::2",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam21-l-test1::section::3": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "two marine biology students discussing a lecture on marine biodiversity and conservation from a visiting speaker",
+    "source": "asr:intro:cam21-l-test1::3",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam21-l-test1::section::4": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "part of a science lecture about different sources of rubber",
+    "source": "asr:intro:cam21-l-test1::4",
+    "confidence": 0.76,
+    "schemaVersion": 1
+  },
+  "cam21-l-test2::section::1": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "Part one, you will hear a woman phoning to find out about one day classes held at Stanford college",
+    "source": "asr:intro:cam21-l-test2::1",
+    "confidence": 0.83,
+    "schemaVersion": 1
+  },
+  "cam21-l-test2::section::2": {
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
+    "topicTitle": "some recorded information for visitors to a region about history and nature walks there and about a particular...",
+    "source": "asr:intro:cam21-l-test2::2",
+    "confidence": 0.84,
+    "schemaVersion": 1
+  },
+  "cam21-l-test2::section::3": {
+    "topicKey": "food",
+    "topicLabel": "Food & Agriculture",
+    "emoji": "🌾",
+    "topicTitle": "two food science students called Nadia and Fergus talking to their tutor about their course",
+    "source": "asr:intro:cam21-l-test2::3",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam21-l-test2::section::4": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "part of a presentation by a tourism studies student on the cruise ship industry",
+    "source": "asr:intro:cam21-l-test2::4",
+    "confidence": 0.92,
+    "schemaVersion": 1
+  },
+  "cam21-l-test3::section::1": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "Part one, you will hear a woman asking a friend for advice on travelling by ferry to an island in Scotland",
+    "source": "asr:intro:cam21-l-test3::1",
+    "confidence": 0.65,
+    "schemaVersion": 1
+  },
+  "cam21-l-test3::section::2": {
+    "topicKey": "food",
+    "topicLabel": "Food & Agriculture",
+    "emoji": "🌾",
+    "topicTitle": "giving a talk to people who are interested in starting their own street food business",
+    "source": "asr:intro:cam21-l-test3::2",
+    "confidence": 0.84,
+    "schemaVersion": 1
+  },
+  "cam21-l-test3::section::3": {
+    "topicKey": "food",
+    "topicLabel": "Food & Agriculture",
+    "emoji": "🌾",
+    "topicTitle": "part of a discussion between two textile students about their research into sustainable fashion",
+    "source": "asr:intro:cam21-l-test3::3",
+    "confidence": 0.82,
+    "schemaVersion": 1
+  },
+  "cam21-l-test3::section::4": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "part of an ecology lecture about invasive species of plants and animals",
+    "source": "asr:intro:cam21-l-test3::4",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam21-l-test4::section::1": {
+    "topicKey": "work",
+    "topicLabel": "Work",
+    "emoji": "💼",
+    "topicTitle": "Part one, you will hear an interviewer who is doing a survey asking a man some",
+    "source": "asr:intro:cam21-l-test4::1",
+    "confidence": 0.63,
+    "schemaVersion": 1
+  },
+  "cam21-l-test4::section::2": {
+    "topicKey": "business",
+    "topicLabel": "Business & Economics",
+    "emoji": "📈",
+    "topicTitle": "a podcast about a large business exhibition, which is held every year in London",
+    "source": "asr:intro:cam21-l-test4::2",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam21-l-test4::section::3": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "two architecture students called mia and Leo discussing their presentation on houses of the future",
+    "source": "asr:intro:cam21-l-test4::3",
+    "confidence": 0.89,
+    "schemaVersion": 1
+  },
+  "cam21-l-test4::section::4": {
+    "topicKey": "health",
+    "topicLabel": "Health",
+    "emoji": "🩺",
+    "topicTitle": "part of a lecture to medical students about playing music to patients who are in hospital for surgery",
+    "source": "asr:intro:cam21-l-test4::4",
+    "confidence": 0.89,
+    "schemaVersion": 1
+  },
+  "cam4-r-test1::section::1": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "Adults and children are frequently confronted with",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.81,
+    "schemaVersion": 1
+  },
+  "cam4-r-test1::section::2": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "An examination of the functioning of thtt sensu in cetac.-ns, the",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.81,
+    "schemaVersion": 1
+  },
+  "cam4-r-test1::section::3": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "Visual Symbols and the Blind",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.65,
+    "schemaVersion": 1
+  },
+  "cam4-r-test2::section::1": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "Many minority languages are on the danger list",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.83,
+    "schemaVersion": 1
+  },
+  "cam4-r-test2::section::2": {
+    "topicKey": "health",
+    "topicLabel": "Health",
+    "emoji": "🩺",
+    "topicTitle": "ALTERNATIVE MEDICINE IN AUSTRALI",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam4-r-test2::section::3": {
+    "topicKey": "work",
+    "topicLabel": "Work",
+    "emoji": "💼",
+    "topicTitle": "PLAY IS A SERIOUS",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.82,
+    "schemaVersion": 1
+  },
+  "cam4-r-test3::section::1": {
+    "topicKey": "business",
+    "topicLabel": "Business & Economics",
+    "emoji": "📈",
+    "topicTitle": "Micro-Enterprise Credit",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.92,
+    "schemaVersion": 1
+  },
+  "cam4-r-test3::section::2": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "Volcanoes- earth-shattering news When Mount Pinatubo suddenly erupted on 9 June 1991, the power of volcanoes past...",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.65,
+    "schemaVersion": 1
+  },
+  "cam4-r-test3::section::3": {
+    "topicKey": "culture",
+    "topicLabel": "Culture & Arts",
+    "emoji": "🎭",
+    "topicTitle": "Obtaining",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.72,
+    "schemaVersion": 1
+  },
+  "cam4-r-test4::section::1": {
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
+    "topicTitle": "below. ·",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.79,
+    "schemaVersion": 1
+  },
+  "cam4-r-test4::section::2": {
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
+    "topicTitle": "B It is a continually growing field of study",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.92,
+    "schemaVersion": 1
+  },
+  "cam4-r-test4::section::3": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "on the following pages",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.91,
+    "schemaVersion": 1
+  },
+  "cam5-r-test1::section::1": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "Johnson's Dictionary",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.74,
+    "schemaVersion": 1
+  },
+  "cam5-r-test1::section::2": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "Nature or Nurture?",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.98,
+    "schemaVersion": 1
+  },
+  "cam5-r-test1::section::3": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "For many environmentalists, the world seems to be getting worse . They have developed",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.89,
+    "schemaVersion": 1
+  },
+  "cam5-r-test2::section::1": {
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
+    "topicTitle": "The birth of modern plastics",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.62,
+    "schemaVersion": 1
+  },
+  "cam5-r-test2::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "What's so funn",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.7,
+    "schemaVersion": 1
+  },
+  "cam5-r-test2::section::3": {
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
+    "topicTitle": "The Birth of Scientific English",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam5-r-test3::section::1": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "Early Childhood Education",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam5-r-test3::section::2": {
+    "topicKey": "food",
+    "topicLabel": "Food & Agriculture",
+    "emoji": "🌾",
+    "topicTitle": "Disappearing Delta",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.75,
+    "schemaVersion": 1
+  },
+  "cam5-r-test3::section::3": {
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
+    "topicTitle": "The Return of Artificial Intelligence",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam5-r-test4::section::1": {
+    "topicKey": "travel",
+    "topicLabel": "Travel",
+    "emoji": "✈️",
+    "topicTitle": "on the following pages",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.85,
+    "schemaVersion": 1
+  },
+  "cam5-r-test4::section::2": {
+    "topicKey": "architecture",
+    "topicLabel": "Architecture & Design",
+    "emoji": "🏛️",
+    "topicTitle": "be loll'",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.73,
+    "schemaVersion": 1
+  },
+  "cam5-r-test4::section::3": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "• • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • •",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam6-r-test1::section::1": {
+    "topicKey": "work",
+    "topicLabel": "Work",
+    "emoji": "💼",
+    "topicTitle": "AUSTRALIA'S",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.81,
+    "schemaVersion": 1
+  },
+  "cam6-r-test1::section::2": {
+    "topicKey": "business",
+    "topicLabel": "Business & Economics",
+    "emoji": "📈",
+    "topicTitle": "®@:[10W@:C20~@",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam6-r-test1::section::3": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "Reading Passage 3",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam6-r-test2::section::1": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "world as hilly",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam6-r-test2::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "Elderly people are growing healthier, happier and more independent, say American",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.92,
+    "schemaVersion": 1
+  },
+  "cam6-r-test2::section::3": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "Numeration",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.67,
+    "schemaVersion": 1
+  },
+  "cam6-r-test3::section::1": {
+    "topicKey": "culture",
+    "topicLabel": "Culture & Arts",
+    "emoji": "🎭",
+    "topicTitle": "A The Lumiere Brothers opened their became familiar, the magic was accepted",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.82,
+    "schemaVersion": 1
+  },
+  "cam6-r-test3::section::2": {
+    "topicKey": "work",
+    "topicLabel": "Work",
+    "emoji": "💼",
+    "topicTitle": "B They have less need of external goals",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam6-r-test3::section::3": {
+    "topicKey": "health",
+    "topicLabel": "Health",
+    "emoji": "🩺",
+    "topicTitle": "The Search for the Anti-aging Pill",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.85,
+    "schemaVersion": 1
+  },
+  "cam6-r-test4::section::1": {
+    "topicKey": "business",
+    "topicLabel": "Business & Economics",
+    "emoji": "📈",
+    "topicTitle": "physician asked. He was only half joking",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam6-r-test4::section::2": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "Do literate women make better mothers?",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam6-r-test4::section::3": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "Here he reports on his findings",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.79,
+    "schemaVersion": 1
+  },
+  "cam7-r-test1::section::1": {
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
+    "topicTitle": "~~Le•'s",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.79,
+    "schemaVersion": 1
+  },
+  "cam7-r-test1::section::2": {
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
+    "topicTitle": "~&~0~@ C?:Wc:\\[illJ [p)[]}@)[p @@C!D [l]J]",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.75,
+    "schemaVersion": 1
+  },
+  "cam7-r-test1::section::3": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "EDUCATING PSYCHE",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam7-r-test2::section::1": {
+    "topicKey": "architecture",
+    "topicLabel": "Architecture & Design",
+    "emoji": "🏛️",
+    "topicTitle": "Why pagodas",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam7-r-test2::section::2": {
+    "topicKey": "food",
+    "topicLabel": "Food & Agriculture",
+    "emoji": "🌾",
+    "topicTitle": "A For more than forty years the cost of food has been",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam7-r-test2::section::3": {
+    "topicKey": "transport",
+    "topicLabel": "Transport",
+    "emoji": "🚆",
+    "topicTitle": "on the following pages",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam7-r-test3::section::1": {
+    "topicKey": "food",
+    "topicLabel": "Food & Agriculture",
+    "emoji": "🌾",
+    "topicTitle": "Ant Intelligence",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam7-r-test3::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "Test3 Population movements and genetics",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam7-r-test3::section::3": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "Forests are one of the main elements of our natural heritage",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam7-r-test4::section::1": {
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
+    "topicTitle": "Pulling strings to build pyramids",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.79,
+    "schemaVersion": 1
+  },
+  "cam7-r-test4::section::2": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "Endless .Harvest",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.74,
+    "schemaVersion": 1
+  },
+  "cam7-r-test4::section::3": {
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
+    "topicTitle": "EFFECTS OF NOISE",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.66,
+    "schemaVersion": 1
+  },
+  "cam8-r-test1::section::1": {
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
+    "topicTitle": "Reading Passage 1",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.61,
+    "schemaVersion": 1
+  },
+  "cam8-r-test1::section::2": {
+    "topicKey": "transport",
+    "topicLabel": "Transport",
+    "emoji": "🚆",
+    "topicTitle": "procedures are also in place over much of the rest of the world",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.9,
+    "schemaVersion": 1
+  },
+  "cam8-r-test1::section::3": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "Can human beings communicate by thought alone? For more than a",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.74,
+    "schemaVersion": 1
+  },
+  "cam8-r-test2::section::1": {
+    "topicKey": "work",
+    "topicLabel": "Work",
+    "emoji": "💼",
+    "topicTitle": "Sheet glass manufacture",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.59,
+    "schemaVersion": 1
+  },
+  "cam8-r-test2::section::2": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "high",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.88,
+    "schemaVersion": 1
+  },
+  "cam8-r-test2::section::3": {
+    "topicKey": "psychology",
+    "topicLabel": "Psychology & Behaviour",
+    "emoji": "🧠",
+    "topicTitle": "essential role the sense of smell plays in our sense of well-being",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.7,
+    "schemaVersion": 1
+  },
+  "cam8-r-test3::section::1": {
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
+    "topicTitle": "Striking Back at Lightning",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.76,
+    "schemaVersion": 1
+  },
+  "cam8-r-test3::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "The Nature of Genius",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam8-r-test3::section::3": {
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
+    "topicTitle": "HOW DOES THE BIOLOGICAL CLOCK TICK?",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.68,
+    "schemaVersion": 1
+  },
+  "cam8-r-test4::section::1": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "12 How do schools deal with students who experience difficulties?",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam8-r-test4::section::2": {
+    "topicKey": "food",
+    "topicLabel": "Food & Agriculture",
+    "emoji": "🌾",
+    "topicTitle": "Biological control of pests",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam8-r-test4::section::3": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "Collecting Ant Specimens",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.94,
+    "schemaVersion": 1
+  },
+  "cam9-r-test1::section::1": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "Reading Passage 1",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.89,
+    "schemaVersion": 1
+  },
+  "cam9-r-test1::section::2": {
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
+    "topicTitle": "for any sign of life",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.82,
+    "schemaVersion": 1
+  },
+  "cam9-r-test1::section::3": {
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
+    "topicTitle": "The history of the tortoise",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.77,
+    "schemaVersion": 1
+  },
+  "cam9-r-test2::section::1": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "A Hearing impairment or other auditory function deficit in young children can have a major impact",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam9-r-test2::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "Venus in transit",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.62,
+    "schemaVersion": 1
+  },
+  "cam9-r-test2::section::3": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "A neuroscientist reveals",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.88,
+    "schemaVersion": 1
+  },
+  "cam9-r-test3::section::1": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "Attitudes to language",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.88,
+    "schemaVersion": 1
+  },
+  "cam9-r-test3::section::2": {
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
+    "topicTitle": "Tidal Power",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.95,
+    "schemaVersion": 1
+  },
+  "cam9-r-test3::section::3": {
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
+    "topicTitle": "Reading Passage 3",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam9-r-test4::section::1": {
+    "topicKey": "work",
+    "topicLabel": "Work",
+    "emoji": "💼",
+    "topicTitle": "The life and work of Marie Curie",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.83,
+    "schemaVersion": 1
+  },
+  "cam9-r-test4::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "Reading Passage 2",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.85,
+    "schemaVersion": 1
+  },
+  "cam9-r-test4::section::3": {
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
+    "topicTitle": "The Development of Museums",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam10-r-test1::section::1": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "Stepwells",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.7,
+    "schemaVersion": 1
+  },
+  "cam10-r-test1::section::2": {
+    "topicKey": "transport",
+    "topicLabel": "Transport",
+    "emoji": "🚆",
+    "topicTitle": "EUR O PEA N TR A N SP O RT SYST E M S 1 9 9 0 - 2 0 1 0 W hat have been the trends and what are the prospects for...",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam10-r-test1::section::3": {
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
+    "topicTitle": "The psychology of innovation",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.88,
+    "schemaVersion": 1
+  },
+  "cam10-r-test2::section::1": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "Tea and the Industrial Revolution",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.77,
+    "schemaVersion": 1
+  },
+  "cam10-r-test2::section::2": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "Gifted children and learning",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam10-r-test2::section::3": {
+    "topicKey": "culture",
+    "topicLabel": "Culture & Arts",
+    "emoji": "🎭",
+    "topicTitle": "M useu ms o f fin e art an d t h eir p u b li c",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam10-r-test3::section::1": {
+    "topicKey": "travel",
+    "topicLabel": "Travel",
+    "emoji": "✈️",
+    "topicTitle": "The Context, M eaning and Scope of Tourism",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam10-r-test3::section::2": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "A utum n leaves",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.84,
+    "schemaVersion": 1
+  },
+  "cam10-r-test3::section::3": {
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
+    "topicTitle": "Beyond the blue horizon",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam10-r-test4::section::1": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "The megafires of California",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.74,
+    "schemaVersion": 1
+  },
+  "cam10-r-test4::section::2": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "Second nature",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.87,
+    "schemaVersion": 1
+  },
+  "cam10-r-test4::section::3": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "When evolution runs backwards",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.71,
+    "schemaVersion": 1
+  },
+  "cam11-r-test1::section::1": {
+    "topicKey": "food",
+    "topicLabel": "Food & Agriculture",
+    "emoji": "🌾",
+    "topicTitle": "Passage 1 below",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam11-r-test1::section::2": {
+    "topicKey": "transport",
+    "topicLabel": "Transport",
+    "emoji": "🚆",
+    "topicTitle": "THE FALKIRK WHEEL",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.75,
+    "schemaVersion": 1
+  },
+  "cam11-r-test1::section::3": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "Reducing the Effects of Climate Change",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.88,
+    "schemaVersion": 1
+  },
+  "cam11-r-test2::section::1": {
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
+    "topicTitle": "Raising the Mary Rose",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.71,
+    "schemaVersion": 1
+  },
+  "cam11-r-test2::section::2": {
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
+    "topicTitle": "What destroyed the civilisation of Easter Island?",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam11-r-test2::section::3": {
+    "topicKey": "culture",
+    "topicLabel": "Culture & Arts",
+    "emoji": "🎭",
+    "topicTitle": "Neuroaesthetics",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.82,
+    "schemaVersion": 1
+  },
+  "cam11-r-test3::section::1": {
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
+    "topicTitle": "THE STORY OF SILK",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.72,
+    "schemaVersion": 1
+  },
+  "cam11-r-test3::section::2": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "Great Migrations",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.98,
+    "schemaVersion": 1
+  },
+  "cam11-r-test3::section::3": {
+    "topicKey": "psychology",
+    "topicLabel": "Psychology & Behaviour",
+    "emoji": "🧠",
+    "topicTitle": "Preface to ‘How the other half thinks",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.76,
+    "schemaVersion": 1
+  },
+  "cam11-r-test4::section::1": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "B Thomas Bouchard",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.71,
+    "schemaVersion": 1
+  },
+  "cam11-r-test4::section::2": {
+    "topicKey": "culture",
+    "topicLabel": "Culture & Arts",
+    "emoji": "🎭",
+    "topicTitle": "An Introduction to Film Sound",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam11-r-test4::section::3": {
+    "topicKey": "culture",
+    "topicLabel": "Culture & Arts",
+    "emoji": "🎭",
+    "topicTitle": "_— — — ‘This Marvellous Invention’",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.88,
+    "schemaVersion": 1
+  },
+  "cam12-r-test1::section::1": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "natural cork",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.59,
+    "schemaVersion": 1
+  },
+  "cam12-r-test1::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "COLLECTING AS A HOBBY",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.77,
+    "schemaVersion": 1
+  },
+  "cam12-r-test1::section::3": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "requirements can sign up for the course in our program in ‘fire science’",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam12-r-test2::section::1": {
+    "topicKey": "food",
+    "topicLabel": "Food & Agriculture",
+    "emoji": "🌾",
+    "topicTitle": "poor, but rich landowners and non-farmer traders.\"",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam12-r-test2::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "The Lost City An explorer’s encounter with the ruined city of Machu Picchu, the most famous icon of the Inca...",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam12-r-test2::section::3": {
+    "topicKey": "culture",
+    "topicLabel": "Culture & Arts",
+    "emoji": "🎭",
+    "topicTitle": "The Benefits of Being Bilingual",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.71,
+    "schemaVersion": 1
+  },
+  "cam12-r-test3::section::1": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "rests Flying tortoises An airborne reintroduction programme has helped conservationists take significant steps to...",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.91,
+    "schemaVersion": 1
+  },
+  "cam12-r-test3::section::2": {
+    "topicKey": "health",
+    "topicLabel": "Health",
+    "emoji": "🩺",
+    "topicTitle": "The Intersection of Health Sciences and Geography",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.98,
+    "schemaVersion": 1
+  },
+  "cam12-r-test3::section::3": {
+    "topicKey": "culture",
+    "topicLabel": "Culture & Arts",
+    "emoji": "🎭",
+    "topicTitle": "33 What view of the Montreal study does the writer express in the second paragraph?",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.88,
+    "schemaVersion": 1
+  },
+  "cam12-r-test4::section::1": {
+    "topicKey": "business",
+    "topicLabel": "Business & Economics",
+    "emoji": "📈",
+    "topicTitle": "manufacturing techniques also improved operating in a fiercely competitive global",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.82,
+    "schemaVersion": 1
+  },
+  "cam12-r-test4::section::2": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "Bring back the big cats",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam12-r-test4::section::3": {
+    "topicKey": "business",
+    "topicLabel": "Business & Economics",
+    "emoji": "📈",
+    "topicTitle": "UK companies need more effective boards of directors",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam13-r-test1::section::1": {
+    "topicKey": "travel",
+    "topicLabel": "Travel",
+    "emoji": "✈️",
+    "topicTitle": "Later, a Travel Planner feature was added, which allowed visitors to click and ‘bookmark’",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam13-r-test1::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "Why being bored is stimulating — and useful, too This most common of emotions is turning out to be more interesting...",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.69,
+    "schemaVersion": 1
+  },
+  "cam13-r-test1::section::3": {
+    "topicKey": "culture",
+    "topicLabel": "Culture & Arts",
+    "emoji": "🎭",
+    "topicTitle": "Artificial artists",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam13-r-test2::section::1": {
+    "topicKey": "food",
+    "topicLabel": "Food & Agriculture",
+    "emoji": "🌾",
+    "topicTitle": "production significantly, and so enslaved many other members of the Ceylonese native",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.82,
+    "schemaVersion": 1
+  },
+  "cam13-r-test2::section::2": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "Oxytocin",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.72,
+    "schemaVersion": 1
+  },
+  "cam13-r-test2::section::3": {
+    "topicKey": "business",
+    "topicLabel": "Business & Economics",
+    "emoji": "📈",
+    "topicTitle": "MAKING THE MOST OF TRENDS",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.97,
+    "schemaVersion": 1
+  },
+  "cam13-r-test3::section::1": {
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
+    "topicTitle": "importance in a quite different sphere, as Alfred Nobel introduced the world to his",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.7,
+    "schemaVersion": 1
+  },
+  "cam13-r-test3::section::2": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "How baby talk gives infant brains a boost",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam13-r-test3::section::3": {
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
+    "topicTitle": "Whatever happened to the Harappan Civilisation?",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam13-r-test4::section::1": {
+    "topicKey": "transport",
+    "topicLabel": "Transport",
+    "emoji": "🚆",
+    "topicTitle": "Steam ships posed a growing threat to clippers, as their speed and cargo capacity increased. In",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam13-r-test4::section::2": {
+    "topicKey": "food",
+    "topicLabel": "Food & Agriculture",
+    "emoji": "🌾",
+    "topicTitle": "SAVING THE SOIL",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.8,
+    "schemaVersion": 1
+  },
+  "cam13-r-test4::section::3": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "Book Review",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.89,
+    "schemaVersion": 1
+  },
+  "cam14-r-test1::section::1": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "Dr Jenny Gibson agrees, pointing out that although some of the steps in the puzzle of how and",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam14-r-test1::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "The growth of bike-sharing schemes around",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam14-r-test1::section::3": {
+    "topicKey": "work",
+    "topicLabel": "Work",
+    "emoji": "💼",
+    "topicTitle": "Motivational factors and the hospitality industry",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam14-r-test2::section::1": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "Alexander Henderson (1831-1913)",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.88,
+    "schemaVersion": 1
+  },
+  "cam14-r-test2::section::2": {
+    "topicKey": "architecture",
+    "topicLabel": "Architecture & Design",
+    "emoji": "🏛️",
+    "topicTitle": "Back to the future of skyscraper design",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam14-r-test2::section::3": {
+    "topicKey": "business",
+    "topicLabel": "Business & Economics",
+    "emoji": "📈",
+    "topicTitle": "Why companies should welcome disorder",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.89,
+    "schemaVersion": 1
+  },
+  "cam14-r-test3::section::1": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "B Jeffersonian",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.86,
+    "schemaVersion": 1
+  },
+  "cam14-r-test3::section::2": {
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
+    "topicTitle": "Saving bugs to find new drugs",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.92,
+    "schemaVersion": 1
+  },
+  "cam14-r-test3::section::3": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "The power of play",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.86,
+    "schemaVersion": 1
+  },
+  "cam14-r-test4::section::1": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "| In boxes 9-13 on your answer sheet, write",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.59,
+    "schemaVersion": 1
+  },
+  "cam14-r-test4::section::2": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "Why zoos are good",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam14-r-test4::section::3": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "Chelsea Rochman, an ecologist at the University of California, Davis, has been trying to answer",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.9,
+    "schemaVersion": 1
+  },
+  "cam15-r-test1::section::1": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "The Banda Islands were ruled by local sultans who insisted on maintaining a neutral trading",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.81,
+    "schemaVersion": 1
+  },
+  "cam15-r-test1::section::2": {
+    "topicKey": "transport",
+    "topicLabel": "Transport",
+    "emoji": "🚆",
+    "topicTitle": "Driverless cars",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam15-r-test1::section::3": {
+    "topicKey": "travel",
+    "topicLabel": "Travel",
+    "emoji": "✈️",
+    "topicTitle": "What is exploration?",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.66,
+    "schemaVersion": 1
+  },
+  "cam15-r-test2::section::1": {
+    "topicKey": "transport",
+    "topicLabel": "Transport",
+    "emoji": "🚆",
+    "topicTitle": "Complete the summary below. |",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.76,
+    "schemaVersion": 1
+  },
+  "cam15-r-test2::section::2": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "Should we try to bring extinct species back to life?",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam15-r-test2::section::3": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "Having a laugh",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam15-r-test3::section::1": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "Around this time, Moore moved away from the human figure to experiment with abstract shapes. |",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.84,
+    "schemaVersion": 1
+  },
+  "cam15-r-test3::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "| | The Desolenator: producing clean water",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.74,
+    "schemaVersion": 1
+  },
+  "cam15-r-test3::section::3": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "Why fairy tales are really scary tales",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.76,
+    "schemaVersion": 1
+  },
+  "cam15-r-test4::section::1": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "“In order to get people interested in habitat restoration, you need to plant a tree that is useful to",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam15-r-test4::section::2": {
+    "topicKey": "culture",
+    "topicLabel": "Culture & Arts",
+    "emoji": "🎭",
+    "topicTitle": "Silbo Gomero — the whistle ‘language’ of",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.79,
+    "schemaVersion": 1
+  },
+  "cam15-r-test4::section::3": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "Environmental practices of big businesses",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.95,
+    "schemaVersion": 1
+  },
+  "cam16-r-test1::section::1": {
+    "topicKey": "health",
+    "topicLabel": "Health",
+    "emoji": "🩺",
+    "topicTitle": "‘Why we need to protect polar bears",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.88,
+    "schemaVersion": 1
+  },
+  "cam16-r-test1::section::2": {
+    "topicKey": "architecture",
+    "topicLabel": "Architecture & Design",
+    "emoji": "🏛️",
+    "topicTitle": "The Step Pyramid of Djoser",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.98,
+    "schemaVersion": 1
+  },
+  "cam16-r-test1::section::3": {
+    "topicKey": "work",
+    "topicLabel": "Work",
+    "emoji": "💼",
+    "topicTitle": "The future of work",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.91,
+    "schemaVersion": 1
+  },
+  "cam16-r-test2::section::1": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "The White Horse of Uffington",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.76,
+    "schemaVersion": 1
+  },
+  "cam16-r-test2::section::2": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "1 contain multitudes",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.84,
+    "schemaVersion": 1
+  },
+  "cam16-r-test2::section::3": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "How to make wise decisions",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.87,
+    "schemaVersion": 1
+  },
+  "cam16-r-test3::section::1": {
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
+    "topicTitle": "Roman shipbuilding and navigation",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.98,
+    "schemaVersion": 1
+  },
+  "cam16-r-test3::section::2": {
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
+    "topicTitle": "Climate change reveals ancient artefacts in Norway’s glaciers",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam16-r-test3::section::3": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "Plant ‘thermometer’ triggers springtime growth by",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam16-r-test4::section::1": {
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
+    "topicTitle": "Roman tunnels",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.69,
+    "schemaVersion": 1
+  },
+  "cam16-r-test4::section::2": {
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
+    "topicTitle": "Changes in reading habits",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam16-r-test4::section::3": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "Attitudes towards Artificial Intelligence",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.82,
+    "schemaVersion": 1
+  },
+  "cam17-r-test1::section::1": {
+    "topicKey": "transport",
+    "topicLabel": "Transport",
+    "emoji": "🚆",
+    "topicTitle": "The development of the London underground railway In the first half of the 1800s, London’s population grew at an...",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam17-r-test1::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "Stadiums: past, present and future A Stadiums are among the oldest forms of urban architecture: vast stadiums where...",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam17-r-test1::section::3": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "To catch a king Anna Keay reviews Charles Spencer’s book about the hunt for King Charles II during the English Civil...",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.67,
+    "schemaVersion": 1
+  },
+  "cam17-r-test2::section::1": {
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
+    "topicTitle": "The Dead Sea Scrolls In late 1946 or early 1947, three Bedouin teenagers were tending their goats and sheep near the...",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.85,
+    "schemaVersion": 1
+  },
+  "cam17-r-test2::section::2": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "A second attempt at domesticating the tomato A It took at least 3,000 years for humans to learn how to domesticate...",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.66,
+    "schemaVersion": 1
+  },
+  "cam17-r-test2::section::3": {
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
+    "topicTitle": "Insight or evolution? Two scientists consider the origins of discoveries and other innovative behavior Scientific...",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam17-r-test3::section::1": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "The thylacine The extinct thylacine, also known as the Tasmanian tiger, was a marsupial * that bore a superficial...",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.97,
+    "schemaVersion": 1
+  },
+  "cam17-r-test3::section::2": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "Palm oil A Palm oil is an edible oil derived from the fruit of the African oil palm tree, and is currently the most...",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam17-r-test3::section::3": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "Building the Skyline: The Birth and Growth of Manhattan’s Skyscrapers Katharine L. Shester reviews a book by Jason...",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.84,
+    "schemaVersion": 1
+  },
+  "cam17-r-test4::section::1": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "Bats to the rescue How Madagascar’s bats are helping to save the rainforest There are few places in the world where...",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam17-r-test4::section::2": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "Does education fuel economic growth? A Over the last decade, a huge database about the lives of southwest German...",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.85,
+    "schemaVersion": 1
+  },
+  "cam17-r-test4::section::3": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "Timur Gareyev – blindfold chess champion A Next month, a chess player named Timur Gareyev will take on nearly 50...",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.71,
+    "schemaVersion": 1
+  },
+  "cam18-r-test1::section::1": {
+    "topicKey": "food",
+    "topicLabel": "Food & Agriculture",
+    "emoji": "🌾",
+    "topicTitle": "Urban farming",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam18-r-test1::section::2": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "Forest management in Pennsylvania, USA",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam18-r-test1::section::3": {
+    "topicKey": "work",
+    "topicLabel": "Work",
+    "emoji": "💼",
+    "topicTitle": "Conquering Earth’s space junk problem",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.68,
+    "schemaVersion": 1
+  },
+  "cam18-r-test2::section::1": {
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
+    "topicTitle": "Stonehenge",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.69,
+    "schemaVersion": 1
+  },
+  "cam18-r-test2::section::2": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "Living with artificial intelligence",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.64,
+    "schemaVersion": 1
+  },
+  "cam18-r-test2::section::3": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "An ideal city",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam18-r-test3::section::1": {
+    "topicKey": "architecture",
+    "topicLabel": "Architecture & Design",
+    "emoji": "🏛️",
+    "topicTitle": "Materials to take us beyond concrete",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.78,
+    "schemaVersion": 1
+  },
+  "cam18-r-test3::section::2": {
+    "topicKey": "transport",
+    "topicLabel": "Transport",
+    "emoji": "🚆",
+    "topicTitle": "The steam car The successes and failures of the Doble brothers and their steam cars",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam18-r-test3::section::3": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "The case for mixed-ability classes",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam18-r-test4::section::1": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "Green roofs",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam18-r-test4::section::2": {
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
+    "topicTitle": "The growth mindset",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.67,
+    "schemaVersion": 1
+  },
+  "cam18-r-test4::section::3": {
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
+    "topicTitle": "Alfred Wegener: science, exploration and the theory",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam19-r-test1::section::1": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "How tennis rackets have changed",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.61,
+    "schemaVersion": 1
+  },
+  "cam19-r-test1::section::2": {
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
+    "topicTitle": "The pirates of the ancient Mediterranean",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam19-r-test1::section::3": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "The persistence and peril of misinformation",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam19-r-test2::section::1": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "The Industrial Revolution in Britain",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.81,
+    "schemaVersion": 1
+  },
+  "cam19-r-test2::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "Athletes and stress",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.79,
+    "schemaVersion": 1
+  },
+  "cam19-r-test2::section::3": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "An inquiry into the existence of the",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.82,
+    "schemaVersion": 1
+  },
+  "cam19-r-test3::section::1": {
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
+    "topicTitle": "Archaeologists discover evidence of",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.77,
+    "schemaVersion": 1
+  },
+  "cam19-r-test3::section::2": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "The global importance of wetlands",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam19-r-test3::section::3": {
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
+    "topicTitle": "Is the era of artificial speech translation upon us?",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam19-r-test4::section::1": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "The impact of climate change on butterflies in Britain",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam19-r-test4::section::2": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "from the hunger for marine minerals",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam19-r-test4::section::3": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "The Unselfish Gene",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.87,
+    "schemaVersion": 1
+  },
+  "cam20-r-test1::section::1": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "The kak&apo",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.95,
+    "schemaVersion": 1
+  },
+  "cam20-r-test1::section::2": {
+    "topicKey": "health",
+    "topicLabel": "Health",
+    "emoji": "🩺",
+    "topicTitle": "Return of the elm: reintroducing the",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.69,
+    "schemaVersion": 1
+  },
+  "cam20-r-test1::section::3": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "How stress affects our judgement",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.93,
+    "schemaVersion": 1
+  },
+  "cam20-r-test2::section::1": {
+    "topicKey": "food",
+    "topicLabel": "Food & Agriculture",
+    "emoji": "🌾",
+    "topicTitle": "Manatees",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.88,
+    "schemaVersion": 1
+  },
+  "cam20-r-test2::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "Procrastination",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.71,
+    "schemaVersion": 1
+  },
+  "cam20-r-test2::section::3": {
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
+    "topicTitle": "Invasion of the Robot Umpires",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.63,
+    "schemaVersion": 1
+  },
+  "cam20-r-test3::section::1": {
+    "topicKey": "food",
+    "topicLabel": "Food & Agriculture",
+    "emoji": "🌾",
+    "topicTitle": "Frozen Food",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.89,
+    "schemaVersion": 1
+  },
+  "cam20-r-test3::section::2": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "Can the planet's coral reefs be saved?",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.75,
+    "schemaVersion": 1
+  },
+  "cam20-r-test3::section::3": {
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
+    "topicTitle": "Robots and us",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.7,
+    "schemaVersion": 1
+  },
+  "cam20-r-test4::section::1": {
+    "topicKey": "culture",
+    "topicLabel": "Culture & Arts",
+    "emoji": "🎭",
+    "topicTitle": "Georgia O'Keeffe",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.94,
+    "schemaVersion": 1
+  },
+  "cam20-r-test4::section::2": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "Adapting to the effects of climate change",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.88,
+    "schemaVersion": 1
+  },
+  "cam20-r-test4::section::3": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "A new role for livestock guard dogs",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.68,
+    "schemaVersion": 1
+  },
+  "cam21-r-test1::section::1": {
+    "topicKey": "culture",
+    "topicLabel": "Culture & Arts",
+    "emoji": "🎭",
+    "topicTitle": "The Davies Sisters",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.98,
+    "schemaVersion": 1
+  },
+  "cam21-r-test1::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "Why we need silence",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.91,
+    "schemaVersion": 1
+  },
+  "cam21-r-test1::section::3": {
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
+    "topicTitle": "Book review: The World of Sugar by",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.98,
+    "schemaVersion": 1
+  },
+  "cam21-r-test2::section::1": {
+    "topicKey": "psychology",
+    "topicLabel": "Psychology & Behaviour",
+    "emoji": "🧠",
+    "topicTitle": "Do animals dream?",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.76,
+    "schemaVersion": 1
+  },
+  "cam21-r-test2::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "Mapungubwe",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam21-r-test2::section::3": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "Artificial Intelligence",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.92,
+    "schemaVersion": 1
+  },
+  "cam21-r-test3::section::1": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "Saving the saiga",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam21-r-test3::section::2": {
+    "topicKey": "society",
+    "topicLabel": "Society",
+    "emoji": "🏘️",
+    "topicTitle": "The problems of getting around the city of",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam21-r-test3::section::3": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "Rethinking the Past",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.71,
+    "schemaVersion": 1
+  },
+  "cam21-r-test4::section::1": {
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
+    "topicTitle": "The problems and benefits created by the spread",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.99,
+    "schemaVersion": 1
+  },
+  "cam21-r-test4::section::2": {
+    "topicKey": "education",
+    "topicLabel": "Education",
+    "emoji": "🎓",
+    "topicTitle": "How could multilingualism benefit India’s poorest",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.98,
+    "schemaVersion": 1
+  },
+  "cam21-r-test4::section::3": {
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
+    "topicTitle": "The Globemakers: The Curious Story of",
+    "source": "readingPaper:heading+weighted-text",
+    "confidence": 0.89,
+    "schemaVersion": 1
+  }
+}
