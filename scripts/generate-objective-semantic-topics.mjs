@@ -694,7 +694,7 @@ async function main() {
   const options = parseArgs(process.argv.slice(2));
   const generated = `${JSON.stringify(await generateCatalog({ asrCachePath: options.asrCache }), null, 2)}\n`;
   if (options.check) {
-    const existing = await readFile(options.output, "utf8");
+    const existing = (await readFile(options.output, "utf8")).replace(/\r\n?/g, "\n");
     if (existing !== generated) throw new Error(`${options.output} is not reproducible; run the generator and commit the result`);
     console.log(`PASS semantic topic catalog is reproducible (${Object.keys(JSON.parse(existing)).length} entries)`);
     return;

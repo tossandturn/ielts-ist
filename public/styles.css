@@ -10045,9 +10045,9 @@ body.immersive-mode[data-immersive-module="speaking"] .exam-section.focused-sect
 
 .practice-unit-card.tone-listening { border-top: 3px solid #18a0fb; }
 .practice-unit-card.tone-reading { border-top: 3px solid #7c3aed; }
-.practice-unit-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.practice-unit-card-head > span { font-size: 23px; }
-.practice-unit-card-head em { color: #635bff; font-size: 12px; font-style: normal; font-weight: 900; }
+.practice-unit-card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 36px; }
+.practice-unit-card-head > span { flex: 0 0 auto; font-size: 30px; line-height: 1; }
+.practice-unit-card-head em { color: #635bff; font-size: 16px; font-style: normal; font-weight: 900; line-height: 1.2; text-align: right; }
 .practice-unit-card h4 { margin: 0; color: #101828; font-size: 17px; line-height: 1.3; }
 .practice-unit-card p { margin: 0; color: #667085; font-size: 12px; }
 .practice-unit-stats { display: flex; flex-wrap: wrap; gap: 6px; }
