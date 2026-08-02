@@ -1786,6 +1786,152 @@ function bindDashboardHistoryControls(root = document) {
   });
 }
 
+function dashboardModuleEmoji(moduleName) {
+  return {
+    listening: "🎧",
+    reading: "📖",
+    writing: "✍️",
+    speaking: "🎙️",
+    exam: "📝",
+    coach: "🤖",
+  }[moduleName] || "✨";
+}
+
+function dashboardFullMockAttempts(attempts = mineLearningAttempts()) {
+  return attempts.filter((attempt) => {
+    if (!/^(?:same-test|random-exam)$/i.test(String(attempt?.mode || ""))) return false;
+    const result = mineAttemptResult(attempt);
+    return Boolean(normalizeSpeakingBand(result.overallBand || result.overall || result.band || attempt?.score?.band || ""));
+  });
+}
+
+function dashboardLatestSkillAttempt(moduleName, attempts = mineLearningAttempts()) {
+  return attempts.find((attempt) => (attempt?.module || mineAttemptResult(attempt).module) === moduleName) || null;
+}
+
+function dashboardAttemptTaskNumber(attempt) {
+  const result = mineAttemptResult(attempt);
+  const taskNumber = Number(attempt?.taskNumber || result.taskNumber || result.task || 0);
+  return taskNumber === 1 || taskNumber === 2 ? taskNumber : 0;
+}
+
+function dashboardAttemptPercent(attempt) {
+  if (!attempt) return 8;
+  const result = mineAttemptResult(attempt);
+  const score = attempt.score || {};
+  const band = Number.parseFloat(normalizeSpeakingBand(result.band || score.band || result.scores?.overall || ""));
+  if (Number.isFinite(band)) return Math.max(8, Math.min(100, Math.round((band / 9) * 100)));
+  const correct = Number(result.correct ?? score.correct);
+  const total = Number(result.total ?? score.total);
+  return Number.isFinite(correct) && Number.isFinite(total) && total > 0
+    ? Math.max(8, Math.min(100, Math.round((correct / total) * 100)))
+    : 8;
+}
+
+function dashboardStudyStreak(attempts = mineLearningAttempts()) {
+  const days = [...new Set(attempts
+    .map((attempt) => attempt.submittedAt || attempt.updatedAt || attempt.createdAt || "")
+    .filter(Boolean)
+    .map((value) => {
+      const date = new Date(value);
+      return Number.isFinite(date.getTime()) ? new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime() : NaN;
+    })
+    .filter(Number.isFinite))].sort((a, b) => b - a);
+  if (!days.length) return 0;
+  const today = new Date();
+  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+  const dayMs = 86400000;
+  if (todayStart - days[0] > dayMs) return 0;
+  let streak = 1;
+  for (let index = 1; index < days.length; index += 1) {
+    const difference = Math.round((days[index - 1] - days[index]) / dayMs);
+    if (difference !== 1) break;
+    streak += 1;
+  }
+  return streak;
+}
+
+function renderDashboardFocusMock(attempts = mineLearningAttempts()) {
+  const fullMocks = dashboardFullMockAttempts(attempts);
+  const latest = fullMocks[0] || null;
+  if (!latest) {
+    return `<aside class="dashboard-focus-mock is-empty" aria-label="Full mock score">
+      <div class="dashboard-focus-panel-title"><span>📝 Latest full mock</span><em>Build a baseline</em></div>
+      <strong>No full mock yet</strong>
+      <p>Complete Same Test or Random Exam to create a truthful overall Band.</p>
+      <button class="secondary small-button" type="button" data-home-action="exam">Start full mock</button>
+    </aside>`;
+  }
+  const latestResult = mineAttemptResult(latest);
+  const latestBand = normalizeSpeakingBand(latestResult.overallBand || latestResult.overall || latestResult.band || latest.score?.band || "");
+  const previous = fullMocks[1] || null;
+  const previousResult = mineAttemptResult(previous);
+  const previousBand = previous
+    ? normalizeSpeakingBand(previousResult.overallBand || previousResult.overall || previousResult.band || previous.score?.band || "")
+    : "";
+  const delta = previousBand ? Number(latestBand) - Number(previousBand) : NaN;
+  const trend = fullMocks.slice(0, 5).reverse().map((attempt) => {
+    const result = mineAttemptResult(attempt);
+    const band = Number(normalizeSpeakingBand(result.overallBand || result.overall || result.band || attempt.score?.band || ""));
+    return `<i style="height:${Math.max(18, Math.min(100, Math.round((band / 9) * 100)))}%"></i>`;
+  }).join("");
+  return `<aside class="dashboard-focus-mock" aria-label="Full mock score">
+    <div class="dashboard-focus-panel-title"><span>📝 Latest full mock</span>${Number.isFinite(delta) ? `<em>${delta >= 0 ? "+" : ""}${delta.toFixed(1)} change</em>` : `<em>Official simulation</em>`}</div>
+    <div class="dashboard-focus-band"><strong>${escapeHtml(latestBand)}</strong><span>overall Band</span></div>
+    <p>${escapeHtml(latest.title || "Same Test / Random Exam")} · ${escapeHtml(latest.submittedAt ? new Date(latest.submittedAt).toLocaleDateString() : "Saved")}</p>
+    <div class="dashboard-focus-trend" aria-label="Full mock Band trend">${trend}</div>
+    <div class="dashboard-focus-trend-label"><span>Earlier</span><strong>Full-mock trend</strong><span>Latest</span></div>
+  </aside>`;
+}
+
+function renderDashboardFocusSkill(moduleName, currentTask, resumableSession, attempts = mineLearningAttempts()) {
+  const attempt = dashboardLatestSkillAttempt(moduleName, attempts);
+  const taskNumber = moduleName === "writing" ? dashboardAttemptTaskNumber(attempt) : 0;
+  const status = resumableSession?.module === moduleName
+    ? "In progress"
+    : attempt
+      ? `${taskNumber ? `Task ${taskNumber} · ` : ""}${mineAttemptScore(attempt)}`
+      : currentTask?.module === moduleName
+        ? "AI recommended"
+        : "Needs diagnostic";
+  const descriptions = {
+    listening: "Accuracy, traps and caption review",
+    reading: "Evidence-led passage practice",
+    writing: "Task 1 / Task 2 score independently",
+    speaking: "15-minute AI examiner practice",
+  };
+  const actions = { listening: "module:listening", reading: "module:reading", writing: "writing-upload", speaking: "bank" };
+  return `<button class="dashboard-focus-skill tone-${escapeHtml(moduleName)}${currentTask?.module === moduleName ? " is-current" : ""}" type="button" data-module="${escapeHtml(moduleName)}" data-home-action="${escapeHtml(actions[moduleName])}">
+    <span class="dashboard-focus-skill-emoji" aria-hidden="true">${dashboardModuleEmoji(moduleName)}</span>
+    <b>${escapeHtml(moduleDisplayName(moduleName))}</b>
+    <span class="dashboard-focus-skill-score"><em>${attempt ? "Latest" : "Status"}</em><strong>${escapeHtml(status)}</strong></span>
+    <small>${escapeHtml(descriptions[moduleName])}</small>
+    <i><u style="width:${dashboardAttemptPercent(attempt)}%"></u></i>
+  </button>`;
+}
+
+function renderDashboardFocusHistory(attempts = mineLearningAttempts()) {
+  const recent = attempts.filter((attempt) => ["listening", "reading", "writing", "speaking"].includes(attempt.module || mineAttemptResult(attempt).module)).slice(0, 4);
+  const rows = recent.map((attempt) => {
+    const result = mineAttemptResult(attempt);
+    const moduleName = attempt.module || result.module;
+    const taskNumber = moduleName === "writing" ? dashboardAttemptTaskNumber(attempt) : 0;
+    const dateValue = attempt.submittedAt || attempt.updatedAt || attempt.createdAt || "";
+    const dateLabel = dateValue ? new Date(dateValue).toLocaleDateString() : "Saved";
+    const title = attempt.title || result.title || moduleDisplayName(moduleName);
+    const action = moduleName === "writing" ? "writing-upload" : moduleName === "speaking" ? "bank" : `review:${moduleName}`;
+    return `<article class="dashboard-focus-history-row">
+      <span aria-hidden="true">${dashboardModuleEmoji(moduleName)}</span>
+      <div><strong>${escapeHtml(title)}</strong><p>${escapeHtml(dateLabel)}${taskNumber ? ` · Task ${taskNumber}` : ""}${mineAttemptWrongCount(attempt) ? ` · ${mineAttemptWrongCount(attempt)} to review` : " · Report saved"}</p></div>
+      <div class="dashboard-focus-history-score"><strong>${escapeHtml(mineAttemptScore(attempt))}</strong><button type="button" data-home-action="${escapeHtml(action)}">Open</button></div>
+    </article>`;
+  }).join("");
+  return `<section class="dashboard-focus-history" aria-label="Recent practice">
+    <header><strong>🗂️ Recent practice</strong><button type="button" data-home-action="mine">View full history →</button></header>
+    <div>${rows || `<div class="dashboard-focus-history-empty"><span>🌱</span><strong>Your first result will appear here.</strong><button class="secondary small-button" type="button" data-home-action="coach-diagnostic">Choose diagnostic</button></div>`}</div>
+  </section>`;
+}
+
 function dashboardPersonalSnapshot(signals, currentTask, resumableSession = null) {
   const profile = state.learningState?.profile || {};
   const attempts = mineLearningAttempts();
@@ -1868,9 +2014,9 @@ function dashboardPersonalSnapshot(signals, currentTask, resumableSession = null
 function renderDashboard() {
   const node = $("dashboardContent");
   if (!node) return;
-  const productSlogan = "The more you use it, the more it gets you";
   const signals = dashboardSignalSummary();
   const plan = buildTodayPracticePlan();
+  const attempts = mineLearningAttempts();
   const resumableSession = readPracticeSession();
   const resumableItem = resumableSession ? findItemById(resumableSession.module, resumableSession.itemId) : null;
   const resumableAnswers = resumableSession ? Object.values(resumableSession.answers || {}).filter((value) => String(value || "").trim()).length : 0;
@@ -1920,97 +2066,69 @@ function renderDashboard() {
     : "";
   const latestFeedbackHtml = renderLatestLearningFeedback(signals);
   const historyHtml = renderDashboardHistory();
-  const taskIcon = {
-    listening: "headphones",
-    reading: "book-open",
-    writing: "pen-line",
-    speaking: "mic-2",
-    coach: "sparkles",
-  }[currentTask.module] || "target";
   const coachPrompt = currentTask?.title
     ? `Explain why ${currentTask.title} is my best next IELTS task and tell me what to focus on.`
     : "Build my next IELTS practice plan from my recent learning history.";
-  node.innerHTML = `<section class="dashboard-cockpit">
-    <header class="dashboard-personal-header">
+  const todayLabel = new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
+  const streak = dashboardStudyStreak(attempts);
+  node.innerHTML = `<section class="dashboard-cockpit dashboard-focus-camp">
+    <header class="dashboard-focus-header">
       <div>
-        <span class="dashboard-personal-label"><i></i> Personal AI IELTS workspace</span>
-        <h1>${escapeHtml(personal.heading)}</h1>
-        <p>${escapeHtml(personal.summary)}</p>
+        <span class="dashboard-focus-date">${escapeHtml(todayLabel)} · your IELTS training camp</span>
+        <h1>${escapeHtml(personal.heading)} <span aria-hidden="true">👋</span></h1>
+        <p>One clear task now, every score and saved practice ready when you need it.</p>
       </div>
-      <dl class="dashboard-personal-goals" aria-label="Personal IELTS goals">
-        <div><dt>Target</dt><dd>${escapeHtml(personal.targetLabel)}</dd></div>
-        <div><dt>Exam</dt><dd>${escapeHtml(personal.examLabel)}</dd></div>
-        <div><dt>Daily</dt><dd>${escapeHtml(personal.dailyLabel)}</dd></div>
+      <dl class="dashboard-focus-badges" aria-label="Personal IELTS goals">
+        <div><dt>🎯 Target</dt><dd>${personal.targetLabel === "Set goal" ? "" : "Band "}${escapeHtml(personal.targetLabel)}</dd></div>
+        <div><dt>🔥 Streak</dt><dd>${streak} day${streak === 1 ? "" : "s"}</dd></div>
+        <div><dt>📅 Exam</dt><dd>${escapeHtml(personal.examLabel)}</dd></div>
       </dl>
     </header>
 
-    <div class="dashboard-mission-layout">
-      <section class="dashboard-primary-task" aria-label="Current learning task">
-        <div class="dashboard-task-heading">
-          <div class="dashboard-task-icon tone-${escapeHtml(currentTask.module || "coach")}" aria-hidden="true"><i data-lucide="${taskIcon}"></i></div>
-          <div>
-            <span class="dashboard-task-kicker">${escapeHtml(currentTask.sourceLabel || "Today's AI Practice Plan")}</span>
-            <h2>${escapeHtml(currentTask.title)}</h2>
-          </div>
-        </div>
-        <p>${escapeHtml(compactText(currentTask.subtitle, 130))}</p>
-        <div class="dashboard-task-reason">
-          <strong>Why AI chose this</strong>
+    <div class="dashboard-focus-priority">
+      <section class="dashboard-focus-hero tone-${escapeHtml(currentTask.module || "coach")}" aria-label="Current learning task">
+        <span class="dashboard-focus-hero-emoji" aria-hidden="true">${dashboardModuleEmoji(currentTask.module)}</span>
+        <span class="dashboard-focus-kicker">⚡ ${escapeHtml(currentTask.sourceLabel || "Today's AI Practice Plan")}</span>
+        <h2>${escapeHtml(currentTask.title)}</h2>
+        <p class="dashboard-focus-subtitle">${escapeHtml(compactText(currentTask.subtitle, 130))}</p>
+        <div class="dashboard-focus-reason">
+          <strong>✨ Why this now</strong>
           <span>${escapeHtml(compactText(currentTask.why, 220))}</span>
         </div>
         ${profileFieldsHtml}
-        <dl class="dashboard-task-meta">
-          <div><dt>Time</dt><dd>${escapeHtml(currentTask.estimate)}</dd></div>
-          <div><dt>You will get</dt><dd>${escapeHtml(compactText(currentTask.output, 100))}</dd></div>
+        <dl class="dashboard-focus-meta">
+          <div><dt>⏱️ Time</dt><dd>${escapeHtml(currentTask.estimate)}</dd></div>
+          <div><dt>🏁 Reward</dt><dd>${escapeHtml(compactText(currentTask.output, 100))}</dd></div>
         </dl>
-        <div class="dashboard-task-actions">
-          <button class="primary" ${primaryAttributes}>${escapeHtml(currentTask.primaryLabel)}</button>
+        <div class="dashboard-focus-actions">
+          <button class="primary" ${primaryAttributes}>${escapeHtml(currentTask.primaryLabel)} <span aria-hidden="true">→</span></button>
           ${secondaryButtonHtml}
         </div>
       </section>
-
-      <aside class="dashboard-ai-memory" aria-label="AI learner memory">
-        <header><span>AI memory</span><strong>${escapeHtml(personal.memoryLevel)}</strong></header>
-        <div class="dashboard-memory-score"><strong>${personal.signalCount}</strong><span>signals shaping your plan</span></div>
-        <div class="dashboard-memory-bar"><i style="width:${Math.max(8, Math.min(100, personal.signalCount * 12))}%"></i></div>
-        <div class="dashboard-memory-skill-map" aria-label="Personal skill map">
-          <span>Your current skill map</span>
-          ${personal.skillMap.map((skill) => `<div class="dashboard-memory-skill tone-${escapeHtml(skill.module)}${skill.isRecommended ? " is-next" : ""}">
-            <div><strong>${escapeHtml(skill.label)}</strong><em>${escapeHtml(skill.value)}</em></div>
-            <i><b style="width:${skill.percent}%"></b></i>
-          </div>`).join("")}
-        </div>
-        <div class="dashboard-memory-next"><span>Next AI move</span><strong>${escapeHtml(compactText(currentTask.title, 54))}</strong></div>
-        <p>${escapeHtml(productSlogan)}</p>
-      </aside>
+      ${renderDashboardFocusMock(attempts)}
     </div>
 
-    <section class="dashboard-home-coach" aria-label="AI Coach">
-      <div class="dashboard-home-coach-mark" aria-hidden="true">AI</div>
-      <div class="dashboard-home-coach-copy">
-        <span>AI Coach · aware of your current plan</span>
-        <h3>Ask, explain, or switch practice</h3>
-        <p>Your Coach carries your active task, recent scores and saved weak areas into the conversation.</p>
-      </div>
-      <form id="dashboardCoachForm" class="dashboard-home-coach-form">
-        <label class="sr-only" for="dashboardCoachInput">Ask AI Coach</label>
-        <input id="dashboardCoachInput" type="text" autocomplete="off" placeholder="Ask what to practise, why an answer was wrong, or where to go next..." />
-        <button class="dashboard-coach-send" type="submit">Ask Coach</button>
-      </form>
-      <div class="dashboard-home-coach-prompts">
-        <button type="button" data-dashboard-coach-prompt="${escapeHtml(coachPrompt)}">Why this task?</button>
-        <button type="button" data-dashboard-coach-prompt="Build a focused 15-minute IELTS practice plan from my current profile.">15-min plan</button>
-        <button type="button" data-dashboard-coach-prompt="Help me choose a different skill and open the right IELTS practice for me.">Change focus</button>
-        <button type="button" data-home-action="coach">Open full Coach</button>
+    <section class="dashboard-focus-skills" aria-label="Practice by skill">
+      <header><div><span>YOUR SCOREBOARD</span><h2>Train every skill <span aria-hidden="true">🚀</span></h2></div><p>Each skill keeps its own latest result and history.</p></header>
+      <div class="dashboard-focus-skill-grid">
+        ${["listening", "reading", "writing", "speaking"].map((moduleName) => renderDashboardFocusSkill(moduleName, currentTask, resumableSession, attempts)).join("")}
       </div>
     </section>
 
-    <section class="dashboard-skill-section" aria-label="Practice by skill">
-      <header><span>Your practice spaces</span><strong>Each skill keeps its own score and learning history</strong></header>
-      <div id="dashboardSkillToolbar" class="dashboard-skill-toolbar">
-        ${dashboardSkillShortcuts().map((task) => renderDashboardSkillShortcut({ ...task, status: personal.skillStatus[task.module] })).join("")}
-      </div>
-    </section>
+    <div class="dashboard-focus-lower">
+      ${renderDashboardFocusHistory(attempts)}
+      <aside class="dashboard-focus-coach" aria-label="AI Coach">
+        <div class="dashboard-focus-coach-mark" aria-hidden="true">🤖</div>
+        <span>ALWAYS IN YOUR CORNER</span>
+        <h2>AI Coach</h2>
+        <p>Knows your scores and weak areas, so every answer starts from your real IELTS record.</p>
+        <blockquote>“${escapeHtml(compactText(currentTask.why, 140))}”</blockquote>
+        <div>
+          <button class="secondary" type="button" data-home-action="coach">Open AI Coach</button>
+          <button type="button" data-dashboard-coach-prompt="${escapeHtml(coachPrompt)}">Why this task? ✨</button>
+        </div>
+      </aside>
+    </div>
     ${latestFeedbackHtml}
     ${historyHtml}
   </section>`;

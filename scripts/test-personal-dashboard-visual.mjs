@@ -139,8 +139,8 @@ try {
     });
 
     await page.goto(`${baseUrl}/?visual=personal-dashboard-v1#home`, { waitUntil: "networkidle" });
-    await page.locator(".dashboard-personal-header").waitFor({ state: "visible" });
-    await page.waitForFunction(() => document.querySelector(".dashboard-personal-header h1")?.textContent?.includes("Mia"));
+    await page.locator(".dashboard-focus-camp").waitFor({ state: "visible" });
+    await page.waitForFunction(() => document.querySelector(".dashboard-focus-header h1")?.textContent?.includes("Mia"));
 
     const layout = await page.evaluate(() => {
       const rect = (selector) => {
@@ -151,41 +151,40 @@ try {
       return {
         overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
         pageHeight: document.documentElement.scrollHeight,
-        heading: document.querySelector(".dashboard-personal-header h1")?.textContent || "",
-        summary: document.querySelector(".dashboard-personal-header p")?.textContent || "",
-        mission: document.querySelector(".dashboard-primary-task")?.textContent || "",
-        memory: document.querySelector(".dashboard-ai-memory")?.textContent || "",
-        skillMap: document.querySelector(".dashboard-memory-skill-map")?.textContent || "",
-        coach: document.querySelector(".dashboard-home-coach")?.textContent || "",
-        skills: document.querySelectorAll(".dashboard-skill-shortcut").length,
-        primaryButtons: document.querySelectorAll(".dashboard-cockpit .primary").length,
-        primary: rect(".dashboard-primary-task .primary"),
-        coachForm: rect("#dashboardCoachForm"),
-        skillMapBox: rect(".dashboard-memory-skill-map"),
+        heading: document.querySelector(".dashboard-focus-header h1")?.textContent || "",
+        summary: document.querySelector(".dashboard-focus-header p")?.textContent || "",
+        mission: document.querySelector(".dashboard-focus-hero")?.textContent || "",
+        mock: document.querySelector(".dashboard-focus-mock")?.textContent || "",
+        skillMap: document.querySelector(".dashboard-focus-skills")?.textContent || "",
+        coach: document.querySelector(".dashboard-focus-coach")?.textContent || "",
+        skills: document.querySelectorAll(".dashboard-focus-skill").length,
+        primaryButtons: document.querySelectorAll(".dashboard-focus-camp .primary").length,
+        primary: rect(".dashboard-focus-hero .primary"),
+        coachButton: rect('.dashboard-focus-coach [data-home-action="coach"]'),
+        skillMapBox: rect(".dashboard-focus-skill-grid"),
       };
     });
 
     assert.ok(layout.overflow <= 1, `${size.name}: page overflows horizontally by ${layout.overflow}px`);
     assert.match(layout.heading, /Mia/);
-    assert.match(layout.summary, /learning signal/i);
+    assert.match(layout.summary, /score|practice/i);
     assert.match(layout.mission, /Reading(?: with AI)? weak-area retest/);
     assert.match(layout.mission, /31\/40|evidence-location/i);
-    assert.match(layout.memory, /signals shaping your plan/i);
-    assert.match(layout.skillMap, /Reading(?: with AI)?\s*31\/40/i);
-    assert.match(layout.skillMap, /Speaking(?: with AI)?\s*Band 6\.5/i);
-    assert.ok(layout.skillMapBox && layout.skillMapBox.height > 0, `${size.name}: personal skill map must stay visible`);
+    assert.match(layout.mock, /No full mock yet/i, `${size.name}: independent skill scores must not invent an overall Band`);
+    assert.match(layout.skillMap, /Reading(?: with AI)?[\s\S]*31\/40/i);
+    assert.match(layout.skillMap, /Speaking(?: with AI)?[\s\S]*Band 6\.5/i);
+    assert.ok(layout.skillMapBox && layout.skillMapBox.height > 0, `${size.name}: skill scoreboard must stay visible`);
     assert.match(layout.coach, /AI Coach/i);
     assert.equal(layout.skills, 4, `${size.name}: four skill spaces must remain available`);
     assert.equal(layout.primaryButtons, 1, `${size.name}: homepage must expose one primary CTA`);
     assert.ok(layout.primary && layout.primary.top < 700, `${size.name}: primary CTA is below the first 700px`);
-    assert.ok(layout.coachForm && layout.coachForm.width >= 250, `${size.name}: Coach composer is too narrow`);
+    assert.ok(layout.coachButton && layout.coachButton.width >= 100, `${size.name}: Coach entry is too narrow`);
 
     await page.screenshot({ path: resolve(outputDir, `${size.name}.png`), fullPage: false });
 
-    await page.locator("#dashboardCoachInput").fill("Why is Reading my priority today?");
-    await page.locator("#dashboardCoachForm button[type=submit]").click();
+    await page.locator(".dashboard-focus-coach [data-dashboard-coach-prompt]").click();
     await page.waitForFunction(() => document.querySelector("#helpChatPanel") && !document.querySelector("#helpChatPanel").hidden);
-    assert.equal(coachRequest?.message, "Why is Reading my priority today?");
+    assert.match(coachRequest?.message || "", /Reading with AI weak-area retest/i);
     assert.equal(coachRequest?.context?.module || "", "");
 
     if (size.name === "desktop") {

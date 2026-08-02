@@ -311,10 +311,14 @@ check("Home", "Dashboard keeps one primary task and four learning layers", ({ ap
   const recent = functionSource(app, "renderLatestLearningFeedback");
   assert.doesNotMatch(dashboard, /Global AI Coach|AI Coach Reason|Next best actions|Your study system|Weak points/,
     "Dashboard must not repeat Coach, recommendation, progress or empty weak-area sections");
-  assert.match(dashboard, /dashboard-primary-task/,
+  assert.match(dashboard, /dashboard-focus-hero/,
     "Dashboard must render one current or recommended primary task");
-  assert.match(dashboard, /dashboard-skill-toolbar/,
-    "Dashboard must expose the four skills as a compact toolbar");
+  assert.match(dashboard, /dashboard-focus-skill-grid/,
+    "Dashboard must expose the four skills as a compact scoreboard");
+  assert.match(dashboard, /renderDashboardFocusMock/,
+    "Dashboard must show a truthful full-mock score or explicit empty state");
+  assert.match(dashboard, /renderDashboardFocusHistory/,
+    "Dashboard must expose recent practice records near the skill scoreboard");
   assert.match(dashboard, /renderLatestLearningFeedback/,
     "Dashboard must expose one latest useful feedback item");
   assert.match(recent, /dashboard-latest-feedback/,
@@ -348,20 +352,20 @@ check("Home", "Dashboard presents a personalized AI IELTS cockpit", ({ app }) =>
   const dashboard = functionSource(app, "renderDashboard");
   const snapshot = functionSource(app, "dashboardPersonalSnapshot");
   const controls = functionSource(app, "bindHomeControls");
-  assert.match(dashboard, /dashboard-personal-header/,
+  assert.match(dashboard, /dashboard-focus-header/,
     "Home must identify the learner and their personal plan before showing module shortcuts");
-  assert.match(dashboard, /dashboard-ai-memory/,
-    "Home must show which learner signals drive the AI recommendation");
-  assert.match(dashboard, /dashboard-home-coach/,
+  assert.match(dashboard, /dashboard-focus-skills/,
+    "Home must show the learner's real independent skill scores");
+  assert.match(dashboard, /dashboard-focus-coach/,
     "AI Coach must be a first-class part of the Home page");
-  assert.match(dashboard, /id=["']dashboardCoachForm["']/,
-    "Home needs a directly usable AI Coach composer");
+  assert.match(dashboard, /data-home-action=["']coach["']/,
+    "Home must open the shared global AI Coach instead of creating another Coach store");
   assert.match(dashboard, /dashboardPersonalSnapshot\(/,
     "Personal labels must come from real profile, attempt and local-session data");
   assert.match(snapshot, /mineLearningAttempts\(\)/);
   assert.match(snapshot, /state\.learningState\?\.profile/);
   assert.match(snapshot, /state\.currentUser\?\.username/);
-  assert.match(controls, /dashboardCoachForm/);
+  assert.match(controls, /data-dashboard-coach-prompt/);
   assert.match(controls, /sendHelpChatMessage\(/,
     "Submitting the Home Coach composer must execute immediately");
 });
