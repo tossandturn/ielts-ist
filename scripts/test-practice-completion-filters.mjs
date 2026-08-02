@@ -55,7 +55,16 @@ const completionFunctions = [
   "removePendingLearningAttempt",
   "retryPendingLearningAttempts",
 ];
-const completionRuntime = completionFunctions.map((name) => functionSource(appSource, name)).join("\n");
+const persistenceFunctions = [
+  "updateLearningLoopHistory",
+  "compactLearningRecord",
+  "archiveLearningAttempt",
+  "rememberObjectiveResult",
+  "rememberWritingAttempt",
+  "rememberSpeakingResult",
+];
+const runtimeFunctions = [...completionFunctions, ...persistenceFunctions];
+const completionRuntime = runtimeFunctions.map((name) => functionSource(appSource, name)).join("\n");
 
 function memoryStorage(seed = {}) {
   const values = new Map(Object.entries(seed));
@@ -71,6 +80,14 @@ function completionContext(storage, overrides = {}) {
   const state = {
     currentUser: null,
     learningState: null,
+    authToken: "",
+    latestObjectiveResults: {},
+    latestObjectiveResultsByItem: {},
+    latestWritingAttempt: null,
+    latestSpeakingResult: null,
+    activeSingle: null,
+    singleTotal: 1800,
+    singleSeconds: 1200,
     ...overrides.state,
   };
   const context = {
@@ -78,6 +95,7 @@ function completionContext(storage, overrides = {}) {
     console,
     Date,
     JSON,
+    Blob,
     localStorage: storage,
     state,
     completionStoreKey: "ieltsistCompletedItemsV1",
@@ -87,9 +105,15 @@ function completionContext(storage, overrides = {}) {
       try { return JSON.parse(storage.getItem("ieltsistLearningLoopHistory") || "{}"); } catch { return {}; }
     },
     postJson: overrides.postJson || (async () => ({ attempt: null })),
-    compactLearningRecord: (value) => value,
+    activeViewId: () => "single",
+    readPracticeSession: () => null,
+    currentSinglePracticeMode: () => "practice",
+    learningEntityId: (() => { let index = 0; return (prefix) => `${prefix}_behavior_${++index}`; })(),
+    moduleDisplayName: (moduleName) => moduleName,
+    practiceUnitBaseId: (item) => String(item?.sourceItemId || item?.baseItemId || item?.id || "").split("::")[0],
+    resolveRetestedWeakAreas: () => null,
   };
-  runInNewContext(`${completionRuntime}\nthis.api = { ${completionFunctions.join(", ")} };`, context);
+  runInNewContext(`${completionRuntime}\nthis.api = { ${runtimeFunctions.join(", ")} };`, context);
   return context;
 }
 
@@ -116,6 +140,66 @@ guest.api.rememberPracticeCompletion("writing", { id: "cam16-w-test1-task2" }, {
 guest.state.currentUser = null;
 assert.equal(guest.api.practiceCompletionStatus("writing", { id: "cam16-w-test1-task2" }).completed, false, "A user's completion must not leak back to the guest partition");
 
+const identityStorage = memoryStorage();
+const identityPayloads = [];
+const identity = completionContext(identityStorage, {
+  state: { currentUser: { id: 101, username: "user-a" }, authToken: "token-a" },
+  postJson: (_url, payload) => { identityPayloads.push(payload); throw new Error("offline"); },
+});
+identity.api.rememberWritingAttempt({ itemId: "cam15-w-test1-task1", attemptId: "attempt_user_a", scores: { overall: 7 } });
+assert.equal(identity.api.practiceCompletionStatus("writing", { id: "cam15-w-test1-task1" }).completed, true);
+assert.equal(JSON.parse(identityStorage.getItem("ieltsistLearningLoopHistory")).writing.completionIdentity, "user:101", "Real persistence paths must stamp the creating identity on global history records");
+identity.state.learningState = {
+  completionIdentity: "user:101",
+  completedItems: [{ module: "speaking", itemId: "cam15-s-test1", attemptId: "remote_user_a" }],
+};
+assert.equal(identity.api.practiceCompletionStatus("speaking", { id: "cam15-s-test1" }).completed, true);
+identity.state.currentUser = { id: 202, username: "user-b" };
+identity.state.authToken = "token-b";
+assert.equal(identity.api.practiceCompletionStatus("writing", { id: "cam15-w-test1-task1" }).completed, false, "User A's global learning history must not project into user B's completion index");
+assert.equal(identity.api.practiceCompletionStatus("speaking", { id: "cam15-s-test1" }).completed, false, "User A's remote state must not project into user B's completion index");
+identity.state.currentUser = null;
+identity.state.authToken = "";
+assert.equal(identity.api.practiceCompletionStatus("writing", { id: "cam15-w-test1-task1" }).completed, false, "A user's global learning history must not project into the guest completion index");
+
+const persistenceStorage = memoryStorage();
+const persistencePayloads = [];
+const persistence = completionContext(persistenceStorage, {
+  state: { currentUser: { id: 303, username: "persistence-user" }, authToken: "token-persistence" },
+  postJson: (_url, payload) => { persistencePayloads.push(payload); throw new Error("offline"); },
+});
+const objectiveResult = persistence.api.rememberObjectiveResult("reading", {
+  id: "cam15-r-test1",
+  sourceItemId: "cam15-r-test1",
+  practiceScope: "topic",
+  practiceSection: 2,
+  title: "Eucalyptus · Environment",
+}, { result: { correct: 11, scoredTotal: 13, details: [] } });
+persistence.api.rememberWritingAttempt({ itemId: "cam15-w-test1-task1", attemptId: "attempt_real_writing", scores: { overall: 7 } });
+persistence.api.rememberSpeakingResult({ topicId: "cam15-s-test1", attemptId: "attempt_real_speaking", band: 7 });
+assert.equal(objectiveResult.itemId, "cam15-r-test1::section::2", "Objective persistence must store the canonical Passage ID, not its semantic Topic virtual/base ID");
+assert.deepEqual(
+  persistencePayloads.map((payload) => [payload.module, payload.itemId]),
+  [
+    ["reading", "cam15-r-test1::section::2"],
+    ["writing", "cam15-w-test1-task1"],
+    ["speaking", "cam15-s-test1"],
+  ],
+  "Real objective, Writing and Speaking persistence paths must archive exact canonical IDs",
+);
+const persistedCompletionPartition = JSON.parse(persistenceStorage.getItem("ieltsistCompletedItemsV1")).partitions["user:303"];
+for (const completionKey of ["reading:cam15-r-test1::section::2", "writing:cam15-w-test1-task1", "speaking:cam15-s-test1"]) {
+  assert.ok(persistedCompletionPartition[completionKey], `Real persistence must write ${completionKey} to the owned local partition`);
+}
+assert.deepEqual(
+  persistence.api.readPendingLearningAttempts().map((payload) => [payload.module, payload.itemId]),
+  persistencePayloads.map((payload) => [payload.module, payload.itemId]),
+  "Failed real persistence POSTs must retain the same canonical payloads in the durable outbox",
+);
+for (const [moduleName, itemId] of persistencePayloads.map((payload) => [payload.module, payload.itemId])) {
+  assert.equal(persistence.api.practiceCompletionStatus(moduleName, { id: itemId }).completed, true, `${moduleName} real persistence must update the completion store`);
+}
+
 const implicationStorage = memoryStorage();
 const implication = completionContext(implicationStorage);
 implication.api.rememberPracticeCompletion("listening", { id: "cam15-l-test1", practiceScope: "paper" }, { attemptId: "attempt_listening_paper" });
@@ -134,10 +218,13 @@ assert.equal(unitOnly.api.practiceCompletionStatus("listening", { id: "cam15-l-t
 const legacyStorage = memoryStorage({
   ieltsistLearningLoopHistory: JSON.stringify({
     writing: { prompt: "A prompt fragment without an item ID", attemptId: "legacy_prompt_only" },
-    writingAttempts: [{ itemId: "cam15-w-test1-task1", attemptId: "legacy_exact_w", updatedAt: "2026-07-01T00:00:00.000Z" }],
-    speaking: { topicId: "cam15-s-test1", attemptId: "legacy_exact_s", updatedAt: "2026-07-02T00:00:00.000Z" },
-    objective: { listening: { module: "listening", itemId: "cam15-l-test1::section::4", attemptId: "legacy_latest_l", createdAt: "2026-07-04T00:00:00.000Z" } },
-    objectiveItems: { "cam15-r-test1::section::1": { module: "reading", itemId: "cam15-r-test1::section::1", attemptId: "legacy_exact_r", createdAt: "2026-07-03T00:00:00.000Z" } },
+    writingAttempts: [
+      { completionIdentity: "guest", itemId: "cam15-w-test1-task1", attemptId: "legacy_exact_w", updatedAt: "2026-07-01T00:00:00.000Z" },
+      { itemId: "cam16-w-test1-task1", attemptId: "legacy_unowned_exact_w", updatedAt: "2026-06-01T00:00:00.000Z" },
+    ],
+    speaking: { completionIdentity: "guest", topicId: "cam15-s-test1", attemptId: "legacy_exact_s", updatedAt: "2026-07-02T00:00:00.000Z" },
+    objective: { listening: { completionIdentity: "guest", module: "listening", itemId: "cam15-l-test1::section::4", attemptId: "legacy_latest_l", createdAt: "2026-07-04T00:00:00.000Z" } },
+    objectiveItems: { "cam15-r-test1::section::1": { completionIdentity: "guest", module: "reading", itemId: "cam15-r-test1::section::1", attemptId: "legacy_exact_r", createdAt: "2026-07-03T00:00:00.000Z" } },
   }),
 });
 const legacy = completionContext(legacyStorage);
@@ -147,6 +234,7 @@ assert.ok(legacyIndex["speaking:cam15-s-test1"]);
 assert.ok(legacyIndex["reading:cam15-r-test1::section::1"]);
 assert.ok(legacyIndex["listening:cam15-l-test1::section::4"], "Exact legacy objective summaries must migrate even when objectiveItems is unavailable");
 assert.equal(Object.values(legacyIndex).some((entry) => entry.attemptId === "legacy_prompt_only"), false, "Legacy Writing completion must never be guessed from prompt text");
+assert.equal(legacyIndex["writing:cam16-w-test1-task1"], undefined, "Unowned global history must not be guessed into the current identity partition");
 
 let shouldFail = true;
 const outboxStorage = memoryStorage();
@@ -164,11 +252,14 @@ shouldFail = false;
 assert.equal(await outbox.api.retryPendingLearningAttempts(), true);
 assert.deepEqual(outbox.api.readPendingLearningAttempts(), [], "Successful idempotent retry must clear the outbox entry");
 
-assert.match(functionSource(appSource, "rememberObjectiveResult"), /rememberPracticeCompletion\s*\(/);
-assert.match(functionSource(appSource, "rememberWritingAttempt"), /rememberPracticeCompletion\s*\(/);
-assert.match(functionSource(appSource, "rememberSpeakingResult"), /topicId[\s\S]*rememberPracticeCompletion\s*\(/, "Speaking archival must retain topicId as its canonical item ID");
-assert.match(functionSource(appSource, "submitSystemWriting"), /itemId:\s*task\.id/, "System Writing submission must record the selected task ID");
-assert.match(functionSource(appSource, "submitSingle"), /itemId:/, "Single Writing submission must record its exact task ID");
+const overflow = completionContext(memoryStorage(), { state: { currentUser: { id: 10, username: "overflow-user" } } });
+for (let index = 0; index < 105; index += 1) {
+  overflow.api.queuePendingLearningAttempt({ attemptId: `attempt_overflow_${index}`, module: "writing", itemId: `writing-task-${index}` });
+}
+const overflowPending = overflow.api.readPendingLearningAttempts();
+assert.equal(overflowPending.length, 100);
+assert.equal(overflowPending[0].attemptId, "attempt_overflow_5", "Outbox overflow must evict the oldest attempt first");
+assert.equal(overflowPending.at(-1).attemptId, "attempt_overflow_104", "Outbox overflow must never discard the newest attempt");
 
 const port = 5400 + (process.pid % 400);
 const databasePath = path.join(root, "data", `completion-api-test-${process.pid}.sqlite`);

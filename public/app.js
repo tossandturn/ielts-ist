@@ -1178,7 +1178,7 @@ async function refreshMineData() {
     ]);
     state.serverDrafts = drafts.drafts || [];
     state.vocabItems = vocab.items || [];
-    state.learningState = learning || null;
+    state.learningState = learning ? { ...learning, completionIdentity: practiceCompletionIdentityKey() } : null;
     if (!readPendingPracticeCompletion()) importRemotePracticeSession(learning.activeSession);
   } catch (error) {
     if (/log in|expired|401/i.test(error.message)) {
@@ -2488,7 +2488,9 @@ function writePracticeCompletionStore(value) {
 function legacyPracticeCompletionEntries() {
   const history = readLearningLoopHistory();
   const entries = [];
-  const add = (moduleName, item, result = {}) => {
+  const identity = practiceCompletionIdentityKey();
+  const add = (moduleName, item, result = {}, trustedCurrentIdentity = false) => {
+    if (!trustedCurrentIdentity && result.completionIdentity !== identity) return;
     const key = practiceCompletionKey(moduleName, item);
     if (!key) return;
     entries.push({
@@ -2503,7 +2505,9 @@ function legacyPracticeCompletionEntries() {
     .forEach((result) => add(result?.module, { itemId: result?.itemId }, result));
   [history.writing, ...(history.writingAttempts || [])].filter(Boolean).forEach((result) => add("writing", { itemId: result.itemId }, result));
   [history.speaking, ...(history.speakingAttempts || [])].filter(Boolean).forEach((result) => add("speaking", { topicId: result.topicId || result.itemId }, result));
-  (state.learningState?.completedItems || []).forEach((result) => add(result.module, { itemId: result.itemId }, result));
+  if (state.learningState?.completionIdentity === identity) {
+    (state.learningState.completedItems || []).forEach((result) => add(result.module, { itemId: result.itemId }, result, true));
+  }
   return entries;
 }
 
@@ -2590,7 +2594,7 @@ function writePendingLearningAttempts(attempts) {
     value = {};
   }
   const partitions = value?.version === 1 && value.partitions && typeof value.partitions === "object" ? value.partitions : {};
-  partitions[practiceCompletionIdentityKey()] = (Array.isArray(attempts) ? attempts : []).slice(0, 100);
+  partitions[practiceCompletionIdentityKey()] = (Array.isArray(attempts) ? attempts : []).slice(-100);
   localStorage.setItem(pendingLearningAttemptsStoreKey, JSON.stringify({ version: 1, partitions }));
 }
 
@@ -2748,10 +2752,12 @@ function latestObjectiveResult(moduleName, itemId = "") {
 function rememberObjectiveResult(moduleName, item, json) {
   const details = (json?.result?.details || []).filter((entry) => entry?.correct !== null);
   const practiceScope = item?.practiceScope || "paper";
+  const canonicalItemId = canonicalPracticeCompletionId(moduleName, item);
   const result = {
     attemptId: learningEntityId("attempt"),
+    completionIdentity: practiceCompletionIdentityKey(),
     module: moduleName,
-    itemId: item?.id || "",
+    itemId: canonicalItemId,
     title: item?.title || moduleDisplayName(moduleName),
     correct: Number(json?.result?.correct || 0),
     total: Number(json?.result?.scoredTotal ?? json?.result?.total ?? details.length),
@@ -2765,14 +2771,14 @@ function rememberObjectiveResult(moduleName, item, json) {
   state.latestObjectiveResults[moduleName] = result;
   state.latestObjectiveResultsByItem[result.itemId] = result;
   updateLearningLoopHistory({ objective: { [moduleName]: result }, objectiveItems: { [result.itemId]: result } });
-  rememberPracticeCompletion(moduleName, item, result);
+  rememberPracticeCompletion(moduleName, { itemId: canonicalItemId }, result);
   archiveLearningAttempt(moduleName, result);
   resolveRetestedWeakAreas(moduleName, result);
   return result;
 }
 
 function rememberWritingAttempt(attempt = {}) {
-  const value = { ...attempt, itemId: String(attempt.itemId || "").trim(), attemptId: attempt.attemptId || learningEntityId("attempt"), updatedAt: new Date().toISOString() };
+  const value = { ...attempt, completionIdentity: practiceCompletionIdentityKey(), itemId: String(attempt.itemId || "").trim(), attemptId: attempt.attemptId || learningEntityId("attempt"), updatedAt: new Date().toISOString() };
   state.latestWritingAttempt = value;
   updateLearningLoopHistory({ writing: value });
   rememberPracticeCompletion("writing", { itemId: value.itemId }, value);
@@ -2781,7 +2787,7 @@ function rememberWritingAttempt(attempt = {}) {
 }
 
 function rememberSpeakingResult(result = {}) {
-  const value = { ...result, itemId: String(result.itemId || result.topicId || "").trim(), attemptId: result.attemptId || learningEntityId("attempt"), updatedAt: new Date().toISOString() };
+  const value = { ...result, completionIdentity: practiceCompletionIdentityKey(), itemId: String(result.itemId || result.topicId || "").trim(), attemptId: result.attemptId || learningEntityId("attempt"), updatedAt: new Date().toISOString() };
   state.latestSpeakingResult = value;
   updateLearningLoopHistory({ speaking: value });
   rememberPracticeCompletion("speaking", { topicId: value.topicId || value.itemId }, value);
