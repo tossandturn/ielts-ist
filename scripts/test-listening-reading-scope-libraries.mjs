@@ -154,6 +154,12 @@ async function renderedQuestionIds(page) {
   return page.locator('.answer-input[data-prefix="single"]').evaluateAll((nodes) => nodes.map((node) => node.dataset.qid));
 }
 
+function collectPageErrors(page, scenario) {
+  const errors = [];
+  page.on("pageerror", (error) => errors.push(error.stack || error.message || String(error)));
+  return () => assert.deepEqual(errors, [], `${scenario} must not emit uncaught frontend exceptions`);
+}
+
 async function installGuestState(page, session = null) {
   await page.addInitScript((savedSession) => {
     if (sessionStorage.getItem("lrScopeTestInitialized") === "1") return;
@@ -168,6 +174,7 @@ async function installGuestState(page, session = null) {
 await waitForServer();
 const tasks = await (await fetch(`${baseUrl}/api/tasks?test=lr-scope-contract`)).json();
 const cam15Source = JSON.parse(await readFile(resolve("data", "cambridge15-bank.json"), "utf8"));
+const localSource = JSON.parse(await readFile(resolve("data", "cambridge-local-bank.json"), "utf8"));
 assert.equal(tasks.listeningTests.length, 72, "The existing Listening paper library must remain intact");
 assert.equal(tasks.readingTests.length, 72, "The existing Reading paper library must remain intact");
 assert.ok(tasks.listeningTests.every((item) => item.questions.length === 40), "Every Listening source paper must keep all 40 questions");
@@ -366,7 +373,73 @@ assert.deepEqual(preservedQuestionFields(listeningPaper), preservedQuestionField
 assert.deepEqual(preservedQuestionFields(readingPaper), preservedQuestionFields(sourceReadingPaper), "Reading question ids, text and answers must remain unchanged");
 assert.deepEqual(listeningPaper.audioUrls, sourceListeningPaper.audioUrls, "All existing Listening audio must remain unchanged");
 assert.deepEqual(listeningPaper.questionPageImages, sourceListeningPaper.questionPageImages.map(({ page, url }) => ({ page, url })), "All existing Listening paper images must remain unchanged");
-console.log("PASS original Cambridge question text, answers and Listening media are preserved");
+function enabledSourcePaper(item) {
+  const book = Number(String(item?.id || "").match(/^cam(\d+)-/i)?.[1] || 99);
+  return book >= 4 && Array.isArray(item?.questions) && item.questions.length === 40;
+}
+
+function projectedQuestions(questions) {
+  return (questions || []).map((question, index) => ({
+    id: question.id || `q${index + 1}`,
+    text: question.text || `Question ${index + 1}`,
+    answer: question.answer || "",
+  }));
+}
+
+function projectedPages(images) {
+  return (images || []).map(({ page, url }) => ({ page, url })).filter((image) => image.url);
+}
+
+function projectedListening(item) {
+  return {
+    id: item.id,
+    module: item.module,
+    title: item.title,
+    source: item.source,
+    period: item.period,
+    minutes: item.minutes,
+    sourceUrl: item.sourceUrl,
+    audioUrl: item.audioUrl,
+    audioUrls: Array.isArray(item.audioUrls) ? item.audioUrls : [],
+    questionPageImages: projectedPages(item.questionPageImages),
+    questions: projectedQuestions(item.questions),
+  };
+}
+
+function projectedReading(item) {
+  return {
+    id: item.id,
+    module: item.module,
+    title: item.title,
+    source: item.source,
+    period: item.period,
+    minutes: item.minutes,
+    sourceUrl: item.sourceUrl,
+    analysisUrl: item.analysisUrl,
+    readingPageImages: projectedPages(item.readingPageImages),
+    questions: projectedQuestions(item.questions),
+  };
+}
+
+const sourceBanks = [cam15Source, localSource];
+const expectedListeningProjection = sourceBanks.flatMap((bank) => bank.listeningTests || [])
+  .filter((item) => enabledSourcePaper(item) && projectedPages(item.questionPageImages).length)
+  .map(projectedListening);
+const expectedReadingProjection = sourceBanks.flatMap((bank) => bank.readingTests || [])
+  .filter((item) => enabledSourcePaper(item) && projectedPages(item.readingPageImages).length)
+  .map(projectedReading);
+assert.deepEqual(tasks.listeningTests.map(projectedListening), expectedListeningProjection, "All 72 Listening papers must preserve source identity, fields, questions, audio and page assets");
+assert.deepEqual(tasks.readingTests.map(projectedReading), expectedReadingProjection, "All 72 Reading papers must preserve source identity, fields, questions and page assets");
+for (const paper of tasks.readingTests) {
+  const sourcePages = new Set(paper.readingPageImages.map((image) => `${image.page}:${image.url}`));
+  for (const derived of [...(paper.readingPassagePageImages || []), ...(paper.readingQuestionPageImages || [])]) {
+    assert.ok(sourcePages.has(`${derived.page}:${derived.url}`), `${paper.id} derived Reading page asset must come from the unchanged source page list`);
+  }
+  for (const page of Object.values(paper.readingPassageStartPages || {})) {
+    assert.ok(paper.readingPageImages.some((image) => Number(image.page) === Number(page)), `${paper.id} passage start must reference a source Reading page`);
+  }
+}
+console.log("PASS comprehensive source projections preserve every field and asset across all 72+72 papers");
 const questionType = (paper, id) => paper?.questions.find((question) => question.id === id)?.type;
 assert.equal(questionType(listeningPaper, "q21"), "matching", "Cambridge 15 Listening Q21 is matching, not multiple choice");
 assert.equal(questionType(listeningPaper, "q29"), "multiple_choice_multiple", "Cambridge 15 Listening Q29 is genuine multiple-answer multiple choice");
@@ -386,7 +459,7 @@ const browser = await chromium.launch({
 
 try {
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
-  page.on("pageerror", (error) => { console.error(`BROWSER ERROR: ${error.stack || error.message}`); });
+  const assertMainPageClean = collectPageErrors(page, "desktop Listening/Reading flow");
   await installGuestState(page);
   await page.goto(`${baseUrl}/?test=lr-scope-desktop#home`, { waitUntil: "networkidle" });
 
@@ -399,6 +472,25 @@ try {
   for (const id of ["singleUnitFilter", "singleTopicFilter", "singleCompletionFilter"]) {
     assert.equal(await page.locator(`#${id}`).count(), 1, `${id} control must exist`);
   }
+  const datedRecommendedId = await page.locator("#singleLaunchSelect").inputValue();
+  await page.evaluate((itemId) => {
+    const completion = { completedAt: "2026-07-31T14:25:00.000Z", attemptId: "dated_render_fixture" };
+    const entries = { [`listening:${itemId}`]: completion };
+    for (let section = 1; section <= 4; section += 1) entries[`listening:${itemId}::section::${section}`] = { ...completion, impliedBy: itemId };
+    localStorage.setItem("ieltsistCompletedItemsV1", JSON.stringify({
+      version: 1,
+      partitions: { guest: entries },
+    }));
+  }, datedRecommendedId);
+  await page.locator("#singleCompletionFilter").selectOption("completed");
+  assert.match(await page.locator(`#singleLaunchSelect option[value="${datedRecommendedId}"]`).innerText(), /✓ Completed · 2026-07-31/, "Full-paper option must include the latest completion date");
+  assert.match(await page.locator(".single-launch-card.recommended").innerText(), /✓ Completed · 2026-07-31/, "Recommended paper must include the latest completion date");
+  await page.locator('[data-single-scope="section"]').click();
+  assert.match(await page.locator(".practice-unit-card .practice-status-badge").first().innerText(), /✓ Completed · 2026-07-31/, "Unit badge must include the latest completion date");
+  assert.equal(await page.locator('.practice-status-badge[role="status"], .practice-status-badge[aria-live]').count(), 0, "Repeated completion badges must not be live regions");
+  await page.evaluate(() => localStorage.removeItem("ieltsistCompletedItemsV1"));
+  await page.locator("#singleCompletionFilter").selectOption("all");
+  await page.locator('[data-single-scope="paper"]').click();
   await page.locator("#singleCompletionFilter").selectOption("completed");
   assert.match(await page.locator(".practice-unit-empty").innerText(), /No full tests match the current filters[\s\S]*adjust or clear/i, "Full-paper filters need a clear empty state");
   await page.locator("#singleCompletionFilter").selectOption("all");
@@ -549,9 +641,40 @@ try {
   assert.equal(await page.locator("[data-active-topic-type]").count(), 0);
   await page.screenshot({ path: resolve(outputDir, "desktop-reading-topic.png"), fullPage: true });
   console.log("PASS Reading Topic uses semantic Passage content rather than question type");
+  assertMainPageClean();
   await page.close();
 
+  const objectiveCompletionEntries = Object.fromEntries([
+    ...tasks.listeningTests.flatMap((paper) => Array.from({ length: 4 }, (_, index) => [`listening:${paper.id}::section::${index + 1}`, { completedAt: "2026-07-30T08:00:00.000Z", attemptId: `perf-l-${paper.id}-${index + 1}` }])),
+    ...tasks.readingTests.flatMap((paper) => Array.from({ length: 3 }, (_, index) => [`reading:${paper.id}::section::${index + 1}`, { completedAt: "2026-07-30T08:00:00.000Z", attemptId: `perf-r-${paper.id}-${index + 1}` }])),
+  ]);
+  assert.equal(Object.keys(objectiveCompletionEntries).length, 504, "Performance fixture must model all 288 Listening and 216 Reading unit completions");
+  const perfPage = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  const assertPerfPageClean = collectPageErrors(perfPage, "288-card completion render");
+  await installGuestState(perfPage);
+  await perfPage.goto(`${baseUrl}/?test=lr-scope-completion-perf#home`, { waitUntil: "networkidle" });
+  await activateModule(perfPage, "listening");
+  await perfPage.evaluate((entries) => {
+    localStorage.setItem("ieltsistCompletedItemsV1", JSON.stringify({ version: 1, partitions: { guest: entries } }));
+    const nativeGetItem = Storage.prototype.getItem;
+    window.__completionStoreReads = 0;
+    Storage.prototype.getItem = function instrumentedGetItem(key) {
+      if (key === "ieltsistCompletedItemsV1") window.__completionStoreReads += 1;
+      return nativeGetItem.call(this, key);
+    };
+  }, objectiveCompletionEntries);
+  await perfPage.locator('[data-single-scope="topic"]').click();
+  assert.equal(await perfPage.locator('[data-practice-unit-scope="topic"]').count(), 288, "Listening Topic render must exercise all 288 cards");
+  assert.ok(await perfPage.evaluate(() => window.__completionStoreReads) <= 2, "A 288-card render must reuse one completion snapshot instead of reparsing the 504-entry index per item");
+  assert.match(await perfPage.locator(".practice-status-badge").first().innerText(), /✓ Completed · 2026-07-30/);
+  assert.equal(await perfPage.locator('.practice-status-badge[role="status"], .practice-status-badge[aria-live]').count(), 0);
+  console.log(`PASS 288-card library reuses completion snapshot for 504 completion records`);
+  await perfPage.evaluate(() => localStorage.removeItem("ieltsistCompletedItemsV1"));
+  assertPerfPageClean();
+  await perfPage.close();
+
   const legacyPage = await browser.newPage({ viewport: { width: 1024, height: 768 } });
+  const assertLegacyPageClean = collectPageErrors(legacyPage, "legacy Listening Section restore");
   await installGuestState(legacyPage, {
     version: 1,
     sessionId: "legacy-listening-section",
@@ -573,10 +696,12 @@ try {
   assert.equal(await legacyPage.locator('.answer-input[data-qid="q11"]').inputValue(), "B");
   assert.equal(await legacyPage.evaluate(() => JSON.parse(localStorage.getItem("ieltsistPracticeSessionV1")).itemId), "cam15-l-test1", "Legacy storage must not be destructively rewritten during restore");
   console.log("PASS legacy Listening Training session maps to the Section library");
+  assertLegacyPageClean();
   await legacyPage.close();
 
   const legacyTopicType = readingPaper.questions.find((question) => question.type && question.type !== "unknown")?.type;
   const legacyTopicPage = await browser.newPage({ viewport: { width: 1024, height: 768 } });
+  const assertLegacyTopicPageClean = collectPageErrors(legacyTopicPage, "legacy question-type Topic restore");
   await installGuestState(legacyTopicPage, {
     version: 1,
     sessionId: "legacy-reading-question-type-topic",
@@ -599,11 +724,13 @@ try {
   await legacyTopicPage.waitForFunction((id) => document.querySelector(`[data-active-practice-unit="${id}"]`), `cam15-r-test1::topic::${legacyTopicType}`);
   assert.deepEqual(await renderedQuestionIds(legacyTopicPage), expectedQuestionIds(readingPaper, (question) => question.type === legacyTopicType));
   console.log("PASS old question-type Topic session remains restorable without new UI generation");
+  assertLegacyTopicPageClean();
   await legacyTopicPage.close();
 
   for (const viewport of [{ name: "desktop", width: 1280, height: 800 }, { name: "ipad", width: 768, height: 1024 }, { name: "mobile", width: 390, height: 844 }]) {
     for (const moduleName of ["listening", "reading"]) {
       const responsivePage = await browser.newPage({ viewport });
+      const assertResponsivePageClean = collectPageErrors(responsivePage, `${viewport.name} ${moduleName} library`);
       await installGuestState(responsivePage);
       await responsivePage.goto(`${baseUrl}/?test=lr-scope-${viewport.name}-${moduleName}#home`, { waitUntil: "networkidle" });
       await activateModule(responsivePage, moduleName);
@@ -627,6 +754,7 @@ try {
       assert.ok(metrics.libraryBounded, `${moduleName} ${viewport.name} library must remain bounded and scrollable`);
       await responsivePage.screenshot({ path: resolve(outputDir, `${viewport.name}-${moduleName}-topics.png`), fullPage: true });
       console.log(`PASS ${viewport.name} ${moduleName} semantic Topic library`);
+      assertResponsivePageClean();
       await responsivePage.close();
     }
   }

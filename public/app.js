@@ -2592,9 +2592,10 @@ function rememberPracticeCompletion(moduleName, item, result = {}) {
   return readPracticeCompletionIndex();
 }
 
-function practiceCompletionStatus(moduleName, item) {
+function practiceCompletionStatus(moduleName, item, completionIndex = null) {
   const key = practiceCompletionKey(moduleName, item);
-  const completion = key ? readPracticeCompletionIndex()[key] : null;
+  const index = completionIndex || readPracticeCompletionIndex();
+  const completion = key ? index[key] : null;
   return { completed: Boolean(completion), completedAt: completion?.completedAt || "", attemptId: completion?.attemptId || "" };
 }
 
@@ -4638,20 +4639,20 @@ function applySingleFilters(items, moduleName) {
   });
 }
 
-function practiceCompletionFilterMatches(moduleName, item) {
+function practiceCompletionFilterMatches(moduleName, item, completionIndex) {
   const filter = filterValue("singleCompletionFilter");
   if (filter === "all") return true;
-  const completed = practiceCompletionStatus(moduleName, item).completed;
+  const completed = practiceCompletionStatus(moduleName, item, completionIndex).completed;
   return filter === "completed" ? completed : !completed;
 }
 
-function applySingleUnitFilters(items, moduleName, scope = currentSinglePracticeScope(moduleName)) {
+function applySingleUnitFilters(items, moduleName, scope = currentSinglePracticeScope(moduleName), completionIndex = null) {
   const unit = filterValue("singleUnitFilter");
   const topic = filterValue("singleTopicFilter");
   return items.filter((item) => {
     const unitOk = !["section", "topic"].includes(scope) || unit === "all" || String(item.practiceSection) === unit;
     const topicOk = scope !== "topic" || topic === "all" || String(item.contentTopic?.key || "") === topic;
-    return unitOk && topicOk && practiceCompletionFilterMatches(moduleName, item);
+    return unitOk && topicOk && practiceCompletionFilterMatches(moduleName, item, completionIndex);
   });
 }
 
@@ -4900,12 +4901,13 @@ function scopedPracticeUnitById(moduleName, id) {
   return base ? scopedPracticeUnit(moduleName, base, match[2], match[3] || "") : null;
 }
 
-function singleOptions(moduleName) {
+function singleOptions(moduleName, completionIndex = null) {
   const allOptions = mergedItems(moduleName).map(normalizeItem);
   const filtered = applySingleFilters(allOptions, moduleName);
   if (["listening", "reading"].includes(moduleName)) {
     const scope = currentSinglePracticeScope(moduleName);
-    return applySingleUnitFilters(scopedPracticeUnits(moduleName, filtered, scope), moduleName, scope);
+    const completionSnapshot = completionIndex || readPracticeCompletionIndex();
+    return applySingleUnitFilters(scopedPracticeUnits(moduleName, filtered, scope), moduleName, scope, completionSnapshot);
   }
   if (moduleName !== "writing") return filtered;
   return filtered.map(singleWritingTaskOption);
@@ -14762,13 +14764,24 @@ function renderSingleScopeTabs(moduleName) {
   </nav>`;
 }
 
-function renderPracticeUnitCard(item, moduleName) {
+function practiceCompletionDateLabel(completedAt = "") {
+  const match = String(completedAt || "").trim().match(/^(\d{4}-\d{2}-\d{2})/);
+  return match?.[1] || "";
+}
+
+function practiceCompletionDisplay(status = {}) {
+  if (!status.completed) return "○ Not completed";
+  const date = practiceCompletionDateLabel(status.completedAt);
+  return `✓ Completed${date ? ` · ${date}` : ""}`;
+}
+
+function renderPracticeUnitCard(item, moduleName, completionIndex) {
   const scope = item.libraryScope === "topic" ? "topic" : item.practiceScope || "paper";
   const questionCount = item.questions?.length || 0;
   const contentTopic = item.contentTopic || {};
-  const completion = practiceCompletionStatus(moduleName, item);
+  const completion = practiceCompletionStatus(moduleName, item, completionIndex);
   const status = completion.completed ? "completed" : "not-completed";
-  const statusLabel = completion.completed ? "✓ Completed" : "○ Not completed";
+  const statusLabel = practiceCompletionDisplay(completion);
   const unitLabel = scope === "section"
     ? `${moduleName === "reading" ? "Passage" : "Section"} ${item.practiceSection}`
     : scope === "topic"
@@ -14779,12 +14792,12 @@ function renderPracticeUnitCard(item, moduleName) {
     <h4>${escapeHtml(item.title || unitLabel)}</h4>
     <p>${escapeHtml(singlePracticeEvidenceLabel(item, moduleName) || item.source || moduleDisplayName(moduleName))}</p>
     <div class="practice-unit-stats"><span><strong>${questionCount}</strong> questions</span><span><strong>${Number(item.minutes) || 20}</strong> min</span>${moduleName === "listening" ? "<span>💬 ASR captions</span>" : "<span>🔎 Evidence view</span>"}</div>
-    <span class="practice-status-badge ${status}" role="status">${statusLabel}</span>
+    <span class="practice-status-badge ${status}">${statusLabel}</span>
     <button class="primary" type="button" data-start-practice-unit="${escapeHtml(item.id)}">Start this practice</button>
   </article>`;
 }
 
-function renderScopedPracticeLibrary(moduleName, options) {
+function renderScopedPracticeLibrary(moduleName, options, completionIndex) {
   const scope = currentSinglePracticeScope(moduleName);
   if (scope === "paper") return "";
   const empty = scope === "review"
@@ -14792,7 +14805,7 @@ function renderScopedPracticeLibrary(moduleName, options) {
     : "No practice units match the current filters. Adjust or clear a Cambridge, unit, topic, or progress filter to continue.";
   return `<section class="practice-unit-library" data-practice-library="${escapeHtml(scope)}">
     <header><div><span class="eyebrow">${escapeHtml(moduleDisplayName(moduleName))} library</span><h3>${escapeHtml(singleScopeOptions(moduleName).find((item) => item.id === scope)?.label || "Practice units")}</h3></div><span>${options.length} independent practice${options.length === 1 ? "" : "s"}</span></header>
-    ${options.length ? `<div class="practice-unit-grid">${options.map((item) => renderPracticeUnitCard(item, moduleName)).join("")}</div>` : `<div class="practice-unit-empty"><span aria-hidden="true">🌱</span><p>${escapeHtml(empty)}</p></div>`}
+    ${options.length ? `<div class="practice-unit-grid">${options.map((item) => renderPracticeUnitCard(item, moduleName, completionIndex)).join("")}</div>` : `<div class="practice-unit-empty"><span aria-hidden="true">🌱</span><p>${escapeHtml(empty)}</p></div>`}
   </section>`;
 }
 
@@ -14825,11 +14838,11 @@ function renderSingleModeWorkspaceIntro(moduleName, mode = currentSinglePractice
   </section>`;
 }
 
-function singleOptionLabel(item, moduleName = state.activeModule) {
+function singleOptionLabel(item, moduleName = state.activeModule, completionIndex = null) {
   const title = item?.title || item?.type || "Untitled practice";
   const source = item?.source && moduleName !== "writing" ? ` · ${item.source}` : "";
   const status = ["listening", "reading"].includes(moduleName)
-    ? ` · ${practiceCompletionStatus(moduleName, item).completed ? "✓ Completed" : "○ Not completed"}`
+    ? ` · ${practiceCompletionDisplay(practiceCompletionStatus(moduleName, item, completionIndex))}`
     : "";
   return `${title}${source}${status}`;
 }
@@ -14979,22 +14992,22 @@ function singleRecommendedOption(moduleName, options) {
   return recommended || candidates[0];
 }
 
-function renderSingleLaunch(moduleName, options) {
+function renderSingleLaunch(moduleName, options, completionIndex = null) {
   const meta = singlePracticeMeta(moduleName);
   const recommended = singleRecommendedOption(moduleName, options);
   const recommendationReason = singleRecommendationReason(moduleName, recommended, options);
   const selected = state.activeSingle && options.some((item) => item.id === state.activeSingle.id) ? state.activeSingle : recommended || options[0];
   const recommendedCompletion = recommended && ["listening", "reading"].includes(moduleName)
-    ? practiceCompletionStatus(moduleName, recommended)
+    ? practiceCompletionStatus(moduleName, recommended, completionIndex)
     : null;
   const recommendedStatus = recommendedCompletion
-    ? `<span class="practice-status-badge ${recommendedCompletion.completed ? "completed" : "not-completed"}" role="status">${recommendedCompletion.completed ? "✓ Completed" : "○ Not completed"}</span>`
+    ? `<span class="practice-status-badge ${recommendedCompletion.completed ? "completed" : "not-completed"}">${practiceCompletionDisplay(recommendedCompletion)}</span>`
     : "";
   const selectOptions = options
-    .map((item) => `<option value="${escapeHtml(item.id)}"${selected?.id === item.id ? " selected" : ""}>${escapeHtml(singleOptionLabel(item, moduleName))}</option>`)
+    .map((item) => `<option value="${escapeHtml(item.id)}"${selected?.id === item.id ? " selected" : ""}>${escapeHtml(singleOptionLabel(item, moduleName, completionIndex))}</option>`)
     .join("");
   const scopeTabs = renderSingleScopeTabs(moduleName);
-  const scopedLibrary = renderScopedPracticeLibrary(moduleName, options);
+  const scopedLibrary = renderScopedPracticeLibrary(moduleName, options, completionIndex);
   if (scopedLibrary) return `<div class="single-launch-shell">
     <section class="single-launch-hero">
       <span class="eyebrow">${escapeHtml(meta.label)} library</span>
@@ -15075,7 +15088,8 @@ function beginSinglePracticeUnit(item) {
 
 function startSinglePractice(mode = "recommended") {
   const moduleName = state.activeModule;
-  const options = singleOptions(moduleName);
+  const completionIndex = ["listening", "reading"].includes(moduleName) ? readPracticeCompletionIndex() : null;
+  const options = singleOptions(moduleName, completionIndex);
   if (!options.length) return;
   const selectedMode = document.querySelector("input[name='singlePracticeMode']:checked")?.value || currentSinglePracticeMode(moduleName);
   state.singlePracticeModes[moduleName] = selectedMode;
@@ -15093,7 +15107,8 @@ function renderSingle() {
   resetListeningCaptionSession("single");
   const allOptions = mergedItems(moduleName).map(normalizeItem);
   renderSingleFilters(allOptions, moduleName);
-  const options = singleOptions(moduleName);
+  const completionIndex = ["listening", "reading"].includes(moduleName) ? readPracticeCompletionIndex() : null;
+  const options = singleOptions(moduleName, completionIndex);
   $("single")?.classList.toggle("single-launching", !state.singleStarted);
   $("single")?.classList.toggle("single-started", Boolean(state.singleStarted));
   $("single")?.classList.toggle("single-objective-library", ["listening", "reading"].includes(moduleName));
@@ -15101,7 +15116,7 @@ function renderSingle() {
     if (!state.singleStarted && ["listening", "reading"].includes(moduleName)) {
       $("singleTitle").textContent = moduleDisplayName(moduleName);
       $("singleSelect").innerHTML = "";
-      $("singleContent").innerHTML = renderSingleLaunch(moduleName, []);
+      $("singleContent").innerHTML = renderSingleLaunch(moduleName, [], completionIndex);
       bindDynamicControls();
       return;
     }
@@ -15119,10 +15134,10 @@ function renderSingle() {
     ? state.activeSingle
     : options[0];
   $("singleTitle").textContent = moduleDisplayName(moduleName);
-  $("singleSelect").innerHTML = options.map((item) => `<option value="${escapeHtml(item.id)}">${escapeHtml(singleOptionLabel(item, moduleName))}</option>`).join("");
+  $("singleSelect").innerHTML = options.map((item) => `<option value="${escapeHtml(item.id)}">${escapeHtml(singleOptionLabel(item, moduleName, completionIndex))}</option>`).join("");
   $("singleSelect").value = state.activeSingle.id;
   if (!state.singleStarted) {
-    $("singleContent").innerHTML = renderSingleLaunch(moduleName, options);
+    $("singleContent").innerHTML = renderSingleLaunch(moduleName, options, completionIndex);
     bindDynamicControls();
     return;
   }
