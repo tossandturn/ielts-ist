@@ -351,6 +351,8 @@ check("Home", "Dashboard keeps compact score and AI Coach history", ({ app }) =>
 check("Home", "Dashboard presents a personalized AI IELTS cockpit", ({ app }) => {
   const dashboard = functionSource(app, "renderDashboard");
   const snapshot = functionSource(app, "dashboardPersonalSnapshot");
+  const effectiveProfile = functionSource(app, "dashboardEffectiveProfile");
+  const radarProfile = functionSource(app, "dashboardRadarProfile");
   const controls = functionSource(app, "bindHomeControls");
   assert.match(dashboard, /dashboard-focus-header/,
     "Home must identify the learner and their personal plan before showing module shortcuts");
@@ -363,8 +365,16 @@ check("Home", "Dashboard presents a personalized AI IELTS cockpit", ({ app }) =>
   assert.match(dashboard, /dashboardPersonalSnapshot\(/,
     "Personal labels must come from real profile, attempt and local-session data");
   assert.match(snapshot, /mineLearningAttempts\(\)/);
-  assert.match(snapshot, /state\.learningState\?\.profile/);
+  assert.match(snapshot, /dashboardEffectiveProfile\(\)/,
+    "Dashboard labels must use the effective guest-or-member profile");
+  assert.match(effectiveProfile, /state\.learningState\?\.profile/);
+  assert.match(effectiveProfile, /readGuestLearningProfile\(\)/);
+  assert.match(radarProfile, /correct\s*\/\s*total/,
+    "Radar estimates must derive only from objective accuracy when no Band exists");
+  assert.match(dashboard, /renderDashboardRadar\(/);
   assert.match(snapshot, /state\.currentUser\?\.username/);
+  assert.match(controls, /\/api\/learning\/profile/);
+  assert.match(controls, /guestLearningProfileStoreKey/);
   assert.match(controls, /data-dashboard-coach-prompt/);
   assert.match(controls, /sendHelpChatMessage\(/,
     "Submitting the Home Coach composer must execute immediately");

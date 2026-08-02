@@ -4,9 +4,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>IELTS-ist</title>
-    <link rel="stylesheet" href="/styles.css?v=20260802-focus-camp" />
+    <link rel="stylesheet" href="/styles.css?v=20260802-sitewide-focus-camp" />
   </head>
-  <body>
+  <body class="focus-camp-system">
     <div class="app-shell">
       <aside class="sidebar">
         <button id="toggleSidebar" class="sidebar-toggle" type="button" aria-label="Toggle sidebar" aria-expanded="true">&lt;</button>
@@ -50,11 +50,11 @@
       <main>
         <button id="globalSidebarToggle" class="inline-sidebar-toggle global-sidebar-toggle" type="button" aria-label="Open sidebar">&gt;</button>
 
-        <section id="home" class="view active">
+        <section id="home" class="view focus-page focus-page-home active">
           <div id="dashboardContent" class="dashboard-shell"></div>
         </section>
 
-        <section id="exam" class="view">
+        <section id="exam" class="view focus-page focus-page-simulation">
           <div class="view-head">
             <div>
               <h2>Random Full Exam</h2>
@@ -79,7 +79,7 @@
           </section>
         </section>
 
-        <section id="sequence" class="view">
+        <section id="sequence" class="view focus-page focus-page-simulation">
           <div class="view-head">
             <div>
               <h2>Same-Test Practice</h2>
@@ -108,7 +108,7 @@
           </section>
         </section>
 
-        <section id="single" class="view">
+        <section id="single" class="view focus-page focus-page-practice">
           <div class="view-head">
             <div class="single-view-title">
               <h2>Single Module</h2>
@@ -151,7 +151,7 @@
           </section>
         </section>
 
-        <section id="writing-upload" class="view">
+        <section id="writing-upload" class="view focus-page focus-page-practice focus-page-library">
           <div class="view-head">
             <div>
               <h2>Writing with AI</h2>
@@ -263,7 +263,7 @@
           </section>
         </section>
 
-        <section id="vocabulary" class="view">
+        <section id="vocabulary" class="view focus-page focus-page-library">
           <div class="view-head">
             <div>
               <h2>Vocabulary</h2>
@@ -273,7 +273,7 @@
           <div id="vocabularyContent" class="vocabulary-trainer"></div>
         </section>
 
-        <section id="mine" class="view">
+        <section id="mine" class="view focus-page focus-page-account">
           <div class="view-head">
             <div>
               <h2>Account</h2>
@@ -283,7 +283,7 @@
           <div id="mineContent" class="mine-layout"></div>
         </section>
 
-        <section id="subscription" class="view">
+        <section id="subscription" class="view focus-page focus-page-account">
           <div class="view-head subscription-head">
             <div>
               <span class="eyebrow">Subscription</span>
@@ -294,7 +294,7 @@
           <div id="subscriptionContent" class="subscription-grid"></div>
         </section>
 
-        <section id="bank" class="view">
+        <section id="bank" class="view focus-page focus-page-practice focus-page-library">
           <div class="view-head">
             <div>
               <h2>Speaking with AI</h2>
@@ -405,6 +405,6 @@
       <button id="clearAnnotation" class="icon-btn" type="button">Clear paper</button>
     </div>
   <script src="/vendor/lucide.min.js?v=20260730-1"></script>
-  <script src="/app.js?v=20260802-focus-camp"></script>
+  <script src="/app.js?v=20260802-sitewide-focus-camp"></script>
   </body>
 </html>

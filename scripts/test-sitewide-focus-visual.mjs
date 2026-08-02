@@ -77,6 +77,7 @@ try {
             const rect = node.getBoundingClientRect();
             return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
           });
+        const shortest = controls.sort((a, b) => a.getBoundingClientRect().height - b.getBoundingClientRect().height)[0];
         return {
           activeClasses: active.className,
           overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
@@ -84,6 +85,10 @@ try {
           canvas: getComputedStyle(document.body).backgroundColor,
           minInteractiveHeight: controls.length ? Math.min(...controls.map((node) => node.getBoundingClientRect().height)) : Infinity,
           interactiveCount: controls.length,
+          shortestControl: shortest ? (() => {
+            const style = getComputedStyle(shortest);
+            return `${shortest.tagName.toLowerCase()}.${shortest.className || ""}#${shortest.id || ""} height=${style.height} min=${style.minHeight} max=${style.maxHeight}`;
+          })() : "none",
           isMobile,
         };
       }, { view: route.view, isMobile: viewport.width <= 600 });
@@ -92,7 +97,7 @@ try {
       assert.equal(metrics.accent.toLowerCase(), "#7357e8", `${viewport.name}/${route.name}: shared brand token is not active`);
       assert.equal(metrics.canvas, "rgb(245, 246, 251)", `${viewport.name}/${route.name}: shared canvas is not active`);
       if (viewport.width <= 600 && metrics.interactiveCount) {
-        assert.ok(metrics.minInteractiveHeight >= 43.5, `${viewport.name}/${route.name}: smallest visible control is ${metrics.minInteractiveHeight}px`);
+        assert.ok(metrics.minInteractiveHeight >= 43.5, `${viewport.name}/${route.name}: smallest visible control is ${metrics.minInteractiveHeight}px (${metrics.shortestControl})`);
       }
       await page.screenshot({ path: resolve(outputDir, `${viewport.name}-${route.name}.png`), fullPage: true });
       console.log(`PASS ${viewport.name}/${route.name}`);

@@ -1,25 +1,39 @@
 ﻿:root {
   color-scheme: light;
-  --bg: #f5f6fa;
-  --bg-2: #eceff6;
+  --bg: #f5f6fb;
+  --bg-2: #eef0f8;
   --surface: #fff;
-  --surface-2: #f8fafc;
-  --surface-3: #eef2f8;
-  --text: #111827;
-  --muted: #667085;
-  --line: rgba(203, 213, 225, 0.72);
-  --line-strong: #b8c4d6;
-  --accent: #2563eb;
-  --accent-dark: #1d4ed8;
-  --accent-2: #0ea5e9;
-  --accent-soft: #eff6ff;
-  --accent-gradient: #2563eb;
+  --surface-2: #fafafe;
+  --surface-3: #eef0f8;
+  --text: #18213d;
+  --muted: #6f7892;
+  --line: #e4e7f0;
+  --line-strong: #cbd0df;
+  --accent: #7357e8;
+  --accent-dark: #5638c3;
+  --accent-2: #8c72ef;
+  --accent-soft: #f0ecff;
+  --accent-gradient: linear-gradient(135deg, #8065ec, #6747d8);
   --warn-soft: #fff6e8;
-  --focus-ring: 0 0 0 3px rgba(99, 102, 241, 0.18);
-  --shadow: 0 8px 20px rgba(31, 41, 55, 0.08);
+  --focus-ring: 0 0 0 3px rgba(115, 87, 232, 0.18);
+  --shadow: 0 12px 30px rgba(42, 31, 89, 0.07);
   --shadow-soft: 0 1px 2px rgba(17, 24, 39, 0.06);
   --glass-bg: #fff;
   --glass-border: #dfe3e8;
+  --brand: #7357e8;
+  --brand-dark: #5638c3;
+  --brand-soft: #f0ecff;
+  --ink: #18213d;
+  --canvas-raised: #eef0f8;
+  --module-listening: #7657e8;
+  --module-reading: #3a9d85;
+  --module-writing: #f19a3e;
+  --module-speaking: #ed6486;
+  --radius-control: 12px;
+  --radius-card: 18px;
+  --radius-hero: 24px;
+  --shadow-card: 0 12px 30px rgba(42, 31, 89, .07);
+  --shadow-overlay: 0 28px 70px rgba(30, 24, 64, .24);
   --font-sans: Inter, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", "Segoe UI", Arial, sans-serif;
 }
 
@@ -11204,6 +11218,399 @@ body.immersive-mode[data-immersive-module="speaking"] .exam-section.focused-sect
   white-space: nowrap;
 }
 
+/* Site-wide Focus Camp system — shared shell and non-immersive surfaces */
+body.focus-camp-system {
+  background:
+    radial-gradient(circle at 82% 2%, rgba(115, 87, 232, .055), transparent 26%),
+    var(--bg);
+  color: var(--text);
+}
+
+body.focus-camp-system .sidebar {
+  border-right-color: #e7e6ef;
+  background: rgba(250, 250, 253, .96);
+  box-shadow: 8px 0 28px rgba(42, 31, 89, .045);
+}
+
+body.focus-camp-system .brand-mark,
+body.focus-camp-system .sidebar-account-avatar {
+  border-radius: 12px;
+  background: linear-gradient(145deg, #8268ed, #6445d5);
+  box-shadow: 0 9px 20px rgba(83, 57, 181, .22);
+}
+
+body.focus-camp-system .status-pill {
+  border-color: #e6e3f3;
+  border-radius: 12px;
+  background: #fff;
+  color: #666f87;
+}
+
+body.focus-camp-system .nav-group-label {
+  color: #9aa1b5;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .1em;
+}
+
+body.focus-camp-system .tab {
+  border-radius: 11px;
+  color: #505a71;
+  font-weight: 720;
+  transition: background .16s ease, color .16s ease, transform .16s ease;
+}
+
+body.focus-camp-system .tab:hover {
+  background: #f3f0ff;
+  color: #5d43c6;
+  transform: translateX(1px);
+}
+
+body.focus-camp-system .tab.active {
+  border-color: #c9bef8;
+  background: linear-gradient(100deg, #f1edff, #f7f5ff);
+  color: #4f36b7;
+  box-shadow: inset 3px 0 #7357e8, 0 8px 18px rgba(76, 51, 166, .07);
+}
+
+body.focus-camp-system .sidebar-account-entry {
+  border-color: #dddfea;
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(42, 31, 89, .05);
+}
+
+body.focus-camp-system:not(.single-immersive-mode) main {
+  background: transparent;
+}
+
+body.focus-camp-system:not(.single-immersive-mode) .focus-page.active {
+  width: min(100%, 1280px);
+  margin: 0 auto;
+  animation: focus-page-in .18s ease both;
+}
+
+body.focus-camp-system .focus-page > .view-head {
+  position: relative;
+  align-items: flex-end;
+  min-height: 96px;
+  margin-bottom: 16px;
+  padding: 7px 4px 16px;
+  border-bottom: 1px solid #e3e5ee;
+}
+
+body.focus-camp-system .focus-page > .view-head::before {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 4px;
+  color: #765ce0;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .12em;
+  content: "IELTS TRAINING CAMP";
+}
+
+body.focus-camp-system .focus-page > .view-head h2 {
+  margin: 11px 0 4px;
+  color: #18213d;
+  font-size: clamp(26px, 2.8vw, 38px);
+  line-height: 1.05;
+  letter-spacing: -.035em;
+}
+
+body.focus-camp-system .focus-page > .view-head p {
+  max-width: 720px;
+  margin: 0;
+  color: #737c94;
+  font-size: 13px;
+}
+
+body.focus-camp-system:not(.single-immersive-mode) .focus-page > .panel,
+body.focus-camp-system .unified-practice-setup,
+body.focus-camp-system .unified-result-shell,
+body.focus-camp-system .writing-topic-panel,
+body.focus-camp-system #bank > .panel {
+  border-color: var(--line);
+  border-radius: var(--radius-card);
+  background: rgba(255, 255, 255, .94);
+  box-shadow: var(--shadow-card);
+}
+
+body.focus-camp-system .panel-head {
+  border-bottom-color: #ececf3;
+}
+
+body.focus-camp-system .panel-head h3 {
+  color: #252d48;
+  letter-spacing: -.015em;
+}
+
+body.focus-camp-system .primary,
+body.focus-camp-system button.primary {
+  border: 1px solid #7357e8;
+  border-radius: var(--radius-control);
+  background: linear-gradient(135deg, #7c62e8, #6445d4);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(81, 55, 177, .18);
+  font-weight: 800;
+}
+
+body.focus-camp-system .primary:hover,
+body.focus-camp-system button.primary:hover {
+  border-color: #5638c3;
+  background: linear-gradient(135deg, #6f52dd, #5738c4);
+  box-shadow: 0 11px 25px rgba(81, 55, 177, .24);
+}
+
+body.focus-camp-system .secondary,
+body.focus-camp-system button.secondary,
+body.focus-camp-system .icon-btn {
+  border-color: #d8dbe6;
+  border-radius: var(--radius-control);
+  background: #fff;
+  color: #4e5870;
+}
+
+body.focus-camp-system .secondary:hover,
+body.focus-camp-system button.secondary:hover,
+body.focus-camp-system .icon-btn:hover {
+  border-color: #bfb3ef;
+  background: #f6f3ff;
+  color: #5b41c3;
+}
+
+body.focus-camp-system :is(input, select, textarea, .text-input, .short-textarea) {
+  border-color: #dfe2eb;
+  border-radius: var(--radius-control);
+  background: #fff;
+  color: #252d48;
+}
+
+body.focus-camp-system :is(input, select, textarea, .text-input, .short-textarea):focus {
+  border-color: #8067e6;
+  outline: 3px solid rgba(115, 87, 232, .14);
+  box-shadow: none;
+}
+
+body.focus-camp-system .mode-pill,
+body.focus-camp-system .topic-category-pill,
+body.focus-camp-system .writing-library-switch button {
+  border-color: #dedfea;
+  border-radius: 999px;
+  background: #fff;
+  color: #657088;
+}
+
+body.focus-camp-system .topic-category-pill:hover,
+body.focus-camp-system .topic-category-pill.active,
+body.focus-camp-system .writing-library-switch button.active {
+  border-color: #bcaef1;
+  background: #f0ecff;
+  color: #6046c8;
+  box-shadow: none;
+}
+
+body.focus-camp-system .feedback-output,
+body.focus-camp-system .empty-list,
+body.focus-camp-system .notice {
+  border-color: #e2e4ed;
+  border-radius: 14px;
+  background: #fafafe;
+  color: #707991;
+}
+
+body.focus-camp-system .single-mode-workspace-intro,
+body.focus-camp-system .single-launch-hero {
+  border-color: #ded9f2;
+  border-radius: var(--radius-hero);
+  box-shadow: var(--shadow-card);
+}
+
+body.focus-camp-system .single-mode-picker > button,
+body.focus-camp-system .single-launch-option,
+body.focus-camp-system .unified-mode-card {
+  border-color: #e1e3ec;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 7px 20px rgba(42, 31, 89, .045);
+}
+
+body.focus-camp-system .single-mode-picker > button:hover,
+body.focus-camp-system .single-mode-picker > button.active,
+body.focus-camp-system .single-launch-option:hover,
+body.focus-camp-system .unified-mode-card.is-selected {
+  border-color: #ad9bea;
+  background: #f8f6ff;
+  box-shadow: 0 10px 25px rgba(83, 59, 173, .09);
+}
+
+body.focus-camp-system .writing-topic-card,
+body.focus-camp-system .speaking-topic-card,
+body.focus-camp-system .bank-card {
+  border-color: #e2e4ed;
+  border-radius: 17px;
+  background: #fff;
+  box-shadow: 0 7px 22px rgba(42, 31, 89, .045);
+  transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+
+body.focus-camp-system .writing-topic-card:hover,
+body.focus-camp-system .speaking-topic-card:hover,
+body.focus-camp-system .bank-card:hover {
+  border-color: #beb0f0;
+  box-shadow: 0 13px 28px rgba(75, 51, 164, .1);
+  transform: translateY(-2px);
+}
+
+body.focus-camp-system .writing-ai-reason {
+  border-color: #ded7f8;
+  border-radius: 14px;
+  background: linear-gradient(100deg, #f2eeff, #faf9ff);
+  color: #5948a2;
+}
+
+body.focus-camp-system .vocab-review-card,
+body.focus-camp-system .vocab-review-side,
+body.focus-camp-system #mine .mine-card,
+body.focus-camp-system .subscription-card {
+  border-color: #e2e4ed;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: var(--shadow-card);
+}
+
+body.focus-camp-system .vocab-review-card {
+  background:
+    radial-gradient(circle at 84% 10%, rgba(115, 87, 232, .12), transparent 28%),
+    #fff;
+}
+
+body.focus-camp-system .vocab-study-meter strong,
+body.focus-camp-system .mine-learning-stats strong {
+  color: #664bd0;
+}
+
+body.focus-camp-system .mine-action-card {
+  border-color: #e3e5ee;
+  border-radius: 16px;
+  background: #fafafe;
+}
+
+body.focus-camp-system .mine-action-card:hover {
+  border-color: #c5b9f2;
+  background: #f5f2ff;
+}
+
+body.focus-camp-system .subscription-card.featured {
+  border-color: #9d88ec;
+  background:
+    radial-gradient(circle at 88% 7%, rgba(115, 87, 232, .17), transparent 31%),
+    linear-gradient(155deg, #fff, #f7f4ff);
+  box-shadow: 0 20px 45px rgba(77, 52, 167, .15);
+}
+
+body.focus-camp-system .focus-page-simulation > .actions {
+  margin: 0 0 14px;
+  padding: 13px;
+  border: 1px solid #e1e3ec;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .88);
+  box-shadow: var(--shadow-card);
+}
+
+body.focus-camp-system .focus-page-simulation .timer,
+body.focus-camp-system .single-sticky-timer,
+body.focus-camp-system .unified-practice-status {
+  border-color: #dcd9e9;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, .94);
+  color: #4936a1;
+  box-shadow: 0 7px 18px rgba(42, 31, 89, .06);
+}
+
+body.focus-camp-system .help-chat-panel {
+  border-color: #ded9ee;
+  border-radius: 22px 0 0 22px;
+  background: #fafafe;
+  box-shadow: var(--shadow-overlay);
+}
+
+body.focus-camp-system .help-chat-head {
+  border-bottom-color: #e4e2ed;
+  background: linear-gradient(130deg, #6f53dc, #5336bd);
+}
+
+body.focus-camp-system .global-help-button {
+  border-color: #7357e8;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #7c62e8, #6242d1);
+  box-shadow: 0 10px 24px rgba(80, 52, 177, .24);
+}
+
+body.focus-camp-system.single-immersive-mode .view-head,
+body.focus-camp-system.single-immersive-mode .writing-workspace-bar {
+  border-color: #dedfea;
+  background: rgba(255, 255, 255, .97);
+  box-shadow: 0 8px 24px rgba(42, 31, 89, .07);
+}
+
+body.focus-camp-system.single-immersive-mode .back-submit-button {
+  border-color: #7357e8;
+  border-radius: 11px;
+  background: #7357e8;
+  color: #fff;
+}
+
+@keyframes focus-page-in {
+  from { opacity: .65; transform: translateY(3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 600px) {
+  body.focus-camp-system:not(.single-immersive-mode) .focus-page.active {
+    width: 100%;
+  }
+
+  body.focus-camp-system .focus-page > .view-head {
+    min-height: 86px;
+    margin-bottom: 12px;
+    padding-inline: 1px;
+  }
+
+  body.focus-camp-system .focus-page > .view-head h2 {
+    font-size: 27px;
+  }
+
+  body.focus-camp-system .focus-page.active :is(button, select, input, textarea) {
+    min-height: 44px !important;
+  }
+
+  body.focus-camp-system .writing-topic-card,
+  body.focus-camp-system .speaking-topic-card,
+  body.focus-camp-system .bank-card,
+  body.focus-camp-system .vocab-review-card,
+  body.focus-camp-system .vocab-review-side,
+  body.focus-camp-system #mine .mine-card,
+  body.focus-camp-system .subscription-card {
+    border-radius: 17px;
+  }
+
+  body.focus-camp-system .help-chat-panel {
+    border-radius: 20px 20px 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.focus-camp-system *,
+  body.focus-camp-system *::before,
+  body.focus-camp-system *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
 .dashboard-focus-badges dd button {
   min-height: 22px;
   padding: 0;
@@ -15450,5 +15857,20 @@ body.coach-dock-open .app-shell main {
 
   .reading-answer-sheet .paper-answer-row {
     grid-template-columns: minmax(72px, .7fr) minmax(0, 1.3fr) !important;
+  }
+}
+
+/* Keep the shared touch contract last so legacy page-specific sizes cannot shrink controls. */
+@media (max-width: 600px) {
+  body.focus-camp-system .focus-page.active :is(button, select, input, textarea) {
+    min-height: 44px !important;
+  }
+
+  body.focus-camp-system .focus-page.active button.small-button {
+    height: auto !important;
+  }
+
+  body.focus-camp-system #bank.focus-page.active #bankList .practice-speaking-topic {
+    min-height: 44px !important;
   }
 }
