@@ -268,6 +268,147 @@ const READING_TOPIC_REPAIRS = {
 for (const [topicKey, canonicalIds] of Object.entries(READING_TOPIC_REPAIRS)) {
   for (const canonicalId of canonicalIds) READING_OVERRIDES.set(canonicalId, topicKey);
 }
+const LISTENING_TOPIC_AUDIT = {
+  travel: [
+    "cam4-l-test1::section::1", "cam4-l-test2::section::1", "cam4-l-test4::section::2",
+    "cam5-l-test1::section::1", "cam7-l-test1::section::2", "cam7-l-test2::section::2",
+    "cam7-l-test3::section::2",
+    "cam7-l-test3::section::4", "cam7-l-test4::section::2", "cam9-l-test3::section::1",
+    "cam9-l-test3::section::2", "cam9-l-test4::section::2", "cam10-l-test1::section::1",
+    "cam11-l-test3::section::1", "cam12-l-test1::section::1", "cam12-l-test2::section::2",
+    "cam13-l-test3::section::1", "cam13-l-test4::section::2", "cam14-l-test4::section::1",
+    "cam14-l-test4::section::2", "cam15-l-test1::section::2", "cam16-l-test4::section::1",
+    "cam17-l-test1::section::2", "cam17-l-test3::section::1", "cam20-l-test4::section::1",
+    "cam21-l-test2::section::4", "cam21-l-test3::section::1",
+  ],
+  history: [
+    "cam4-l-test1::section::2", "cam6-l-test1::section::4", "cam6-l-test2::section::4",
+    "cam10-l-test2::section::3", "cam10-l-test4::section::2", "cam13-l-test4::section::4",
+    "cam14-l-test2::section::2", "cam14-l-test2::section::4", "cam14-l-test4::section::4",
+    "cam15-l-test3::section::4", "cam15-l-test4::section::3", "cam15-l-test4::section::4",
+    "cam18-l-test2::section::3", "cam18-l-test4::section::2", "cam19-l-test1::section::4",
+    "cam20-l-test3::section::2", "cam21-l-test2::section::2",
+  ],
+  education: [
+    "cam4-l-test1::section::3", "cam4-l-test2::section::2", "cam4-l-test2::section::3",
+    "cam4-l-test3::section::1", "cam4-l-test3::section::3", "cam5-l-test1::section::3",
+    "cam5-l-test2::section::1", "cam5-l-test2::section::3", "cam5-l-test3::section::2",
+    "cam5-l-test3::section::3", "cam5-l-test4::section::4", "cam6-l-test1::section::3",
+    "cam6-l-test2::section::3", "cam6-l-test4::section::3", "cam7-l-test4::section::3",
+    "cam8-l-test1::section::2", "cam8-l-test1::section::3", "cam8-l-test1::section::4",
+    "cam8-l-test2::section::4", "cam8-l-test3::section::3", "cam8-l-test4::section::3",
+    "cam9-l-test1::section::3", "cam9-l-test2::section::1", "cam9-l-test2::section::3",
+    "cam9-l-test3::section::3", "cam9-l-test4::section::3", "cam10-l-test3::section::1",
+    "cam10-l-test3::section::3", "cam11-l-test2::section::3", "cam12-l-test1::section::3",
+    "cam12-l-test2::section::3", "cam12-l-test3::section::1", "cam12-l-test3::section::3",
+    "cam14-l-test3::section::3", "cam14-l-test4::section::3", "cam16-l-test1::section::1",
+    "cam16-l-test2::section::2", "cam17-l-test1::section::3", "cam17-l-test3::section::2",
+    "cam17-l-test4::section::3", "cam18-l-test1::section::3", "cam18-l-test4::section::3",
+    "cam19-l-test1::section::1", "cam19-l-test3::section::3", "cam20-l-test2::section::3",
+    "cam20-l-test4::section::3", "cam21-l-test1::section::1", "cam21-l-test2::section::1",
+  ],
+  society: [
+    "cam4-l-test1::section::4", "cam4-l-test2::section::4", "cam5-l-test4::section::1",
+    "cam5-l-test4::section::2", "cam7-l-test4::section::1", "cam8-l-test4::section::2",
+    "cam10-l-test2::section::2", "cam11-l-test1::section::1", "cam11-l-test2::section::1",
+    "cam11-l-test3::section::2", "cam12-l-test4::section::2", "cam14-l-test1::section::1",
+    "cam14-l-test1::section::3", "cam14-l-test3::section::2", "cam15-l-test4::section::2",
+    "cam18-l-test1::section::2", "cam19-l-test1::section::2", "cam19-l-test2::section::2",
+    "cam20-l-test1::section::4", "cam20-l-test2::section::2",
+  ],
+  culture: [
+    "cam4-l-test3::section::2", "cam6-l-test1::section::2", "cam6-l-test2::section::1",
+    "cam7-l-test1::section::4", "cam8-l-test1::section::1", "cam8-l-test3::section::2",
+    "cam8-l-test4::section::4", "cam11-l-test3::section::3", "cam11-l-test4::section::1",
+    "cam11-l-test4::section::2", "cam12-l-test2::section::1", "cam12-l-test4::section::3",
+    "cam13-l-test3::section::3", "cam14-l-test3::section::4", "cam15-l-test2::section::1",
+    "cam15-l-test2::section::3", "cam15-l-test3::section::3", "cam16-l-test1::section::3",
+    "cam16-l-test1::section::4", "cam16-l-test3::section::4", "cam17-l-test1::section::4",
+    "cam17-l-test2::section::3", "cam17-l-test2::section::4", "cam18-l-test2::section::4",
+    "cam18-l-test3::section::1", "cam18-l-test4::section::4", "cam19-l-test2::section::1",
+    "cam19-l-test3::section::2", "cam19-l-test4::section::3", "cam20-l-test1::section::2",
+    "cam20-l-test3::section::3", "cam21-l-test1::section::2",
+  ],
+  architecture: [
+    "cam4-l-test3::section::4", "cam6-l-test3::section::2", "cam8-l-test3::section::1",
+    "cam9-l-test3::section::4", "cam10-l-test1::section::3", "cam10-l-test4::section::1",
+    "cam11-l-test2::section::4", "cam17-l-test2::section::2", "cam18-l-test2::section::2",
+    "cam20-l-test3::section::4", "cam20-l-test4::section::2", "cam21-l-test4::section::3",
+  ],
+  work: [
+    "cam4-l-test4::section::1", "cam6-l-test4::section::2", "cam7-l-test3::section::1",
+    "cam8-l-test4::section::1", "cam9-l-test1::section::1", "cam10-l-test4::section::3",
+    "cam11-l-test2::section::2", "cam12-l-test1::section::2", "cam12-l-test3::section::2",
+    "cam12-l-test4::section::1", "cam13-l-test2::section::2", "cam13-l-test4::section::1",
+    "cam14-l-test1::section::2", "cam15-l-test1::section::1", "cam15-l-test3::section::1",
+    "cam16-l-test1::section::2", "cam16-l-test3::section::2", "cam17-l-test2::section::1",
+    "cam17-l-test3::section::3", "cam17-l-test4::section::2", "cam18-l-test2::section::1",
+    "cam18-l-test3::section::3", "cam18-l-test4::section::1", "cam19-l-test4::section::1",
+    "cam21-l-test4::section::1",
+  ],
+  science: [
+    "cam4-l-test4::section::3", "cam5-l-test2::section::4", "cam10-l-test4::section::4",
+    "cam13-l-test1::section::3", "cam13-l-test2::section::3", "cam16-l-test2::section::1",
+    "cam18-l-test3::section::4", "cam21-l-test1::section::4",
+  ],
+  environment: [
+    "cam4-l-test4::section::4", "cam5-l-test3::section::4", "cam6-l-test4::section::4",
+    "cam7-l-test2::section::3", "cam7-l-test3::section::3", "cam8-l-test2::section::3",
+    "cam9-l-test2::section::2", "cam9-l-test4::section::4", "cam10-l-test1::section::4",
+    "cam10-l-test3::section::2", "cam11-l-test1::section::4", "cam11-l-test4::section::4",
+    "cam12-l-test3::section::4", "cam12-l-test4::section::4", "cam13-l-test1::section::4",
+    "cam13-l-test3::section::4", "cam14-l-test1::section::4", "cam14-l-test2::section::3",
+    "cam15-l-test1::section::4", "cam15-l-test2::section::2", "cam16-l-test4::section::4",
+    "cam17-l-test1::section::1", "cam17-l-test3::section::4", "cam18-l-test1::section::4",
+    "cam19-l-test2::section::3", "cam19-l-test2::section::4", "cam19-l-test3::section::4",
+    "cam19-l-test4::section::4", "cam20-l-test4::section::4", "cam21-l-test1::section::3",
+    "cam21-l-test3::section::3", "cam21-l-test3::section::4",
+  ],
+  health: [
+    "cam5-l-test1::section::2", "cam6-l-test1::section::1", "cam7-l-test2::section::4",
+    "cam9-l-test4::section::1", "cam10-l-test1::section::2", "cam13-l-test3::section::2",
+    "cam14-l-test2::section::1", "cam16-l-test2::section::4", "cam19-l-test4::section::2",
+    "cam20-l-test2::section::1", "cam21-l-test4::section::4",
+  ],
+  business: [
+    "cam5-l-test1::section::4", "cam5-l-test4::section::3", "cam6-l-test3::section::1",
+    "cam6-l-test3::section::3", "cam6-l-test4::section::1", "cam7-l-test1::section::3",
+    "cam7-l-test2::section::1", "cam8-l-test2::section::1",
+    "cam8-l-test3::section::4", "cam9-l-test1::section::2", "cam9-l-test2::section::4",
+    "cam10-l-test2::section::4", "cam11-l-test3::section::4", "cam12-l-test1::section::4",
+    "cam12-l-test2::section::4", "cam14-l-test3::section::1", "cam17-l-test4::section::1",
+    "cam20-l-test3::section::1", "cam21-l-test3::section::2", "cam21-l-test4::section::2",
+  ],
+  transport: [
+    "cam5-l-test2::section::2", "cam5-l-test3::section::1", "cam6-l-test2::section::2",
+    "cam7-l-test1::section::1", "cam10-l-test2::section::1", "cam13-l-test1::section::2",
+    "cam13-l-test2::section::1", "cam15-l-test3::section::2", "cam15-l-test4::section::1",
+    "cam16-l-test3::section::1", "cam16-l-test4::section::2", "cam16-l-test4::section::3",
+    "cam18-l-test1::section::1",
+  ],
+  food: [
+    "cam6-l-test3::section::4", "cam7-l-test4::section::4", "cam8-l-test2::section::2",
+    "cam11-l-test1::section::2", "cam13-l-test1::section::1", "cam13-l-test4::section::3",
+    "cam15-l-test2::section::4", "cam16-l-test3::section::3", "cam17-l-test4::section::4",
+    "cam18-l-test3::section::2", "cam19-l-test1::section::3", "cam19-l-test3::section::1",
+    "cam20-l-test1::section::1", "cam20-l-test2::section::4", "cam21-l-test2::section::3",
+  ],
+  psychology: [
+    "cam9-l-test1::section::4", "cam10-l-test3::section::4", "cam11-l-test1::section::3",
+    "cam11-l-test4::section::3", "cam13-l-test2::section::4", "cam15-l-test1::section::3",
+    "cam16-l-test2::section::3", "cam20-l-test1::section::3",
+  ],
+};
+const LISTENING_OVERRIDES = new Map();
+for (const [topicKey, canonicalIds] of Object.entries(LISTENING_TOPIC_AUDIT)) {
+  for (const canonicalId of canonicalIds) {
+    if (LISTENING_OVERRIDES.has(canonicalId)) throw new Error(`Duplicate Listening topic audit entry: ${canonicalId}`);
+    LISTENING_OVERRIDES.set(canonicalId, topicKey);
+  }
+}
+if (LISTENING_OVERRIDES.size !== 288) {
+  throw new Error(`Listening topic audit must contain exactly 288 unique sections; found ${LISTENING_OVERRIDES.size}`);
+}
 const CACHE_KEY_OVERRIDES = new Map([
   ["cam9-l-test4::section::3", "cam9-l-test4::4"],
   ["cam9-l-test4::section::4", "cam9-l-test4::3"],
@@ -428,14 +569,16 @@ function listeningEntry(paper, section, asrCache) {
     throw new Error(`Question range validation failed for ${canonicalId}`);
   }
   const topicTitle = listeningIntro(cacheEntry.text, section);
-  const topic = classifyTopic({ canonicalId, title: topicTitle, intro: String(cacheEntry.text).slice(0, 2500), body: cacheEntry.text });
+  const overrideKey = LISTENING_OVERRIDES.get(canonicalId);
+  if (!overrideKey) throw new Error(`Missing audited Listening topic for ${canonicalId}`);
+  const topic = { ...TAXONOMY.find((item) => item.key === overrideKey), confidence: 0.92 };
   const sourceSuffix = cacheKey === `${paper.id}::${section}` ? cacheKey : CACHE_KEY_OVERRIDES.has(canonicalId) ? `cache-repair:${cacheKey}` : `cache-alias:${cacheKey}`;
   return {
     topicKey: topic.key,
     topicLabel: topic.label,
     emoji: topic.emoji,
     topicTitle,
-    source: `asr:intro:${sourceSuffix}`,
+    source: `asr:intro:${sourceSuffix}+semantic-override`,
     confidence: topic.confidence,
     schemaVersion: SCHEMA_VERSION,
   };

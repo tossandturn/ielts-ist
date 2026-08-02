@@ -149,6 +149,25 @@ for (const [canonicalId, [expectedKey, expectedTitle]] of Object.entries(represe
   assert.equal(topic?.title, expectedTitle, `${canonicalId} representative source title`);
   assert.equal(topic?.key, expectedKey, `${canonicalId} representative semantic category`);
 }
+const representativeListeningCategories = {
+  "cam4-l-test2::section::4": ["society", "you'll hear the beginning of one lecture in a series of lectures about crime"],
+  "cam6-l-test1::section::1": ["health", "telephoning a sports club to ask about membership and facilities"],
+  "cam8-l-test2::section::3": ["environment", "part of a seminar in which a researcher called grant Freeman discusses his work on Australian honeybees with a group..."],
+  "cam11-l-test4::section::4": ["environment", "part of a lecture about a way of reducing the amount of carbon dioxide in the atmosphere"],
+  "cam13-l-test1::section::2": ["transport", "the chairman of the highways committee of Granford speaking to members of the public about proposed changes to..."],
+  "cam15-l-test1::section::3": ["psychology", "two psychology students discussing the effects of the order in which the children in a family are born"],
+  "cam18-l-test3::section::4": ["science", "part of a lecture for astronomy students about the need for a system to manage satellites and other objects orbiting..."],
+  "cam19-l-test1::section::4": ["history", "an archaeology student giving a presentation on an important site in Ireland called the kgey fields"],
+  "cam21-l-test3::section::1": ["travel", "Part one, you will hear a woman asking a friend for advice on travelling by ferry to an island in Scotland"],
+  "cam21-l-test3::section::3": ["environment", "part of a discussion between two textile students about their research into sustainable fashion"],
+  "cam21-l-test4::section::3": ["architecture", "two architecture students called mia and Leo discussing their presentation on houses of the future"],
+};
+for (const [canonicalId, [expectedKey, expectedTitle]] of Object.entries(representativeListeningCategories)) {
+  const [paperId, , section] = canonicalId.split("::");
+  const topic = tasks.listeningTests.find((item) => item.id === paperId)?.contentTopics?.[section];
+  assert.equal(topic?.title, expectedTitle, `${canonicalId} representative ASR-derived title`);
+  assert.equal(topic?.key, expectedKey, `${canonicalId} representative semantic category`);
+}
 const questionTypeKeys = new Set([...listeningTypes, ...readingTypes]);
 for (const paper of [...tasks.listeningTests, ...tasks.readingTests]) {
   for (const topic of Object.values(paper.contentTopics || {})) {
@@ -163,6 +182,14 @@ const stableReadingTopicKeys = new Set([
   "work", "travel", "education", "environment", "health", "science", "history",
   "culture", "society", "business", "transport", "architecture", "psychology", "food",
 ]);
+const stableListeningTopicKeys = stableReadingTopicKeys;
+assert.deepEqual(
+  semanticEntries
+    .filter(([id, topic]) => /-l-test\d+::section::[1-4]$/.test(id) && !stableListeningTopicKeys.has(topic.topicKey))
+    .map(([id, topic]) => [id, topic.topicKey, topic.topicTitle]),
+  [],
+  "All Listening sections must use the stable 14-category semantic taxonomy",
+);
 assert.deepEqual(
   semanticEntries
     .filter(([id, topic]) => /-r-test\d+::section::[1-3]$/.test(id) && !stableReadingTopicKeys.has(topic.topicKey))
@@ -209,6 +236,11 @@ assert.equal(
   semanticEntries.filter(([id, topic]) => /-r-test\d+::section::[1-3]$/.test(id) && topic.source === "readingPaper:curated-title+semantic-override").length,
   216,
   "Every Reading passage category must come from the deterministic audited override table",
+);
+assert.equal(
+  semanticEntries.filter(([id, topic]) => /-l-test\d+::section::[1-4]$/.test(id) && /\+semantic-override$/.test(topic.source)).length,
+  288,
+  "Every Listening section category must come from the deterministic audited override table",
 );
 const cam9MismatchSection3 = semanticCatalog["cam9-l-test4::section::3"];
 const cam9MismatchSection4 = semanticCatalog["cam9-l-test4::section::4"];
