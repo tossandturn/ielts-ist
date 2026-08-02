@@ -2592,12 +2592,12 @@
     "schemaVersion": 1
   },
   "cam4-r-test1::section::1": {
-    "topicKey": "education",
-    "topicLabel": "Education",
-    "emoji": "🎓",
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
     "topicTitle": "Adults and Children: Loss of Tropical Rainforests",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.81,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam4-r-test1::section::2": {
@@ -2605,26 +2605,26 @@
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
     "topicTitle": "What Do Whales Feel?",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.81,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam4-r-test1::section::3": {
-    "topicKey": "education",
-    "topicLabel": "Education",
-    "emoji": "🎓",
+    "topicKey": "culture",
+    "topicLabel": "Culture & Arts",
+    "emoji": "🎭",
     "topicTitle": "Visual Symbols and the Blind",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.65,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam4-r-test2::section::1": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "culture",
+    "topicLabel": "Culture & Arts",
+    "emoji": "🎭",
     "topicTitle": "Lost for Words",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.83,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam4-r-test2::section::2": {
@@ -2632,17 +2632,17 @@
     "topicLabel": "Health",
     "emoji": "🩺",
     "topicTitle": "Alternative Medicine in Australia",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam4-r-test2::section::3": {
-    "topicKey": "work",
-    "topicLabel": "Work",
-    "emoji": "💼",
+    "topicKey": "psychology",
+    "topicLabel": "Psychology & Behaviour",
+    "emoji": "🧠",
     "topicTitle": "Play Is a Serious Business",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.82,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam4-r-test3::section::1": {
@@ -2650,7 +2650,7 @@
     "topicLabel": "Business & Economics",
     "emoji": "📈",
     "topicTitle": "Micro-enterprise Credit for Street Youth",
-    "source": "readingPaper:curated-title+weighted-text",
+    "source": "readingPaper:curated-title+semantic-override",
     "confidence": 0.92,
     "schemaVersion": 1
   },
@@ -2659,8 +2659,8 @@
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
     "topicTitle": "Volcanoes: Earth-shattering News",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.65,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam4-r-test3::section::3": {
@@ -2668,17 +2668,17 @@
     "topicLabel": "Culture & Arts",
     "emoji": "🎭",
     "topicTitle": "Obtaining Linguistic Data",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.72,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam4-r-test4::section::1": {
-    "topicKey": "science",
-    "topicLabel": "Science & Technology",
-    "emoji": "🔬",
+    "topicKey": "health",
+    "topicLabel": "Health",
+    "emoji": "🩺",
     "topicTitle": "How Much Higher? How Much Faster?",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.79,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam4-r-test4::section::2": {
@@ -2686,35 +2686,35 @@
     "topicLabel": "History & Archaeology",
     "emoji": "🏺",
     "topicTitle": "The Nature and Aims of Archaeology",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam4-r-test4::section::3": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "business",
+    "topicLabel": "Business & Economics",
+    "emoji": "📈",
     "topicTitle": "The Problem of Scarce Resources",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.91,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam5-r-test1::section::1": {
-    "topicKey": "education",
-    "topicLabel": "Education",
-    "emoji": "🎓",
+    "topicKey": "culture",
+    "topicLabel": "Culture & Arts",
+    "emoji": "🎭",
     "topicTitle": "Johnson’s Dictionary",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.74,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam5-r-test1::section::2": {
-    "topicKey": "education",
-    "topicLabel": "Education",
-    "emoji": "🎓",
+    "topicKey": "psychology",
+    "topicLabel": "Psychology & Behaviour",
+    "emoji": "🧠",
     "topicTitle": "Nature or Nurture?",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.98,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam5-r-test1::section::3": {
@@ -2722,26 +2722,26 @@
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
     "topicTitle": "The Truth about the Environment",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam5-r-test2::section::1": {
-    "topicKey": "history",
-    "topicLabel": "History & Archaeology",
-    "emoji": "🏺",
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
     "topicTitle": "Bakelite: The Birth of Modern Plastics",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.62,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam5-r-test2::section::2": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "psychology",
+    "topicLabel": "Psychology & Behaviour",
+    "emoji": "🧠",
     "topicTitle": "What’s So Funny?",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.7,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam5-r-test2::section::3": {
@@ -2749,8 +2749,8 @@
     "topicLabel": "Science & Technology",
     "emoji": "🔬",
     "topicTitle": "The Birth of Scientific English",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam5-r-test3::section::1": {
@@ -2758,17 +2758,17 @@
     "topicLabel": "Education",
     "emoji": "🎓",
     "topicTitle": "Early Childhood Education",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam5-r-test3::section::2": {
-    "topicKey": "food",
-    "topicLabel": "Food & Agriculture",
-    "emoji": "🌾",
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
     "topicTitle": "Disappearing Delta",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.75,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam5-r-test3::section::3": {
@@ -2776,8 +2776,8 @@
     "topicLabel": "Science & Technology",
     "emoji": "🔬",
     "topicTitle": "The Return of Artificial Intelligence",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam5-r-test4::section::1": {
@@ -2785,8 +2785,8 @@
     "topicLabel": "Travel",
     "emoji": "✈️",
     "topicTitle": "The Impact of Wilderness Tourism",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam5-r-test4::section::2": {
@@ -2794,8 +2794,8 @@
     "topicLabel": "Architecture & Design",
     "emoji": "🏛️",
     "topicTitle": "Flawed Beauty",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.73,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam5-r-test4::section::3": {
@@ -2803,26 +2803,26 @@
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
     "topicTitle": "Effects of Light on Plants and Animals",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam6-r-test1::section::1": {
-    "topicKey": "work",
-    "topicLabel": "Work",
-    "emoji": "💼",
+    "topicKey": "health",
+    "topicLabel": "Health",
+    "emoji": "🩺",
     "topicTitle": "Australia’s Sporting Success",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.81,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam6-r-test1::section::2": {
-    "topicKey": "business",
-    "topicLabel": "Business & Economics",
-    "emoji": "📈",
+    "topicKey": "transport",
+    "topicLabel": "Transport",
+    "emoji": "🚆",
     "topicTitle": "Delivering the Goods",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam6-r-test1::section::3": {
@@ -2830,25 +2830,25 @@
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
     "topicTitle": "Climate Change and the Inuit",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam6-r-test2::section::1": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "transport",
+    "topicLabel": "Transport",
+    "emoji": "🚆",
     "topicTitle": "Advantages of Public Transport",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam6-r-test2::section::2": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "health",
+    "topicLabel": "Health",
+    "emoji": "🩺",
     "topicTitle": "Greying Population Stays in the Pink",
-    "source": "readingPaper:curated-title+weighted-text",
+    "source": "readingPaper:curated-title+semantic-override",
     "confidence": 0.92,
     "schemaVersion": 1
   },
@@ -2857,8 +2857,8 @@
     "topicLabel": "Education",
     "emoji": "🎓",
     "topicTitle": "Numeration",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.67,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam6-r-test3::section::1": {
@@ -2866,8 +2866,8 @@
     "topicLabel": "Culture & Arts",
     "emoji": "🎭",
     "topicTitle": "The Lumière Brothers",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.82,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam6-r-test3::section::2": {
@@ -2875,8 +2875,8 @@
     "topicLabel": "Work",
     "emoji": "💼",
     "topicTitle": "Motivating Employees under Adverse Conditions",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam6-r-test3::section::3": {
@@ -2884,8 +2884,8 @@
     "topicLabel": "Health",
     "emoji": "🩺",
     "topicTitle": "The Search for the Anti-aging Pill",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.85,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam6-r-test4::section::1": {
@@ -2893,8 +2893,8 @@
     "topicLabel": "Business & Economics",
     "emoji": "📈",
     "topicTitle": "Doctoring Sales",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam6-r-test4::section::2": {
@@ -2902,8 +2902,8 @@
     "topicLabel": "Education",
     "emoji": "🎓",
     "topicTitle": "Do Literate Women Make Better Mothers?",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam6-r-test4::section::3": {
@@ -2911,26 +2911,26 @@
     "topicLabel": "Society",
     "emoji": "🏘️",
     "topicTitle": "Bullying",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.79,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam7-r-test1::section::1": {
-    "topicKey": "science",
-    "topicLabel": "Science & Technology",
-    "emoji": "🔬",
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
     "topicTitle": "Let’s Go Bats",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.79,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam7-r-test1::section::2": {
-    "topicKey": "history",
-    "topicLabel": "History & Archaeology",
-    "emoji": "🏺",
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
     "topicTitle": "Making Every Drop Count",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.75,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam7-r-test1::section::3": {
@@ -2938,8 +2938,8 @@
     "topicLabel": "Education",
     "emoji": "🎓",
     "topicTitle": "Educating Psyche",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam7-r-test2::section::1": {
@@ -2947,8 +2947,8 @@
     "topicLabel": "Architecture & Design",
     "emoji": "🏛️",
     "topicTitle": "Why Pagodas Don’t Fall Down",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam7-r-test2::section::2": {
@@ -2956,8 +2956,8 @@
     "topicLabel": "Food & Agriculture",
     "emoji": "🌾",
     "topicTitle": "The True Cost of Food",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam7-r-test2::section::3": {
@@ -2965,17 +2965,17 @@
     "topicLabel": "Transport",
     "emoji": "🚆",
     "topicTitle": "Makete Integrated Rural Transport Project",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam7-r-test3::section::1": {
-    "topicKey": "food",
-    "topicLabel": "Food & Agriculture",
-    "emoji": "🌾",
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
     "topicTitle": "Ant Intelligence",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam7-r-test3::section::2": {
@@ -2983,8 +2983,8 @@
     "topicLabel": "Society",
     "emoji": "🏘️",
     "topicTitle": "Population Movements and Genetics",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam7-r-test3::section::3": {
@@ -2992,17 +2992,17 @@
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
     "topicTitle": "Forests: Our Natural Heritage",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam7-r-test4::section::1": {
-    "topicKey": "science",
-    "topicLabel": "Science & Technology",
-    "emoji": "🔬",
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
     "topicTitle": "Pulling Strings to Build Pyramids",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.79,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam7-r-test4::section::2": {
@@ -3010,17 +3010,17 @@
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
     "topicTitle": "Endless Harvest",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.74,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam7-r-test4::section::3": {
-    "topicKey": "science",
-    "topicLabel": "Science & Technology",
-    "emoji": "🔬",
+    "topicKey": "health",
+    "topicLabel": "Health",
+    "emoji": "🩺",
     "topicTitle": "Effects of Noise",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.66,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam8-r-test1::section::1": {
@@ -3028,8 +3028,8 @@
     "topicLabel": "History & Archaeology",
     "emoji": "🏺",
     "topicTitle": "A Chronicle of Timekeeping",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.61,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam8-r-test1::section::2": {
@@ -3037,26 +3037,26 @@
     "topicLabel": "Transport",
     "emoji": "🚆",
     "topicTitle": "Air Traffic Control in the USA",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam8-r-test1::section::3": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "psychology",
+    "topicLabel": "Psychology & Behaviour",
+    "emoji": "🧠",
     "topicTitle": "Telepathy",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.74,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam8-r-test2::section::1": {
-    "topicKey": "work",
-    "topicLabel": "Work",
-    "emoji": "💼",
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
     "topicTitle": "Sheet Glass Manufacture",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.59,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam8-r-test2::section::2": {
@@ -3064,8 +3064,8 @@
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
     "topicTitle": "The Little Ice Age",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.88,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam8-r-test2::section::3": {
@@ -3073,8 +3073,8 @@
     "topicLabel": "Psychology & Behaviour",
     "emoji": "🧠",
     "topicTitle": "The Meaning and Power of Smell",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.7,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam8-r-test3::section::1": {
@@ -3082,17 +3082,17 @@
     "topicLabel": "Science & Technology",
     "emoji": "🔬",
     "topicTitle": "Striking Back at Lightning with Lasers",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.76,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam8-r-test3::section::2": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "psychology",
+    "topicLabel": "Psychology & Behaviour",
+    "emoji": "🧠",
     "topicTitle": "The Nature of Genius",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam8-r-test3::section::3": {
@@ -3100,8 +3100,8 @@
     "topicLabel": "Science & Technology",
     "emoji": "🔬",
     "topicTitle": "How Does the Biological Clock Tick?",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.68,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam8-r-test4::section::1": {
@@ -3109,17 +3109,17 @@
     "topicLabel": "Education",
     "emoji": "🎓",
     "topicTitle": "Land of the Rising Sum",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam8-r-test4::section::2": {
-    "topicKey": "food",
-    "topicLabel": "Food & Agriculture",
-    "emoji": "🌾",
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
     "topicTitle": "Biological Control of Pests",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam8-r-test4::section::3": {
@@ -3127,17 +3127,17 @@
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
     "topicTitle": "Collecting Ant Specimens",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.94,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam9-r-test1::section::1": {
-    "topicKey": "education",
-    "topicLabel": "Education",
-    "emoji": "🎓",
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
     "topicTitle": "William Henry Perkin",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.89,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam9-r-test1::section::2": {
@@ -3145,8 +3145,8 @@
     "topicLabel": "Science & Technology",
     "emoji": "🔬",
     "topicTitle": "Is There Anybody Out There?",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.82,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam9-r-test1::section::3": {
@@ -3154,44 +3154,44 @@
     "topicLabel": "History & Archaeology",
     "emoji": "🏺",
     "topicTitle": "The History of the Tortoise",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.77,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam9-r-test2::section::1": {
-    "topicKey": "education",
-    "topicLabel": "Education",
-    "emoji": "🎓",
+    "topicKey": "health",
+    "topicLabel": "Health",
+    "emoji": "🩺",
     "topicTitle": "Hearing Impairment",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam9-r-test2::section::2": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
     "topicTitle": "Venus in Transit",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.62,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam9-r-test2::section::3": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "psychology",
+    "topicLabel": "Psychology & Behaviour",
+    "emoji": "🧠",
     "topicTitle": "A Neuroscientist Reveals How to Think Differently",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.88,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam9-r-test3::section::1": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "culture",
+    "topicLabel": "Culture & Arts",
+    "emoji": "🎭",
     "topicTitle": "Attitudes to Language",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.88,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam9-r-test3::section::2": {
@@ -3199,8 +3199,8 @@
     "topicLabel": "Science & Technology",
     "emoji": "🔬",
     "topicTitle": "Tidal Power",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.95,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam9-r-test3::section::3": {
@@ -3208,26 +3208,26 @@
     "topicLabel": "Science & Technology",
     "emoji": "🔬",
     "topicTitle": "Information Theory: The Big Idea",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam9-r-test4::section::1": {
-    "topicKey": "work",
-    "topicLabel": "Work",
-    "emoji": "💼",
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
     "topicTitle": "The Life and Work of Marie Curie",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.83,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam9-r-test4::section::2": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "psychology",
+    "topicLabel": "Psychology & Behaviour",
+    "emoji": "🧠",
     "topicTitle": "Young Children’s Sense of Identity",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.85,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam9-r-test4::section::3": {
@@ -3235,17 +3235,17 @@
     "topicLabel": "History & Archaeology",
     "emoji": "🏺",
     "topicTitle": "The Development of Museums",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam10-r-test1::section::1": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "architecture",
+    "topicLabel": "Architecture & Design",
+    "emoji": "🏛️",
     "topicTitle": "Stepwells",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.7,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam10-r-test1::section::2": {
@@ -3253,26 +3253,26 @@
     "topicLabel": "Transport",
     "emoji": "🚆",
     "topicTitle": "European Transport Systems 1990–2010",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam10-r-test1::section::3": {
-    "topicKey": "science",
-    "topicLabel": "Science & Technology",
-    "emoji": "🔬",
+    "topicKey": "psychology",
+    "topicLabel": "Psychology & Behaviour",
+    "emoji": "🧠",
     "topicTitle": "The Psychology of Innovation",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.88,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam10-r-test2::section::1": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
     "topicTitle": "Tea and the Industrial Revolution",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.77,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam10-r-test2::section::2": {
@@ -3280,8 +3280,8 @@
     "topicLabel": "Education",
     "emoji": "🎓",
     "topicTitle": "Gifted Children and Learning",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam10-r-test2::section::3": {
@@ -3289,8 +3289,8 @@
     "topicLabel": "Culture & Arts",
     "emoji": "🎭",
     "topicTitle": "Museums of Fine Art and Their Public",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam10-r-test3::section::1": {
@@ -3298,8 +3298,8 @@
     "topicLabel": "Travel",
     "emoji": "✈️",
     "topicTitle": "The Context, Meaning and Scope of Tourism",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam10-r-test3::section::2": {
@@ -3307,8 +3307,8 @@
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
     "topicTitle": "Autumn Leaves",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.84,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam10-r-test3::section::3": {
@@ -3316,26 +3316,26 @@
     "topicLabel": "History & Archaeology",
     "emoji": "🏺",
     "topicTitle": "Beyond the Blue Horizon",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam10-r-test4::section::1": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
     "topicTitle": "The Megafires of California",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.74,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam10-r-test4::section::2": {
-    "topicKey": "education",
-    "topicLabel": "Education",
-    "emoji": "🎓",
+    "topicKey": "psychology",
+    "topicLabel": "Psychology & Behaviour",
+    "emoji": "🧠",
     "topicTitle": "Second Nature",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.87,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam10-r-test4::section::3": {
@@ -3343,8 +3343,8 @@
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
     "topicTitle": "When Evolution Runs Backwards",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.71,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam11-r-test1::section::1": {
@@ -3352,8 +3352,8 @@
     "topicLabel": "Food & Agriculture",
     "emoji": "🌾",
     "topicTitle": "Crop-growing Skyscrapers",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam11-r-test1::section::2": {
@@ -3361,8 +3361,8 @@
     "topicLabel": "Transport",
     "emoji": "🚆",
     "topicTitle": "The Falkirk Wheel",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.75,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam11-r-test1::section::3": {
@@ -3370,8 +3370,8 @@
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
     "topicTitle": "Reducing the Effects of Climate Change",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.88,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam11-r-test2::section::1": {
@@ -3379,8 +3379,8 @@
     "topicLabel": "History & Archaeology",
     "emoji": "🏺",
     "topicTitle": "Raising the Mary Rose",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.71,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam11-r-test2::section::2": {
@@ -3388,17 +3388,17 @@
     "topicLabel": "History & Archaeology",
     "emoji": "🏺",
     "topicTitle": "What Destroyed the Civilisation of Easter Island?",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam11-r-test2::section::3": {
-    "topicKey": "culture",
-    "topicLabel": "Culture & Arts",
-    "emoji": "🎭",
+    "topicKey": "psychology",
+    "topicLabel": "Psychology & Behaviour",
+    "emoji": "🧠",
     "topicTitle": "Neuroaesthetics",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.82,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam11-r-test3::section::1": {
@@ -3406,8 +3406,8 @@
     "topicLabel": "History & Archaeology",
     "emoji": "🏺",
     "topicTitle": "The Story of Silk",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.72,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam11-r-test3::section::2": {
@@ -3415,8 +3415,8 @@
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
     "topicTitle": "Great Migrations",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.98,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam11-r-test3::section::3": {
@@ -3424,8 +3424,8 @@
     "topicLabel": "Psychology & Behaviour",
     "emoji": "🧠",
     "topicTitle": "How the Other Half Thinks",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.76,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam11-r-test4::section::1": {
@@ -3433,8 +3433,8 @@
     "topicLabel": "Science & Technology",
     "emoji": "🔬",
     "topicTitle": "Research Using Twins",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.83,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam11-r-test4::section::2": {
@@ -3442,8 +3442,8 @@
     "topicLabel": "Culture & Arts",
     "emoji": "🎭",
     "topicTitle": "An Introduction to Film Sound",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam11-r-test4::section::3": {
@@ -3451,8 +3451,8 @@
     "topicLabel": "Culture & Arts",
     "emoji": "🎭",
     "topicTitle": "This Marvellous Invention",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.88,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam12-r-test1::section::1": {
@@ -3460,8 +3460,8 @@
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
     "topicTitle": "Cork",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.59,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam12-r-test1::section::2": {
@@ -3469,8 +3469,8 @@
     "topicLabel": "Society",
     "emoji": "🏘️",
     "topicTitle": "Collecting as a Hobby",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.77,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam12-r-test1::section::3": {
@@ -3478,8 +3478,8 @@
     "topicLabel": "Education",
     "emoji": "🎓",
     "topicTitle": "What’s the Purpose of Gaining Knowledge?",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam12-r-test2::section::1": {
@@ -3487,17 +3487,17 @@
     "topicLabel": "Food & Agriculture",
     "emoji": "🌾",
     "topicTitle": "The Risks Agriculture Faces in Developing Countries",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam12-r-test2::section::2": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
     "topicTitle": "The Lost City",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.91,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam12-r-test2::section::3": {
@@ -3505,8 +3505,8 @@
     "topicLabel": "Culture & Arts",
     "emoji": "🎭",
     "topicTitle": "The Benefits of Being Bilingual",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.71,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam12-r-test3::section::1": {
@@ -3514,8 +3514,8 @@
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
     "topicTitle": "Flying Tortoises",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.91,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam12-r-test3::section::2": {
@@ -3523,8 +3523,8 @@
     "topicLabel": "Health",
     "emoji": "🩺",
     "topicTitle": "The Intersection of Health Sciences and Geography",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.98,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam12-r-test3::section::3": {
@@ -3532,17 +3532,17 @@
     "topicLabel": "Culture & Arts",
     "emoji": "🎭",
     "topicTitle": "Music and the Emotions",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam12-r-test4::section::1": {
-    "topicKey": "business",
-    "topicLabel": "Business & Economics",
-    "emoji": "📈",
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
     "topicTitle": "The History of Glass",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.82,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam12-r-test4::section::2": {
@@ -3550,8 +3550,8 @@
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
     "topicTitle": "Bring Back the Big Cats",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam12-r-test4::section::3": {
@@ -3559,8 +3559,8 @@
     "topicLabel": "Business & Economics",
     "emoji": "📈",
     "topicTitle": "UK Companies Need More Effective Boards of Directors",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam13-r-test1::section::1": {
@@ -3568,17 +3568,17 @@
     "topicLabel": "Travel",
     "emoji": "✈️",
     "topicTitle": "Case Study: Tourism New Zealand Website",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam13-r-test1::section::2": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "psychology",
+    "topicLabel": "Psychology & Behaviour",
+    "emoji": "🧠",
     "topicTitle": "Why Being Bored Is Stimulating – and Useful Too",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.69,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam13-r-test1::section::3": {
@@ -3586,8 +3586,8 @@
     "topicLabel": "Culture & Arts",
     "emoji": "🎭",
     "topicTitle": "Artificial Artists",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam13-r-test2::section::1": {
@@ -3595,17 +3595,17 @@
     "topicLabel": "History & Archaeology",
     "emoji": "🏺",
     "topicTitle": "Bringing Cinnamon to Europe",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.7,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam13-r-test2::section::2": {
-    "topicKey": "education",
-    "topicLabel": "Education",
-    "emoji": "🎓",
+    "topicKey": "health",
+    "topicLabel": "Health",
+    "emoji": "🩺",
     "topicTitle": "Oxytocin",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.72,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam13-r-test2::section::3": {
@@ -3613,17 +3613,17 @@
     "topicLabel": "Business & Economics",
     "emoji": "📈",
     "topicTitle": "Making the Most of Trends",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.97,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam13-r-test3::section::1": {
-    "topicKey": "history",
-    "topicLabel": "History & Archaeology",
-    "emoji": "🏺",
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
     "topicTitle": "The Coconut Palm",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.7,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam13-r-test3::section::2": {
@@ -3631,8 +3631,8 @@
     "topicLabel": "Education",
     "emoji": "🎓",
     "topicTitle": "How Baby Talk Gives Infant Brains a Boost",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam13-r-test3::section::3": {
@@ -3640,8 +3640,8 @@
     "topicLabel": "History & Archaeology",
     "emoji": "🏺",
     "topicTitle": "Whatever Happened to the Harappan Civilisation?",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam13-r-test4::section::1": {
@@ -3649,17 +3649,17 @@
     "topicLabel": "Transport",
     "emoji": "🚆",
     "topicTitle": "Cutty Sark: The Fastest Sailing Ship of All Time",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam13-r-test4::section::2": {
-    "topicKey": "food",
-    "topicLabel": "Food & Agriculture",
-    "emoji": "🌾",
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
     "topicTitle": "Saving the Soil",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.8,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam13-r-test4::section::3": {
@@ -3667,26 +3667,26 @@
     "topicLabel": "Society",
     "emoji": "🏘️",
     "topicTitle": "Book Review",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.89,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam14-r-test1::section::1": {
-    "topicKey": "education",
-    "topicLabel": "Education",
-    "emoji": "🎓",
+    "topicKey": "psychology",
+    "topicLabel": "Psychology & Behaviour",
+    "emoji": "🧠",
     "topicTitle": "The Importance of Children’s Play",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam14-r-test1::section::2": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "transport",
+    "topicLabel": "Transport",
+    "emoji": "🚆",
     "topicTitle": "The Growth of Bike-sharing Schemes",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam14-r-test1::section::3": {
@@ -3694,17 +3694,17 @@
     "topicLabel": "Work",
     "emoji": "💼",
     "topicTitle": "Motivational Factors and the Hospitality Industry",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam14-r-test2::section::1": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "culture",
+    "topicLabel": "Culture & Arts",
+    "emoji": "🎭",
     "topicTitle": "Alexander Henderson (1831–1913)",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.88,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam14-r-test2::section::2": {
@@ -3712,8 +3712,8 @@
     "topicLabel": "Architecture & Design",
     "emoji": "🏛️",
     "topicTitle": "Back to the Future of Skyscraper Design",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam14-r-test2::section::3": {
@@ -3721,17 +3721,17 @@
     "topicLabel": "Business & Economics",
     "emoji": "📈",
     "topicTitle": "Why Companies Should Welcome Disorder",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.89,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam14-r-test3::section::1": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "psychology",
+    "topicLabel": "Psychology & Behaviour",
+    "emoji": "🧠",
     "topicTitle": "The Concept of Intelligence",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.86,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam14-r-test3::section::2": {
@@ -3739,26 +3739,26 @@
     "topicLabel": "Science & Technology",
     "emoji": "🔬",
     "topicTitle": "Saving Bugs to Find New Drugs",
-    "source": "readingPaper:curated-title+weighted-text",
+    "source": "readingPaper:curated-title+semantic-override",
     "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam14-r-test3::section::3": {
-    "topicKey": "education",
-    "topicLabel": "Education",
-    "emoji": "🎓",
+    "topicKey": "psychology",
+    "topicLabel": "Psychology & Behaviour",
+    "emoji": "🧠",
     "topicTitle": "The Power of Play",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.86,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam14-r-test4::section::1": {
-    "topicKey": "education",
-    "topicLabel": "Education",
-    "emoji": "🎓",
+    "topicKey": "health",
+    "topicLabel": "Health",
+    "emoji": "🩺",
     "topicTitle": "The Secret of Staying Young",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.59,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam14-r-test4::section::2": {
@@ -3766,8 +3766,8 @@
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
     "topicTitle": "Why Zoos Are Good",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam14-r-test4::section::3": {
@@ -3775,8 +3775,8 @@
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
     "topicTitle": "Chelsea Rochman",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam15-r-test1::section::1": {
@@ -3785,7 +3785,7 @@
     "emoji": "🏺",
     "topicTitle": "Nutmeg – a valuable spice",
     "source": "readingPaper:curated-title+semantic-override",
-    "confidence": 0.99,
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam15-r-test1::section::2": {
@@ -3794,7 +3794,7 @@
     "emoji": "🚆",
     "topicTitle": "Driverless cars",
     "source": "readingPaper:curated-title+semantic-override",
-    "confidence": 0.99,
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam15-r-test1::section::3": {
@@ -3803,7 +3803,7 @@
     "emoji": "✈️",
     "topicTitle": "What is exploration?",
     "source": "readingPaper:curated-title+semantic-override",
-    "confidence": 0.99,
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam15-r-test2::section::1": {
@@ -3812,7 +3812,7 @@
     "emoji": "🏛️",
     "topicTitle": "Could urban engineers learn from dance?",
     "source": "readingPaper:curated-title+semantic-override",
-    "confidence": 0.99,
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam15-r-test2::section::2": {
@@ -3821,7 +3821,7 @@
     "emoji": "🌿",
     "topicTitle": "Should we try to bring extinct species back to life?",
     "source": "readingPaper:curated-title+semantic-override",
-    "confidence": 0.99,
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam15-r-test2::section::3": {
@@ -3830,7 +3830,7 @@
     "emoji": "🧠",
     "topicTitle": "Having a laugh",
     "source": "readingPaper:curated-title+semantic-override",
-    "confidence": 0.99,
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam15-r-test3::section::1": {
@@ -3839,7 +3839,7 @@
     "emoji": "🎭",
     "topicTitle": "Henry Moore (1898–1986)",
     "source": "readingPaper:curated-title+semantic-override",
-    "confidence": 0.99,
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam15-r-test3::section::2": {
@@ -3848,7 +3848,7 @@
     "emoji": "🔬",
     "topicTitle": "The Desolenator: producing clean water",
     "source": "readingPaper:curated-title+semantic-override",
-    "confidence": 0.99,
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam15-r-test3::section::3": {
@@ -3857,7 +3857,7 @@
     "emoji": "🎭",
     "topicTitle": "Why fairy tales are really scary tales",
     "source": "readingPaper:curated-title+semantic-override",
-    "confidence": 0.99,
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam15-r-test4::section::1": {
@@ -3866,7 +3866,7 @@
     "emoji": "🌿",
     "topicTitle": "The return of the huarango",
     "source": "readingPaper:curated-title+semantic-override",
-    "confidence": 0.99,
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam15-r-test4::section::2": {
@@ -3875,7 +3875,7 @@
     "emoji": "🎭",
     "topicTitle": "Silbo Gomero – the whistle ‘language’ of the Canary Islands",
     "source": "readingPaper:curated-title+semantic-override",
-    "confidence": 0.99,
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam15-r-test4::section::3": {
@@ -3884,16 +3884,16 @@
     "emoji": "📈",
     "topicTitle": "Environmental practices of big businesses",
     "source": "readingPaper:curated-title+semantic-override",
-    "confidence": 0.99,
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam16-r-test1::section::1": {
-    "topicKey": "health",
-    "topicLabel": "Health",
-    "emoji": "🩺",
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
     "topicTitle": "Why We Need to Protect Polar Bears",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.88,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam16-r-test1::section::2": {
@@ -3901,8 +3901,8 @@
     "topicLabel": "Architecture & Design",
     "emoji": "🏛️",
     "topicTitle": "The Step Pyramid of Djoser",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.98,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam16-r-test1::section::3": {
@@ -3910,35 +3910,35 @@
     "topicLabel": "Work",
     "emoji": "💼",
     "topicTitle": "The Future of Work",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.91,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam16-r-test2::section::1": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
     "topicTitle": "The White Horse of Uffington",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.76,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam16-r-test2::section::2": {
-    "topicKey": "environment",
-    "topicLabel": "Environment & Nature",
-    "emoji": "🌿",
+    "topicKey": "health",
+    "topicLabel": "Health",
+    "emoji": "🩺",
     "topicTitle": "I Contain Multitudes",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.84,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam16-r-test2::section::3": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "psychology",
+    "topicLabel": "Psychology & Behaviour",
+    "emoji": "🧠",
     "topicTitle": "How to Make Wise Decisions",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.87,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam16-r-test3::section::1": {
@@ -3946,8 +3946,8 @@
     "topicLabel": "History & Archaeology",
     "emoji": "🏺",
     "topicTitle": "Roman Shipbuilding and Navigation",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.98,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam16-r-test3::section::2": {
@@ -3955,8 +3955,8 @@
     "topicLabel": "History & Archaeology",
     "emoji": "🏺",
     "topicTitle": "Climate Change Reveals Ancient Artefacts in Norway’s Glaciers",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam16-r-test3::section::3": {
@@ -3964,8 +3964,8 @@
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
     "topicTitle": "Plant ‘Thermometer’ Triggers Springtime Growth",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam16-r-test4::section::1": {
@@ -3973,26 +3973,26 @@
     "topicLabel": "History & Archaeology",
     "emoji": "🏺",
     "topicTitle": "Roman Tunnels",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.69,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam16-r-test4::section::2": {
-    "topicKey": "science",
-    "topicLabel": "Science & Technology",
-    "emoji": "🔬",
+    "topicKey": "culture",
+    "topicLabel": "Culture & Arts",
+    "emoji": "🎭",
     "topicTitle": "Changes in Reading Habits",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam16-r-test4::section::3": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
     "topicTitle": "Attitudes towards Artificial Intelligence",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.82,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam17-r-test1::section::1": {
@@ -4000,26 +4000,26 @@
     "topicLabel": "Transport",
     "emoji": "🚆",
     "topicTitle": "The Development of the London Underground Railway",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam17-r-test1::section::2": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "architecture",
+    "topicLabel": "Architecture & Design",
+    "emoji": "🏛️",
     "topicTitle": "Stadiums: Past, Present and Future",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam17-r-test1::section::3": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
     "topicTitle": "To Catch a King",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.67,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam17-r-test2::section::1": {
@@ -4027,17 +4027,17 @@
     "topicLabel": "History & Archaeology",
     "emoji": "🏺",
     "topicTitle": "The Dead Sea Scrolls",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.85,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam17-r-test2::section::2": {
-    "topicKey": "environment",
-    "topicLabel": "Environment & Nature",
-    "emoji": "🌿",
+    "topicKey": "food",
+    "topicLabel": "Food & Agriculture",
+    "emoji": "🌾",
     "topicTitle": "A Second Attempt at Domesticating the Tomato",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.66,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam17-r-test2::section::3": {
@@ -4045,8 +4045,8 @@
     "topicLabel": "Science & Technology",
     "emoji": "🔬",
     "topicTitle": "Insight or Evolution?",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam17-r-test3::section::1": {
@@ -4054,26 +4054,26 @@
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
     "topicTitle": "The Thylacine",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.97,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam17-r-test3::section::2": {
-    "topicKey": "environment",
-    "topicLabel": "Environment & Nature",
-    "emoji": "🌿",
+    "topicKey": "food",
+    "topicLabel": "Food & Agriculture",
+    "emoji": "🌾",
     "topicTitle": "Palm Oil",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam17-r-test3::section::3": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "architecture",
+    "topicLabel": "Architecture & Design",
+    "emoji": "🏛️",
     "topicTitle": "Building the Skyline: The Birth and Growth of Manhattan’s Skyscrapers",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.84,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam17-r-test4::section::1": {
@@ -4081,8 +4081,8 @@
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
     "topicTitle": "Bats to the Rescue",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam17-r-test4::section::2": {
@@ -4090,17 +4090,17 @@
     "topicLabel": "Education",
     "emoji": "🎓",
     "topicTitle": "Does Education Fuel Economic Growth?",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.85,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam17-r-test4::section::3": {
-    "topicKey": "education",
-    "topicLabel": "Education",
-    "emoji": "🎓",
+    "topicKey": "psychology",
+    "topicLabel": "Psychology & Behaviour",
+    "emoji": "🧠",
     "topicTitle": "Timur Gareyev: Blindfold Chess Champion",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.71,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam18-r-test1::section::1": {
@@ -4108,8 +4108,8 @@
     "topicLabel": "Food & Agriculture",
     "emoji": "🌾",
     "topicTitle": "Urban Farming",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam18-r-test1::section::2": {
@@ -4117,35 +4117,35 @@
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
     "topicTitle": "Forest Management in Pennsylvania, USA",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam18-r-test1::section::3": {
-    "topicKey": "work",
-    "topicLabel": "Work",
-    "emoji": "💼",
-    "topicTitle": "Conquering Earth’s Space Junk Problem",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.68,
-    "schemaVersion": 1
-  },
-  "cam18-r-test2::section::1": {
     "topicKey": "science",
     "topicLabel": "Science & Technology",
     "emoji": "🔬",
+    "topicTitle": "Conquering Earth’s Space Junk Problem",
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
+    "schemaVersion": 1
+  },
+  "cam18-r-test2::section::1": {
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
     "topicTitle": "Stonehenge",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.69,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam18-r-test2::section::2": {
-    "topicKey": "education",
-    "topicLabel": "Education",
-    "emoji": "🎓",
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
     "topicTitle": "Living with Artificial Intelligence",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.64,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam18-r-test2::section::3": {
@@ -4153,8 +4153,8 @@
     "topicLabel": "Society",
     "emoji": "🏘️",
     "topicTitle": "An Ideal City",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam18-r-test3::section::1": {
@@ -4162,8 +4162,8 @@
     "topicLabel": "Architecture & Design",
     "emoji": "🏛️",
     "topicTitle": "Materials to Take Us beyond Concrete",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.78,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam18-r-test3::section::2": {
@@ -4171,8 +4171,8 @@
     "topicLabel": "Transport",
     "emoji": "🚆",
     "topicTitle": "The Steam Car",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam18-r-test3::section::3": {
@@ -4180,26 +4180,26 @@
     "topicLabel": "Education",
     "emoji": "🎓",
     "topicTitle": "The Case for Mixed-ability Classes",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam18-r-test4::section::1": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
     "topicTitle": "Green Roofs",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam18-r-test4::section::2": {
-    "topicKey": "science",
-    "topicLabel": "Science & Technology",
-    "emoji": "🔬",
+    "topicKey": "psychology",
+    "topicLabel": "Psychology & Behaviour",
+    "emoji": "🧠",
     "topicTitle": "The Growth Mindset",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.67,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam18-r-test4::section::3": {
@@ -4207,17 +4207,17 @@
     "topicLabel": "Science & Technology",
     "emoji": "🔬",
     "topicTitle": "Alfred Wegener: Science, Exploration and the Theory of Continental Drift",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam19-r-test1::section::1": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "health",
+    "topicLabel": "Health",
+    "emoji": "🩺",
     "topicTitle": "How Tennis Rackets Have Changed",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.61,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam19-r-test1::section::2": {
@@ -4225,35 +4225,35 @@
     "topicLabel": "History & Archaeology",
     "emoji": "🏺",
     "topicTitle": "The Pirates of the Ancient Mediterranean",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam19-r-test1::section::3": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "psychology",
+    "topicLabel": "Psychology & Behaviour",
+    "emoji": "🧠",
     "topicTitle": "The Persistence and Peril of Misinformation",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam19-r-test2::section::1": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
     "topicTitle": "The Industrial Revolution in Britain",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.81,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam19-r-test2::section::2": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "psychology",
+    "topicLabel": "Psychology & Behaviour",
+    "emoji": "🧠",
     "topicTitle": "Athletes and Stress",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.79,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam19-r-test2::section::3": {
@@ -4261,8 +4261,8 @@
     "topicLabel": "Education",
     "emoji": "🎓",
     "topicTitle": "An Inquiry into the Existence of the Gifted Child",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.82,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam19-r-test3::section::1": {
@@ -4270,8 +4270,8 @@
     "topicLabel": "History & Archaeology",
     "emoji": "🏺",
     "topicTitle": "Archaeologists Discover Evidence of Prehistoric Island Settlers",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.77,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam19-r-test3::section::2": {
@@ -4279,8 +4279,8 @@
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
     "topicTitle": "The Global Importance of Wetlands",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam19-r-test3::section::3": {
@@ -4288,8 +4288,8 @@
     "topicLabel": "Science & Technology",
     "emoji": "🔬",
     "topicTitle": "Is the Era of Artificial Speech Translation upon Us?",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam19-r-test4::section::1": {
@@ -4297,8 +4297,8 @@
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
     "topicTitle": "The Impact of Climate Change on Butterflies in Britain",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam19-r-test4::section::2": {
@@ -4306,17 +4306,17 @@
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
     "topicTitle": "Deep-sea Mining",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam19-r-test4::section::3": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
     "topicTitle": "The Unselfish Gene",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.87,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam20-r-test1::section::1": {
@@ -4324,8 +4324,8 @@
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
     "topicTitle": "The Kākāpō",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.95,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam20-r-test1::section::2": {
@@ -4334,34 +4334,34 @@
     "emoji": "🌿",
     "topicTitle": "Return of the Elm: Reintroducing the Beloved Tree to Britain",
     "source": "readingPaper:curated-title+semantic-override",
-    "confidence": 0.99,
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam20-r-test1::section::3": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "psychology",
+    "topicLabel": "Psychology & Behaviour",
+    "emoji": "🧠",
     "topicTitle": "How Stress Affects Our Judgement",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.93,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam20-r-test2::section::1": {
-    "topicKey": "food",
-    "topicLabel": "Food & Agriculture",
-    "emoji": "🌾",
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
     "topicTitle": "Manatees",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.88,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam20-r-test2::section::2": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "psychology",
+    "topicLabel": "Psychology & Behaviour",
+    "emoji": "🧠",
     "topicTitle": "Procrastination",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.71,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam20-r-test2::section::3": {
@@ -4369,8 +4369,8 @@
     "topicLabel": "Science & Technology",
     "emoji": "🔬",
     "topicTitle": "Invasion of the Robot Umpires",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.63,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam20-r-test3::section::1": {
@@ -4378,8 +4378,8 @@
     "topicLabel": "Food & Agriculture",
     "emoji": "🌾",
     "topicTitle": "Frozen Food",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.89,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam20-r-test3::section::2": {
@@ -4387,8 +4387,8 @@
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
     "topicTitle": "Can the Planet’s Coral Reefs Be Saved?",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.75,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam20-r-test3::section::3": {
@@ -4396,8 +4396,8 @@
     "topicLabel": "Science & Technology",
     "emoji": "🔬",
     "topicTitle": "Robots and Us",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.7,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam20-r-test4::section::1": {
@@ -4405,8 +4405,8 @@
     "topicLabel": "Culture & Arts",
     "emoji": "🎭",
     "topicTitle": "Georgia O’Keeffe",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.94,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam20-r-test4::section::2": {
@@ -4414,17 +4414,17 @@
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
     "topicTitle": "Adapting to the Effects of Climate Change",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.88,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam20-r-test4::section::3": {
-    "topicKey": "education",
-    "topicLabel": "Education",
-    "emoji": "🎓",
+    "topicKey": "environment",
+    "topicLabel": "Environment & Nature",
+    "emoji": "🌿",
     "topicTitle": "A New Role for Livestock Guard Dogs",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.68,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam21-r-test1::section::1": {
@@ -4432,17 +4432,17 @@
     "topicLabel": "Culture & Arts",
     "emoji": "🎭",
     "topicTitle": "The Davies Sisters",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.98,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam21-r-test1::section::2": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "psychology",
+    "topicLabel": "Psychology & Behaviour",
+    "emoji": "🧠",
     "topicTitle": "Why We Need Silence",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.91,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam21-r-test1::section::3": {
@@ -4450,8 +4450,8 @@
     "topicLabel": "History & Archaeology",
     "emoji": "🏺",
     "topicTitle": "Book Review: The World of Sugar by Ulbe Bosma",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.98,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam21-r-test2::section::1": {
@@ -4459,25 +4459,25 @@
     "topicLabel": "Psychology & Behaviour",
     "emoji": "🧠",
     "topicTitle": "Do Animals Dream?",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.76,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam21-r-test2::section::2": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
     "topicTitle": "Mapungubwe",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam21-r-test2::section::3": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "science",
+    "topicLabel": "Science & Technology",
+    "emoji": "🔬",
     "topicTitle": "Artificial Intelligence",
-    "source": "readingPaper:curated-title+weighted-text",
+    "source": "readingPaper:curated-title+semantic-override",
     "confidence": 0.92,
     "schemaVersion": 1
   },
@@ -4486,26 +4486,26 @@
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
     "topicTitle": "Saving the Saiga",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam21-r-test3::section::2": {
-    "topicKey": "society",
-    "topicLabel": "Society",
-    "emoji": "🏘️",
+    "topicKey": "transport",
+    "topicLabel": "Transport",
+    "emoji": "🚆",
     "topicTitle": "The Problems of Getting Around the City of Dar es Salaam",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam21-r-test3::section::3": {
-    "topicKey": "environment",
-    "topicLabel": "Environment & Nature",
-    "emoji": "🌿",
+    "topicKey": "history",
+    "topicLabel": "History & Archaeology",
+    "emoji": "🏺",
     "topicTitle": "Rethinking the Past",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.71,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam21-r-test4::section::1": {
@@ -4513,8 +4513,8 @@
     "topicLabel": "Environment & Nature",
     "emoji": "🌿",
     "topicTitle": "The Problems and Benefits Created by the Spread of the Water Hyacinth in Kenya",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam21-r-test4::section::2": {
@@ -4522,8 +4522,8 @@
     "topicLabel": "Education",
     "emoji": "🎓",
     "topicTitle": "How Could Multilingualism Benefit India’s Poorest Schoolchildren?",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.98,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   },
   "cam21-r-test4::section::3": {
@@ -4531,8 +4531,8 @@
     "topicLabel": "History & Archaeology",
     "emoji": "🏺",
     "topicTitle": "The Globemakers: The Curious Story of an Ancient Craft",
-    "source": "readingPaper:curated-title+weighted-text",
-    "confidence": 0.99,
+    "source": "readingPaper:curated-title+semantic-override",
+    "confidence": 0.92,
     "schemaVersion": 1
   }
 }

@@ -159,7 +159,115 @@ const READING_OVERRIDES = new Map([
   ["cam15-r-test4::section::2", "culture"],
   ["cam15-r-test4::section::3", "business"],
   ["cam20-r-test1::section::2", "environment"],
+  ["cam7-r-test1::section::2", "environment"],
 ]);
+const READING_TOPIC_REPAIRS = {
+  environment: [
+    "cam4-r-test1::section::1", "cam4-r-test1::section::2", "cam4-r-test3::section::2",
+    "cam5-r-test1::section::3", "cam5-r-test3::section::2", "cam5-r-test4::section::3",
+    "cam6-r-test1::section::3", "cam7-r-test1::section::1", "cam7-r-test1::section::2",
+    "cam7-r-test3::section::1", "cam7-r-test3::section::3", "cam7-r-test4::section::2",
+    "cam8-r-test2::section::2", "cam8-r-test4::section::2", "cam8-r-test4::section::3",
+    "cam10-r-test3::section::2", "cam10-r-test4::section::1", "cam10-r-test4::section::3",
+    "cam11-r-test1::section::3", "cam11-r-test3::section::2", "cam12-r-test1::section::1",
+    "cam12-r-test3::section::1", "cam12-r-test4::section::2", "cam13-r-test3::section::1",
+    "cam13-r-test4::section::2", "cam14-r-test4::section::2", "cam14-r-test4::section::3",
+    "cam15-r-test2::section::2", "cam15-r-test4::section::1", "cam16-r-test1::section::1",
+    "cam16-r-test3::section::3", "cam17-r-test3::section::1", "cam17-r-test4::section::1",
+    "cam18-r-test1::section::2", "cam18-r-test4::section::1", "cam19-r-test3::section::2",
+    "cam19-r-test4::section::1", "cam19-r-test4::section::2", "cam20-r-test1::section::1",
+    "cam20-r-test1::section::2", "cam20-r-test2::section::1", "cam20-r-test3::section::2",
+    "cam20-r-test4::section::2", "cam20-r-test4::section::3", "cam21-r-test3::section::1",
+    "cam21-r-test4::section::1",
+  ],
+  science: [
+    "cam5-r-test2::section::1", "cam5-r-test2::section::3", "cam5-r-test3::section::3",
+    "cam8-r-test2::section::1", "cam8-r-test3::section::1", "cam8-r-test3::section::3", "cam9-r-test1::section::1",
+    "cam9-r-test1::section::2", "cam9-r-test2::section::2", "cam9-r-test3::section::2",
+    "cam9-r-test3::section::3", "cam9-r-test4::section::1", "cam11-r-test4::section::1", "cam14-r-test3::section::2",
+    "cam15-r-test3::section::2", "cam16-r-test4::section::3", "cam17-r-test2::section::3",
+    "cam18-r-test1::section::3", "cam18-r-test2::section::2", "cam18-r-test4::section::3",
+    "cam19-r-test3::section::3", "cam19-r-test4::section::3", "cam20-r-test2::section::3", "cam20-r-test3::section::3",
+    "cam21-r-test2::section::3",
+  ],
+  history: [
+    "cam4-r-test4::section::2", "cam7-r-test4::section::1", "cam8-r-test1::section::1", "cam9-r-test1::section::3",
+    "cam9-r-test4::section::3", "cam10-r-test2::section::1", "cam10-r-test3::section::3",
+    "cam11-r-test2::section::1", "cam11-r-test2::section::2", "cam11-r-test3::section::1",
+    "cam12-r-test2::section::2", "cam12-r-test4::section::1", "cam13-r-test2::section::1",
+    "cam13-r-test3::section::3", "cam16-r-test2::section::1", "cam16-r-test3::section::1",
+    "cam16-r-test3::section::2", "cam16-r-test4::section::1", "cam17-r-test1::section::3",
+    "cam17-r-test2::section::1", "cam18-r-test2::section::1", "cam19-r-test1::section::2",
+    "cam19-r-test2::section::1", "cam19-r-test3::section::1", "cam21-r-test1::section::3",
+    "cam21-r-test2::section::2", "cam21-r-test3::section::3", "cam21-r-test4::section::3",
+  ],
+  culture: [
+    "cam4-r-test1::section::3", "cam4-r-test2::section::1", "cam4-r-test3::section::3",
+    "cam5-r-test1::section::1", "cam6-r-test3::section::1", "cam9-r-test3::section::1",
+    "cam10-r-test2::section::3", "cam11-r-test4::section::2", "cam11-r-test4::section::3",
+    "cam12-r-test2::section::3", "cam12-r-test3::section::3", "cam13-r-test1::section::3",
+    "cam14-r-test2::section::1", "cam15-r-test3::section::1", "cam15-r-test3::section::3",
+    "cam15-r-test4::section::2", "cam16-r-test4::section::2", "cam20-r-test4::section::1", "cam21-r-test1::section::1",
+  ],
+  psychology: [
+    "cam4-r-test2::section::3", "cam5-r-test1::section::2", "cam5-r-test2::section::2",
+    "cam8-r-test1::section::3", "cam8-r-test2::section::3", "cam8-r-test3::section::2",
+    "cam9-r-test2::section::3", "cam9-r-test4::section::2", "cam10-r-test1::section::3",
+    "cam10-r-test4::section::2", "cam11-r-test2::section::3", "cam11-r-test3::section::3",
+    "cam13-r-test1::section::2", "cam14-r-test1::section::1", "cam14-r-test3::section::1",
+    "cam14-r-test3::section::3", "cam15-r-test2::section::3", "cam16-r-test2::section::3",
+    "cam17-r-test4::section::3", "cam18-r-test4::section::2", "cam19-r-test1::section::3",
+    "cam19-r-test2::section::2", "cam20-r-test1::section::3",
+    "cam20-r-test2::section::2", "cam21-r-test1::section::2", "cam21-r-test2::section::1",
+  ],
+  education: [
+    "cam5-r-test3::section::1", "cam6-r-test2::section::3", "cam6-r-test4::section::2",
+    "cam7-r-test1::section::3", "cam10-r-test2::section::2", "cam12-r-test1::section::3",
+    "cam13-r-test3::section::2", "cam18-r-test3::section::3", "cam19-r-test2::section::3",
+    "cam8-r-test4::section::1", "cam17-r-test4::section::2", "cam21-r-test4::section::2",
+  ],
+  health: [
+    "cam4-r-test2::section::2", "cam4-r-test4::section::1", "cam6-r-test1::section::1",
+    "cam6-r-test2::section::2", "cam6-r-test3::section::3", "cam7-r-test4::section::3",
+    "cam9-r-test2::section::1", "cam12-r-test3::section::2", "cam13-r-test2::section::2",
+    "cam14-r-test4::section::1", "cam16-r-test2::section::2", "cam19-r-test1::section::1",
+  ],
+  transport: [
+    "cam6-r-test1::section::2", "cam6-r-test2::section::1", "cam7-r-test2::section::3",
+    "cam8-r-test1::section::2", "cam10-r-test1::section::2", "cam11-r-test1::section::2",
+    "cam13-r-test4::section::1", "cam14-r-test1::section::2", "cam15-r-test1::section::2",
+    "cam17-r-test1::section::1", "cam18-r-test3::section::2", "cam21-r-test3::section::2",
+  ],
+  architecture: [
+    "cam5-r-test4::section::2", "cam7-r-test2::section::1", "cam10-r-test1::section::1",
+    "cam14-r-test2::section::2", "cam15-r-test2::section::1", "cam16-r-test1::section::2",
+    "cam17-r-test1::section::2", "cam17-r-test3::section::3", "cam18-r-test3::section::1",
+  ],
+  food: [
+    "cam7-r-test2::section::2", "cam11-r-test1::section::1",
+    "cam12-r-test2::section::1", "cam17-r-test2::section::2", "cam17-r-test3::section::2",
+    "cam18-r-test1::section::1", "cam20-r-test3::section::1",
+  ],
+  business: [
+    "cam4-r-test3::section::1", "cam4-r-test4::section::3", "cam6-r-test4::section::1",
+    "cam12-r-test4::section::3", "cam13-r-test2::section::3", "cam14-r-test2::section::3",
+    "cam15-r-test4::section::3",
+  ],
+  society: [
+    "cam6-r-test4::section::3", "cam7-r-test3::section::2", "cam12-r-test1::section::2",
+    "cam13-r-test4::section::3", "cam18-r-test2::section::3",
+  ],
+  work: [
+    "cam6-r-test3::section::2", "cam14-r-test1::section::3", "cam16-r-test1::section::3",
+  ],
+  travel: [
+    "cam5-r-test4::section::1", "cam10-r-test3::section::1", "cam13-r-test1::section::1",
+    "cam15-r-test1::section::3",
+  ],
+};
+for (const [topicKey, canonicalIds] of Object.entries(READING_TOPIC_REPAIRS)) {
+  for (const canonicalId of canonicalIds) READING_OVERRIDES.set(canonicalId, topicKey);
+}
 const CACHE_KEY_OVERRIDES = new Map([
   ["cam9-l-test4::section::3", "cam9-l-test4::4"],
   ["cam9-l-test4::section::4", "cam9-l-test4::3"],
@@ -378,8 +486,8 @@ function readingEntry(paper, passage, chunk) {
   if (!curatedTitle) throw new Error(`Missing curated Reading title for ${canonicalId}`);
   const classified = classifyTopic({ canonicalId, title: curatedTitle, intro: String(chunk).slice(0, 2200), body: chunk });
   const topic = overrideKey
-    ? { ...TAXONOMY.find((item) => item.key === overrideKey), confidence: 0.99 }
-    : classified;
+    ? { ...TAXONOMY.find((item) => item.key === overrideKey), confidence: 0.92 }
+    : { ...classified, confidence: Math.min(classified.confidence, 0.9) };
   const topicTitle = curatedTitle;
   return {
     topicKey: topic.key,

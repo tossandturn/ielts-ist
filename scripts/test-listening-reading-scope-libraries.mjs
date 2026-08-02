@@ -135,6 +135,20 @@ for (const [paperId, expectedTopics] of Object.entries(expectedCam15ReadingTopic
     assert.equal(paper.contentTopics?.[String(index + 1)]?.title, title, `${paperId} Passage ${index + 1} source title`);
   });
 }
+const representativeReadingCategories = {
+  "cam6-r-test2::section::1": ["transport", "Advantages of Public Transport"],
+  "cam7-r-test1::section::2": ["environment", "Making Every Drop Count"],
+  "cam14-r-test1::section::2": ["transport", "The Growth of Bike-sharing Schemes"],
+  "cam18-r-test2::section::1": ["history", "Stonehenge"],
+  "cam20-r-test2::section::1": ["environment", "Manatees"],
+  "cam21-r-test2::section::3": ["science", "Artificial Intelligence"],
+};
+for (const [canonicalId, [expectedKey, expectedTitle]] of Object.entries(representativeReadingCategories)) {
+  const [paperId, , passage] = canonicalId.split("::");
+  const topic = tasks.readingTests.find((item) => item.id === paperId)?.contentTopics?.[passage];
+  assert.equal(topic?.title, expectedTitle, `${canonicalId} representative source title`);
+  assert.equal(topic?.key, expectedKey, `${canonicalId} representative semantic category`);
+}
 const questionTypeKeys = new Set([...listeningTypes, ...readingTypes]);
 for (const paper of [...tasks.listeningTests, ...tasks.readingTests]) {
   for (const topic of Object.values(paper.contentTopics || {})) {
@@ -145,6 +159,17 @@ const semanticCatalog = JSON.parse(await readFile(resolve("data", "objective-sem
 const semanticEntries = Object.entries(semanticCatalog);
 assert.equal(semanticEntries.filter(([id]) => /-l-test\d+::section::[1-4]$/.test(id)).length, 288, "Semantic catalog needs all 288 Listening Sections");
 assert.equal(semanticEntries.filter(([id]) => /-r-test\d+::section::[1-3]$/.test(id)).length, 216, "Semantic catalog needs all 216 Reading Passages");
+const stableReadingTopicKeys = new Set([
+  "work", "travel", "education", "environment", "health", "science", "history",
+  "culture", "society", "business", "transport", "architecture", "psychology", "food",
+]);
+assert.deepEqual(
+  semanticEntries
+    .filter(([id, topic]) => /-r-test\d+::section::[1-3]$/.test(id) && !stableReadingTopicKeys.has(topic.topicKey))
+    .map(([id, topic]) => [id, topic.topicKey, topic.topicTitle]),
+  [],
+  "All Reading passages must use the stable 14-category semantic taxonomy",
+);
 for (const [id, topic] of semanticEntries) {
   assert.ok(topic.topicKey && topic.topicLabel && topic.emoji && topic.topicTitle, `${id} needs complete semantic display metadata`);
   assert.ok(topic.source && Number.isFinite(topic.confidence) && topic.schemaVersion, `${id} needs reproducibility metadata`);
@@ -179,6 +204,11 @@ assert.equal(
   semanticEntries.filter(([id, topic]) => /-r-test\d+::section::[1-3]$/.test(id) && /^readingPaper:curated-title/.test(topic.source)).length,
   216,
   "Every Reading passage title must come from the reviewed source-title catalog",
+);
+assert.equal(
+  semanticEntries.filter(([id, topic]) => /-r-test\d+::section::[1-3]$/.test(id) && topic.source === "readingPaper:curated-title+semantic-override").length,
+  216,
+  "Every Reading passage category must come from the deterministic audited override table",
 );
 const cam9MismatchSection3 = semanticCatalog["cam9-l-test4::section::3"];
 const cam9MismatchSection4 = semanticCatalog["cam9-l-test4::section::4"];
