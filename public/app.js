@@ -14,6 +14,10 @@
     listening: "paper",
     reading: "paper",
   },
+  objectiveTopicSelection: {
+    listening: "",
+    reading: "",
+  },
   singlePracticeSections: {
     listening: 1,
     reading: 1,
@@ -4647,13 +4651,14 @@ function practiceCompletionFilterMatches(moduleName, item, completionIndex, filt
   return filter === "completed" ? completed : !completed;
 }
 
-function applySingleUnitFilters(items, moduleName, scope = currentSinglePracticeScope(moduleName), completionIndex = null) {
+function applySingleUnitFilters(items, moduleName, scope = currentSinglePracticeScope(moduleName), completionIndex = null, includeCompletion = true) {
   const unit = filterValue("singleUnitFilter");
   const topic = filterValue("singleTopicFilter");
   return items.filter((item) => {
     const unitOk = !["section", "topic"].includes(scope) || unit === "all" || String(item.practiceSection) === unit;
     const topicOk = scope !== "topic" || topic === "all" || String(item.contentTopic?.key || "") === topic;
-    return unitOk && topicOk && practiceCompletionFilterMatches(moduleName, item, completionIndex);
+    const completionOk = !includeCompletion || practiceCompletionFilterMatches(moduleName, item, completionIndex);
+    return unitOk && topicOk && completionOk;
   });
 }
 
@@ -14882,6 +14887,109 @@ function practiceCompletionGroupSummary(moduleName, items = [], completionIndex 
   };
 }
 
+function objectiveTopicPresentation(contentTopic = {}) {
+  const key = String(contentTopic.key || "general").trim() || "general";
+  const presentations = {
+    architecture: { accent: "place", keywords: ["buildings", "design", "places"] },
+    business: { accent: "work", keywords: ["business", "money", "economics"] },
+    culture: { accent: "media", keywords: ["culture", "arts", "heritage"] },
+    education: { accent: "education", keywords: ["study", "learning", "campus"] },
+    environment: { accent: "nature", keywords: ["nature", "climate", "wildlife"] },
+    food: { accent: "lifestyle", keywords: ["food", "farming", "agriculture"] },
+    health: { accent: "lifestyle", keywords: ["health", "medicine", "wellbeing"] },
+    history: { accent: "society", keywords: ["history", "heritage", "archaeology"] },
+    psychology: { accent: "people", keywords: ["mind", "behaviour", "relationships"] },
+    science: { accent: "technology", keywords: ["science", "research", "technology"] },
+    society: { accent: "society", keywords: ["society", "community", "people"] },
+    transport: { accent: "place", keywords: ["transport", "traffic", "mobility"] },
+    travel: { accent: "place", keywords: ["travel", "tourism", "journeys"] },
+    work: { accent: "work", keywords: ["jobs", "careers", "workplace"] },
+  };
+  const fallbackKeywords = String(contentTopic.label || "General interest")
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean)
+    .slice(0, 3);
+  return presentations[key] || { accent: "people", keywords: fallbackKeywords.length ? fallbackKeywords : ["general", "ideas", "practice"] };
+}
+
+function objectiveTopicProgressOptions(moduleName, completionIndex = null) {
+  const papers = applySingleFilters(mergedItems(moduleName).map(normalizeItem), moduleName);
+  const units = scopedPracticeUnits(moduleName, papers, "topic");
+  return applySingleUnitFilters(units, moduleName, "topic", completionIndex, false);
+}
+
+function buildObjectiveTopicGroups(moduleName, visibleOptions, progressOptions, completionIndex = null) {
+  const visibleKeys = new Set(visibleOptions.map((item) => String(item.contentTopic?.key || "general")));
+  const groups = new Map();
+  progressOptions.forEach((item) => {
+    const contentTopic = item.contentTopic || {};
+    const key = String(contentTopic.key || "general");
+    if (!visibleKeys.has(key)) return;
+    if (!groups.has(key)) groups.set(key, { key, contentTopic, items: [] });
+    groups.get(key).items.push(item);
+  });
+  return [...groups.values()]
+    .map((group) => ({
+      ...group,
+      presentation: objectiveTopicPresentation(group.contentTopic),
+      progress: practiceCompletionGroupSummary(moduleName, group.items, completionIndex),
+      visibleItems: visibleOptions.filter((item) => String(item.contentTopic?.key || "general") === group.key),
+    }))
+    .sort((a, b) => String(a.contentTopic.label || a.key).localeCompare(String(b.contentTopic.label || b.key)));
+}
+
+function objectiveTopicSourceLabel(items = [], moduleName = "listening") {
+  const books = items.map(itemBook).filter(Number.isFinite).sort((a, b) => a - b);
+  const firstBook = books[0];
+  const lastBook = books[books.length - 1];
+  const range = firstBook && lastBook ? (firstBook === lastBook ? `Cambridge ${firstBook}` : `Cambridge ${firstBook}–${lastBook}`) : "Cambridge";
+  const unitLabel = moduleName === "reading" ? "passage" : "section";
+  return `${items.length} ${unitLabel}${items.length === 1 ? "" : "s"} · ${range}`;
+}
+
+function objectiveTopicArrowIcon() {
+  return `<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11m-4-4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+
+function renderObjectiveTopicCard(group, moduleName) {
+  const topic = group.contentTopic || {};
+  const chips = group.presentation.keywords.map((keyword) => `<span>${escapeHtml(keyword)}</span>`).join("");
+  return `<article class="objective-topic-card topic-accent-${escapeHtml(group.presentation.accent)}" data-objective-topic-key="${escapeHtml(group.key)}">
+    <div class="objective-topic-card-head">
+      <span class="objective-topic-icon" aria-hidden="true">${escapeHtml(topic.emoji || "✨")}</span>
+      <span class="objective-topic-progress">${escapeHtml(group.progress.label)}</span>
+    </div>
+    <h4>${escapeHtml(topic.label || "General interest")}</h4>
+    <div class="objective-topic-keywords">${chips}</div>
+    <footer>
+      <span>${escapeHtml(objectiveTopicSourceLabel(group.items, moduleName))}</span>
+      <button class="primary" type="button" data-objective-topic-open="${escapeHtml(group.key)}">Choose ${objectiveTopicArrowIcon()}</button>
+    </footer>
+  </article>`;
+}
+
+function renderObjectiveTopicLibrary(moduleName, visibleOptions, progressOptions, completionIndex) {
+  const groups = buildObjectiveTopicGroups(moduleName, visibleOptions, progressOptions, completionIndex);
+  const selectedKey = String(state.objectiveTopicSelection?.[moduleName] || "");
+  const selectedGroup = groups.find((group) => group.key === selectedKey);
+  if (selectedGroup) {
+    const topic = selectedGroup.contentTopic || {};
+    return `<section class="objective-topic-chooser" data-objective-topic-detail="${escapeHtml(selectedGroup.key)}">
+      <header>
+        <button class="secondary objective-topic-back" type="button" data-objective-topic-back>${objectiveTopicArrowIcon()} Back to topics</button>
+        <div><span class="eyebrow">${escapeHtml(moduleDisplayName(moduleName))} topic</span><h3>${escapeHtml(topic.emoji || "✨")} ${escapeHtml(topic.label || "General interest")}</h3><p>${escapeHtml(selectedGroup.progress.label)} · ${escapeHtml(objectiveTopicSourceLabel(selectedGroup.items, moduleName))}</p></div>
+      </header>
+      <div class="practice-unit-grid objective-topic-unit-grid">${selectedGroup.visibleItems.map((item) => renderPracticeUnitCard(item, moduleName, completionIndex)).join("")}</div>
+    </section>`;
+  }
+  const empty = "No content topics match the current Cambridge, unit or progress filters. Adjust or clear a filter to continue.";
+  return `<section class="objective-topic-directory" data-objective-topic-directory>
+    <header><div><span class="eyebrow">${escapeHtml(moduleDisplayName(moduleName))} topic library</span><h3>My topics</h3></div><span>${groups.length} content topic${groups.length === 1 ? "" : "s"}</span></header>
+    ${groups.length ? `<div class="objective-topic-grid">${groups.map((group) => renderObjectiveTopicCard(group, moduleName)).join("")}</div>` : `<div class="practice-unit-empty"><span aria-hidden="true">🌱</span><p>${escapeHtml(empty)}</p></div>`}
+  </section>`;
+}
+
 function renderPracticeUnitCard(item, moduleName, completionIndex) {
   const scope = item.libraryScope === "topic" ? "topic" : item.practiceScope || "paper";
   const questionCount = item.questions?.length || 0;
@@ -14895,7 +15003,7 @@ function renderPracticeUnitCard(item, moduleName, completionIndex) {
       ? `${contentTopic.emoji || "✨"} ${contentTopic.label || "General interest"}`
       : scope === "review" ? "Mistake review" : "Full test";
   return `<article class="practice-unit-card tone-${escapeHtml(moduleName)}" data-practice-unit-id="${escapeHtml(item.id)}" data-practice-unit-scope="${escapeHtml(scope)}" data-practice-section="${escapeHtml(item.practiceSection || "")}" data-content-topic="${escapeHtml(contentTopic.key || "")}" data-practice-status="${status}">
-    <div class="practice-unit-card-head"><span>${scope === "section" ? "🎯" : scope === "topic" ? "🧭" : "🔁"}</span><em>${escapeHtml(unitLabel)}</em></div>
+    <div class="practice-unit-card-head${scope === "topic" ? " topic-only" : ""}">${scope === "topic" ? "" : `<span>${scope === "section" ? "🎯" : "🔁"}</span>`}<em>${escapeHtml(unitLabel)}</em></div>
     <h4>${escapeHtml(item.title || unitLabel)}</h4>
     <p>${escapeHtml(singlePracticeEvidenceLabel(item, moduleName) || item.source || moduleDisplayName(moduleName))}</p>
     <div class="practice-unit-stats"><span><strong>${questionCount}</strong> questions</span><span><strong>${Number(item.minutes) || 20}</strong> min</span>${moduleName === "listening" ? "<span>💬 ASR captions</span>" : "<span>🔎 Evidence view</span>"}</div>
@@ -14907,6 +15015,9 @@ function renderPracticeUnitCard(item, moduleName, completionIndex) {
 function renderScopedPracticeLibrary(moduleName, options, completionIndex) {
   const scope = currentSinglePracticeScope(moduleName);
   if (scope === "paper") return "";
+  if (scope === "topic") {
+    return renderObjectiveTopicLibrary(moduleName, options, objectiveTopicProgressOptions(moduleName, completionIndex), completionIndex);
+  }
   const empty = scope === "review"
     ? "Complete and score a practice first. Your wrong answers will appear here as an independent review set."
     : "No practice units match the current filters. Adjust or clear a Cambridge, unit, topic, or progress filter to continue.";
@@ -17316,8 +17427,23 @@ function bindDynamicControls() {
       if (!["listening", "reading"].includes(state.activeModule)) return;
       saveSingleAnswersToState();
       setSinglePracticeScope(state.activeModule, button.dataset.singleScope || "paper");
+      state.objectiveTopicSelection[state.activeModule] = "";
       state.activeSingle = null;
       state.singleStarted = false;
+      renderSingle();
+    };
+  });
+  document.querySelectorAll("[data-objective-topic-open]").forEach((button) => {
+    button.onclick = () => {
+      if (!["listening", "reading"].includes(state.activeModule)) return;
+      state.objectiveTopicSelection[state.activeModule] = button.dataset.objectiveTopicOpen || "";
+      renderSingle();
+    };
+  });
+  document.querySelectorAll("[data-objective-topic-back]").forEach((button) => {
+    button.onclick = () => {
+      if (!["listening", "reading"].includes(state.activeModule)) return;
+      state.objectiveTopicSelection[state.activeModule] = "";
       renderSingle();
     };
   });
@@ -18438,6 +18564,7 @@ function bindEvents() {
   ["singleBookFilter", "singleTestFilter", "singleTaskFilter", "singleUnitFilter", "singleTopicFilter", "singleCompletionFilter"].forEach((id) => {
     $(id).addEventListener("change", () => {
       state.activeSingle = null;
+      if (["listening", "reading"].includes(state.activeModule)) state.objectiveTopicSelection[state.activeModule] = "";
       renderSingle();
     });
   });

@@ -563,11 +563,17 @@ try {
   await page.locator("#singleCompletionFilter").selectOption("all");
   await page.locator("#singleUnitFilter").selectOption("1");
   await page.locator("#singleTopicFilter").selectOption("work");
+  assert.deepEqual(await page.locator("[data-objective-topic-key]").evaluateAll((nodes) => nodes.map((node) => node.dataset.objectiveTopicKey)), ["work"], "Semantic Topic filters must produce a grouped content-topic directory");
+  const filteredWorkTopicText = await page.locator('[data-objective-topic-key="work"]').innerText();
+  assert.match(filteredWorkTopicText, /1\/1 completed/i);
+  assert.match(filteredWorkTopicText, /Work[\s\S]*1 section/i);
+  await page.locator('[data-objective-topic-open="work"]').click();
   assert.deepEqual(await page.locator('[data-practice-unit-scope="topic"]').evaluateAll((nodes) => nodes.map((node) => node.dataset.practiceUnitId)), ["cam15-l-test1::section::1"], "Semantic Topic must combine with Cambridge and Section filters");
   await page.locator("#singleUnitFilter").selectOption("2");
   assert.equal(await page.locator("#singleTopicFilter").inputValue(), "all", "Changing the unit must safely reset an unavailable dependent Topic");
   await page.locator("#singleUnitFilter").selectOption("all");
   await page.locator("#singleCompletionFilter").selectOption("completed");
+  await page.locator('[data-objective-topic-open="work"]').click();
   const listeningTopicCard = page.locator('[data-practice-unit-scope="topic"][data-practice-unit-id="cam15-l-test1::section::1"]');
   const listeningTopicUnitId = await listeningTopicCard.getAttribute("data-practice-unit-id");
   const listeningContentTopic = await listeningTopicCard.getAttribute("data-content-topic");
@@ -575,6 +581,7 @@ try {
   assert.equal(listeningContentTopic, "work");
   assert.equal(await listeningTopicCard.getAttribute("data-topic-type"), null, "Semantic Topic cards must never expose question-type data");
   assert.equal(await listeningTopicCard.getAttribute("data-practice-status"), "completed");
+  assert.equal(await listeningTopicCard.locator(".practice-unit-card-head > span").count(), 0, "Topic detail cards must not repeat a generic compass icon");
   assert.match(
     await listeningTopicCard.innerText(),
     new RegExp(`Work[\\s\\S]*${listeningPaper.contentTopics["1"].title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}[\\s\\S]*✓ Completed`, "i"),
@@ -627,6 +634,9 @@ try {
   await page.locator("#singleTestFilter").selectOption("1");
   await page.locator("#singleUnitFilter").selectOption("2");
   await page.locator("#singleCompletionFilter").selectOption("completed");
+  const readingTopicKey = readingPaper.contentTopics["2"].key;
+  assert.equal(await page.locator(`[data-objective-topic-key="${readingTopicKey}"]`).count(), 1, "Reading Topics must group semantic Passage content before showing practice units");
+  await page.locator(`[data-objective-topic-open="${readingTopicKey}"]`).click();
   const readingTopicCard = page.locator('[data-practice-unit-scope="topic"]').first();
   const readingTopicUnitId = await readingTopicCard.getAttribute("data-practice-unit-id");
   assert.equal(readingTopicUnitId, "cam15-r-test1::section::2");
@@ -650,7 +660,7 @@ try {
   ]);
   assert.equal(Object.keys(objectiveCompletionEntries).length, 504, "Performance fixture must model all 288 Listening and 216 Reading unit completions");
   const perfPage = await browser.newPage({ viewport: { width: 1280, height: 800 } });
-  const assertPerfPageClean = collectPageErrors(perfPage, "288-card completion render");
+  const assertPerfPageClean = collectPageErrors(perfPage, "grouped Topic completion render");
   await installGuestState(perfPage);
   await perfPage.goto(`${baseUrl}/?test=lr-scope-completion-perf#home`, { waitUntil: "networkidle" });
   await activateModule(perfPage, "listening");
@@ -664,11 +674,16 @@ try {
     };
   }, objectiveCompletionEntries);
   await perfPage.locator('[data-single-scope="topic"]').click();
-  assert.equal(await perfPage.locator('[data-practice-unit-scope="topic"]').count(), 288, "Listening Topic render must exercise all 288 cards");
-  assert.ok(await perfPage.evaluate(() => window.__completionStoreReads) <= 2, "A 288-card render must reuse one completion snapshot instead of reparsing the 504-entry index per item");
+  const expectedListeningTopicGroups = new Set(tasks.listeningTests.flatMap((paper) => Object.values(paper.contentTopics || {}).map((topic) => topic.key))).size;
+  assert.equal(await perfPage.locator("[data-objective-topic-key]").count(), expectedListeningTopicGroups, "Listening Topics must render one card per semantic content group");
+  assert.equal(await perfPage.locator('[data-practice-unit-scope="topic"]').count(), 0, "Topic units must stay collapsed until a content topic is chosen");
+  assert.ok(await perfPage.evaluate(() => window.__completionStoreReads) <= 2, "Grouped Topic progress must reuse one completion snapshot instead of reparsing the 504-entry index per item");
+  assert.match(await perfPage.locator(".objective-topic-progress").first().innerText(), /\d+\/\d+ completed/);
+  await perfPage.locator("[data-objective-topic-open]").first().click();
+  assert.ok(await perfPage.locator('[data-practice-unit-scope="topic"]').count() > 0, "Choosing a Topic group must reveal its canonical Section units");
   assert.match(await perfPage.locator(".practice-status-badge").first().innerText(), /✓ Completed · 2026-07-30/);
   assert.equal(await perfPage.locator('.practice-status-badge[role="status"], .practice-status-badge[aria-live]').count(), 0);
-  console.log(`PASS 288-card library reuses completion snapshot for 504 completion records`);
+  console.log(`PASS ${expectedListeningTopicGroups}-group Topic directory reuses completion snapshot for 504 completion records`);
   await perfPage.evaluate(() => localStorage.removeItem("ieltsistCompletedItemsV1"));
   assertPerfPageClean();
   await perfPage.close();
@@ -738,12 +753,12 @@ try {
       const metrics = await responsivePage.evaluate(() => ({
       overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
       tabs: document.querySelectorAll("[data-single-scope]").length,
-      cards: document.querySelectorAll('[data-practice-unit-scope="topic"]').length,
+      cards: document.querySelectorAll("[data-objective-topic-key]").length,
       shortestControl: Math.min(...[...document.querySelectorAll("#single button, #single select")]
         .filter((node) => node.getBoundingClientRect().height > 0)
         .map((node) => node.getBoundingClientRect().height)),
       libraryBounded: (() => {
-        const grid = document.querySelector(".practice-unit-grid");
+        const grid = document.querySelector(".objective-topic-grid");
         return !grid || grid.getBoundingClientRect().height <= innerHeight * .75;
       })(),
     }));
