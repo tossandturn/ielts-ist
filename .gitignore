@@ -13,4 +13,5 @@ data/reading-ocr-page-cache.json
 data/audio-backups/
 public/generated/audio/
 artifacts/
+.worktrees/
 server-app.remote.tmp.js
