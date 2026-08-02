@@ -162,6 +162,7 @@ const pendingLearningAttemptsStoreKey = "ieltsistPendingLearningAttemptsV1";
 const writingUploadSessionStoreKey = "ieltsistWritingUploadSessionV1";
 const writingTimerStoreKey = "ieltsistWritingTimerV1";
 const recommendationHistoryStoreKey = "ieltsistRecommendationHistoryV1";
+const speakingRecentQuestionsStoreKey = "ieltsistSpeakingRecentQuestionsV1";
 const listeningAudioGraphs = new WeakMap();
 const listeningAsrCacheSource = "qwen-asr-live-vad-v1";
 const listeningCaptionDefaultWordsPerSecond = 1.45;
@@ -6741,6 +6742,7 @@ function buildSpeakingResultRecord(prefix, feedback, json = {}, bandValue = "") 
   return {
     attemptId: json.attemptId || "",
     prefix,
+    practiceScope: prefix ? qwenSpeakingScope(prefix) : "full",
     topicId: topic?.id || "",
     title: topic?.title || "Speaking with AI",
     topic: topic ? {
@@ -10524,6 +10526,26 @@ function renderSpeaking(set, prefix = "single") {
   return renderSpeakingExamTwoColumn(set, prefix);
 }
 
+function speakingPracticeScopeConfig(scope = "full") {
+  const configs = {
+    full: { id: "full", label: "Full test", targetMs: 15 * 60 * 1000, parts: ["part1", "part2", "part3"] },
+    part1: { id: "part1", label: "Part 1", targetMs: 5 * 60 * 1000, parts: ["part1"] },
+    part2: { id: "part2", label: "Part 2", targetMs: 3 * 60 * 1000, parts: ["part2"] },
+    part3: { id: "part3", label: "Part 3", targetMs: 5 * 60 * 1000, parts: ["part3"] },
+  };
+  return configs[scope] || configs.full;
+}
+
+function qwenSpeakingCountdownState(targetMs, elapsedMs) {
+  const remainingMs = Math.max(0, Number(targetMs || 0) - Math.max(0, Number(elapsedMs || 0)));
+  const totalSeconds = Math.ceil(remainingMs / 1000);
+  return {
+    remainingMs,
+    expired: remainingMs <= 0,
+    label: `${String(Math.floor(totalSeconds / 60)).padStart(2, "0")}:${String(totalSeconds % 60).padStart(2, "0")}`,
+  };
+}
+
 function renderSpeakingCueCard(item) {
   const part2 = compactDialogueText(item.part2 || item.prompt || item.title || "");
   const cueLines = String(item.part2 || "")
@@ -10568,6 +10590,7 @@ function renderRealtimeSpeakingPanel(item, prefix, options = {}) {
   const showTranscript = options.showTranscript !== false;
   const mode = options.mode || (prefix === "exam" ? "exam" : "coach");
   const leftPane = options.leftPane || "";
+  const practiceScope = speakingPracticeScopeConfig(options.practiceScope || "full");
   const speakingTopicPayload = JSON.stringify({
     title: item.title || "",
     source: item.source || "",
@@ -10580,7 +10603,7 @@ function renderRealtimeSpeakingPanel(item, prefix, options = {}) {
       <summary>Conversation transcript</summary>
       <div id="${prefix}-speaking-log" class="dialogue-log"></div>
     </details>`;
-  return `<div class="qwen-speaking speaking-exam-shell speaking-practice-layout" data-prefix="${prefix}" data-topic="${escapeHtml(item.title)}" data-practice-mode="${escapeHtml(mode)}">
+  return `<div class="qwen-speaking speaking-exam-shell speaking-practice-layout" data-prefix="${prefix}" data-topic="${escapeHtml(item.title)}" data-practice-mode="${escapeHtml(mode)}" data-speaking-scope="${practiceScope.id}">
     <textarea id="${prefix}-qwen-prompt" hidden>${escapeHtml(buildIeltsSpeakingPrompt(item))}</textarea>
     <textarea id="${prefix}-qwen-topic-json" hidden>${escapeHtml(speakingTopicPayload)}</textarea>
     <section class="practice-context exam-left-pane speaking-exam-left-pane ${prefix === "exam" ? "speaking-orb-pane" : ""}">
@@ -10596,7 +10619,7 @@ function renderRealtimeSpeakingPanel(item, prefix, options = {}) {
         <div class="speaking-preflight" aria-label="Speaking test status"><span><i aria-hidden="true"></i> ${prefix === "bank" && state.speakingDeviceChecked ? "Device check passed" : "Ready for device permission"}</span><span><i aria-hidden="true"></i> ${navigator.onLine ? "Network online" : "Network offline"}</span></div>
         <div class="speaking-live-meta" aria-live="polite">
           <strong id="${prefix}-speaking-current-part">Preparation</strong>
-          <span id="${prefix}-speaking-elapsed">00:00</span>
+          <span id="${prefix}-speaking-elapsed" aria-label="Time remaining">${practiceScope.id === "full" ? "15:00" : practiceScope.id === "part2" ? "03:00" : "05:00"}</span>
         </div>
         <div class="qwen-meter" aria-label="Live voice waveform">
           <span id="${prefix}-qwen-level"></span>
@@ -10630,7 +10653,7 @@ function buildIeltsSpeakingPrompt(set) {
     ...(item.part3 || []),
   ].filter(Boolean).join("\n");
   return [
-    "You are a professional IELTS Speaking examiner in a real-time voice test.",
+    "You are a professional IELTS Speaking examiner in a real-time voice test. Your personality is calm, neutral-warm, attentive and concise.",
     "Speak English only during the test. Do not read role labels. Do not explain the rules unless necessary.",
     "Critical opening rule: your first response must be no more than two short sentences. Sentence 1 must be a brief greeting statement, not a question. Sentence 2 must ask exactly one Part 1 question. Then stop and wait for the student's spoken answer.",
     "Do not ask greeting/check-in questions such as 'How are you?' or 'Are you ready?' because they count as extra questions.",
@@ -10648,6 +10671,7 @@ function buildIeltsSpeakingPrompt(set) {
     "Throughout the test, ask exactly one question at a time and wait. Never read the whole topic set aloud.",
     "Wait patiently after the student pauses. Do not interrupt unfinished answers, false starts, or thinking pauses. Give the candidate roughly 1 to 1.5 seconds of silence before deciding the answer has ended.",
     "Maintain a private ledger of every question you have asked and every topic the student has answered.",
+    "Use both the current-session ledger and the app's recent questions ledger. Do not repeat an exact or near-duplicate question from either ledger.",
     "Do not repeat questions or topics the student has already answered. Track what the student said, then extend naturally with a relevant follow-up or move to a new angle.",
     "Never ask the same question twice. Before asking, compare it with your private ledger and the Already asked list; if it is similar, ask a different follow-up or move to a fresh IELTS-style angle instead.",
     "You may follow up on concrete details from what the student just said, such as people, places, reasons, examples, problems, feelings, or comparisons, when that feels natural.",
@@ -10656,7 +10680,8 @@ function buildIeltsSpeakingPrompt(set) {
     "In Part 2 and Part 3, you may first explore a meaningful detail from the candidate's answer, then smoothly bring the discussion back to the broader IELTS topic. This should sound like a human examiner, not a rigid script.",
     "If you notice you are about to ask the same question again, switch immediately to a different IELTS-style angle.",
     "If the student's answer is short, ask one gentle follow-up such as 'Could you tell me a little more about that?' instead of switching topics too quickly.",
-    "Run the IELTS format naturally: Part 1 interview, Part 2 cue card with 1 minute preparation and 1-2 minutes speaking, then Part 3 discussion. The whole session must target a full 15 minutes.",
+    "Respect the selected practice scope supplied by the app. Full test uses Part 1, Part 2 and Part 3; a Part-only drill must stay inside that Part.",
+    "Run the IELTS format naturally: Part 1 interview, Part 2 cue card with 1 minute preparation and 1-2 minutes speaking, then Part 3 discussion. A Full test must target a full 15 minutes.",
     "Do not end the test, score, or give final feedback early. Continue with natural follow-up questions until the app explicitly sends the scheduled End/Score instruction.",
     "If the provided topic-bank questions run out before the full 15 minutes, keep asking deeper IELTS-style follow-ups around the same broad topic and the candidate's answers.",
     "After the student ends the test, score Fluency and Coherence, Lexical Resource, Grammatical Range and Accuracy, and Pronunciation from 0 to 9. The first scoring line must be exactly like: Overall Band: 6.5.",
@@ -11008,6 +11033,7 @@ function qwenSession(prefix) {
       nextQuestionPrepared: false,
       webRtcTurnPreparedForAnswer: false,
       askedQuestions: [],
+      recentQuestions: [],
       candidateAnswers: [],
       candidateQuestions: [],
       dialogueTurns: [],
@@ -11018,6 +11044,9 @@ function qwenSession(prefix) {
       lastCandidateTurnKind: "",
       lastActionKind: "",
       sessionStartedAt: 0,
+      practiceScope: "full",
+      targetMs: 15 * 60 * 1000,
+      countdownExpiredHandled: false,
       speakingPlan: null,
       scheduledAction: null,
       part1Index: 0,
@@ -11104,6 +11133,17 @@ const QWEN_REALTIME_RENEWAL_RETRY_MS = 2500;
 const QWEN_RECORDING_UPLOAD_TIMEOUT_MS = 15_000;
 const QWEN_RECORDING_DOWNLOAD_RETRY_TIMEOUT_MS = 30_000;
 
+function qwenSpeakingScope(prefix) {
+  const session = qwenSession(prefix);
+  const panelScope = document.querySelector(`.qwen-speaking[data-prefix="${prefix}"]`)?.dataset?.speakingScope || "";
+  return speakingPracticeScopeConfig(session.practiceScope || panelScope || "full").id;
+}
+
+function qwenSpeakingTargetMs(prefix) {
+  const session = qwenSession(prefix);
+  return Number(session.targetMs) || speakingPracticeScopeConfig(qwenSpeakingScope(prefix)).targetMs;
+}
+
 function qwenMicConstraints() {
   return {
     audio: {
@@ -11180,14 +11220,23 @@ function qwenSetStatus(prefix, text, active = false) {
 function qwenUpdateExamMeta(prefix) {
   const session = qwenSession(prefix);
   const elapsed = session.sessionStartedAt ? Math.max(0, Math.floor((Date.now() - session.sessionStartedAt) / 1000)) : 0;
+  const countdown = qwenSpeakingCountdownState(qwenSpeakingTargetMs(prefix), elapsed * 1000);
   const elapsedNode = $(`${prefix}-speaking-elapsed`);
   const partNode = $(`${prefix}-speaking-current-part`);
-  if (elapsedNode) elapsedNode.textContent = `${String(Math.floor(elapsed / 60)).padStart(2, "0")}:${String(elapsed % 60).padStart(2, "0")}`;
-  if (partNode) partNode.textContent = session.scheduledAction?.part || (session.sessionStartedAt ? "Part 1" : "Preparation");
+  if (elapsedNode) elapsedNode.textContent = countdown.label;
+  if (partNode) partNode.textContent = session.scheduledAction?.part || speakingPracticeScopeConfig(qwenSpeakingScope(prefix)).label;
   const part = String(session.scheduledAction?.part || "");
   document.querySelectorAll(`.qwen-speaking[data-prefix="${prefix}"] [data-speaking-part2-cue]`).forEach((node) => {
     node.hidden = !/^Part 2/i.test(part);
   });
+  if (countdown.expired && session.sessionStartedAt && !session.countdownExpiredHandled && !session.finalScoreInFlight) {
+    session.countdownExpiredHandled = true;
+    if (qwenWordCount(qwenBuildAutoScoreTranscript(prefix)) >= 12) {
+      finishQwenSpeaking(prefix).catch((error) => qwenSetStatus(prefix, `Auto scoring failed: ${error.message}`, false));
+    } else {
+      qwenSetStatus(prefix, "Time is up · not enough speech to score", false);
+    }
+  }
 }
 
 function qwenClearScoringProgressTimer(prefix) {
@@ -11885,6 +11934,7 @@ async function qwenRunAutoScore(prefix, options = {}) {
     if (options.showProgress) qwenSetScoringProgress(prefix, Math.max(session.scoringProgressValue || 0, 34), qwenAudioEvidenceIsMp3(audioEvidence) ? "Sending transcript, realtime note and MP3..." : "Sending transcript and realtime note...", true);
     const json = await postJson("/api/speaking/feedback", {
       set: qwenAutoScoreSetTitle(prefix),
+      scope: qwenSpeakingScope(prefix),
       transcript,
       realtimeNote: options.realtimeNote || session.realtimeScoreNote || "",
       audioEvidence,
@@ -11986,6 +12036,29 @@ function qwenQuestionIsDuplicate(askedQuestions, text) {
   });
 }
 
+function qwenRecentQuestionLedger(identity = practiceCompletionIdentityKey()) {
+  try {
+    const store = JSON.parse(localStorage.getItem(speakingRecentQuestionsStoreKey) || "{}");
+    const questions = store?.partitions?.[identity];
+    return Array.isArray(questions) ? questions.map(compactDialogueText).filter(Boolean).slice(-40) : [];
+  } catch {
+    return [];
+  }
+}
+
+function qwenRememberRecentQuestion(text, identity = practiceCompletionIdentityKey()) {
+  const question = qwenExtractQuestion(text);
+  if (!question) return false;
+  let store = {};
+  try { store = JSON.parse(localStorage.getItem(speakingRecentQuestionsStoreKey) || "{}"); } catch {}
+  const partitions = store?.partitions && typeof store.partitions === "object" ? { ...store.partitions } : {};
+  const current = Array.isArray(partitions[identity]) ? partitions[identity].map(compactDialogueText).filter(Boolean) : [];
+  const withoutDuplicate = current.filter((item) => !qwenQuestionIsDuplicate([item], question));
+  partitions[identity] = [...withoutDuplicate, question].slice(-40);
+  localStorage.setItem(speakingRecentQuestionsStoreKey, JSON.stringify({ version: 1, partitions }));
+  return true;
+}
+
 function qwenWordCount(text) {
   return compactDialogueText(text).split(/\s+/).filter(Boolean).length;
 }
@@ -12058,9 +12131,10 @@ function qwenResetExaminerSchedule(prefix) {
   const session = qwenSession(prefix);
   session.speakingPlan = qwenBuildSpeakingPlan(prefix);
   session.scheduledAction = null;
-  session.part1Index = 0;
-  session.part3Index = 0;
-  session.part2Delivered = false;
+  const scope = qwenSpeakingScope(prefix);
+  session.part1Index = scope === "full" || scope === "part1" ? 0 : session.speakingPlan.part1.length;
+  session.part3Index = scope === "full" || scope === "part3" ? 0 : session.speakingPlan.part3.length;
+  session.part2Delivered = scope !== "full" && scope !== "part2";
   session.fallbackQuestionIndex = 0;
   session.adaptiveFollowUpCount = 0;
   session.lastAdaptiveAnswerFp = "";
@@ -12079,12 +12153,12 @@ function qwenSpeakingElapsedMs(prefix) {
 }
 
 function qwenSpeakingMinimumReached(prefix) {
-  return qwenSpeakingElapsedMs(prefix) >= QWEN_SPEAKING_MIN_AUTO_FINISH_MS;
+  return qwenSpeakingElapsedMs(prefix) >= qwenSpeakingTargetMs(prefix);
 }
 
 function qwenSpeakingTimeStatus(prefix) {
   const elapsedMs = qwenSpeakingElapsedMs(prefix);
-  const remainingMs = Math.max(0, QWEN_SPEAKING_TARGET_MS - elapsedMs);
+  const remainingMs = Math.max(0, qwenSpeakingTargetMs(prefix) - elapsedMs);
   const elapsedMinutes = Math.floor(elapsedMs / 60000);
   const elapsedSeconds = Math.floor((elapsedMs % 60000) / 1000);
   const remainingMinutes = Math.ceil(remainingMs / 60000);
@@ -12103,14 +12177,15 @@ function qwenBuildExtensionAction(prefix, plan) {
   session.fallbackQuestionIndex += 1;
   const previousQuestion = qwenLastExaminerQuestion(session);
   const recentAnswer = session.lastCandidateTurnText || qwenLatestTurnCandidateText(session) || session.candidateAnswers?.at(-1) || "";
+  const scopeConfig = speakingPracticeScopeConfig(qwenSpeakingScope(prefix));
   session.scheduledAction = {
-    part: "Part 3",
+    part: scopeConfig.id === "full" ? "Part 3" : scopeConfig.label,
     kind: "extension-follow-up",
     label: `Extended Part 3 follow-up ${session.fallbackQuestionIndex}`,
     previousQuestion,
     text: [
       "The imported topic-bank questions have been used, but the speaking test is not long enough yet.",
-      `Elapsed speaking time: ${time.elapsedLabel}. Target: about 15:00. Continue until at least 15:00 before ending.`,
+      `Elapsed speaking time: ${time.elapsedLabel}. Continue until the ${scopeConfig.label} countdown reaches zero before ending.`,
       "",
       "Topic set:",
       plan.title || "IELTS Speaking",
@@ -12118,7 +12193,7 @@ function qwenBuildExtensionAction(prefix, plan) {
       "Candidate's latest answer:",
       recentAnswer ? recentAnswer.slice(0, 420) : "(not available)",
       "",
-      "Ask one deeper IELTS Part 3 style follow-up. You may branch from a concrete detail in the candidate's answer, then pull the discussion back to the broader Part 3 theme.",
+      `Ask one deeper IELTS ${scopeConfig.label} style follow-up. Stay inside the selected practice scope and do not repeat any previous question.`,
       "Do not repeat any previous question. Do not score or close the test yet.",
     ].join("\n"),
   };
@@ -12148,15 +12223,16 @@ function qwenPeekNextScheduledAction(prefix, plan) {
   }
   if (!qwenSpeakingMinimumReached(prefix)) {
     const time = qwenSpeakingTimeStatus(prefix);
+    const scopeConfig = speakingPracticeScopeConfig(qwenSpeakingScope(prefix));
     const recentAnswer = session.lastCandidateTurnText || qwenLatestTurnCandidateText(session) || session.candidateAnswers?.at(-1) || "";
     return {
-      part: "Part 3",
+      part: scopeConfig.id === "full" ? "Part 3" : scopeConfig.label,
       kind: "extension-follow-up",
       label: `Extended Part 3 follow-up ${session.fallbackQuestionIndex + 1}`,
       previousQuestion: qwenLastExaminerQuestion(session),
       text: [
         "The imported topic-bank questions have been used, but the speaking test is not long enough yet.",
-        `Elapsed speaking time: ${time.elapsedLabel}. Target: about 15:00. Continue until at least 15:00 before ending.`,
+        `Elapsed speaking time: ${time.elapsedLabel}. Continue until the ${scopeConfig.label} countdown reaches zero before ending.`,
         "",
         "Topic set:",
         plan.title || "IELTS Speaking",
@@ -12164,7 +12240,7 @@ function qwenPeekNextScheduledAction(prefix, plan) {
         "Candidate's latest answer:",
         recentAnswer ? recentAnswer.slice(0, 420) : "(not available)",
         "",
-        "Ask one deeper IELTS Part 3 style follow-up. You may branch from a concrete detail in the candidate's answer, then pull the discussion back to the broader Part 3 theme.",
+        `Ask one deeper IELTS ${scopeConfig.label} style follow-up. Stay inside the selected practice scope and do not repeat any previous question.`,
         "Do not repeat any previous question. Do not score or close the test yet.",
       ].join("\n"),
     };
@@ -12399,9 +12475,11 @@ function qwenRememberExaminerQuestion(prefix, text) {
   const clean = compactDialogueText(text);
   if (!clean) return false;
   const question = qwenExtractQuestion(clean);
-  if (qwenQuestionIsDuplicate(session.askedQuestions, question)) return false;
+  if (qwenQuestionIsDuplicate([...(session.askedQuestions || []), ...(session.recentQuestions || [])], question)) return false;
   qwenRememberDialogueTurn(prefix, "Examiner", clean);
-  return qwenRememberUnique(session.askedQuestions, question, 18);
+  const added = qwenRememberUnique(session.askedQuestions, question, 30);
+  if (added) qwenRememberRecentQuestion(question);
+  return added;
 }
 
 function qwenTurnControlInstructions(prefix, mode = "next-question") {
@@ -12417,6 +12495,10 @@ function qwenTurnControlInstructions(prefix, mode = "next-question") {
   const candidateQuestions = session.candidateQuestions?.length
     ? session.candidateQuestions.map((item, index) => `${index + 1}. ${item.slice(0, 180)}`).join("\n")
     : "None yet.";
+  const recentQuestions = session.recentQuestions?.length
+    ? session.recentQuestions.slice(-20).map((item, index) => `${index + 1}. ${item}`).join("\n")
+    : "None yet.";
+  const scopeConfig = speakingPracticeScopeConfig(qwenSpeakingScope(prefix));
   const latestAnswer = qwenLatestTurnCandidateText(session);
   const lastExaminerQuestion = qwenLastExaminerQuestion(session);
   const lastCandidateTurn = session.lastCandidateTurnText || latestAnswer || "";
@@ -12529,7 +12611,8 @@ function qwenTurnControlInstructions(prefix, mode = "next-question") {
     latestAnswer ? latestAnswer.slice(0, 360) : "No reliable text transcript; use the just-finished audio if available.",
     "",
     "Live turn control for the next examiner response:",
-    `Timing: elapsed ${timeStatus.elapsedLabel}. Target length about 15:00. Remaining target time about ${timeStatus.remainingMinutes} minute(s).`,
+    `Selected practice scope: ${scopeConfig.label}. Stay inside ${scopeConfig.parts.join(", ")} only.`,
+    `Timing: elapsed ${timeStatus.elapsedLabel}. Remaining target time about ${timeStatus.remainingMinutes} minute(s).`,
     qwenSpeakingMinimumReached(prefix)
       ? "The minimum auto-finish time has been reached; only close if the scheduled item is End."
       : "The minimum auto-finish time has not been reached. Do not end, score, or give final feedback.",
@@ -12542,6 +12625,9 @@ function qwenTurnControlInstructions(prefix, mode = "next-question") {
     "Already asked examiner questions:",
     asked,
     "",
+    "Recent questions from earlier sessions (do not repeat exact or near-duplicate wording):",
+    recentQuestions,
+    "",
     "Candidate has already discussed:",
     answered,
     "",
@@ -12552,7 +12638,7 @@ function qwenTurnControlInstructions(prefix, mode = "next-question") {
     "Do not repeat or paraphrase any listed question or topic unless this is the scheduled short-answer follow-up.",
     "Do not return to a topic the candidate has already answered unless you ask a clearly deeper why/how follow-up.",
     "A good next move can follow the candidate's latest answer or use a fresh topic-bank prompt, but it must not repeat an old question.",
-    "For the 15-minute target, freely develop the discussion from the candidate's meaning, then return to the planned IELTS anchor when appropriate; never fill time by recycling old questions.",
+    `For the ${scopeConfig.label} countdown, develop the discussion from the candidate's meaning and stay inside the selected practice scope; never fill time by recycling old questions.`,
     "Do not invent an unrelated topic.",
     action?.kind === "cue-card"
       ? "Keep the cue-card delivery concise and clear."
@@ -13278,6 +13364,12 @@ function startQwenWebSocket(prefix, openingInstructions, options = {}) {
 async function startQwenSpeaking(prefix) {
   const session = qwenSession(prefix);
   if (session.connected || session.connecting || session.ws?.readyState === WebSocket.OPEN) return;
+  const panelScope = document.querySelector(`.qwen-speaking[data-prefix="${prefix}"]`)?.dataset?.speakingScope || "full";
+  const scopeConfig = speakingPracticeScopeConfig(panelScope);
+  session.practiceScope = scopeConfig.id;
+  session.targetMs = scopeConfig.targetMs;
+  session.recentQuestions = qwenRecentQuestionLedger();
+  session.countdownExpiredHandled = false;
   session.connecting = true;
   qwenHideScoringProgress(prefix);
   session.userDisconnected = false;
@@ -14397,6 +14489,8 @@ function continueQwenSpeakingFromConfirm() {
 
 function disconnectQwenSpeaking(prefix) {
   const session = qwenSession(prefix);
+  if (session.uiTimer) clearInterval(session.uiTimer);
+  session.uiTimer = null;
   session.userDisconnected = true;
   void releaseQwenWakeLock(prefix);
   stopQwenProactiveRenewal(prefix);
@@ -17680,7 +17774,7 @@ function speakingTopicEmoji(item, title = "") {
   return deriveSpeakingTopicMeta(item).emoji || item.emoji || "✨";
 }
 
-function renderBankPracticeWorkspace(topic, mode = "exam") {
+function renderBankPracticeWorkspace(topic, mode = "exam", practiceScope = "full") {
   const root = $("bankPracticePanel");
   if (!root || !topic) return;
   setUnifiedPracticeStage("speaking", "practice", { mode, selectionId: topic.id || "" });
@@ -17701,7 +17795,7 @@ function renderBankPracticeWorkspace(topic, mode = "exam") {
     </header>
     <div class="bank-practice-grid speaking-practice-workspace">
       <aside class="bank-practice-chat">
-        ${renderRealtimeSpeakingPanel(topic, "bank", { showTranscript: mode === "coach", mode })}
+        ${renderRealtimeSpeakingPanel(topic, "bank", { showTranscript: mode === "coach", mode, practiceScope })}
       </aside>
     </div>
     <section class="bank-practice-result">
@@ -17741,6 +17835,21 @@ function renderBankPracticeTopic(topic) {
     detail: "Choose Exam for a realistic test or Coach for post-answer hints. Full cue cards appear only when Part 2 begins.",
     deviceCheck: true,
   });
+  const scopeSelector = `<fieldset class="speaking-part-selector" data-speaking-practice-scope>
+    <legend>Practice scope</legend>
+    ${[
+      ["full", "Full test", "15 min"],
+      ["part1", "Part 1", "5 min"],
+      ["part2", "Part 2", "3 min"],
+      ["part3", "Part 3", "5 min"],
+    ].map(([value, label, time], index) => `<label class="speaking-part-option${index === 0 ? " active" : ""}"><input type="radio" name="speakingPracticeScope" value="${value}" ${index === 0 ? "checked" : ""}><strong>${label}</strong><span>${time}</span></label>`).join("")}
+  </fieldset>`;
+  root.querySelector(".unified-practice-setup")?.insertAdjacentHTML("beforeend", scopeSelector);
+  root.querySelectorAll('input[name="speakingPracticeScope"]').forEach((input) => {
+    input.addEventListener("change", () => {
+      root.querySelectorAll(".speaking-part-option").forEach((option) => option.classList.toggle("active", option.contains(input) && input.checked));
+    });
+  });
   bindUnifiedSetup(root, {
     deviceCheck: true,
     onBack: () => {
@@ -17750,7 +17859,8 @@ function renderBankPracticeTopic(topic) {
     },
     onStart: (mode) => {
       state.speakingSetupMode = mode;
-      renderBankPracticeWorkspace(topic, mode);
+      const practiceScope = root.querySelector('input[name="speakingPracticeScope"]:checked')?.value || "full";
+      renderBankPracticeWorkspace(topic, mode, practiceScope);
     },
   });
   root.scrollIntoView({ behavior: "smooth", block: "start" });

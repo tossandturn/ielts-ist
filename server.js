@@ -3628,32 +3628,6 @@ function localWritingFeedback(prompt, essay, warning = "") {
   ].join("\n");
 }
 
-function speakingSystemPrompt() {
-  return [
-    "You are a professional IELTS Speaking examiner and coach.",
-    "Score four independent criteria from 0 to 9: Fluency and Coherence, Lexical Resource, Grammatical Range and Accuracy, Pronunciation.",
-    "Overall speaking band = average of the four scores, rounded to the nearest 0.5. Examples: 6.75 -> 7.0, 6.25 -> 6.5.",
-    "Use these band anchors:",
-    "Fluency and Coherence Band 5: basic flow, obvious repetition/self-correction, limited linking. Band 6: willing to extend but sometimes loses coherence, some linking, hesitation does not seriously block meaning. Band 7: speaks at length without obvious effort, flexible cohesive devices, hesitation mainly for ideas. Band 8: very fluent, rare repetition/hesitation, logical development and natural transitions.",
-    "Lexical Resource Band 5: handles familiar topics, limited vocabulary, repetition, occasional collocation errors. Band 6: enough vocabulary for different topics, some inaccurate choices, can paraphrase. Band 7: flexible vocabulary, less common words/idioms, good collocations, minor errors. Band 8: wide and precise vocabulary, natural style, skillful idiomatic use.",
-    "Grammatical Range and Accuracy Band 5: mostly simple sentences, complex attempts often wrong, basic tense errors. Band 6: mix of simple and complex structures, errors in complex sentences but meaning clear. Band 7: varied complex structures, most sentences accurate, errors do not block communication. Band 8: rich sentence range, mostly error-free, only occasional slips.",
-    "Pronunciation Band 5: generally understandable but some pronunciation issues cause difficulty, limited intonation. Band 6: understandable throughout, some errors, some intonation control. Band 7: easy to understand, uses stress and intonation though not always consistently, occasional minor issues. Band 8: wide pronunciation features, natural stress/intonation, very few errors.",
-    "Because this app may only have transcript text, state that Pronunciation confidence is limited unless audio evidence is available.",
-    "Return Chinese feedback with: score table, exact overall calculation, strengths, weaknesses, top 5 improvement points, corrected sample answers, and next drills. Be strict and examiner-like.",
-  ].join("\n");
-}
-
-function speakingTurnSystemPrompt() {
-  return [
-    "You are a live IELTS Speaking examiner.",
-    "Ask exactly one short examiner question in English.",
-    "Do not include role names such as Examiner or Candidate.",
-    "Keep the flow like a real IELTS speaking test: Part 1 short familiar questions, Part 2 cue-card setup, Part 3 abstract follow-up questions.",
-    "If the candidate answer is too short, ask one natural follow-up.",
-    "Return only the next spoken question, no markdown.",
-  ].join("\n");
-}
-
 function fullExamSystemPrompt() {
   return [
     "You are an IELTS examiner and study coach.",
@@ -3701,44 +3675,6 @@ async function handleWriting(req, res) {
     { mode: ai ? "ai" : "local", feedback, pdfDataUrl, pdfFileName: "ielts-writing-feedback.pdf", warning },
     "ielts-writing-feedback.pdf"
   ));
-}
-
-async function handleSpeaking(req, res) {
-  const payload = JSON.parse((await readBody(req)) || "{}");
-  const set = String(payload.set || "").trim();
-  const transcript = String(payload.transcript || "").trim();
-  if (!transcript) {
-    sendJson(res, 400, { error: "请先完成口语回答。" });
-    return;
-  }
-
-  const local = [
-    `整体预估：Band ${wordCount(transcript) > 180 ? "6.5" : "6.0"}`,
-    "",
-    "本地模式反馈：",
-    "- Fluency and Coherence：回答长度基本够，但需要减少停顿和重复，并用 first, for example, as a result 等连接思路。",
-    "- Lexical Resource：主题词可以再具体，避免反复使用 good, important, interesting。",
-    "- Grammatical Range and Accuracy：建议多使用原因状语从句、定语从句和对比句。",
-    "- Pronunciation：当前只有文字转写，无法可靠判断发音，只能根据转写流畅度粗略估计。",
-    "",
-    "提升点：",
-    "1. 每个回答至少包含直接回答、原因、例子、补充结果。",
-    "2. Part 2 用过去/现在/未来三层结构组织。",
-    "3. 录音后回听，标记重复词和语法自改位置。",
-  ].join("\n");
-
-  let ai = null;
-  let warning = "";
-  try {
-    ai = await callOpenAI({
-      system: speakingSystemPrompt(),
-      user: `Speaking topic set: ${set}\n\nCandidate transcript:\n${transcript}`,
-    });
-  } catch (error) {
-    warning = error.message || "AI unavailable";
-  }
-  const feedback = ai || local;
-  sendJson(res, 200, { mode: ai ? "ai" : "local", feedback, band: extractSpeakingBandStable(feedback), warning });
 }
 
 async function handleSpeakingTurn(req, res) {
@@ -4024,9 +3960,11 @@ function writingSystemPrompt() {
 
 function speakingSystemPrompt() {
   return [
-    "You are a professional IELTS Speaking examiner and coach.",
+    "You are a professional IELTS Speaking examiner and evidence-based scoring engine.",
+    "Return exactly one valid JSON object with no markdown fence and no text outside the object.",
+    "Use this schema: {\"criteria\":[{\"key\":\"fc\",\"score\":6.0,\"evidence\":\"...\",\"feedback\":\"...\"},{\"key\":\"lr\",\"score\":6.0,\"evidence\":\"...\",\"feedback\":\"...\"},{\"key\":\"gra\",\"score\":6.0,\"evidence\":\"...\",\"feedback\":\"...\"},{\"key\":\"pronunciation\",\"score\":6.0,\"evidence\":\"...\",\"feedback\":\"...\"}],\"strengths\":[\"...\"],\"priorities\":[\"...\"],\"drills\":[\"...\"],\"cautions\":[\"...\"],\"confidence\":\"high|medium|low\"}.",
     "Score four independent criteria from 0 to 9: Fluency and Coherence, Lexical Resource, Grammatical Range and Accuracy, Pronunciation.",
-    "Overall speaking band = average of the four scores, rounded to the nearest 0.5. Examples: 6.75 -> 7.0, 6.25 -> 6.5.",
+    "Do not supply or guess an Overall score. The server calculates it from the four criterion scores and rounds to the nearest 0.5.",
     "Use these band anchors:",
     "Fluency and Coherence Band 5: basic flow, obvious repetition/self-correction, limited linking. Band 6: willing to extend but sometimes loses coherence, some linking, hesitation does not seriously block meaning. Band 7: speaks at length without obvious effort, flexible cohesive devices, hesitation mainly for ideas. Band 8: very fluent, rare repetition/hesitation, logical development and natural transitions.",
     "Lexical Resource Band 5: handles familiar topics, limited vocabulary, repetition, occasional collocation errors. Band 6: enough vocabulary for different topics, some inaccurate choices, can paraphrase. Band 7: flexible vocabulary, less common words/idioms, good collocations, minor errors. Band 8: wide and precise vocabulary, natural style, skillful idiomatic use.",
@@ -4034,8 +3972,98 @@ function speakingSystemPrompt() {
     "Pronunciation Band 5: generally understandable but some pronunciation issues cause difficulty, limited intonation. Band 6: understandable throughout, some errors, some intonation control. Band 7: easy to understand, uses stress and intonation though not always consistently, occasional minor issues. Band 8: wide pronunciation features, natural stress/intonation, very few errors.",
     "When realtime examiner notes or MP3 audio evidence are provided, use them to calibrate Pronunciation and Fluency. Do not claim there is no audio evidence if an MP3 is attached.",
     "If MP3 and transcript disagree, treat the audio as stronger evidence for pronunciation, pauses, rhythm, hesitation and self-correction; use the transcript for vocabulary, grammar and content.",
-    "Return English feedback with: score table, exact overall calculation, strengths, weaknesses, top 5 improvement points, corrected sample answers, and next drills. Be strict and examiner-like.",
+    "Every criterion needs concise evidence and feedback. Never invent a quotation or audio feature that is not present in the supplied evidence.",
+    "For Part-only practice, score the available evidence but add a caution that it is a scoped estimate, not a full-test band.",
+    "Be strict, consistent and concise. Use the same descriptors for the same evidence.",
   ].join("\n");
+}
+
+function speakingBandNumber(value, fallback = 5.5) {
+  const number = Number.parseFloat(value);
+  if (!Number.isFinite(number) || number < 0 || number > 9) return Math.round(fallback * 2) / 2;
+  return Math.round(number * 2) / 2;
+}
+
+function parseSpeakingAssessmentJson(raw) {
+  const clean = String(raw || "").trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
+  if (!clean) return null;
+  try { return JSON.parse(clean); } catch {}
+  const start = clean.indexOf("{");
+  const end = clean.lastIndexOf("}");
+  if (start < 0 || end <= start) return null;
+  try { return JSON.parse(clean.slice(start, end + 1)); } catch { return null; }
+}
+
+function normalizeSpeakingAssessment(raw, options = {}) {
+  const parsed = typeof raw === "object" && raw ? raw : parseSpeakingAssessmentJson(raw) || {};
+  const input = Array.isArray(parsed.criteria) ? parsed.criteria : [];
+  const definitions = [
+    { key: "fc", label: "Fluency and Coherence", aliases: /^(?:fc|fluency)/i },
+    { key: "lr", label: "Lexical Resource", aliases: /^(?:lr|lexical|vocabulary)/i },
+    { key: "gra", label: "Grammatical Range and Accuracy", aliases: /^(?:gra|grammar|grammatical)/i },
+    { key: "pronunciation", label: "Pronunciation", aliases: /^(?:p|pronunciation)/i },
+  ];
+  const fallbackScores = options.fallbackScores || { fc: 5.5, lr: 5.5, gra: 5.5, pronunciation: 5.5 };
+  const hasExplicitCriterionLabels = input.some((item) => String(item?.key || item?.label || "").trim());
+  const criteria = definitions.map((definition, index) => {
+    const source = input.find((item) => definition.aliases.test(String(item?.key || item?.label || "")))
+      || (!hasExplicitCriterionLabels ? input[index] : null)
+      || {};
+    return {
+      key: definition.key,
+      label: definition.label,
+      score: speakingBandNumber(source.score, fallbackScores[definition.key]),
+      evidence: String(source.evidence || "Evidence was limited in this session.").replace(/\s+/g, " ").trim().slice(0, 600),
+      feedback: String(source.feedback || "Keep building longer, clearer and more controlled answers.").replace(/\s+/g, " ").trim().slice(0, 600),
+    };
+  });
+  const overall = speakingBandNumber(criteria.reduce((sum, item) => sum + item.score, 0) / 4, 5.5);
+  const scope = ["full", "part1", "part2", "part3"].includes(options.scope) ? options.scope : "full";
+  const cautions = (Array.isArray(parsed.cautions) ? parsed.cautions : []).map(String).map((item) => item.trim()).filter(Boolean).slice(0, 5);
+  if (scope !== "full" && !cautions.some((item) => /part-only|scoped estimate/i.test(item))) {
+    cautions.push("Part-only practice: this is a scoped estimate, not a complete three-part IELTS Speaking band.");
+  }
+  if (!options.audioUsed && !cautions.some((item) => /audio|pronunciation/i.test(item))) {
+    cautions.push("Pronunciation confidence is limited because no audio-model evidence was used.");
+  }
+  const list = (value, fallback) => (Array.isArray(value) ? value : [])
+    .map(String).map((item) => item.replace(/\s+/g, " ").trim()).filter(Boolean).slice(0, 5).concat(fallback).slice(0, 5);
+  return {
+    version: 1,
+    scope,
+    overall,
+    criteria,
+    strengths: list(parsed.strengths, ["The available response communicated a clear central meaning."]),
+    priorities: list(parsed.priorities, ["Extend answers with a reason and a specific example."]),
+    drills: list(parsed.drills, ["Record one timed answer, listen back, then repeat it with fewer pauses."]),
+    cautions,
+    confidence: ["high", "medium", "low"].includes(String(parsed.confidence).toLowerCase()) ? String(parsed.confidence).toLowerCase() : options.audioUsed ? "medium" : "low",
+  };
+}
+
+function formatSpeakingAssessment(assessment) {
+  const lines = [
+    `Overall Speaking Band: ${assessment.overall.toFixed(1)}`,
+    `Practice scope: ${assessment.scope}`,
+    `Evidence confidence: ${assessment.confidence}`,
+    "",
+    ...assessment.criteria.flatMap((item) => [
+      `${item.label}: ${item.score.toFixed(1)}`,
+      `Evidence: ${item.evidence}`,
+      `Feedback: ${item.feedback}`,
+      "",
+    ]),
+    "Strengths:",
+    ...assessment.strengths.map((item) => `- ${item}`),
+    "",
+    "Top priorities:",
+    ...assessment.priorities.map((item) => `- ${item}`),
+    "",
+    "Next drills:",
+    ...assessment.drills.map((item) => `- ${item}`),
+  ];
+  if (assessment.cautions.length) lines.push("", "Scoring cautions:", ...assessment.cautions.map((item) => `- ${item}`));
+  return lines.join("\n").trim();
 }
 
 function writingBandNumber(value, fallback = 6) {
@@ -4448,6 +4476,9 @@ async function handleSpeaking(req, res) {
   const set = String(payload.set || "").trim();
   const transcript = String(payload.transcript || "").trim();
   const realtimeNote = String(payload.realtimeNote || "").trim();
+  const scope = ["full", "part1", "part2", "part3"].includes(String(payload.scope || "").toLowerCase())
+    ? String(payload.scope).toLowerCase()
+    : "full";
   const audioEvidence = normalizeSpeakingAudioEvidence(payload.audioEvidence || {});
   if (!transcript) {
     sendJson(res, 400, { error: "Please complete the speaking response first." });
@@ -4455,6 +4486,7 @@ async function handleSpeaking(req, res) {
   }
   const evidenceSummary = [
     `Speaking topic set: ${set || "IELTS Speaking"}`,
+    `Selected practice scope: ${scope}`,
     "",
     "Candidate transcript:",
     transcript,
@@ -4467,22 +4499,8 @@ async function handleSpeaking(req, res) {
       ? `MP3 attached for pronunciation and fluency calibration. File: ${audioEvidence.fileName}.`
       : `No usable MP3 attached. ${audioEvidence.warning || ""}`.trim(),
   ].join("\n");
-  const local = [
-    `Overall estimate: Band ${wordCount(transcript) > 180 ? "6.5" : "6.0"}`,
-    "",
-    "Local mode feedback:",
-    "- Fluency and Coherence: The answer length is generally enough, but pauses and repetition should be reduced. Use linking phrases such as first, for example, and as a result.",
-    "- Lexical Resource: Topic vocabulary could be more specific. Avoid repeating good, important, and interesting.",
-    "- Grammatical Range and Accuracy: Use more reason clauses, relative clauses, and comparison structures.",
-    audioEvidence.available
-      ? "- Pronunciation: MP3 evidence was submitted, but AI audio scoring was unavailable, so this local fallback cannot fully judge pronunciation."
-      : "- Pronunciation: No usable MP3 audio evidence was available, so pronunciation cannot be judged reliably in local fallback mode.",
-    "",
-    "Improvement points:",
-    "1. Each answer should include a direct answer, a reason, an example, and an additional result.",
-    "2. Use a past / present / future structure for Part 2.",
-    "3. Listen back to the recording and mark repeated words and self-corrections.",
-  ].join("\n");
+  const localBase = wordCount(transcript) > 220 ? 6.5 : wordCount(transcript) > 100 ? 6 : 5.5;
+  const fallbackScores = { fc: localBase, lr: localBase, gra: localBase, pronunciation: audioEvidence.available ? localBase : Math.min(localBase, 5.5) };
   let ai = null;
   let audioAiUsed = false;
   const warnings = [];
@@ -4497,6 +4515,7 @@ async function handleSpeaking(req, res) {
           "Use the attached MP3 directly for Pronunciation and Fluency evidence. Produce the final IELTS Speaking score report now.",
         ].join("\n"),
         audio: audioEvidence,
+        temperature: 0.1,
       });
       audioAiUsed = Boolean(ai);
     }
@@ -4512,13 +4531,15 @@ async function handleSpeaking(req, res) {
           "",
           "No audio-model result is available. Use the realtime examiner note as the best audio-side evidence, and use the transcript for content, vocabulary and grammar.",
         ].join("\n"),
+        temperature: 0.1,
       });
     } catch (error) {
       warnings.push(error.message || "AI unavailable");
     }
   }
-  const feedback = ai || local;
-  const band = extractSpeakingBandStable(feedback);
+  const analysis = normalizeSpeakingAssessment(ai || {}, { scope, audioUsed: audioAiUsed, fallbackScores });
+  const feedback = formatSpeakingAssessment(analysis);
+  const band = analysis.overall;
   const pdfDataUrl = await createReportPdfDataUrl("IELTS Speaking Result", [
     `Speaking topic set: ${set || "IELTS Speaking"}`,
     band ? `Final Speaking Band: ${band}` : "",
@@ -4538,6 +4559,7 @@ async function handleSpeaking(req, res) {
       : "local",
     feedback,
     band,
+    analysis,
     warning: warnings.filter(Boolean).join("\n"),
     pdfDataUrl,
     pdfFileName: "ielts-speaking-report.pdf",

@@ -160,10 +160,15 @@ try {
   await ipad.locator(".practice-speaking-topic").first().click();
   await ipad.locator(".choose-speaking-set").first().click();
   assert.equal(await ipad.locator(".unified-practice-setup").isVisible(), true, "P1: Speaking topic must open Setup before connecting");
+  assert.equal(await ipad.locator('input[name="speakingPracticeScope"]').count(), 4, "Speaking Setup needs Full, Part 1, Part 2 and Part 3 scopes");
+  await ipad.locator('.speaking-part-option').filter({ hasText: "Part 2" }).click();
+  assert.equal(await ipad.locator('input[name="speakingPracticeScope"]:checked').getAttribute("value"), "part2", "Part 2 scope must become the canonical selection");
   await ipad.locator('[data-setup-mode="coach"]').click();
   await ipad.locator("[data-run-device-check]").click();
   await ipad.waitForFunction(() => !document.querySelector('[data-start-unified-practice="speaking"]')?.disabled);
   await ipad.locator('[data-start-unified-practice="speaking"]').click();
+  assert.equal(await ipad.locator('.qwen-speaking[data-prefix="bank"]').getAttribute("data-speaking-scope"), "part2", "Speaking workspace must retain the selected Part 2 scope");
+  assert.equal(await ipad.locator("#bank-speaking-elapsed").innerText(), "03:00", "Part 2 workspace must start with a 3-minute countdown");
   const ipadColumns = await ipad.locator(".speaking-practice-layout").evaluate((node) => getComputedStyle(node).gridTemplateColumns.split(" ").length);
   assert.equal(ipadColumns, 1, "P0: iPad portrait Speaking practice must be single-column");
   await ipad.screenshot({ path: resolve(outputDir, "speaking-workspace-ipad-portrait.png"), fullPage: false });

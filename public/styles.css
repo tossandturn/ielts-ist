@@ -15045,6 +15045,46 @@ body:has(#home.active) main {
   font-variant-numeric: tabular-nums;
 }
 
+.speaking-part-selector {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 14px;
+  border: 1px solid #dfe3e8;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.speaking-part-selector legend {
+  padding: 0 6px;
+  color: #344054;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.speaking-part-option {
+  display: grid;
+  place-items: center;
+  min-height: 58px;
+  padding: 8px;
+  border: 1px solid #d0d5dd;
+  border-radius: 10px;
+  background: #fff;
+  color: #475467;
+  cursor: pointer;
+}
+
+.speaking-part-option input { position: absolute; opacity: 0; pointer-events: none; }
+.speaking-part-option strong { color: #101828; }
+.speaking-part-option span { font-size: 12px; }
+.speaking-part-option.active { border-color: #7f56d9; background: #f4f3ff; box-shadow: 0 0 0 2px rgb(127 86 217 / 12%); }
+.speaking-part-option:focus-within { outline: 3px solid rgb(127 86 217 / 28%); outline-offset: 2px; }
+
+@media (max-width: 600px) {
+  .speaking-part-selector { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
 /* Unified Writing and Speaking learning loop. */
 .unified-setup-host,
 .unified-practice-setup,
