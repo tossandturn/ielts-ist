@@ -786,6 +786,57 @@ async function recognizeReadingPage(testId, image) {
   }
 }
 
+function extractReadingQuestionText(pageText, requestedQuestion) {
+  const questionNumber = Number(requestedQuestion || 0);
+  if (!questionNumber) return "";
+  const lines = String(pageText || "")
+    .replace(/\r\n?/g, "\n")
+    .split("\n")
+    .map((line) => line.replace(/\s+/g, " ").trim());
+  const numberedLine = /^\s*(?:Question\s+)?(\d{1,2})(?:\s*[.)°])?\s*(?![-–—]|(?:to|and)\b)(\S.*)$/i;
+  const start = lines.findIndex((line) => Number(line.match(numberedLine)?.[1] || 0) === questionNumber);
+  if (start >= 0) {
+    let end = lines.length;
+    for (let index = start + 1; index < lines.length; index += 1) {
+      const nextNumber = Number(lines[index].match(numberedLine)?.[1] || 0);
+      if (nextNumber === questionNumber + 1) {
+        end = index;
+        break;
+      }
+    }
+    const selected = lines.slice(start, end);
+    const firstLine = String(selected[0]?.match(numberedLine)?.[2] || "").trim();
+    return [firstLine, ...selected.slice(1)]
+      .filter(Boolean)
+      .filter((line, index, chosen) => index < chosen.length - 1 || !/^\d{1,3}$/.test(line))
+      .join(" ")
+      .slice(0, 2000)
+      .trim();
+  }
+
+  const inlineToken = new RegExp(`(?:^|\\D)${questionNumber}(?!\\d)`);
+  const nextInlineToken = new RegExp(`(?:^|\\D)${questionNumber + 1}(?!\\d)`);
+  const isInstructionLine = (line) => /^(?:Questions?|In boxes|Write\b|Reading Passage)\b/i.test(line)
+    || /^\d{1,3}$/.test(line);
+  const inlineStart = lines.findIndex((line) => !isInstructionLine(line) && inlineToken.test(line));
+  if (inlineStart < 0) return "";
+  const selected = [lines[inlineStart]];
+  for (let index = inlineStart + 1; index < lines.length; index += 1) {
+    const line = lines[index];
+    if (!line || isInstructionLine(line) || nextInlineToken.test(line) || /^Questions?\s+\d/i.test(line)) break;
+    selected.push(line);
+  }
+  const sharedOptions = lines.filter((line) => /^[A-J](?:\s|[.)])/.test(line));
+  if (sharedOptions.length && !selected.some((line) => /^[A-J](?:\s|[.)])/.test(line))) {
+    selected.push(...sharedOptions);
+  }
+  return selected
+    .filter(Boolean)
+    .join(" ")
+    .slice(0, 2000)
+    .trim();
+}
+
 async function readingContextPayload(id, requestedQuestion = 0) {
   const test = realReadingTests().find((item) => String(item.id || "") === String(id || ""));
   if (!test) return null;
@@ -851,6 +902,7 @@ async function readingContextPayload(id, requestedQuestion = 0) {
     const questionImage = slimPageImages(test.readingPageImages).find((image) => Number(image.page) === questionPage);
     if (questionImage) questionText = await recognizeReadingPage(test.id, questionImage);
   }
+  const focusedQuestionText = extractReadingQuestionText(questionText, questionNumber);
   const scopedPaperText = [
     passageText,
     questionText ? `--- Question Page ${questionPage} ---\n${questionText}` : "",
@@ -865,6 +917,7 @@ async function readingContextPayload(id, requestedQuestion = 0) {
     passageStartPage,
     passagePages: passageChunks.map((item) => item.page),
     questionPage,
+    questionText: focusedQuestionText,
     evidenceAvailable: Boolean(passageText),
     paperText: scopedPaperText,
   };
@@ -3128,6 +3181,7 @@ function normalizeHelpContext(value) {
       source: String(reading.source || "").slice(0, 120),
       period: String(reading.period || "").slice(0, 80),
       questions: normalizeQuestions(reading.questions),
+      questionText: compactHelpText(reading.questionText || "", 2000),
       paperText: compactHelpText(reading.paperText || "", 18000),
     } : null,
     listening: listening ? {
@@ -3201,6 +3255,7 @@ function helpContextBlock(helpContext) {
     "",
     "Answer key and student answers:",
     questionLines || "(no question table available)",
+    ...(reading.questionText ? ["", "Hydrated focused Reading question text:", reading.questionText] : []),
     "",
     "Indexed Reading passage OCR text (P = paragraph, S = sentence; use these labels for Hint locations):",
     indexedReadingPassageText(reading.paperText) || "(no passage text available)",
@@ -3226,6 +3281,7 @@ async function buildHelpExplanation(ocrText, helpContext = {}) {
         "Explain the selected question area clearly and concisely.",
         "The student is Chinese, so use Chinese for explanations and translations, but keep IELTS keywords in English.",
         "The structured Reading/Listening context is authoritative app data. Use it even if the screenshot OCR is short, partial, or noisy.",
+        "When hydrated focused Reading question text is present, treat that as the exact visible question, include a line beginning 题目： that quotes it before the explanation, and never claim the question text is missing or ask the student to upload it again.",
         "If it is a Reading question or the student asks why an answer is correct, use the structured Reading context: identify the question number, correct answer, student's answer if present, source sentence/paragraph, keyword-paraphrase link, and why wrong options or wrong answers fail.",
         "For a Reading Hint, begin with exactly one location line in Chinese: 位置：第X段，第Y句. Resolve X and Y from the indexed [P# S#] passage labels. If the indexed passage cannot verify the location, write 位置：暂无法确认 and do not guess.",
         "If it is a Listening question, use the structured Listening context: identify the question number, correct answer, student's answer if present, relevant question-paper wording, audioscript/ASR evidence, distractors, spelling/plural/number issues, and what the student should listen for.",
@@ -3399,6 +3455,7 @@ async function handleHelpChat(req, res) {
         "When useful, end with executable IELTSist next steps using these exact action labels: Save vocabulary, Add to weak area, Retest this skill, Generate similar question, Explain in Chinese, Show evidence.",
         "Treat AI Coach as the product brain across all modules, not a generic Help popup. Use the current screen, current question, student answer, correct answer, paper/audio evidence, writing text, speaking transcript, recent weak areas and vocabulary whenever they are present.",
         "The structured Reading/Listening context is authoritative app data. Use it even if the screenshot OCR is short, partial, or noisy.",
+        "When hydrated focused Reading question text is present, treat that as the exact visible question, include a line beginning 题目： that quotes it before the explanation, and never claim the question text is missing or ask the student to upload it again.",
         "Be direct and practical; explain vocabulary, paraphrase, question type, strategy, and answer-location logic when relevant.",
         "If the student asks why a Reading answer is correct or why their answer is wrong, identify the relevant question number from their message/OCR/history, then use the Reading answer key and passage OCR text to explain: correct answer, source evidence, keyword-paraphrase chain, and why alternatives fail.",
         "For every Reading Hint request, the first line must be 位置：第X段，第Y句, where X and Y come from the indexed [P# S#] passage labels. If no exact indexed location is supported, begin with 位置：暂无法确认 and ask for the relevant passage screenshot instead of guessing.",

@@ -45,6 +45,24 @@ try {
   const readingContext = await readingContextResponse.json();
   assert.equal(readingContext.evidenceAvailable, true);
   assert.match(readingContext.paperText, /READING PASSAGE\s+1/i);
+  const focusedReadingContextResponse = await fetch(`${baseUrl}/api/reading/context?id=cam21-r-test4&question=1`);
+  assert.equal(focusedReadingContextResponse.status, 200);
+  const focusedReadingContext = await focusedReadingContextResponse.json();
+  assert.equal(
+    focusedReadingContext.questionText,
+    "Water hyacinth was introduced as a decorative plant in east Africa",
+    "Focused Reading hydration must return the real Cambridge question instead of the imported Question 1 placeholder",
+  );
+  assert.equal(focusedReadingContext.questionPage, 84);
+  assert.match(focusedReadingContext.paperText, /Water hyacinth was introduced as a decorative plant in east Africa/i);
+  const summaryReadingContext = await (await fetch(`${baseUrl}/api/reading/context?id=cam21-r-test4&question=14`)).json();
+  assert.match(summaryReadingContext.questionText, /The city of Delhi has a 14/i);
+  assert.match(summaryReadingContext.questionText, /(?:I|1) dense population/i,
+    "Focused summary questions must retain their shared A-J options");
+  const choiceReadingContext = await (await fetch(`${baseUrl}/api/reading/context?id=cam21-r-test4&question=24`)).json();
+  assert.match(choiceReadingContext.questionText, /What point does the writer make about primary schools in India/i);
+  assert.match(choiceReadingContext.questionText, /C Poor children may be disadvantaged further/i,
+    "Focused multiple-choice questions must retain their answer options");
   const unsupportedEvidenceResponse = await fetch(`${baseUrl}/api/help/chat`, {
     method: "POST",
     headers: { "content-type": "application/json" },

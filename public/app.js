@@ -3003,8 +3003,15 @@ async function hydrateCoachEvidenceContext(context) {
         state.readingContextCache[cacheKey] = await getJson(`/api/reading/context?id=${encodeURIComponent(id)}${questionQuery}`);
       }
       const payload = state.readingContextCache[cacheKey];
+      const hydratedQuestionText = String(payload?.questionText || "").trim();
+      const questions = (reading.questions || []).map((question) => {
+        if (!hydratedQuestionText || Number(question.number || 0) !== focusedQuestion) return question;
+        return { ...question, question: hydratedQuestionText.slice(0, 2000) };
+      });
       context.reading = {
         ...reading,
+        questions,
+        questionText: hydratedQuestionText.slice(0, 2000),
         paperText: String(payload?.paperText || "").slice(0, 120000),
         evidenceAvailable: Boolean(payload?.evidenceAvailable && payload?.paperText),
         passage: payload?.passage || null,

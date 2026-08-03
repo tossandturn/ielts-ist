@@ -420,6 +420,10 @@ check("Reading", "Hint actions hydrate the focused question and execute immediat
     "Evidence hydration must request OCR for the currently focused question");
   assert.match(hydration, /readingContextCache\[cacheKey\]/,
     "Question-specific Reading evidence must not reuse another passage's cache entry");
+  assert.match(hydration, /payload\?\.questionText/,
+    "Focused Reading hydration must consume the server's extracted question text");
+  assert.match(hydration, /question:\s*hydratedQuestionText/,
+    "Focused Reading hydration must replace a Question 1 placeholder before Coach submission");
 });
 
 check("Writing", "Topic chooser shares the Speaking topic-library system", ({ app, html }) => {
@@ -509,6 +513,13 @@ check("AI Coach", "Question explanations hydrate evidence without auto-navigatin
   assert.match(hydration, /\/api\/listening\/scripts/,
     "Listening questions must hydrate cached audio evidence without requiring captions to be opened first");
   assert.match(hydration, /evidenceAvailable:\s*Boolean\(payload\?\.available\s*&&\s*payload\?\.text\)/);
+});
+
+check("AI Coach", "Hydrated Reading questions cannot be reported as missing", ({ server }) => {
+  const helpChat = functionSource(server, "handleHelpChat");
+  assert.match(helpChat, /hydrated focused Reading question text is present/i);
+  assert.match(helpChat, /include a line beginning 题目： that quotes it before the explanation/i);
+  assert.match(helpChat, /never claim the question text is missing or ask the student to upload it again/i);
 });
 
 check("AI Coach", "Coach context is bound to the active session and quick actions execute", ({ app }) => {
