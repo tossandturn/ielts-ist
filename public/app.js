@@ -48,6 +48,7 @@
   pendingWritingSetId: "",
   selectedWritingTask1Id: "",
   selectedWritingTask2Id: "",
+  pendingWritingReviewPrompt: "",
   pendingWritingKind: "cambridge",
   speakingSetupMode: "exam",
   speakingDeviceChecked: false,
@@ -140,6 +141,7 @@
   writingTopicPageSize: 12,
   writingTopicCategory: "all",
   writingLibraryTaskNumber: 2,
+  writingLibraryScope: "full",
   vocabularyReview: {
     index: 0,
     revealed: false,
@@ -2851,7 +2853,11 @@ function rememberObjectiveResult(moduleName, item, json) {
 }
 
 function rememberWritingAttempt(attempt = {}) {
-  const value = { ...attempt, completionIdentity: practiceCompletionIdentityKey(), itemId: String(attempt.itemId || "").trim(), attemptId: attempt.attemptId || learningEntityId("attempt"), updatedAt: new Date().toISOString() };
+  const itemId = String(attempt.itemId || "").trim();
+  const idTask = Number(itemId.match(/-task([12])$/i)?.[1]);
+  const promptTask = /\btask\s*1\b|\b(chart|graph|table|map|diagram|process|letter)\b/i.test(String(attempt.prompt || "")) ? 1 : 2;
+  const taskNumber = [1, 2].includes(Number(attempt.taskNumber)) ? Number(attempt.taskNumber) : ([1, 2].includes(idTask) ? idTask : promptTask);
+  const value = { ...attempt, taskNumber, completionIdentity: practiceCompletionIdentityKey(), itemId, attemptId: attempt.attemptId || learningEntityId("attempt"), updatedAt: new Date().toISOString() };
   state.latestWritingAttempt = value;
   updateLearningLoopHistory({ writing: value });
   rememberPracticeCompletion("writing", { itemId: value.itemId }, value);
@@ -3315,7 +3321,7 @@ function mineLearningAttempts() {
   const history = readLearningLoopHistory();
   const localAttempts = [
     ...Object.values(history.objective || {}),
-    history.writing ? { module: "writing", ...history.writing } : null,
+    ...[history.writing, ...(history.writingAttempts || [])].filter(Boolean).map((attempt) => ({ module: "writing", ...attempt })),
     history.speaking ? { module: "speaking", ...history.speaking } : null,
   ].filter(Boolean);
   const attempts = [...(state.learningState?.attempts || []), ...localAttempts];
@@ -6139,6 +6145,7 @@ function writingImpactInsight(text, scores, attempt = {}, analysis = null) {
   const weakest = ranked[0] || { label: "Task Response", score: "" };
   const structured = analysis?.highestImpact && typeof analysis.highestImpact === "object" ? analysis.highestImpact : null;
   const instructions = {
+    "Task Achievement": "Write a clear overview of the main features, then select and compare the most important data without listing every detail.",
     "Task Response": "Make the position explicit, develop one central idea, and support it with a specific example.",
     "Coherence & Cohesion": "Rebuild the paragraph around one topic sentence and make every sentence advance that idea.",
     "Lexical Resource": "Replace vague or repeated wording with precise topic vocabulary that fits the original meaning.",
@@ -6159,6 +6166,7 @@ function saveWritingWeakArea(button = null) {
   const attempt = state.latestWritingAttempt || readLearningLoopHistory().writing || {};
   const scores = attempt.scores || extractWritingScores(attempt.feedback || "", attempt.analysis);
   const impact = writingImpactInsight(attempt.feedback || "", scores, attempt, attempt.analysis);
+  const taskNumber = writingAttemptTaskNumber(attempt);
   const entry = {
     id: learningEntityId("weak"),
     module: "writing",
@@ -6166,9 +6174,12 @@ function saveWritingWeakArea(button = null) {
     questionId: "",
     sourceAttemptId: attempt.attemptId || "",
     title: impact.criterion,
+    taskNumber,
     summary: compactText(impact.issue, 180),
     evidence: {
       criterion: impact.criterion,
+      taskNumber,
+      itemId: attempt.itemId || "",
       score: impact.score,
       originalExcerpt: impact.evidence,
       rewriteInstruction: impact.instruction,
@@ -6203,6 +6214,19 @@ function startWritingTargetedPractice() {
   const attempt = state.latestWritingAttempt || readLearningLoopHistory().writing || {};
   const scores = attempt.scores || extractWritingScores(attempt.feedback || "", attempt.analysis);
   const impact = writingImpactInsight(attempt.feedback || "", scores, attempt, attempt.analysis);
+  if (writingAttemptTaskNumber(attempt) === 1) {
+    const pool = writingTask1Pool();
+    const current = findItemById("writing", attempt.itemId);
+    const target = pool.find((item) => item.id !== attempt.itemId && writingTaskKind(item) === writingTaskKind(current || {}))
+      || pool.find((item) => item.id !== attempt.itemId)
+      || pool[0];
+    if (target) {
+      state.writingLibraryTaskNumber = 1;
+      state.writingLibraryScope = "full";
+      openWritingPracticeSetup("task1", target.id);
+      return;
+    }
+  }
   setWritingWorkspaceMode("custom");
   const title = $("writingWorkspaceTitle");
   const prompt = $("uploadPrompt");
@@ -16059,14 +16083,16 @@ function renderWritingTimer() {
   }
 }
 
-function startWritingTimer({ reset = false } = {}) {
+function startWritingTimer({ reset = false, durationSeconds = 0 } = {}) {
   if (reset) {
     if (state.writingTimerId) clearInterval(state.writingTimerId);
     state.writingTimerId = null;
     state.writingTimerElapsed = 0;
-    state.writingTimerDuration = state.writingWorkspaceMode === "cambridge"
-      ? (state.writingActiveTaskNumber === 1 ? 20 * 60 : 40 * 60)
-      : 60 * 60;
+    state.writingTimerDuration = Number(durationSeconds) > 0
+      ? Number(durationSeconds)
+      : state.writingWorkspaceMode === "cambridge"
+        ? (state.writingActiveTaskNumber === 1 ? 20 * 60 : 40 * 60)
+        : 60 * 60;
     state.writingTimerStartedAt = Date.now();
   } else if (!state.writingTimerStartedAt) {
     state.writingTimerStartedAt = Date.now();
@@ -16300,7 +16326,13 @@ function openWritingPracticeSetup(kind = "task2", selectionId = "") {
         taskNumber: isTask1 ? 1 : 2,
         taskId: isTask1 ? task1?.id : task2?.id,
       });
-      startWritingTimer({ reset: true });
+      if (resolvedKind === "custom" && state.pendingWritingReviewPrompt) {
+        if ($("uploadPrompt")) $("uploadPrompt").value = state.pendingWritingReviewPrompt;
+        state.pendingWritingReviewPrompt = "";
+        syncCustomWritingState();
+        scheduleDraftAutosave();
+      }
+      startWritingTimer({ reset: true, durationSeconds: isTask1 ? 20 * 60 : 40 * 60 });
     },
   });
   setup.scrollIntoView({ block: "start" });
@@ -16379,21 +16411,21 @@ function writingSetSearchText(option) {
 
 function writingTopicRules() {
   return [
-    { title: "Education & learning", iconName: "graduation-cap", accent: "education-learning", pattern: /\b(school|student|education|university|teacher|learning|homework|subject|course|academic|tuition|classroom)\b/i },
-    { title: "Digital technology", iconName: "monitor-smartphone", accent: "technology-digital", pattern: /\b(technology|internet|computer|online|digital|robot|automation|ai|smartphone|algorithm|data|privacy)\b/i },
-    { title: "Work & careers", iconName: "briefcase-business", accent: "work-career", pattern: /\b(work|job|career|employee|employer|office|salary|profession|business|company|workplace|retirement)\b/i },
-    { title: "Environment & climate", iconName: "leaf", accent: "environment-climate", pattern: /\b(environment|climate|pollution|recycle|recycling|carbon|emission|energy|wildlife|habitat|animal|plant|nature|green)\b/i },
-    { title: "Transport & mobility", iconName: "train-front", accent: "transport-mobility", pattern: /\b(transport|traffic|congestion|commute|road|car|vehicle|rail|bus|cycling|pedestrian|fuel)\b/i },
-    { title: "Cities & housing", iconName: "building-2", accent: "cities-housing", pattern: /\b(city|cities|urban|housing|apartment|high-rise|residential|land|neighbourhood|neighborhood|public space|park)\b/i },
-    { title: "Health & lifestyle", iconName: "heart-pulse", accent: "health-lifestyle", pattern: /\b(health|healthy|hospital|doctor|exercise|sport|diet|medical|wellbeing|fitness|sugar|illness|disease)\b/i },
-    { title: "Family & children", iconName: "users-round", accent: "family-children", pattern: /\b(family|families|children|child|parent|parents|mother|father|elderly|older people|ageing|aging)\b/i },
-    { title: "Crime & law", iconName: "scale", accent: "crime-law", pattern: /\b(crime|criminal|prison|punishment|sentence|law|legal|police|rehabilitation|offender)\b/i },
-    { title: "Government & public services", iconName: "landmark", accent: "government-public", pattern: /\b(government|public service|policy|tax|funding|spend|spending|community service|citizen|society|population)\b/i },
-    { title: "Culture & traditions", iconName: "landmark", accent: "culture-traditions", pattern: /\b(culture|art|music|museum|history|tradition|custom|festival|heritage|local film)\b/i },
-    { title: "Media & advertising", iconName: "newspaper", accent: "media-advertising", pattern: /\b(media|news|newspaper|television|advertising|advertisement|social media|film|entertainment)\b/i },
-    { title: "Globalisation & language", iconName: "globe-2", accent: "globalisation-language", pattern: /\b(globalisation|globalization|international|foreign|overseas|language|multicultural|border)\b/i },
-    { title: "Consumerism & money", iconName: "wallet-cards", accent: "consumerism-money", pattern: /\b(consumer|consumption|shopping|商品|money|finance|financial|bank|salary|wealth|cost|price)\b/i },
-    { title: "Science & research", iconName: "flask-conical", accent: "science-research", pattern: /\b(science|scientific|research|experiment|space|discovery|medicine|innovation)\b/i },
+    { title: "Education & learning", emoji: "📝", accent: "education-learning", pattern: /\b(school|student|education|university|teacher|learning|homework|subject|course|academic|tuition|classroom)\b/i },
+    { title: "Digital technology", emoji: "🖥️", accent: "technology-digital", pattern: /\b(technology|internet|computer|online|digital|robot|automation|ai|smartphone|algorithm|data|privacy)\b/i },
+    { title: "Work & careers", emoji: "💼", accent: "work-career", pattern: /\b(work|job|career|employee|employer|office|salary|profession|business|company|workplace|retirement)\b/i },
+    { title: "Environment & climate", emoji: "🌦️", accent: "environment-climate", pattern: /\b(environment|climate|pollution|recycle|recycling|carbon|emission|energy|wildlife|habitat|animal|plant|nature|green)\b/i },
+    { title: "Transport & mobility", emoji: "🚆", accent: "transport-mobility", pattern: /\b(transport|traffic|congestion|commute|road|car|vehicle|rail|bus|cycling|pedestrian|fuel)\b/i },
+    { title: "Cities & housing", emoji: "🏙️", accent: "cities-housing", pattern: /\b(city|cities|urban|housing|apartment|high-rise|residential|land|neighbourhood|neighborhood|public space|park)\b/i },
+    { title: "Health & lifestyle", emoji: "💗", accent: "health-lifestyle", pattern: /\b(health|healthy|hospital|doctor|exercise|sport|diet|medical|wellbeing|fitness|sugar|illness|disease)\b/i },
+    { title: "Family & children", emoji: "👨‍👩‍👧", accent: "family-children", pattern: /\b(family|families|children|child|parent|parents|mother|father|elderly|older people|ageing|aging)\b/i },
+    { title: "Crime & law", emoji: "⚖️", accent: "crime-law", pattern: /\b(crime|criminal|prison|punishment|sentence|law|legal|police|rehabilitation|offender)\b/i },
+    { title: "Government & public services", emoji: "🏛️", accent: "government-public", pattern: /\b(government|public service|policy|tax|funding|spend|spending|community service|citizen|society|population)\b/i },
+    { title: "Culture & traditions", emoji: "🎬", accent: "culture-traditions", pattern: /\b(culture|art|music|museum|history|tradition|custom|festival|heritage|local film)\b/i },
+    { title: "Media & advertising", emoji: "📰", accent: "media-advertising", pattern: /\b(media|news|newspaper|television|advertising|advertisement|social media|film|entertainment)\b/i },
+    { title: "Globalisation & language", emoji: "🌍", accent: "globalisation-language", pattern: /\b(globalisation|globalization|international|foreign|overseas|language|multicultural|border)\b/i },
+    { title: "Consumerism & money", emoji: "🛍️", accent: "consumerism-money", pattern: /\b(consumer|consumption|shopping|商品|money|finance|financial|bank|salary|wealth|cost|price)\b/i },
+    { title: "Science & research", emoji: "🔬", accent: "science-research", pattern: /\b(science|scientific|research|experiment|space|discovery|medicine|innovation)\b/i },
   ];
 }
 
@@ -16419,7 +16451,7 @@ function writingTopicMeta(option) {
   const match = rules.find((rule) => rule.accent === task2.topicSubcategory)
     || rules.find((rule) => rule.pattern.test(taskText))
     || rules.find((rule) => rule.accent === legacyAccent);
-  return match || { title: "Essay", iconName: "file-pen-line", accent: "education-learning" };
+  return match || { title: "Essay", emoji: "✨", accent: "education-learning" };
 }
 
 function renderWritingTopicCategoryBar(options = []) {
@@ -16589,6 +16621,229 @@ function renderWritingTask1Board(tasks, recommended) {
   window.lucide?.createIcons?.({ attrs: { "stroke-width": 1.8 } });
 }
 
+function writingLibraryScope() {
+  return ["full", "topics", "review"].includes(state.writingLibraryScope) ? state.writingLibraryScope : "full";
+}
+
+function renderWritingScopeTabs(taskNumber) {
+  const scope = writingLibraryScope();
+  document.querySelectorAll("[data-writing-scope]").forEach((button) => {
+    const active = button.dataset.writingScope === scope;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-selected", active ? "true" : "false");
+  });
+  document.querySelectorAll('[data-writing-scope-detail="full"]').forEach((node) => {
+    node.textContent = `One complete Task ${taskNumber} · ${taskNumber === 1 ? 20 : 40} min`;
+  });
+  document.querySelectorAll('[data-writing-scope-detail="review"]').forEach((node) => {
+    node.textContent = `Task ${taskNumber} feedback & weak areas`;
+  });
+}
+
+function setWritingTopicListLayout(scope) {
+  const root = $("writingTopicList");
+  if (!root) return;
+  root.classList.toggle("objective-topic-grid", scope === "topics");
+  root.classList.toggle("writing-review-grid", scope === "review");
+  root.classList.toggle("writing-full-task-grid", scope === "full");
+}
+
+function writingTask2FullCards(options = writingSystemOptions(), completionIndex = null) {
+  const query = ($("writingTopicSearch")?.value || "").trim().toLowerCase();
+  const source = $("writingTopicBook")?.value || "all";
+  return options.filter((option) => {
+    const task = writingTask2ForOption(option);
+    if (!task) return false;
+    const isPublic = task.source === "Public topics";
+    const sourceOk = source === "all"
+      || (source === "public" ? isPublic : !isPublic && String(itemBook(task)) === source);
+    if (!sourceOk || !practiceCompletionFilterMatches("writing", task, completionIndex, "writingCompletionFilter")) return false;
+    return !query || `${writingSetSearchText(option)} ${writingTopicMeta(option).title}`.toLowerCase().includes(query);
+  });
+}
+
+function renderWritingTask2FullCard(option, recommendedId = "", completionIndex = null) {
+  const task = writingTask2ForOption(option) || {};
+  const meta = writingTopicMeta(option);
+  const completion = practiceCompletionStatus("writing", task, completionIndex);
+  const status = completion.completed ? "completed" : "not-completed";
+  const isRecommended = option.id === recommendedId;
+  return `<article class="practice-unit-card tone-writing writing-full-task-card${isRecommended ? " recommended" : ""}" data-writing-task2-option="${escapeHtml(option.id)}" data-practice-status="${status}" role="button" tabindex="0" aria-label="Choose ${escapeHtml(task.title || meta.title)}">
+    <div class="practice-unit-card-head"><span aria-hidden="true">${escapeHtml(meta.emoji || "✨")}</span><em>Task 2${isRecommended ? " · AI pick" : ""}</em></div>
+    <h4>${escapeHtml(task.title || meta.title || "Writing Task 2")}</h4>
+    <p>${escapeHtml(writingTaskPreview(task, "Write a complete IELTS Task 2 essay."))}</p>
+    <div class="practice-unit-stats"><span><strong>250</strong> words</span><span><strong>40</strong> min</span><span>${escapeHtml(meta.title)}</span></div>
+    <span class="practice-status-badge ${status}">${practiceCompletionDisplay(completion)}</span>
+    <button class="primary practice-writing-task2" type="button" data-writing-task2-option="${escapeHtml(option.id)}">Start this task</button>
+  </article>`;
+}
+
+function renderWritingTask2FullBoard(options, recommended) {
+  const root = $("writingTopicList");
+  if (!root) return;
+  renderWritingTopicFilters(options);
+  const completionIndex = readPracticeCompletionIndex();
+  const filtered = writingTask2FullCards(options, completionIndex);
+  const ordered = recommended && filtered.some((option) => option.id === recommended.id)
+    ? [recommended, ...filtered.filter((option) => option.id !== recommended.id)]
+    : filtered;
+  if (!ordered.length) {
+    root.innerHTML = `<div class="notice">No Task 2 questions match the current filters.</div>`;
+    renderWritingTopicPagination(0, 1, state.writingTopicPageSize);
+    return;
+  }
+  const totalPages = Math.max(1, Math.ceil(ordered.length / state.writingTopicPageSize));
+  state.writingTopicPage = Math.min(Math.max(1, state.writingTopicPage || 1), totalPages);
+  const start = (state.writingTopicPage - 1) * state.writingTopicPageSize;
+  const visible = ordered.slice(start, start + state.writingTopicPageSize);
+  root.innerHTML = visible.map((option) => renderWritingTask2FullCard(option, recommended?.id || "", completionIndex)).join("");
+  renderWritingTopicPagination(ordered.length, state.writingTopicPage, state.writingTopicPageSize);
+  root.querySelectorAll("[data-writing-task2-option]").forEach((node) => {
+    const open = () => openWritingPracticeSetup("task2", node.dataset.writingTask2Option);
+    if (node.matches("article")) {
+      node.addEventListener("click", (event) => { if (!event.target.closest("button")) open(); });
+      node.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        open();
+      });
+    } else {
+      node.addEventListener("click", (event) => { event.stopPropagation(); open(); });
+    }
+  });
+}
+
+function writingAttemptTaskNumber(attempt = {}) {
+  const explicit = Number(attempt.taskNumber || attempt.evidence?.taskNumber || attempt.result?.taskNumber);
+  if (explicit === 1 || explicit === 2) return explicit;
+  const itemId = String(attempt.itemId || attempt.result?.itemId || "");
+  const item = findItemById("writing", itemId);
+  const itemTaskNumber = item ? writingTaskNumber(item) : null;
+  if (itemTaskNumber) return itemTaskNumber;
+  return detectWritingTaskProfile(attempt.prompt || attempt.evidence?.prompt || attempt.result?.prompt || "").taskNumber;
+}
+
+function writingReviewScores(attempt = {}) {
+  if (attempt.scores?.criteria) return attempt.scores;
+  const score = attempt.contract?.score || attempt.score || attempt.result?.score || {};
+  const criteria = Array.isArray(score.criteria)
+    ? score.criteria.map((item) => ({ label: item.label || item.criterion || "Criterion", score: roundWritingBand(item.score), feedback: item.feedback || "" }))
+    : [];
+  const overall = roundWritingBand(score.overall?.value ?? score.overall ?? attempt.band ?? attempt.result?.band);
+  if (criteria.length || overall) return { overall, criteria };
+  return extractWritingScores(attempt.feedback || attempt.result?.feedback || "", attempt.analysis || attempt.result?.analysis);
+}
+
+function writingReviewEntries(taskNumber) {
+  const attempts = mineLearningAttempts()
+    .filter((attempt) => String(attempt.module || attempt.result?.module || "").toLowerCase() === "writing")
+    .filter((attempt) => writingAttemptTaskNumber(attempt) === taskNumber);
+  const attemptIds = new Set(attempts.map((attempt) => String(attempt.attemptId || attempt.id || "")).filter(Boolean));
+  const attemptEntries = attempts.map((attempt, index) => {
+    const feedback = attempt.feedback || attempt.result?.feedback || "";
+    const analysis = attempt.analysis || attempt.result?.analysis || null;
+    const normalized = { ...attempt, feedback, analysis, essay: attempt.essay || attempt.result?.essay || "" };
+    const scores = writingReviewScores(normalized);
+    const impact = writingImpactInsight(feedback, scores, normalized, analysis);
+    return {
+      id: String(attempt.attemptId || attempt.id || `writing-review-${index}`),
+      taskNumber,
+      itemId: String(attempt.itemId || attempt.result?.itemId || ""),
+      title: attempt.title || attempt.result?.title || `Task ${taskNumber} attempt`,
+      band: scores.overall || "",
+      criterion: impact.criterion,
+      issue: impact.issue || "Review the saved criterion feedback before your next attempt.",
+      evidence: impact.evidence || "No essay excerpt was saved for this attempt.",
+      instruction: impact.instruction,
+      date: attempt.submittedAt || attempt.updatedAt || attempt.createdAt || attempt.result?.updatedAt || "",
+      prompt: attempt.prompt || attempt.result?.prompt || "",
+      sourceAttemptId: String(attempt.attemptId || attempt.id || ""),
+      attempt,
+    };
+  });
+  const weakEntries = mineWeakAreas()
+    .filter((area) => area.module === "writing")
+    .filter((area) => writingAttemptTaskNumber(area) === taskNumber)
+    .filter((area) => !area.sourceAttemptId || !attemptIds.has(String(area.sourceAttemptId)))
+    .map((area, index) => ({
+      id: String(area.id || `writing-weak-${index}`),
+      taskNumber,
+      itemId: String(area.itemId || area.evidence?.itemId || ""),
+      title: area.title || area.skillKey || `Task ${taskNumber} weak area`,
+      band: area.evidence?.score || "",
+      criterion: area.evidence?.criterion || area.skillKey || "Writing criterion",
+      issue: area.summary || "Saved writing weak area",
+      evidence: area.evidence?.originalExcerpt || "No essay excerpt was saved for this weak area.",
+      instruction: area.evidence?.rewriteInstruction || "Rewrite the weak paragraph and check it against the saved criterion.",
+      date: area.createdAt || area.updatedAt || "",
+      prompt: area.evidence?.prompt || "",
+      sourceAttemptId: String(area.sourceAttemptId || ""),
+      attempt: null,
+    }));
+  const query = ($("writingTopicSearch")?.value || "").trim().toLowerCase();
+  return [...attemptEntries, ...weakEntries]
+    .filter((entry) => !query || [entry.title, entry.criterion, entry.issue, entry.evidence, entry.instruction].join(" ").toLowerCase().includes(query))
+    .sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")))
+    .slice(0, 30);
+}
+
+function writingReviewRetryTarget(entry) {
+  const sourceAttempt = entry.sourceAttemptId
+    ? mineLearningAttempts().find((attempt) => String(attempt.attemptId || attempt.id || "") === entry.sourceAttemptId)
+    : null;
+  const item = findItemById("writing", entry.itemId || sourceAttempt?.itemId || sourceAttempt?.result?.itemId);
+  if (!item) return null;
+  if (entry.taskNumber === 1) return { kind: "task1", selectionId: item.id };
+  const option = writingSystemOptions().find((candidate) => writingTask2ForOption(candidate)?.id === item.id);
+  return option ? { kind: "task2", selectionId: option.id } : null;
+}
+
+function openWritingReviewRetry(entry) {
+  const retry = writingReviewRetryTarget(entry);
+  if (retry) {
+    openWritingPracticeSetup(retry.kind, retry.selectionId);
+    return;
+  }
+  if (entry.taskNumber === 1) {
+    const target = writingTask1Pool()[0];
+    if (target) {
+      openWritingPracticeSetup("task1", target.id);
+      return;
+    }
+  }
+  state.pendingWritingReviewPrompt = entry.prompt || writingTargetTaskForCriterion(entry.criterion);
+  openWritingPracticeSetup("custom", "writing-review");
+}
+
+function renderWritingReviewBoard(taskNumber) {
+  const root = $("writingTopicList");
+  if (!root) return;
+  const entries = writingReviewEntries(taskNumber);
+  renderWritingTopicPagination(0, 1, state.writingTopicPageSize);
+  if (!entries.length) {
+    root.innerHTML = `<div class="practice-unit-empty writing-review-empty"><span aria-hidden="true">🌱</span><p>Complete and score a Task ${taskNumber} first. Your Band, weakest criterion, evidence and rewrite target will appear here.</p></div>`;
+    return;
+  }
+  root.innerHTML = entries.map((entry) => {
+    const retry = writingReviewRetryTarget(entry);
+    const date = practiceCompletionDateLabel(entry.date) || "Saved review";
+    const band = entry.band ? `Band ${roundWritingBand(entry.band) || escapeHtml(entry.band)}` : "Weak area";
+    return `<article class="writing-review-card" data-writing-review-id="${escapeHtml(entry.id)}">
+      <header><span class="objective-topic-icon" aria-hidden="true">🔁</span><strong>${escapeHtml(band)}</strong></header>
+      <div><span class="eyebrow">Task ${taskNumber} · ${escapeHtml(date)}</span><h4>${escapeHtml(entry.criterion)}</h4><p>${escapeHtml(entry.issue)}</p></div>
+      <blockquote><span>Exact evidence</span>${escapeHtml(entry.evidence)}</blockquote>
+      <div class="writing-review-next"><span>Rewrite target</span><strong>${escapeHtml(entry.instruction)}</strong></div>
+      <footer><span>${escapeHtml(entry.title)}</span><button class="primary" type="button" data-writing-review-retry="${escapeHtml(entry.id)}">${retry ? "Retry task" : "Targeted practice"} ${objectiveTopicArrowIcon()}</button></footer>
+    </article>`;
+  }).join("");
+  root.querySelectorAll("[data-writing-review-retry]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const entry = entries.find((item) => item.id === button.dataset.writingReviewRetry);
+      if (entry) openWritingReviewRetry(entry);
+    });
+  });
+}
+
 function renderWritingTopicPagination(total, page, pageSize) {
   const root = $("writingTopicPagination");
   if (!root) return;
@@ -16645,25 +16900,24 @@ function renderWritingTopicCard(option, recommendedId = "", completionIndex = nu
     "Task 2",
     `${group.items.length} ${group.items.length === 1 ? "question" : "questions"}`,
   ].filter(Boolean).slice(0, 3);
-  const task2Summary = writingTaskPreview(task2, "Choose a Cambridge Task 2 question.");
-  const sourceLabel = task2.source === "Public topics" ? "Public Task 2" : "Cambridge Task 2";
   const tasks = group.items.map(writingTask2ForOption).filter(Boolean);
   const summary = practiceCompletionGroupSummary("writing", tasks, completionIndex);
-  return `<article class="bank-item speaking-topic-card writing-topic-card topic-accent-${escapeHtml(meta.accent)}${isRecommended ? " recommended" : ""}" data-writing-topic-group="${escapeHtml(group.id)}" data-writing-completed-count="${summary.completedCount}" role="button" tabindex="0" aria-label="Choose ${escapeHtml(meta.title)} writing topic">
-    <div class="topic-card-head">
-      <div class="topic-icon" aria-hidden="true"><i data-lucide="${escapeHtml(meta.iconName || "file-pen-line")}"></i></div>
-      <span class="practice-status-badge ${summary.completedCount === summary.totalCount && summary.totalCount ? "completed" : "not-completed"}">${escapeHtml(summary.label)}</span>
-      ${isRecommended ? `<span class="writing-ai-pick">AI pick</span>` : ""}
+  const books = tasks.map(itemBook).filter(Number.isFinite).sort((a, b) => a - b);
+  const hasPublic = tasks.some((item) => item.source === "Public topics");
+  const bookRange = hasPublic && books.length
+    ? "Cambridge + Public"
+    : books.length
+      ? (books[0] === books.at(-1) ? `Cambridge ${books[0]}` : `Cambridge ${books[0]}–${books.at(-1)}`)
+      : hasPublic ? "Public topics" : "Writing";
+  const sourceLabel = `${group.items.length} ${group.items.length === 1 ? "question" : "questions"} · ${bookRange}`;
+  return `<article class="objective-topic-card writing-topic-card topic-accent-${escapeHtml(meta.accent)}${isRecommended ? " recommended" : ""}" data-writing-topic-group="${escapeHtml(group.id)}" data-writing-completed-count="${summary.completedCount}" role="button" tabindex="0" aria-label="Choose ${escapeHtml(meta.title)} writing topic">
+    <div class="objective-topic-card-head">
+      <span class="objective-topic-icon" aria-hidden="true">${escapeHtml(meta.emoji || "✨")}</span>
+      <span class="objective-topic-progress">${escapeHtml(summary.label)}</span>
     </div>
-    <h3>${escapeHtml(meta.title)}</h3>
-    <div class="topic-card-body">
-      <div class="topic-keywords">${chips.map((chip) => `<span>${escapeHtml(chip)}</span>`).join("")}</div>
-      <p class="writing-topic-summary">${escapeHtml(task2Summary)}</p>
-    </div>
-    <div class="topic-card-foot">
-      <span class="topic-origin">${escapeHtml(sourceLabel)}</span>
-      <button class="primary small-button practice-writing-topic" type="button" data-writing-topic-group="${escapeHtml(group.id)}">Choose</button>
-    </div>
+    <h4>${escapeHtml(meta.title)}${isRecommended ? ` <span class="writing-ai-pick">AI pick</span>` : ""}</h4>
+    <div class="objective-topic-keywords">${chips.map((chip) => `<span>${escapeHtml(chip)}</span>`).join("")}</div>
+    <footer><span>${escapeHtml(sourceLabel)}</span><button class="primary practice-writing-topic" type="button" data-writing-topic-group="${escapeHtml(group.id)}">Choose ${objectiveTopicArrowIcon()}</button></footer>
   </article>`;
 }
 
@@ -16672,7 +16926,7 @@ function buildWritingTopicGroups(options = [], recommendedId = "") {
   options.forEach((option) => {
     const meta = writingTopicMeta(option);
     const id = `writing-topic:${meta.accent}`;
-    if (!groups.has(id)) groups.set(id, { id, ...meta, iconName: meta.iconName || "file-pen-line", items: [] });
+    if (!groups.has(id)) groups.set(id, { id, ...meta, emoji: meta.emoji || "✨", items: [] });
     groups.get(id).items.push(option);
   });
   return [...groups.values()].sort((a, b) => {
@@ -16772,17 +17026,31 @@ function renderWritingUploadHub() {
   const entryReason = $("writingRecommendedReason");
   renderWritingResumeStrip();
   if (!select || !title) return;
-  const taskNumber = Number(state.writingLibraryTaskNumber) === 1 ? 1 : 2;
+  let taskNumber = Number(state.writingLibraryTaskNumber) === 1 ? 1 : 2;
+  const scope = writingLibraryScope();
+  if (scope === "topics" && taskNumber !== 2) {
+    state.writingLibraryTaskNumber = 2;
+    taskNumber = 2;
+  }
+  renderWritingScopeTabs(taskNumber);
+  setWritingTopicListLayout(scope);
   document.querySelectorAll("[data-writing-library-task]").forEach((button) => {
     const active = Number(button.dataset.writingLibraryTask) === taskNumber;
     button.classList.toggle("active", active);
     button.setAttribute("aria-selected", active ? "true" : "false");
   });
   const categoryBar = $("writingTopicCategoryBar");
-  if (categoryBar) categoryBar.hidden = taskNumber === 1;
-  if ($("writingTopicSearch")) $("writingTopicSearch").placeholder = taskNumber === 1
-    ? "Search Task 1 charts or visuals..."
-    : "Search Task 2 topics or questions...";
+  if (categoryBar) categoryBar.hidden = scope !== "topics";
+  if ($("writingTopicBook")) $("writingTopicBook").hidden = scope === "review";
+  if ($("writingCompletionFilter")) $("writingCompletionFilter").hidden = scope === "review";
+  if ($("openCustomWriting")) $("openCustomWriting").hidden = scope === "review";
+  if ($("writingTopicSearch")) {
+    $("writingTopicSearch").placeholder = scope === "review"
+      ? `Search Task ${taskNumber} feedback or weak areas...`
+      : taskNumber === 1
+        ? "Search Task 1 charts or visuals..."
+        : scope === "topics" ? "Search Task 2 content topics..." : "Search complete Task 2 questions...";
+  }
   if (taskNumber === 1) {
     const tasks = writingTask1Pool();
     const recommended = chooseRotatingRecommendation("writing-task1", tasks);
@@ -16791,9 +17059,10 @@ function renderWritingUploadHub() {
       ? `Task 1 visual practice · ${writingTaskKind(recommended)} · 20 minutes · scored independently.`
       : "No Task 1 visual is available yet.";
     if (reason) reason.textContent = task1Reason;
-    if (entryReason) entryReason.textContent = `Why this: ${task1Reason}`;
+    if (entryReason) entryReason.textContent = scope === "review" ? "Your saved Task 1 scores, evidence and rewrite targets." : `Why this: ${task1Reason}`;
     select.innerHTML = tasks.map((task) => `<option value="${escapeHtml(task.id)}">${escapeHtml(task.title || writingTask1OptionLabel(task))}</option>`).join("");
-    renderWritingTask1Board(tasks, recommended);
+    if (scope === "review") renderWritingReviewBoard(1);
+    else renderWritingTask1Board(tasks, recommended);
     if (state.selectedWritingTask1Id && tasks.some((task) => task.id === state.selectedWritingTask1Id)) select.value = state.selectedWritingTask1Id;
     $("startRecommendedWriting")?.toggleAttribute("disabled", !recommended);
     $("startSelectedWriting")?.toggleAttribute("disabled", !tasks.length);
@@ -16805,7 +17074,9 @@ function renderWritingUploadHub() {
     if (reason) reason.textContent = "Import a Task 2 question before AI can recommend a writing topic.";
     if (entryReason) entryReason.textContent = "No Cambridge Task 2 question is available yet.";
     select.innerHTML = `<option value="">No system writing questions available</option>`;
-    renderWritingTopicBoard([], null);
+    if (scope === "review") renderWritingReviewBoard(2);
+    else if (scope === "topics") renderWritingTopicBoard([], null);
+    else renderWritingTask2FullBoard([], null);
     $("startRecommendedWriting")?.setAttribute("disabled", "disabled");
     $("startSelectedWriting")?.setAttribute("disabled", "disabled");
     return;
@@ -16814,9 +17085,13 @@ function renderWritingUploadHub() {
   title.textContent = recommended?.title || "Recommended Task 2 topic";
   const recommendedReason = singleRecommendationReason("writing", recommended, options);
   if (reason) reason.textContent = recommendedReason;
-  if (entryReason) entryReason.textContent = `Why this: ${recommendedReason}`;
+  if (entryReason) entryReason.textContent = scope === "review"
+    ? "Your saved Task 2 scores, evidence and rewrite targets."
+    : scope === "topics" ? "Choose a content topic, then select one independent Task 2 question." : `Why this: ${recommendedReason}`;
   select.innerHTML = options.map((item) => `<option value="${escapeHtml(item.id)}">${escapeHtml(singleOptionLabel(item, "writing"))}</option>`).join("");
-  renderWritingTopicBoard(options, recommended);
+  if (scope === "review") renderWritingReviewBoard(2);
+  else if (scope === "topics") renderWritingTopicBoard(options, recommended);
+  else renderWritingTask2FullBoard(options, recommended);
   if (state.pendingWritingSetId && options.some((item) => item.id === state.pendingWritingSetId)) {
     select.value = state.pendingWritingSetId;
   } else if (state.selectedWritingTask2Id) {
@@ -17905,20 +18180,6 @@ function buildSpeakingTopicGroups(items) {
     .sort((a, b) => a.firstIndex - b.firstIndex || a.title.localeCompare(b.title, undefined, { numeric: true }));
 }
 
-function speakingTopicIconName(category = "") {
-  return {
-    people: "user-round",
-    place: "map-pin",
-    lifestyle: "coffee",
-    education: "graduation-cap",
-    technology: "monitor-smartphone",
-    media: "headphones",
-    nature: "leaf",
-    work: "briefcase-business",
-    society: "users",
-  }[category] || "message-circle";
-}
-
 function findSpeakingTopicGroupById(groupId, items = getSpeakingTopicItems()) {
   return buildSpeakingTopicGroups(items).find((group) => group.id === groupId) || null;
 }
@@ -18197,7 +18458,7 @@ function renderTopicSetChooser(group, completionIndex = readPracticeCompletionIn
   root.innerHTML = `<div class="topic-set-chooser">
     <header class="bank-practice-head topic-set-chooser-head">
       <div class="topic-set-title-row">
-        <div class="topic-icon topic-accent-${escapeHtml(group.accent)}" aria-hidden="true"><i data-lucide="${escapeHtml(speakingTopicIconName(group.category))}"></i></div>
+        <span class="objective-topic-icon topic-accent-${escapeHtml(group.accent)}" aria-hidden="true">${escapeHtml(group.emoji || "✨")}</span>
         <div>
           <span>${escapeHtml(sourceLabel)} · ${escapeHtml(group.items.length)} ${group.items.length === 1 ? "set" : "sets"}</span>
           <h3>${escapeHtml(group.title)}</h3>
@@ -18338,7 +18599,7 @@ function renderBankList() {
         return `
       <div class="bank-item speaking-topic-card topic-accent-${escapeHtml(group.accent)}" data-group-id="${escapeHtml(group.id)}" data-speaking-completed-count="${completion.completedCount}" role="button" tabindex="0">
         <div class="topic-card-head">
-          <div class="topic-icon" aria-hidden="true"><i data-lucide="${escapeHtml(speakingTopicIconName(group.category))}"></i></div>
+          <span class="objective-topic-icon" aria-hidden="true">${escapeHtml(group.emoji || "✨")}</span>
           <span class="practice-status-badge ${completion.completedCount === completion.totalCount && completion.totalCount ? "completed" : "not-completed"}">${escapeHtml(completion.label)}</span>
           <button class="topic-favourite${liked ? " liked" : ""}" type="button" data-topic-group="${escapeHtml(group.id)}" aria-label="${liked ? "Remove from likes" : "Like topic"}"><i data-lucide="heart"></i></button>
         </div>
@@ -18777,11 +19038,22 @@ function bindEvents() {
   document.querySelectorAll("[data-writing-library-task]").forEach((button) => {
     button.addEventListener("click", () => {
       state.writingLibraryTaskNumber = Number(button.dataset.writingLibraryTask) === 1 ? 1 : 2;
+      if (state.writingLibraryTaskNumber === 1 && writingLibraryScope() === "topics") state.writingLibraryScope = "full";
       state.writingTopicCategory = "all";
       state.writingTopicPage = 1;
       document.querySelectorAll("[data-writing-topic-category]").forEach((item) => {
         item.classList.toggle("active", item.dataset.writingTopicCategory === "all");
       });
+      renderWritingUploadHub();
+    });
+  });
+  document.querySelectorAll("[data-writing-scope]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.writingLibraryScope = ["full", "topics", "review"].includes(button.dataset.writingScope) ? button.dataset.writingScope : "full";
+      if (state.writingLibraryScope === "topics") state.writingLibraryTaskNumber = 2;
+      state.writingTopicCategory = "all";
+      state.writingTopicPage = 1;
+      if ($("writingTopicSearch")) $("writingTopicSearch").value = "";
       renderWritingUploadHub();
     });
   });

@@ -537,15 +537,60 @@ try {
       },
     },
   };
+  const writingHistorySeed = {
+    writing: {
+      module: "writing",
+      itemId: "cam15-w-test1-task2",
+      attemptId: "review-task2",
+      title: "Task 2 · Education",
+      prompt: "IELTS Writing Task 2: discuss both views.",
+      essay: "Task two evidence sentence about practical education and academic study.",
+      scores: { overall: "6.5", criteria: [{ label: "Task Response", score: "6.0", feedback: "Develop the central idea." }] },
+      analysis: { highestImpact: { criterion: "Task Response", score: "6.0", issue: "The main idea needs development.", evidence: "Task two evidence sentence", rewriteInstruction: "Add one specific supporting example." } },
+      updatedAt: "2026-08-03T10:00:00.000Z",
+    },
+    writingAttempts: [
+      {
+        module: "writing",
+        itemId: "cam15-w-test1-task1",
+        attemptId: "review-task1",
+        title: "Task 1 · Chart",
+        prompt: "IELTS Writing Task 1: Summarise the chart.",
+        essay: "Task one evidence sentence describing the chart without a clear overview.",
+        scores: { overall: "6.0", criteria: [{ label: "Task Achievement", score: "5.5", feedback: "Add a clear overview." }] },
+        analysis: { highestImpact: { criterion: "Task Achievement", score: "5.5", issue: "The overview is missing.", evidence: "Task one evidence sentence", rewriteInstruction: "Write one overview sentence with the two main features." } },
+        updatedAt: "2026-08-02T10:00:00.000Z",
+      },
+    ],
+  };
+  const writingWeakAreasSeed = [
+    {
+      id: "old-writing-weak",
+      module: "writing",
+      sourceAttemptId: "missing-old-attempt",
+      title: "Old custom Task 2",
+      taskNumber: 2,
+      summary: "Saved legacy weak area",
+      evidence: {
+        criterion: "Task Response",
+        taskNumber: 2,
+        prompt: "IELTS Writing Task 2: Some people think practical skills matter more than academic study.",
+        originalExcerpt: "Legacy essay evidence",
+        rewriteInstruction: "Add one specific example.",
+      },
+    },
+  ];
   const uiErrors = [];
 
   async function openSeededPage(viewport, hash) {
     const page = await browser.newPage({ viewport });
     page.on("pageerror", (error) => uiErrors.push(error.message));
-    await page.addInitScript(({ seed }) => {
+    await page.addInitScript(({ seed, writingHistory, writingWeakAreas }) => {
       localStorage.clear();
       localStorage.setItem("ieltsistCompletedItemsV1", JSON.stringify(seed));
-    }, { seed: completionSeed });
+      localStorage.setItem("ieltsistLearningLoopHistory", JSON.stringify(writingHistory));
+      localStorage.setItem("ieltsistWeakAreas", JSON.stringify(writingWeakAreas));
+    }, { seed: completionSeed, writingHistory: writingHistorySeed, writingWeakAreas: writingWeakAreasSeed });
     await page.goto(`http://127.0.0.1:${port}/${hash}`, { waitUntil: "networkidle" });
     return page;
   }
@@ -563,6 +608,8 @@ try {
     "Speaking completion filter must expose the shared three states",
   );
 
+  await desktop.locator('[data-writing-scope="topics"]').click();
+
   const task2CompletedGroup = desktop.locator('.writing-topic-card[data-writing-completed-count="1"]').first();
   assert.ok(await task2CompletedGroup.count(), "Task 2 needs a grouped x/y completion card");
   assert.match(await task2CompletedGroup.innerText(), /1\/\d+ completed/i);
@@ -572,7 +619,7 @@ try {
   const completedTask2Rows = desktop.locator('.writing-set-chooser .topic-set-row[data-practice-status="completed"]');
   assert.equal(await completedTask2Rows.count(), 1, "Completed Task 2 chooser must re-filter individual question rows");
   assert.equal(await completedTask2Rows.first().getAttribute("data-writing-task2-id"), "cam15-w-test1-task2", "Task 2 completion must retain the exact independent task ID");
-  assert.match(await completedTask2Rows.first().innerText(), /Completed · 2026-08-02/);
+  assert.match(await completedTask2Rows.first().innerText(), /Completed · Band 6\.5 · 2026-08-03/);
   await desktop.locator("[data-writing-set-back]").click();
   await desktop.locator("#writingCompletionFilter").selectOption("not-completed");
   assert.ok(await desktop.locator(".writing-topic-card[data-writing-topic-group]").count() > 0, "Untouched Task 2 groups should remain");
@@ -586,11 +633,39 @@ try {
   assert.equal(await desktop.locator(".writing-task1-card").count(), 1, "Task 1 completion filtering must operate on individual visual-task IDs");
   const completedTask1 = desktop.locator('.writing-task1-card[data-writing-task1-id="cam15-w-test1-task1"]');
   assert.equal(await completedTask1.count(), 1);
-  assert.match(await completedTask1.innerText(), /Completed · 2026-08-02/);
+  assert.match(await completedTask1.innerText(), /Completed · Band 6\.0 · 2026-08-02/);
   assert.equal(await desktop.locator('[data-writing-task1-id="cam15-w-test1-task2"]').count(), 0, "Task 1 status must never couple to Task 2 history");
   await desktop.locator("#writingCompletionFilter").selectOption("not-completed");
   assert.equal(await desktop.locator('.writing-task1-card[data-writing-task1-id="cam15-w-test1-task1"]').count(), 0);
   assert.ok(await desktop.locator(".writing-task1-card").count() > 0, "Untouched Task 1 cards should remain");
+
+  await desktop.locator('[data-writing-scope="review"]').click();
+  assert.equal(await desktop.locator(".writing-review-card").count(), 1, "Task 1 Review must show only Task 1 attempts");
+  assert.match(await desktop.locator(".writing-review-card").innerText(), /Band 6\.0[\s\S]*Task Achievement[\s\S]*Task one evidence sentence[\s\S]*overview sentence/i);
+  assert.doesNotMatch(await desktop.locator(".writing-review-card").innerText(), /Task two evidence sentence/i, "Task 2 evidence leaked into Task 1 Review");
+  await desktop.locator('.writing-review-card [data-writing-review-retry="review-task1"]').click();
+  assert.equal(await desktop.locator(".unified-practice-setup").getAttribute("data-writing-task1-id"), "cam15-w-test1-task1", "Task 1 Review retry must open the exact original task");
+  assert.equal(await desktop.locator(".unified-practice-setup").getAttribute("data-writing-task2-id"), null, "Task 1 Review retry leaked Task 2");
+  await desktop.locator("[data-setup-back]").click();
+  await desktop.locator('[data-writing-library-task="2"]').click();
+  assert.equal(await desktop.locator(".writing-review-card").count(), 2, "Task 2 Review must include scored attempts and legacy weak areas");
+  const task2AttemptReview = desktop.locator('.writing-review-card [data-writing-review-retry="review-task2"]').locator("xpath=ancestor::article");
+  assert.match(await task2AttemptReview.innerText(), /Band 6\.5[\s\S]*Task Response[\s\S]*Task two evidence sentence[\s\S]*supporting example/i);
+  assert.doesNotMatch(await desktop.locator(".writing-review-card").allInnerTexts().then((items) => items.join(" ")), /Task one evidence sentence/i, "Task 1 evidence leaked into Task 2 Review");
+  await desktop.locator('.writing-review-card [data-writing-review-retry="review-task2"]').click();
+  assert.equal(await desktop.locator(".unified-practice-setup").getAttribute("data-writing-task2-id"), "cam15-w-test1-task2", "Task 2 Review retry must open the exact original task");
+  assert.equal(await desktop.locator(".unified-practice-setup").getAttribute("data-writing-task1-id"), null, "Task 2 Review retry leaked Task 1");
+  await desktop.locator("[data-setup-back]").click();
+
+  const legacyReview = desktop.locator('.writing-review-card [data-writing-review-retry="old-writing-weak"]').locator("xpath=ancestor::article");
+  assert.match(await legacyReview.innerText(), /Saved legacy weak area[\s\S]*Legacy essay evidence[\s\S]*Targeted practice/i, "Legacy weak areas without item IDs need a targeted-practice fallback");
+  await legacyReview.locator('[data-writing-review-retry="old-writing-weak"]').click();
+  assert.equal(await desktop.locator(".unified-practice-setup").getAttribute("data-writing-task1-id"), null, "Legacy Task 2 fallback must not introduce Task 1");
+  assert.equal(await desktop.locator(".unified-practice-setup").getAttribute("data-writing-task2-id"), null, "Legacy custom fallback must not claim an unrelated canonical Task 2 ID");
+  await desktop.locator('[data-start-unified-practice="writing"]').click();
+  assert.equal(await desktop.locator("#uploadPrompt").inputValue(), writingWeakAreasSeed[0].evidence.prompt, "Legacy fallback must restore the saved Writing prompt");
+  const savedTimer = await desktop.evaluate(() => JSON.parse(localStorage.getItem("ieltsistWritingTimerV1") || "{}"));
+  assert.equal(savedTimer.duration, 40 * 60, "Legacy Task 2 targeted practice must keep the 40-minute timer");
 
   await desktop.goto(`http://127.0.0.1:${port}/#bank`, { waitUntil: "networkidle" });
   const speakingCompletedGroup = desktop.locator('.speaking-topic-card[data-speaking-completed-count="1"]').first();
@@ -626,7 +701,7 @@ try {
       const geometry = await page.evaluate(() => {
         const root = document.documentElement;
         const overlaps = [...document.querySelectorAll(".practice-status-badge")].some((badge) => {
-          const card = badge.closest(".writing-topic-card, .speaking-topic-card, .topic-set-row");
+          const card = badge.closest(".writing-full-task-card, .writing-topic-card, .speaking-topic-card, .topic-set-row");
           const button = card?.querySelector("button.primary");
           if (!button) return false;
           const a = badge.getBoundingClientRect();

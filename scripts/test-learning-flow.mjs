@@ -549,13 +549,33 @@ check("Reading", "Coach rebuilds visual OCR paragraphs and corrects quoted evide
   );
 });
 
-check("Writing", "Topic chooser shares the Speaking topic-library system", ({ app, html }) => {
+check("Writing", "Topic chooser shares the Reading emoji directory system", ({ app, html }) => {
   assert.match(html, /id="writingEntry"[^>]*class="[^"]*panel/,
     "Writing entry must share the Speaking panel shell");
   assert.match(html, /id="writingTopicList"[^>]*class="[^"]*speaking-topic-list/,
     "Writing must share the Speaking topic grid");
-  assert.match(functionSource(app, "renderWritingTopicCard"), /speaking-topic-card/,
-    "Writing cards must share the Speaking card structure");
+  assert.match(html, /data-writing-scope=["']full["']/);
+  assert.match(html, /data-writing-scope=["']topics["']/);
+  assert.match(html, /data-writing-scope=["']review["']/);
+  assert.match(functionSource(app, "renderWritingTopicCard"), /objective-topic-card/,
+    "Writing Topic cards must share the Reading emoji card structure");
+  assert.match(functionSource(app, "renderWritingTopicCard"), /objective-topic-icon/,
+    "Writing Topic cards must render semantic emoji icons");
+  const hub = functionSource(app, "renderWritingUploadHub");
+  assert.match(hub, /renderWritingTask2FullBoard/);
+  assert.match(hub, /renderWritingTopicBoard/);
+  assert.match(hub, /renderWritingReviewBoard/);
+  assert.match(hub, /scope\s*===\s*["']topics["'][\s\S]*writingLibraryTaskNumber\s*=\s*2/,
+    "Writing Topics must stay Task 2-only");
+  const review = functionSource(app, "writingReviewEntries");
+  assert.match(review, /mineLearningAttempts\(\)/);
+  assert.match(review, /mineWeakAreas\(\)/);
+  assert.match(review, /writingAttemptTaskNumber\(attempt\)\s*===\s*taskNumber/,
+    "Writing Review must filter Task 1 and Task 2 independently");
+  assert.match(functionSource(app, "renderBankList"), /group\.emoji/,
+    "Speaking Topic cards must use their semantic group emoji");
+  assert.match(functionSource(app, "renderTopicSetChooser"), /group\.emoji/,
+    "Speaking Topic chooser must preserve the selected group emoji");
 });
 
 check("Home", "Server resume and practice plans remain executable", ({ app }) => {

@@ -55,7 +55,12 @@ try {
   const desktop = await browser.newPage({ viewport: { width: 1280, height: 720 } });
   await desktop.goto(`${baseUrl}/?unified=desktop#writing-upload`, { waitUntil: "networkidle" });
   await desktop.waitForFunction(() => !/Loading recommendation/i.test(document.querySelector("#writingRecommendedReason")?.textContent || ""));
-  assert.ok(await desktop.locator(".writing-topic-card").count() > 0, "P0: Writing cards must survive refresh");
+  assert.ok(await desktop.locator(".writing-full-task-card").count() > 0, "P0: Writing Full task cards must survive refresh");
+  await desktop.locator(".writing-full-task-card .practice-writing-task2").first().click();
+  assert.ok(await desktop.locator(".unified-practice-setup").getAttribute("data-writing-task2-id"), "Full task must retain one exact Task 2 ID");
+  assert.equal(await desktop.locator(".unified-practice-setup").getAttribute("data-writing-task1-id"), null, "Full task must not manufacture Task 1");
+  assert.match(await desktop.locator(".unified-practice-setup").innerText(), /Task 2 only[\s\S]*40 minutes[\s\S]*250 words/i, "Full task must preserve the independent Task 2 contract");
+  await desktop.locator("[data-setup-back]").click();
 
   await desktop.locator("#openCustomWriting").click();
   await desktop.locator('[data-start-unified-practice="writing"]').click();
@@ -68,6 +73,7 @@ try {
   assert.equal(await desktop.locator("#writingSystemWorkspace").isVisible(), false, "P0: Hide task must not switch to Cambridge");
 
   await desktop.locator("#changeWritingTask").click();
+  await desktop.locator('[data-writing-scope="topics"]').click();
   assert.doesNotMatch(
     await desktop.locator(".writing-topic-card").first().innerText(),
     /Task\s*1/i,
@@ -157,7 +163,13 @@ try {
 
   const ipad = await browser.newPage({ viewport: { width: 768, height: 1024 } });
   await ipad.goto(`${baseUrl}/?unified=ipad#bank`, { waitUntil: "networkidle" });
+  const speakingEmojis = (await ipad.locator(".speaking-topic-card .objective-topic-icon").allTextContents()).map((value) => value.trim()).filter(Boolean);
+  assert.equal(speakingEmojis.length, await ipad.locator(".speaking-topic-card").count(), "Every Speaking Topic card must use an emoji icon");
+  assert.ok(new Set(speakingEmojis).size >= 6, "Speaking Topic cards need varied semantic emoji, not one generic marker");
+  assert.equal(await ipad.locator(".speaking-topic-card .objective-topic-icon svg").count(), 0, "Speaking Topic identity must not fall back to Lucide SVGs");
+  const selectedSpeakingEmoji = speakingEmojis[0];
   await ipad.locator(".practice-speaking-topic").first().click();
+  assert.equal((await ipad.locator(".topic-set-chooser-head .objective-topic-icon").innerText()).trim(), selectedSpeakingEmoji, "Speaking chooser must preserve the selected Topic emoji");
   await ipad.locator(".choose-speaking-set").first().click();
   assert.equal(await ipad.locator(".unified-practice-setup").isVisible(), true, "P1: Speaking topic must open Setup before connecting");
   assert.equal(await ipad.locator('input[name="speakingPracticeScope"]').count(), 4, "Speaking Setup needs Full, Part 1, Part 2 and Part 3 scopes");

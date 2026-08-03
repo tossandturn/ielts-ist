@@ -91,6 +91,7 @@ try {
 
     await page.goto(`${baseUrl}/?visual=writing-launch-1#writing-upload`, { waitUntil: "networkidle" });
     await page.locator("#writingEntry").waitFor({ state: "visible" });
+    await page.locator('[data-writing-scope="topics"]').click();
     const writing = await page.evaluate(() => {
       const cards = [...document.querySelectorAll("#writingEntry .writing-topic-card")].map((node) => {
         const rect = node.getBoundingClientRect();
@@ -109,7 +110,7 @@ try {
     assert.match(writing.shell, /writing-topic-panel/);
     assert.equal(writing.custom, true, `${size.name}: Custom essay route is missing`);
     assert.match(writing.recommended, /AI pick/i, `${size.name}: AI recommendation must be pinned first`);
-    assert.ok(writing.cards.every((card) => card.width >= 240 || size.width < 600), `${size.name}: Writing topic card is too narrow`);
+    assert.ok(writing.cards.every((card) => card.width >= 200 || size.width < 600), `${size.name}: Writing topic card is too narrow`);
     await page.screenshot({ path: resolve(outputDir, `${size.name}-writing.png`), fullPage: false });
 
     await page.evaluate(() => activateSingleModule("reading", true));

@@ -26,6 +26,7 @@ try {
   for (const size of sizes) {
     const page = await browser.newPage({ viewport: { width: size.width, height: size.height } });
     await page.goto(`${baseUrl}/?visual=writing-p2-38#writing-upload`, { waitUntil: "networkidle" });
+    await page.locator('[data-writing-scope="topics"]').click();
     await page.locator(".writing-topic-card .practice-writing-topic").first().click();
     await page.locator(".choose-writing-set").first().click();
     await page.locator('[data-start-unified-practice="writing"]').click();

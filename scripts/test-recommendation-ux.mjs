@@ -106,6 +106,11 @@ try {
       return node && node.textContent && !/Loading/i.test(node.textContent);
     });
 
+    assert.equal(await page.locator('[data-writing-scope="full"]').getAttribute("aria-selected"), "true", `${size.name}: Full task must be the default Writing scope`);
+    assert.ok(await page.locator(".writing-full-task-card").count() >= 1, `${size.name}: complete Task 2 cards are missing`);
+    assert.match(await page.locator(".writing-full-task-card").first().innerText(), /Task 2[\s\S]*250[\s\S]*40/i, `${size.name}: Full task cards must preserve the independent Task 2 contract`);
+    await page.locator('[data-writing-scope="topics"]').click();
+
     const writing = await page.evaluate(() => {
       const rect = (selector) => {
         const node = document.querySelector(selector);
@@ -137,11 +142,10 @@ try {
         legacyHeroCount: document.querySelectorAll("#writingEntry .single-launch-hero, #writingEntry .writing-entry-grid").length,
         categoryCount: document.querySelectorAll("#writingTopicCategoryBar .topic-category-pill").length,
         taskSwitchCount: document.querySelectorAll("[data-writing-library-task]").length,
-        speakingStyleCards: document.querySelectorAll("#writingTopicList .speaking-topic-card").length,
-        summaries: [...document.querySelectorAll("#writingTopicList .writing-topic-summary")].map((node) => ({
-          text: node.textContent.trim(),
-          clamp: getComputedStyle(node).webkitLineClamp,
-        })),
+        readingStyleCards: document.querySelectorAll("#writingTopicList .objective-topic-card.writing-topic-card").length,
+        emojiCards: [...document.querySelectorAll("#writingTopicList .objective-topic-card")].filter((card) => card.querySelector(".objective-topic-icon")?.textContent.trim() && !card.querySelector(".objective-topic-icon [data-lucide]")).length,
+        progressCards: document.querySelectorAll("#writingTopicList .objective-topic-progress").length,
+        keywordCards: document.querySelectorAll("#writingTopicList .objective-topic-keywords").length,
         publicWritingCount: publicWriting.length,
         publicWritingAllTask2: publicWriting.every((item) => item.module === "writing" && writingTaskNumber(item) === 2),
         publicGroupCounts: publicGroups.map((group) => group.items.length),
@@ -154,14 +158,15 @@ try {
     assert.ok(writing.topicCount >= 1, `${size.name}: writing topic cards are missing`);
     assert.match(writing.firstTopic, /AI pick/i, `${size.name}: AI recommended writing topic must be pinned first`);
     assert.match(writing.firstTopic, /Choose/i, `${size.name}: writing topic card must use the Speaking-style Choose action`);
-    assert.match(writing.reason, /rotation|draft|fresh|selected|Cambridge/i, `${size.name}: writing recommendation reason is missing or generic`);
+    assert.match(writing.reason, /Choose a content topic/i, `${size.name}: Writing Topics explanation is missing or generic`);
     assert.equal(writing.entryIsPanel, true, `${size.name}: Writing topics must use the same panel shell as Speaking`);
     assert.equal(writing.legacyHeroCount, 0, `${size.name}: legacy Writing hero and route cards must be removed`);
     assert.ok(writing.categoryCount >= 5, `${size.name}: Writing topic categories are missing`);
     assert.equal(writing.taskSwitchCount, 2, `${size.name}: Writing needs separate Task 1 and Task 2 library entries`);
-    assert.equal(writing.speakingStyleCards, writing.topicCount, `${size.name}: Writing cards must share Speaking card structure`);
-    assert.equal(writing.summaries.length, writing.topicCount, `${size.name}: each Writing topic needs one concise Task 2 summary`);
-    assert.ok(writing.summaries.every((item) => item.text.length > 20 && item.clamp === "3"), `${size.name}: Writing summaries must be useful and clamped to three lines`);
+    assert.equal(writing.readingStyleCards, writing.topicCount, `${size.name}: Writing Topics must share Reading's card structure`);
+    assert.equal(writing.emojiCards, writing.topicCount, `${size.name}: every Writing Topic needs a semantic emoji instead of a Lucide icon`);
+    assert.equal(writing.progressCards, writing.topicCount, `${size.name}: every Writing Topic needs grouped progress`);
+    assert.equal(writing.keywordCards, writing.topicCount, `${size.name}: every Writing Topic needs concise directory keywords`);
     assert.ok(writing.publicWritingCount >= 24, `${size.name}: Public Writing needs at least 24 curated Task 2 questions`);
     assert.equal(writing.publicWritingAllTask2, true, `${size.name}: Public Writing topics must contain Task 2 only`);
     assert.ok(writing.publicGroupCounts.length >= 10, `${size.name}: Public Writing needs fine-grained issue categories`);
@@ -173,10 +178,12 @@ try {
 
     await page.screenshot({ path: resolve(outputDir, `writing-entry-${size.name}.png`), fullPage: false });
     await page.locator('[data-writing-library-task="1"]').click();
+    assert.equal(await page.locator('[data-writing-scope="full"]').getAttribute("aria-selected"), "true", `${size.name}: choosing Task 1 from Topics must return to Full task`);
     assert.ok(await page.locator(".writing-task1-card").count() > 1, `${size.name}: Task 1 visual library is empty`);
     assert.equal(await page.locator(".writing-topic-card:not(.writing-task1-card)").count(), 0, `${size.name}: Task 1 library must not contain Task 2 topics`);
     await page.screenshot({ path: resolve(outputDir, `writing-task1-${size.name}.png`), fullPage: false });
     await page.locator('[data-writing-library-task="2"]').click();
+    await page.locator('[data-writing-scope="topics"]').click();
     await page.locator('[data-writing-topic-category="recommended"]').click();
     assert.equal(
       await page.locator(".writing-topic-card").count(),
@@ -186,7 +193,7 @@ try {
     await page.locator('[data-writing-topic-category="all"]').click();
     await page.locator("#writingTopicBook").selectOption("public");
     assert.ok(await page.locator(".writing-topic-card").count() >= 1, `${size.name}: Public Writing filter is empty`);
-    assert.match(await page.locator(".writing-topic-card").first().textContent(), /Public Task 2/i, `${size.name}: Public Writing cards need a source label`);
+    assert.match(await page.locator(".writing-topic-card").first().textContent(), /Public topics/i, `${size.name}: Public Writing cards need a source label`);
     await page.screenshot({ path: resolve(outputDir, `writing-public-${size.name}.png`), fullPage: false });
     assert.doesNotMatch(
       await page.locator(".writing-topic-card").first().innerText(),
