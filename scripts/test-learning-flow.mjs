@@ -426,6 +426,82 @@ check("Reading", "Hint actions hydrate the focused question and execute immediat
     "Focused Reading hydration must replace a Question 1 placeholder before Coach submission");
 });
 
+check("Reading", "Coach rebuilds visual OCR paragraphs and corrects quoted evidence locations", async ({ server }) => {
+  const helperNames = [
+    "compactHelpText",
+    "readingOcrLineIsBoilerplate",
+    "readingOcrLineLooksLikeBody",
+    "readingOcrLineEndsSentence",
+    "readingOcrMedianLineLength",
+    "splitReadingParagraphSentences",
+    "readingPassageParagraphs",
+    "indexedReadingPassageText",
+    "normalizedEvidenceText",
+    "parsedIndexedReadingSentences",
+    "readingEvidenceSentenceScore",
+    "readingAnswerEvidenceLocation",
+    "correctReadingAnswerLocation",
+    "ensureReadingHintLocation",
+  ];
+  const helpers = helperNames.map((name) => functionSource(server, name)).join("\n");
+  const passage = [
+    "--- Page 82 ---",
+    "Reading",
+    "READING PASSAGE 1",
+    "You should spend about 20 minutes on Questions 1-13, which are based on Reading",
+    "Passage 1 below.",
+    "The problems and benefits created by the spread",
+    "of the water hyacinth in Kenya",
+    "Water hyacinth (Eichhornia crassipes), an aquatic plant native to South America, first",
+    "appeared in countries in Africa in the early 1900s. Scientists there called it the ‘world's",
+    "worst aquatic weed’, after it spread from the southernmost tip of Africa in the early",
+    "1900s and started obstructing major dams and rivers.",
+    "In east Africa the plant arrived with Belgian colonists in Rwanda, who liked the look of",
+    "its glossy leaves and delicate purple flowers floating in their ponds. But by the 1980s, it",
+    "had escaped out of the country via the Kagera river and made its way downstream to",
+    "Lake Victoria. There, with no natural predators and perfect temperature conditions, the",
+    "plant began spreading in the open water, blocking fishing routes and providing a new",
+    "habitat for disease-carrying mosquitoes.",
+    "For the women who smoke fish from the lake to sell it has meant declining income,",
+    "as the boats that once brought the fish to shore by the hundreds struggle to navigate",
+    "through the mass of plants.",
+  ].join("\n");
+  const result = runInNewContext(`${helpers}\n(() => {
+    const paperText = ${JSON.stringify(passage)};
+    const indexed = indexedReadingPassageText(paperText);
+    const answer = correctReadingAnswerLocation(
+      "位置：第2段，第4句\\n原文：In east Africa the plant arrived with Belgian colonists in Rwanda, who liked the look of its glossy leaves and delicate purple flowers floating in their ponds.",
+      { reading: { paperText } },
+    );
+    const hinted = ensureReadingHintLocation(
+      "原文：In east Africa the plant arrived with Belgian colonists in Rwanda, who liked the look of its glossy leaves and delicate purple flowers floating in their ponds.",
+      { reading: { paperText } },
+      "Hint 1",
+    );
+    return { indexed, answer, hinted };
+  })()`);
+  assert.match(result.indexed, /^\[P1 S1 Page 82\] Water hyacinth/m,
+    "The passage title must not become paragraph 1");
+  assert.match(result.indexed, /^\[P2 S1 Page 82\] In east Africa the plant arrived/m);
+  assert.match(result.indexed, /^\[P2 S2 Page 82\] But by the 1980s/m);
+  assert.doesNotMatch(result.indexed, /^\[P2 S4 Page 82\] In east Africa/m);
+  assert.match(result.answer, /^位置：第2段，第1句/u,
+    "Quoted source evidence must override a model's incorrect location number");
+  assert.match(result.hinted, /^位置：第2段，第1句/u,
+    "A Hint without a location must receive the verified source location");
+  const cambridgeBank = JSON.parse(await readFile(new URL("../data/cambridge-local-bank.json", import.meta.url), "utf8"));
+  const cambridge21 = cambridgeBank.readingTests.find((paper) => paper.id === "cam21-r-test4");
+  assert.ok(cambridge21?.readingPaper, "Cambridge 21 Reading Test 4 OCR must remain available");
+  const actualIndexed = runInNewContext(`${helpers}\nindexedReadingPassageText(paperText)`, {
+    paperText: cambridge21.readingPaper,
+  });
+  assert.match(
+    actualIndexed,
+    /^\[P2 S1 Page 82\] In east Africa the plant arrived with Belgian colonists in Rwanda/m,
+    "The real Cambridge 21 Test 4 evidence must be indexed as paragraph 2, sentence 1",
+  );
+});
+
 check("Writing", "Topic chooser shares the Speaking topic-library system", ({ app, html }) => {
   assert.match(html, /id="writingEntry"[^>]*class="[^"]*panel/,
     "Writing entry must share the Speaking panel shell");

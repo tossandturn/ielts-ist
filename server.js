@@ -3108,30 +3108,114 @@ function compactHelpText(value, maxLength = 12000) {
   return clean.length > maxLength ? `${clean.slice(0, maxLength)}\n...[truncated]` : clean;
 }
 
-function indexedReadingPassageText(value, maxLength = 18000) {
-  const clean = compactHelpText(value, maxLength * 2)
+function readingOcrLineIsBoilerplate(line) {
+  const text = String(line || "").trim();
+  return !text
+    || /^(?:Reading|READING|Test\s+\d+|\d{1,3})$/i.test(text)
+    || /^READING PASSAGE\s*\d+$/i.test(text)
+    || /^You should spend about \d+ minutes on Questions?/i.test(text)
+    || /^Questions?\s+\d+(?:\s*[-–—]\s*\d+)?\b/i.test(text)
+    || /^Passage\s+\d+\s+below\.?$/i.test(text);
+}
+
+function readingOcrLineLooksLikeBody(line) {
+  const text = String(line || "").trim();
+  const wordCount = text.split(/\s+/).filter(Boolean).length;
+  return wordCount >= 9 && (text.length >= 64 || /[,;:.!?]["'’”)]?$/.test(text));
+}
+
+function readingOcrLineEndsSentence(line) {
+  return /[.!?]["'’”)]*$/.test(String(line || "").trim());
+}
+
+function readingOcrMedianLineLength(lines) {
+  const lengths = lines
+    .map((line) => String(line?.text || line || "").trim().length)
+    .filter((length) => length >= 35)
+    .sort((a, b) => a - b);
+  if (!lengths.length) return 80;
+  const middle = Math.floor(lengths.length / 2);
+  return lengths.length % 2 ? lengths[middle] : (lengths[middle - 1] + lengths[middle]) / 2;
+}
+
+function splitReadingParagraphSentences(value) {
+  const sentinel = "\uE000";
+  const protectedText = String(value || "")
+    .replace(/\b(?:e\.g|i\.e|Mr|Mrs|Ms|Dr|Prof|St|vs|etc)\./gi, (match) => match.replace(/\./g, sentinel))
+    .replace(/(\d)\.(\d)/g, `$1${sentinel}$2`)
+    .replace(/\b([A-Z])\.(?=[A-Z]\.)/g, `$1${sentinel}`);
+  const sentences = protectedText.match(/[^.!?]+(?:[.!?]+["'’”)\]]*|$)/g)
+    ?.map((sentence) => sentence.replaceAll(sentinel, ".").replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+  return sentences?.length ? sentences : [String(value || "").replace(/\s+/g, " ").trim()].filter(Boolean);
+}
+
+function readingPassageParagraphs(value) {
+  const source = compactHelpText(value, 36000)
     .split(/---\s*Question Page\b/i)[0]
-    .replace(/^\s*(?:READING PASSAGE\s*\d+|You should spend about \d+ minutes on Questions[^\n]*|Questions?\s+\d+(?:\s*[-–]\s*\d+)?)[^\n]*$/gim, "")
-    .trim();
-  if (!clean) return "";
-  const pageParts = clean.split(/(?=---\s*Page\s+\d+\s*---)/i);
-  const rows = [];
-  let paragraphNumber = 0;
+    .replace(/\r\n?/g, "\n");
+  if (!source.trim()) return [];
+
+  const pageParts = source.split(/(?=---\s*Page\s+\d+\s*---)/i);
+  const paragraphs = [];
+  let current = [];
+  let pendingBlank = false;
+  let waitingForPassageBody = false;
+
+  const flush = () => {
+    if (!current.length) return;
+    paragraphs.push({
+      page: current[0].page,
+      text: current.map((line) => line.text).join(" ").replace(/\s+/g, " ").trim(),
+    });
+    current = [];
+  };
+
   for (const pagePart of pageParts) {
     const page = pagePart.match(/---\s*Page\s+(\d+)\s*---/i)?.[1] || "";
-    const pageText = pagePart.replace(/---\s*Page\s+\d+\s*---/i, "").trim();
-    const blocks = pageText.split(/\n\s*\n+/).map((block) => block.replace(/\s*\n\s*/g, " ").trim()).filter(Boolean);
-    for (const block of blocks) {
-      if (block.length < 12) continue;
-      paragraphNumber += 1;
-      const sentences = block.match(/[^.!?]+(?:[.!?]+["')\]]*|$)/g)
-        ?.map((sentence) => sentence.replace(/\s+/g, " ").trim())
-        .filter(Boolean) || [block];
-      sentences.forEach((sentence, index) => {
-        rows.push(`[P${paragraphNumber} S${index + 1}${page ? ` Page ${page}` : ""}] ${sentence}`);
-      });
+    const rawLines = pagePart
+      .replace(/---\s*Page\s+\d+\s*---/i, "")
+      .split("\n")
+      .map((line) => line.replace(/\s+/g, " ").trim());
+    const candidateLines = rawLines
+      .filter((line) => line && !readingOcrLineIsBoilerplate(line))
+      .map((text) => ({ text, page }));
+    const medianLength = readingOcrMedianLineLength(candidateLines);
+
+    for (const rawLine of rawLines) {
+      const line = rawLine.trim();
+      if (!line) {
+        pendingBlank = true;
+        continue;
+      }
+      if (/^READING PASSAGE\s*\d+$/i.test(line)) {
+        flush();
+        waitingForPassageBody = true;
+        pendingBlank = false;
+        continue;
+      }
+      if (readingOcrLineIsBoilerplate(line)) continue;
+      if (waitingForPassageBody) {
+        if (!readingOcrLineLooksLikeBody(line)) continue;
+        waitingForPassageBody = false;
+      }
+      if (pendingBlank && current.length && readingOcrLineEndsSentence(current.at(-1).text)) flush();
+      pendingBlank = false;
+      current.push({ text: line, page });
+      if (readingOcrLineEndsSentence(line) && line.length < medianLength * 0.9) flush();
     }
   }
+  flush();
+  return paragraphs.filter((paragraph) => paragraph.text.length >= 12);
+}
+
+function indexedReadingPassageText(value, maxLength = 18000) {
+  const rows = [];
+  readingPassageParagraphs(value).forEach((paragraph, paragraphIndex) => {
+    splitReadingParagraphSentences(paragraph.text).forEach((sentence, sentenceIndex) => {
+      rows.push(`[P${paragraphIndex + 1} S${sentenceIndex + 1}${paragraph.page ? ` Page ${paragraph.page}` : ""}] ${sentence}`);
+    });
+  });
   return compactHelpText(rows.join("\n"), maxLength);
 }
 
@@ -3403,11 +3487,80 @@ function readingEvidenceGuard({ helpContext = {}, message = "", imageOcrText = "
   };
 }
 
-function ensureReadingHintLocation(answer, helpContext, message) {
+function parsedIndexedReadingSentences(paperText) {
+  return indexedReadingPassageText(paperText)
+    .split("\n")
+    .map((row) => {
+      const match = row.match(/^\[P(\d+) S(\d+)(?: Page (\d+))?\]\s+(.+)$/);
+      return match ? {
+        paragraph: Number(match[1]),
+        sentence: Number(match[2]),
+        page: Number(match[3] || 0),
+        text: match[4],
+      } : null;
+    })
+    .filter(Boolean);
+}
+
+function readingEvidenceSentenceScore(answer, sentence) {
+  const answerText = normalizedEvidenceText(answer);
+  const sentenceText = normalizedEvidenceText(sentence);
+  if (!answerText || !sentenceText) return 0;
+  if (` ${answerText} `.includes(` ${sentenceText} `)) return 2;
+  const stopWords = new Set(["the", "and", "that", "this", "with", "from", "were", "was", "are", "for", "their", "into", "about", "there", "have", "has", "had"]);
+  const words = sentenceText.split(" ").filter((word) => word.length >= 3 && !stopWords.has(word));
+  if (words.length < 5) return 0;
+  const uniqueWords = [...new Set(words)];
+  const overlap = uniqueWords.filter((word) => ` ${answerText} `.includes(` ${word} `)).length;
+  const coverage = overlap / uniqueWords.length;
+  let longestQuotedRun = 0;
+  for (let size = Math.min(12, words.length); size >= 5; size -= 1) {
+    if (words.some((_, index) => index + size <= words.length
+      && answerText.includes(words.slice(index, index + size).join(" ")))) {
+      longestQuotedRun = size;
+      break;
+    }
+  }
+  if (longestQuotedRun >= 8) return 1 + (longestQuotedRun / words.length);
+  return overlap >= 7 ? coverage : 0;
+}
+
+function readingAnswerEvidenceLocation(answer, helpContext) {
+  const candidates = parsedIndexedReadingSentences(helpContext?.reading?.paperText || "")
+    .map((entry) => ({ ...entry, score: readingEvidenceSentenceScore(answer, entry.text) }))
+    .sort((a, b) => b.score - a.score);
+  const best = candidates[0];
+  const runnerUp = candidates[1];
+  if (!best || best.score < 0.58) return null;
+  if (best.score < 1 && runnerUp && best.score - runnerUp.score < 0.12) return null;
+  return best;
+}
+
+function correctReadingAnswerLocation(answer, helpContext) {
   const text = String(answer || "").trim();
+  if (!text || !helpContext?.reading) return text;
+  const location = readingAnswerEvidenceLocation(text, helpContext);
+  if (!location) return text;
+  const label = `位置：第${location.paragraph}段，第${location.sentence}句`;
+  return text.replace(
+    /位置\s*[:：]\s*(?:第\s*\d+\s*段\s*[,，、]\s*第\s*\d+\s*句|暂(?:时)?无法确认)/gu,
+    label,
+  );
+}
+
+function ensureReadingHintLocation(answer, helpContext, message) {
+  const text = correctReadingAnswerLocation(answer, helpContext);
   const isReadingHint = Boolean(helpContext?.reading) && /\bHint\s*[1-4]\b/i.test(String(message || ""));
   if (!isReadingHint || /^位置：(第\d+段，第\d+句|暂无法确认)(?:\s|$)/u.test(text)) return text;
-  return `位置：暂无法确认${text ? `\n${text}` : ""}`;
+  const location = readingAnswerEvidenceLocation(text, helpContext);
+  const label = location
+    ? `位置：第${location.paragraph}段，第${location.sentence}句`
+    : "位置：暂无法确认";
+  const withoutLocation = text.replace(
+    /^位置\s*[:：]\s*(?:第\s*\d+\s*段\s*[,，、]\s*第\s*\d+\s*句|暂(?:时)?无法确认)\s*/u,
+    "",
+  );
+  return `${label}${withoutLocation ? `\n${withoutLocation}` : ""}`;
 }
 
 async function handleHelpChat(req, res) {
