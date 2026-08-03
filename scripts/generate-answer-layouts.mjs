@@ -3,9 +3,17 @@ import path from "path";
 import { createWorker } from "tesseract.js";
 
 const workspace = process.cwd();
-const bankPath = path.join(workspace, "data", "cambridge-local-bank.json");
-const bank = JSON.parse(fs.readFileSync(bankPath, "utf8"));
+const bankPaths = [
+  path.join(workspace, "data", "cambridge15-bank.json"),
+  path.join(workspace, "data", "cambridge-local-bank.json"),
+];
+const banks = bankPaths.map((bankPath) => ({
+  bankPath,
+  bank: JSON.parse(fs.readFileSync(bankPath, "utf8")),
+}));
 const cacheDir = path.join(workspace, "data", "ocr-layout-cache");
+const cacheOnly = process.argv.includes("--cache-only");
+const moduleArg = process.argv.find((arg) => arg.startsWith("--module="))?.split("=")[1] || "";
 const booksArg = process.argv.find((arg) => arg.startsWith("--books="))?.split("=")[1] || "";
 const wantedBooks = new Set(
   booksArg
@@ -88,10 +96,10 @@ function itemBook(item) {
 }
 
 function allImageItems() {
-  return [
-    ...bank.listeningTests.flatMap((item) => (item.questionPageImages || []).map((image) => ({ item, image }))),
-    ...bank.readingTests.flatMap((item) => (item.readingPageImages || []).map((image) => ({ item, image }))),
-  ];
+  return banks.flatMap(({ bank }) => [
+    ...(moduleArg === "reading" ? [] : bank.listeningTests.flatMap((item) => (item.questionPageImages || []).map((image) => ({ item, image })))),
+    ...(moduleArg === "listening" ? [] : bank.readingTests.flatMap((item) => (item.readingPageImages || []).map((image) => ({ item, image })))),
+  ]);
 }
 
 const jobs = allImageItems()
@@ -99,11 +107,14 @@ const jobs = allImageItems()
 const worker = await createWorker("eng");
 let done = 0;
 for (const { image } of jobs) {
-  image.layoutLines = await getLayout(worker, image);
+  const layoutLines = await getLayout(worker, image);
+  if (!cacheOnly) image.layoutLines = layoutLines;
   done += 1;
   console.log(`layout ${done}/${jobs.length} ${image.url}`);
 }
 await worker.terminate();
 
-fs.writeFileSync(bankPath, JSON.stringify(bank, null, 2) + "\n", "utf8");
+if (!cacheOnly) {
+  banks.forEach(({ bankPath, bank }) => fs.writeFileSync(bankPath, JSON.stringify(bank, null, 2) + "\n", "utf8"));
+}
 console.log(JSON.stringify({ pages: jobs.length, cacheDir }, null, 2));

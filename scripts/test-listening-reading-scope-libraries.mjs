@@ -15,6 +15,12 @@ const baseUrl = `http://127.0.0.1:${port}`;
 const outputDir = resolve("artifacts", "listening-reading-scope-libraries");
 await mkdir(outputDir, { recursive: true });
 
+function objectiveDirectoryKey(topicKey = "") {
+  const key = String(topicKey || "general");
+  if (["travel", "transport", "architecture"].includes(key)) return "place";
+  return ({ psychology: "friends", education: "exams", business: "shopping", environment: "weather", culture: "films", society: "family", science: "technology" })[key] || key;
+}
+
 function resolveRequiredListeningAsrCache() {
   const checked = [];
   if (process.env.LISTENING_ASR_CACHE_PATH) {
@@ -635,8 +641,9 @@ try {
   await page.locator("#singleUnitFilter").selectOption("2");
   await page.locator("#singleCompletionFilter").selectOption("completed");
   const readingTopicKey = readingPaper.contentTopics["2"].key;
-  assert.equal(await page.locator(`[data-objective-topic-key="${readingTopicKey}"]`).count(), 1, "Reading Topics must group semantic Passage content before showing practice units");
-  await page.locator(`[data-objective-topic-open="${readingTopicKey}"]`).click();
+  const readingDirectoryKey = objectiveDirectoryKey(readingTopicKey);
+  assert.equal(await page.locator(`[data-objective-topic-key="${readingDirectoryKey}"]`).count(), 1, "Reading Topics must use the student-friendly Topic directory before showing practice units");
+  await page.locator(`[data-objective-topic-open="${readingDirectoryKey}"]`).click();
   const readingTopicCard = page.locator('[data-practice-unit-scope="topic"]').first();
   const readingTopicUnitId = await readingTopicCard.getAttribute("data-practice-unit-id");
   assert.equal(readingTopicUnitId, "cam15-r-test1::section::2");
@@ -648,6 +655,19 @@ try {
     const number = questionNumber(question, index);
     return number >= 14 && number <= 26;
   }));
+  const passage2Start = Number(readingPaper.readingPassageStartPages?.["2"]);
+  const passage3Start = Number(readingPaper.readingPassageStartPages?.["3"]);
+  const expectedPassage2Pages = readingPaper.readingPassagePageImages
+    .map((image) => Number(image.page))
+    .filter((pageNumber) => pageNumber >= passage2Start && pageNumber < passage3Start);
+  const renderedPassage2Pages = await page.locator(".reading-passage-pane [data-pdf-page]").evaluateAll((nodes) => (
+    nodes.map((node) => Number(node.dataset.pdfPage))
+  ));
+  assert.deepEqual(
+    renderedPassage2Pages,
+    expectedPassage2Pages,
+    "Reading Topic practice must render only its selected passage in the left pane",
+  );
   assert.equal(await page.locator("[data-active-topic-type]").count(), 0);
   await page.screenshot({ path: resolve(outputDir, "desktop-reading-topic.png"), fullPage: true });
   console.log("PASS Reading Topic uses semantic Passage content rather than question type");
@@ -674,8 +694,8 @@ try {
     };
   }, objectiveCompletionEntries);
   await perfPage.locator('[data-single-scope="topic"]').click();
-  const expectedListeningTopicGroups = new Set(tasks.listeningTests.flatMap((paper) => Object.values(paper.contentTopics || {}).map((topic) => topic.key))).size;
-  assert.equal(await perfPage.locator("[data-objective-topic-key]").count(), expectedListeningTopicGroups, "Listening Topics must render one card per semantic content group");
+  const expectedListeningTopicGroups = new Set(tasks.listeningTests.flatMap((paper) => Object.values(paper.contentTopics || {}).map((topic) => objectiveDirectoryKey(topic.key)))).size;
+  assert.equal(await perfPage.locator("[data-objective-topic-key]").count(), expectedListeningTopicGroups, "Listening Topics must render one card per student-friendly semantic group");
   assert.equal(await perfPage.locator('[data-practice-unit-scope="topic"]').count(), 0, "Topic units must stay collapsed until a content topic is chosen");
   assert.ok(await perfPage.evaluate(() => window.__completionStoreReads) <= 2, "Grouped Topic progress must reuse one completion snapshot instead of reparsing the 504-entry index per item");
   assert.match(await perfPage.locator(".objective-topic-progress").first().innerText(), /\d+\/\d+ completed/);

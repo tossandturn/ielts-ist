@@ -4888,7 +4888,20 @@ function scopedPracticeUnit(moduleName, sourceItem, scope, value = "") {
     unit.audioUrls = (base.audioUrls || []).map((url, index) => activeSections.has(index + 1) ? url : "");
     unit.questionPageImages = paperImagesForQuestionSubset(base.questionPageImages || [], allQuestions, base.questionPaper, questions);
   } else if (moduleName === "reading") {
-    unit.readingQuestionPageImages = paperImagesForQuestionSubset(base.readingQuestionPageImages || base.readingPageImages || [], allQuestions, base.readingPaper, questions);
+    const splitPages = splitReadingPageImages(base.readingPageImages || [], base.readingPaper, {
+      passageImages: base.readingPassagePageImages || [],
+      questionImages: base.readingQuestionPageImages || [],
+    });
+    const questionImages = paperImagesForQuestionSubset(splitPages.questionImages, allQuestions, base.readingPaper, questions);
+    const passageImages = readingPassageImagesForQuestionSubset(
+      splitPages.passageImages,
+      base.readingPaper,
+      questions,
+      base.readingPassageStartPages || {},
+    );
+    unit.readingPassagePageImages = passageImages;
+    unit.readingQuestionPageImages = questionImages;
+    unit.readingPageImages = uniqueOrderedImages([...passageImages, ...questionImages]);
   }
   return unit;
 }
@@ -5541,6 +5554,10 @@ async function explainHelpImage(imageDataUrl) {
     persistCoachThread(state.help.binding, state.help.history);
     const last = $("helpChatLog")?.lastElementChild;
     setHelpMessageContent(last, "assistant", json.answer || "I could not recognize enough text. Try a tighter screenshot or type your question.");
+    if (json.readingEvidence) {
+      focusReadingEvidence(json.readingEvidence);
+      appendReadingEvidenceAction(last, json.readingEvidence);
+    }
     setHelpStatus(helpResponseStatus(json.mode));
   } catch (error) {
     const last = $("helpChatLog")?.lastElementChild;
@@ -5696,6 +5713,10 @@ async function sendHelpChatMessage(message) {
     });
     const answerNode = addHelpMessage("assistant", json.answer || "");
     appendCoachAgentActions(answerNode, agentActions);
+    if (json.readingEvidence) {
+      focusReadingEvidence(json.readingEvidence);
+      appendReadingEvidenceAction(answerNode, json.readingEvidence);
+    }
     if (json.ocrText) state.help.contextText = [state.help.contextText, json.ocrText].filter(Boolean).join("\n\n");
     state.help.context = helpContext;
     const createdAt = new Date().toISOString();
@@ -14756,6 +14777,27 @@ function paperImagesForQuestionSubset(images, allQuestions, paper, selectedQuest
   return filtered.length ? filtered : images;
 }
 
+function readingPassageImagesForQuestionSubset(images, paper, selectedQuestions, providedStarts = {}) {
+  const orderedImages = uniqueOrderedImages(images || []);
+  if (!orderedImages.length || !selectedQuestions?.length) return orderedImages;
+  const selectedPassages = new Set(
+    [...selectedQuestionNumbers(selectedQuestions)].map((number) => number <= 13 ? 1 : number <= 26 ? 2 : 3),
+  );
+  if (!selectedPassages.size || selectedPassages.size > 1) return orderedImages;
+  const startPages = readingPassagePageByQuestion(orderedImages, paper, providedStarts);
+  const passage = [...selectedPassages][0];
+  const startPage = Number(startPages.get(passage === 1 ? 1 : passage === 2 ? 14 : 27));
+  const nextPage = passage < 3
+    ? Number(startPages.get(passage === 1 ? 14 : 27))
+    : Number.POSITIVE_INFINITY;
+  if (!Number.isFinite(startPage)) return orderedImages;
+  const filtered = orderedImages.filter((image) => {
+    const page = Number(image.page || 0);
+    return page >= startPage && page < nextPage;
+  });
+  return filtered.length ? filtered : orderedImages;
+}
+
 function saveSingleAnswersToState() {
   state.singleAnswers = { ...(state.singleAnswers || {}), ...collectAnswers("single") };
 }
@@ -14898,30 +14940,38 @@ function practiceCompletionGroupSummary(moduleName, items = [], completionIndex 
   };
 }
 
+const objectiveTopicDirectory = [
+  { key: "friends", label: "Friends", emoji: "👥", accent: "people", keywords: ["people", "mind", "behaviour"], semanticKeys: ["psychology"] },
+  { key: "food", label: "Food", emoji: "🍽️", accent: "lifestyle", keywords: ["cooking", "farming", "restaurants"], semanticKeys: ["food"] },
+  { key: "place", label: "Place", emoji: "📍", accent: "place", keywords: ["travel", "transport", "buildings"], semanticKeys: ["travel", "transport", "architecture"] },
+  { key: "exams", label: "Exams", emoji: "📝", accent: "education", keywords: ["study", "learning", "campus"], semanticKeys: ["education"] },
+  { key: "shopping", label: "Shopping", emoji: "🛍️", accent: "lifestyle", keywords: ["money", "business", "markets"], semanticKeys: ["business"] },
+  { key: "weather", label: "Weather", emoji: "🌦️", accent: "nature", keywords: ["nature", "climate", "wildlife"], semanticKeys: ["environment"] },
+  { key: "films", label: "Films", emoji: "🎬", accent: "media", keywords: ["culture", "arts", "heritage"], semanticKeys: ["culture"] },
+  { key: "family", label: "Family", emoji: "👨‍👩‍👧", accent: "society", keywords: ["society", "community", "people"], semanticKeys: ["society"] },
+  { key: "work", label: "Work", emoji: "💼", accent: "work", keywords: ["jobs", "careers", "workplace"], semanticKeys: ["work"] },
+  { key: "technology", label: "Technology", emoji: "🖥️", accent: "technology", keywords: ["science", "research", "technology"], semanticKeys: ["science"] },
+  { key: "health", label: "Health", emoji: "💗", accent: "lifestyle", keywords: ["health", "medicine", "wellbeing"], semanticKeys: ["health"] },
+  { key: "history", label: "History", emoji: "🏺", accent: "society", keywords: ["history", "heritage", "archaeology"], semanticKeys: ["history"] },
+];
+
 function objectiveTopicPresentation(contentTopic = {}) {
-  const key = String(contentTopic.key || "general").trim() || "general";
-  const presentations = {
-    architecture: { accent: "place", keywords: ["buildings", "design", "places"] },
-    business: { accent: "work", keywords: ["business", "money", "economics"] },
-    culture: { accent: "media", keywords: ["culture", "arts", "heritage"] },
-    education: { accent: "education", keywords: ["study", "learning", "campus"] },
-    environment: { accent: "nature", keywords: ["nature", "climate", "wildlife"] },
-    food: { accent: "lifestyle", keywords: ["food", "farming", "agriculture"] },
-    health: { accent: "lifestyle", keywords: ["health", "medicine", "wellbeing"] },
-    history: { accent: "society", keywords: ["history", "heritage", "archaeology"] },
-    psychology: { accent: "people", keywords: ["mind", "behaviour", "relationships"] },
-    science: { accent: "technology", keywords: ["science", "research", "technology"] },
-    society: { accent: "society", keywords: ["society", "community", "people"] },
-    transport: { accent: "place", keywords: ["transport", "traffic", "mobility"] },
-    travel: { accent: "place", keywords: ["travel", "tourism", "journeys"] },
-    work: { accent: "work", keywords: ["jobs", "careers", "workplace"] },
-  };
+  const semanticKey = String(contentTopic.key || "general").trim() || "general";
+  const presentation = objectiveTopicDirectory.find((item) => item.semanticKeys.includes(semanticKey));
+  if (presentation) return presentation;
   const fallbackKeywords = String(contentTopic.label || "General interest")
     .toLowerCase()
     .split(/[^a-z0-9]+/)
     .filter(Boolean)
     .slice(0, 3);
-  return presentations[key] || { accent: "people", keywords: fallbackKeywords.length ? fallbackKeywords : ["general", "ideas", "practice"] };
+  return {
+    key: semanticKey,
+    label: contentTopic.label || "General interest",
+    emoji: contentTopic.emoji || "✨",
+    accent: "people",
+    keywords: fallbackKeywords.length ? fallbackKeywords : ["general", "ideas", "practice"],
+    semanticKeys: [semanticKey],
+  };
 }
 
 function objectiveTopicProgressOptions(moduleName, completionIndex = null) {
@@ -14931,11 +14981,11 @@ function objectiveTopicProgressOptions(moduleName, completionIndex = null) {
 }
 
 function buildObjectiveTopicGroups(moduleName, visibleOptions, progressOptions, completionIndex = null) {
-  const visibleKeys = new Set(visibleOptions.map((item) => String(item.contentTopic?.key || "general")));
+  const visibleKeys = new Set(visibleOptions.map((item) => objectiveTopicPresentation(item.contentTopic).key));
   const groups = new Map();
   progressOptions.forEach((item) => {
-    const contentTopic = item.contentTopic || {};
-    const key = String(contentTopic.key || "general");
+    const contentTopic = objectiveTopicPresentation(item.contentTopic);
+    const key = contentTopic.key;
     if (!visibleKeys.has(key)) return;
     if (!groups.has(key)) groups.set(key, { key, contentTopic, items: [] });
     groups.get(key).items.push(item);
@@ -14943,9 +14993,9 @@ function buildObjectiveTopicGroups(moduleName, visibleOptions, progressOptions, 
   return [...groups.values()]
     .map((group) => ({
       ...group,
-      presentation: objectiveTopicPresentation(group.contentTopic),
+      presentation: group.contentTopic,
       progress: practiceCompletionGroupSummary(moduleName, group.items, completionIndex),
-      visibleItems: visibleOptions.filter((item) => String(item.contentTopic?.key || "general") === group.key),
+      visibleItems: visibleOptions.filter((item) => objectiveTopicPresentation(item.contentTopic).key === group.key),
     }))
     .sort((a, b) => String(a.contentTopic.label || a.key).localeCompare(String(b.contentTopic.label || b.key)));
 }
@@ -17257,6 +17307,80 @@ function setReadingCurrentQuestion(workspace, number, scrollNav = true) {
   }
 }
 
+function clearReadingEvidenceHighlight(workspace = document.querySelector(".reading-mobile-workspace")) {
+  workspace?.querySelectorAll("[data-reading-evidence-highlight]").forEach((node) => node.remove());
+  workspace?.querySelectorAll(".reading-evidence-page-active").forEach((node) => node.classList.remove("reading-evidence-page-active"));
+}
+
+function focusReadingEvidence(evidence, { closeCoach = false } = {}) {
+  const page = Number(evidence?.page || 0);
+  const workspace = document.querySelector(".reading-mobile-workspace");
+  const passagePane = workspace?.querySelector(".reading-passage-pane");
+  const pageNode = page ? passagePane?.querySelector(`[data-pdf-page="${page}"]`) : null;
+  const pageBody = pageNode?.querySelector(".pdf-page-image-wrap, .pdf-page-body");
+  if (!workspace || !passagePane || !pageNode || !pageBody) return false;
+
+  clearReadingEvidenceHighlight(workspace);
+  state.readingMobilePane = "passage";
+  workspace.dataset.readingPane = "passage";
+  workspace.querySelectorAll("[data-reading-pane-target]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.readingPaneTarget === "passage");
+  });
+  pageNode.classList.add("reading-evidence-page-active");
+  const rect = evidence.rect && ["left", "top", "width", "height"].every((key) => Number.isFinite(Number(evidence.rect[key])))
+    ? evidence.rect
+    : null;
+  if (rect) {
+    const left = Math.max(0, Math.min(100, Number(rect.left)));
+    const top = Math.max(0, Math.min(100, Number(rect.top)));
+    const width = Math.max(0, Math.min(100 - left, Number(rect.width)));
+    const height = Math.max(0, Math.min(100 - top, Number(rect.height)));
+    const highlight = document.createElement("div");
+    highlight.className = "reading-evidence-highlight";
+    highlight.dataset.readingEvidenceHighlight = "true";
+    highlight.setAttribute("role", "mark");
+    highlight.setAttribute("aria-label", `Highlighted evidence on page ${page}`);
+    highlight.title = evidence.quote || "AI Coach evidence";
+    highlight.style.left = `${left}%`;
+    highlight.style.top = `${top}%`;
+    highlight.style.width = `${width}%`;
+    highlight.style.height = `${height}%`;
+    pageBody.appendChild(highlight);
+  }
+
+  passagePane.dataset.pendingPdfPage = String(page);
+  const syncEvidence = () => {
+    const paneRect = passagePane.getBoundingClientRect();
+    const bodyRect = pageBody.getBoundingClientRect();
+    const targetTop = bodyRect.top + (rect ? (bodyRect.height * Number(rect.top)) / 100 : 0);
+    const nextTop = Math.max(
+      0,
+      passagePane.scrollTop + targetTop - paneRect.top - Math.max(24, passagePane.clientHeight * 0.28),
+    );
+    const boundedTop = Math.min(nextTop, Math.max(0, passagePane.scrollHeight - passagePane.clientHeight));
+    passagePane.scrollTo({ top: boundedTop, behavior: "smooth" });
+    state.readingPaneScroll.passage = boundedTop;
+    delete passagePane.dataset.pendingPdfPage;
+  };
+  requestAnimationFrame(syncEvidence);
+  const image = pageBody.querySelector("img");
+  if (image && !image.complete) image.addEventListener("load", syncEvidence, { once: true });
+  if (closeCoach) closeHelpPanel();
+  return true;
+}
+
+function appendReadingEvidenceAction(messageNode, evidence) {
+  if (!messageNode || !evidence?.page) return;
+  const action = document.createElement("button");
+  action.type = "button";
+  action.className = "reading-evidence-jump";
+  action.textContent = evidence.rect
+    ? `📍 已在左侧高亮 · 第${evidence.paragraph}段第${evidence.sentence}句`
+    : `📍 已定位到左侧第 ${evidence.page} 页`;
+  action.addEventListener("click", () => focusReadingEvidence(evidence, { closeCoach: true }));
+  messageNode.appendChild(action);
+}
+
 function focusReadingQuestion(number) {
   const workspace = document.querySelector(".reading-mobile-workspace");
   if (!workspace) return;
@@ -17325,11 +17449,12 @@ async function runReadingHint(button) {
   const step = Math.max(1, Math.min(4, Number(button.dataset.hintStep) || 1));
   state.coach.focusQuestion = question ? { module: "reading", ...question } : { module: "reading", id: qid };
   const prompts = [
-    `For ${qid}, give only Hint 1. First state the exact location as \"位置：第X段，第Y句\" using the indexed passage context, then give a short locating clue. Do not reveal the answer. If the location cannot be verified, say \"位置：暂无法确认\" instead of guessing.`,
+    `For ${qid}, give only Hint 1. First state the exact location as \"位置：第X段，第Y句\" using the indexed passage context, then quote the complete evidence sentence exactly and give a short locating clue. Do not reveal the answer. If the location cannot be verified, say \"位置：暂无法确认\" instead of guessing.`,
     `For ${qid}, give Hint 2. First state \"位置：第X段，第Y句\", then quote or identify the key evidence sentence and its keywords. Do not reveal the answer.`,
     `For ${qid}, give Hint 3. Keep \"位置：第X段，第Y句\" on the first line, then explain the paraphrase or reasoning needed. Do not reveal the final answer.`,
     `For ${qid}, first state \"位置：第X段，第Y句\", then explain the evidence chain and why the correct answer follows.${currentSinglePracticeMode("reading") === "full" ? " I am still in exam practice, so check my reasoning without directly revealing the answer." : " You may show the answer after the reasoning."}`,
   ];
+  if (question?.number) focusReadingQuestion(question.number);
   openGlobalCoachPanel();
   const next = Math.min(4, step + 1);
   button.dataset.hintStep = String(next);

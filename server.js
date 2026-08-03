@@ -3167,6 +3167,7 @@ function readingPassageParagraphs(value) {
     paragraphs.push({
       page: current[0].page,
       text: current.map((line) => line.text).join(" ").replace(/\s+/g, " ").trim(),
+      lines: current.map((line) => ({ text: line.text, page: line.page })),
     });
     current = [];
   };
@@ -3209,11 +3210,37 @@ function readingPassageParagraphs(value) {
   return paragraphs.filter((paragraph) => paragraph.text.length >= 12);
 }
 
+function readingParagraphSentenceEntries(paragraph) {
+  const lines = Array.isArray(paragraph?.lines) && paragraph.lines.length
+    ? paragraph.lines
+    : [{ text: String(paragraph?.text || ""), page: paragraph?.page || "" }];
+  const ranges = [];
+  let fullText = "";
+  lines.forEach((line) => {
+    const text = String(line?.text || "").replace(/\s+/g, " ").trim();
+    if (!text) return;
+    if (fullText) fullText += " ";
+    const start = fullText.length;
+    fullText += text;
+    ranges.push({ start, end: fullText.length, page: line.page || paragraph?.page || "" });
+  });
+  let searchFrom = 0;
+  return splitReadingParagraphSentences(fullText).map((sentence) => {
+    let start = fullText.indexOf(sentence, searchFrom);
+    if (start < 0) start = fullText.indexOf(sentence);
+    if (start < 0) start = searchFrom;
+    const end = start + sentence.length;
+    searchFrom = Math.max(searchFrom, end);
+    const sourceLine = ranges.find((range) => range.end > start && range.start < end);
+    return { text: sentence, page: sourceLine?.page || paragraph?.page || "" };
+  });
+}
+
 function indexedReadingPassageText(value, maxLength = 18000) {
   const rows = [];
   readingPassageParagraphs(value).forEach((paragraph, paragraphIndex) => {
-    splitReadingParagraphSentences(paragraph.text).forEach((sentence, sentenceIndex) => {
-      rows.push(`[P${paragraphIndex + 1} S${sentenceIndex + 1}${paragraph.page ? ` Page ${paragraph.page}` : ""}] ${sentence}`);
+    readingParagraphSentenceEntries(paragraph).forEach((sentence, sentenceIndex) => {
+      rows.push(`[P${paragraphIndex + 1} S${sentenceIndex + 1}${sentence.page ? ` Page ${sentence.page}` : ""}] ${sentence.text}`);
     });
   });
   return compactHelpText(rows.join("\n"), maxLength);
@@ -3405,9 +3432,11 @@ async function handleHelpExplain(req, res) {
   const explanation = ocrText
     ? await buildHelpExplanation(ocrText, helpContext)
     : { mode: "local", answer: localHelpExplanation("", ocrWarning), warning: ocrWarning };
+  const resolvedExplanationAnswer = correctReadingAnswerLocation(explanation.answer, helpContext);
   sendJson(res, 200, {
     ocrText,
-    answer: explanation.answer,
+    answer: resolvedExplanationAnswer,
+    readingEvidence: readingEvidencePayload(resolvedExplanationAnswer, helpContext),
     mode: explanation.mode,
     warning: explanation.warning || ocrWarning,
   });
@@ -3536,16 +3565,95 @@ function readingAnswerEvidenceLocation(answer, helpContext) {
   return best;
 }
 
+function readingEvidenceLayoutCachePath(url) {
+  const key = String(url || "")
+    .replace(/^\/+/, "")
+    .replace(/[\\/:*?"<>|]+/g, "__")
+    .replace(/\.(?:webp|png|jpe?g)$/i, ".json");
+  return path.join(__dirname, "data", "ocr-layout-cache", key);
+}
+
+function readingEvidenceLayoutLines(testId, page) {
+  const test = IMPORTED_BANKS
+    .flatMap((bank) => bank.readingTests || [])
+    .find((item) => String(item.id || "") === String(testId || ""));
+  const image = test?.readingPageImages?.find((item) => Number(item.page) === Number(page));
+  if (!image) return [];
+  if (Array.isArray(image.layoutLines) && image.layoutLines.length) return image.layoutLines;
+  try {
+    const cached = JSON.parse(fs.readFileSync(readingEvidenceLayoutCachePath(image.url), "utf8"));
+    return Array.isArray(cached) ? cached : [];
+  } catch {
+    return [];
+  }
+}
+
+function readingEvidenceRect(layoutLines, quote) {
+  const targetTerms = [...new Set(normalizedEvidenceText(quote).split(" ").filter((term) => term.length >= 2))];
+  const lines = (Array.isArray(layoutLines) ? layoutLines : [])
+    .filter((line) => line && Number.isFinite(Number(line.left)) && Number.isFinite(Number(line.top)))
+    .map((line) => ({ ...line, normalized: normalizedEvidenceText(line.text) }));
+  if (targetTerms.length < 5 || !lines.length) return null;
+  let best = null;
+  for (let start = 0; start < lines.length; start += 1) {
+    for (let size = 1; size <= 6 && start + size <= lines.length; size += 1) {
+      const selected = lines.slice(start, start + size);
+      const candidateTerms = [...new Set(normalizedEvidenceText(selected.map((line) => line.text).join(" ")).split(" ").filter((term) => term.length >= 2))];
+      const overlap = targetTerms.filter((term) => candidateTerms.includes(term)).length;
+      const coverage = overlap / targetTerms.length;
+      const precision = overlap / Math.max(1, candidateTerms.length);
+      const score = (coverage * 0.78) + (precision * 0.22) - ((size - 1) * 0.005);
+      if (overlap >= 5 && (!best || score > best.score)) best = { selected, overlap, coverage, precision, score };
+    }
+  }
+  if (!best || best.coverage < 0.55 || best.score < 0.52) return null;
+  const left = Math.max(0, Math.min(...best.selected.map((line) => Number(line.left))) - 0.8);
+  const top = Math.max(0, Math.min(...best.selected.map((line) => Number(line.top))) - 0.55);
+  const right = Math.min(100, Math.max(...best.selected.map((line) => Number(line.left) + Number(line.width))) + 0.8);
+  const bottom = Math.min(100, Math.max(...best.selected.map((line) => Number(line.top) + Number(line.height))) + 0.55);
+  return {
+    left: Number(left.toFixed(3)),
+    top: Number(top.toFixed(3)),
+    width: Number((right - left).toFixed(3)),
+    height: Number((bottom - top).toFixed(3)),
+    confidence: best.coverage >= 0.78 && best.precision >= 0.45 ? "high" : "medium",
+  };
+}
+
+function readingEvidencePayload(answer, helpContext, message = "") {
+  const location = readingAnswerEvidenceLocation(answer, helpContext);
+  if (!location) return null;
+  const resolvedQuestion = readingQuestionFromMessage(
+    helpContext?.reading,
+    message,
+    helpContext?.focusedQuestion,
+  );
+  const rect = readingEvidenceRect(
+    readingEvidenceLayoutLines(helpContext?.reading?.id, location.page),
+    location.text,
+  );
+  return {
+    question: Number(resolvedQuestion?.number || helpContext?.focusedQuestion?.number || 0) || null,
+    page: location.page || null,
+    paragraph: location.paragraph,
+    sentence: location.sentence,
+    quote: location.text,
+    rect: rect ? { left: rect.left, top: rect.top, width: rect.width, height: rect.height } : null,
+    confidence: rect?.confidence || "page",
+  };
+}
+
 function correctReadingAnswerLocation(answer, helpContext) {
   const text = String(answer || "").trim();
   if (!text || !helpContext?.reading) return text;
   const location = readingAnswerEvidenceLocation(text, helpContext);
   if (!location) return text;
   const label = `位置：第${location.paragraph}段，第${location.sentence}句`;
-  return text.replace(
-    /位置\s*[:：]\s*(?:第\s*\d+\s*段\s*[,，、]\s*第\s*\d+\s*句|暂(?:时)?无法确认)/gu,
-    label,
-  );
+  const withoutLocationLines = text.replace(
+    /(?:^|\n)\s*位置\s*[:：]\s*(?:第\s*\d+\s*段\s*[,，、]\s*第\s*\d+(?:\s*[-–—至到]\s*\d+)?\s*句|暂(?:时)?无法确认)\s*(?=\n|$)/gu,
+    "\n",
+  ).trim();
+  return `${label}${withoutLocationLines ? `\n${withoutLocationLines}` : ""}`;
 }
 
 function ensureReadingHintLocation(answer, helpContext, message) {
@@ -3587,9 +3695,11 @@ async function handleHelpChat(req, res) {
   let warning = "";
   const evidenceGuard = readingEvidenceGuard({ helpContext, message, imageOcrText });
   if (evidenceGuard) {
+    const guardedAnswer = ensureReadingHintLocation(evidenceGuard.answer, helpContext, message);
     sendJson(res, 200, {
       ...evidenceGuard,
-      answer: ensureReadingHintLocation(evidenceGuard.answer, helpContext, message),
+      answer: guardedAnswer,
+      readingEvidence: readingEvidencePayload(guardedAnswer, helpContext, message),
       ocrText: imageOcrText,
       warning: imageOcrWarning,
     });
@@ -3611,7 +3721,7 @@ async function handleHelpChat(req, res) {
         "When hydrated focused Reading question text is present, treat that as the exact visible question, include a line beginning 题目： that quotes it before the explanation, and never claim the question text is missing or ask the student to upload it again.",
         "Be direct and practical; explain vocabulary, paraphrase, question type, strategy, and answer-location logic when relevant.",
         "If the student asks why a Reading answer is correct or why their answer is wrong, identify the relevant question number from their message/OCR/history, then use the Reading answer key and passage OCR text to explain: correct answer, source evidence, keyword-paraphrase chain, and why alternatives fail.",
-        "For every Reading Hint request, the first line must be 位置：第X段，第Y句, where X and Y come from the indexed [P# S#] passage labels. If no exact indexed location is supported, begin with 位置：暂无法确认 and ask for the relevant passage screenshot instead of guessing.",
+        "For every Reading Hint request, the first line must be 位置：第X段，第Y句, where X and Y come from the indexed [P# S#] passage labels. Also quote the exact evidence sentence from the passage, even for Hint 1, so IELTS-ist can highlight it without revealing the final answer. If no exact indexed location is supported, begin with 位置：暂无法确认 and ask for the relevant passage screenshot instead of guessing.",
         "If the student asks a Listening question, identify the relevant question number from their message/OCR/history, then use the Listening answer key, question paper OCR, and audioscript/ASR text to explain: correct answer, audio evidence, distractors, paraphrase, spelling/plural/number format, and how to catch it next time.",
         "If options A/B/C/D or True/False/Not Given are involved, explain option-by-option only when the option text is available. Otherwise state that the option text is not visible and ask for a screenshot of the options.",
         "Never invent evidence. An answer key is not source evidence. If the passage sentence or audioscript is unavailable, do not infer the missing wording from the answer key or question type, do not claim a final answer is justified, and ask for the relevant screenshot instead.",
@@ -3638,9 +3748,11 @@ async function handleHelpChat(req, res) {
     warning = coachProviderWarning(error);
   }
   const answer = ai || localHelpExplanation([contextText, imageOcrText].filter(Boolean).join("\n\n"), warning || imageOcrWarning);
+  const resolvedAnswer = ensureReadingHintLocation(answer, helpContext, message);
   sendJson(res, 200, {
     mode: ai ? "ai" : "local",
-    answer: ensureReadingHintLocation(answer, helpContext, message),
+    answer: resolvedAnswer,
+    readingEvidence: readingEvidencePayload(resolvedAnswer, helpContext, message),
     ocrText: imageOcrText,
     warning: warning || imageOcrWarning,
   });

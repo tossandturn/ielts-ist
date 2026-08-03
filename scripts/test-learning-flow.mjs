@@ -424,6 +424,41 @@ check("Reading", "Hint actions hydrate the focused question and execute immediat
     "Focused Reading hydration must consume the server's extracted question text");
   assert.match(hydration, /question:\s*hydratedQuestionText/,
     "Focused Reading hydration must replace a Question 1 placeholder before Coach submission");
+  assert.ok(
+    hint.indexOf("focusReadingQuestion(question.number)") < hint.indexOf("openGlobalCoachPanel()"),
+    "Reading Hint must synchronize the matching passage before opening Coach",
+  );
+});
+
+check("Reading", "Coach evidence uses a structured non-blocking highlight overlay", ({ app, css }) => {
+  const send = functionSource(app, "sendHelpChatMessage");
+  const focus = functionSource(app, "focusReadingEvidence");
+  assert.match(send, /json\.readingEvidence/,
+    "Coach responses must consume the backend's structured Reading evidence payload");
+  assert.match(focus, /data-pdf-page/,
+    "Structured evidence must target the exact PDF page instead of parsing the model's prose");
+  assert.match(focus, /reading-evidence-highlight/,
+    "Structured evidence must render a visible sentence overlay");
+  assert.match(focus, /passagePane\.scrollTop\s*\+\s*targetTop\s*-\s*paneRect\.top/,
+    "Evidence scrolling must use live scroll-container geometry rather than document-relative offsets");
+  assert.doesNotMatch(focus, /pageNode\.offsetTop\s*\+\s*pageBody\.offsetTop/,
+    "Evidence scrolling must not jump to the end by adding the page offset twice");
+  assert.match(css, /\.reading-evidence-highlight\s*\{[^}]*pointer-events:\s*none/s,
+    "Evidence highlighting must not block Apple Pencil or annotation interactions");
+  assert.match(css, /\.pdf-annotation-canvas\s*\{[^}]*z-index:\s*3/s,
+    "The annotation canvas must remain above the evidence overlay");
+});
+
+check("Reading", "Topic and Passage practice render only the selected passage", ({ app }) => {
+  const scope = functionSource(app, "scopedPracticeUnit");
+  const subset = functionSource(app, "readingPassageImagesForQuestionSubset");
+  assert.match(scope, /readingPassageImagesForQuestionSubset/);
+  assert.match(scope, /unit\.readingPassagePageImages\s*=\s*passageImages/);
+  assert.match(scope, /unit\.readingPageImages\s*=\s*uniqueOrderedImages/);
+  assert.match(subset, /selectedPassages\.size\s*>\s*1/,
+    "Multi-passage review must retain all relevant source material");
+  assert.match(subset, /page\s*>=\s*startPage\s*&&\s*page\s*<\s*nextPage/,
+    "Single-passage practice must clip the left pane to that passage's page range");
 });
 
 check("Reading", "Coach rebuilds visual OCR paragraphs and corrects quoted evidence locations", async ({ server }) => {
@@ -435,6 +470,7 @@ check("Reading", "Coach rebuilds visual OCR paragraphs and corrects quoted evide
     "readingOcrMedianLineLength",
     "splitReadingParagraphSentences",
     "readingPassageParagraphs",
+    "readingParagraphSentenceEntries",
     "indexedReadingPassageText",
     "normalizedEvidenceText",
     "parsedIndexedReadingSentences",
@@ -469,8 +505,15 @@ check("Reading", "Coach rebuilds visual OCR paragraphs and corrects quoted evide
   const result = runInNewContext(`${helpers}\n(() => {
     const paperText = ${JSON.stringify(passage)};
     const indexed = indexedReadingPassageText(paperText);
+    const crossPage = readingParagraphSentenceEntries({
+      page: 90,
+      lines: [
+        { page: 90, text: "A sentence starts and ends here." },
+        { page: 91, text: "The next sentence belongs to the new page." },
+      ],
+    });
     const answer = correctReadingAnswerLocation(
-      "位置：第2段，第4句\\n原文：In east Africa the plant arrived with Belgian colonists in Rwanda, who liked the look of its glossy leaves and delicate purple flowers floating in their ponds.",
+      "位置：第2段，第4句\\n位置：第2段，第1-4句\\n原文：In east Africa the plant arrived with Belgian colonists in Rwanda, who liked the look of its glossy leaves and delicate purple flowers floating in their ponds.",
       { reading: { paperText } },
     );
     const hinted = ensureReadingHintLocation(
@@ -478,7 +521,7 @@ check("Reading", "Coach rebuilds visual OCR paragraphs and corrects quoted evide
       { reading: { paperText } },
       "Hint 1",
     );
-    return { indexed, answer, hinted };
+    return { indexed, answer, hinted, crossPage };
   })()`);
   assert.match(result.indexed, /^\[P1 S1 Page 82\] Water hyacinth/m,
     "The passage title must not become paragraph 1");
@@ -487,6 +530,10 @@ check("Reading", "Coach rebuilds visual OCR paragraphs and corrects quoted evide
   assert.doesNotMatch(result.indexed, /^\[P2 S4 Page 82\] In east Africa/m);
   assert.match(result.answer, /^位置：第2段，第1句/u,
     "Quoted source evidence must override a model's incorrect location number");
+  assert.equal((result.answer.match(/位置：/gu) || []).length, 1,
+    "Coach output must contain exactly one verified location line even if the model repeats a sentence range");
+  assert.equal(result.crossPage[1]?.page, 91,
+    "A paragraph continuing across a PDF page boundary must keep sentence-level page ownership");
   assert.match(result.hinted, /^位置：第2段，第1句/u,
     "A Hint without a location must receive the verified source location");
   const cambridgeBank = JSON.parse(await readFile(new URL("../data/cambridge-local-bank.json", import.meta.url), "utf8"));

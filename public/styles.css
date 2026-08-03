@@ -2646,6 +2646,64 @@ textarea:focus,
   z-index: 3;
 }
 
+.reading-evidence-highlight {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+  border: 2px solid rgba(245, 158, 11, .96);
+  border-radius: 5px;
+  background: rgba(250, 204, 21, .34);
+  box-shadow:
+    0 0 0 3px rgba(255, 255, 255, .82),
+    0 5px 18px rgba(180, 83, 9, .28);
+  mix-blend-mode: multiply;
+  transform-origin: center;
+  animation: reading-evidence-pulse 1.8s ease-out 2;
+}
+
+.reading-evidence-page-active {
+  outline: 3px solid rgba(245, 158, 11, .5);
+  outline-offset: -3px;
+}
+
+.reading-evidence-jump {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  margin-top: 10px;
+  padding: 7px 12px;
+  border: 1px solid rgba(245, 158, 11, .4);
+  border-radius: 999px;
+  background: rgba(255, 251, 235, .96);
+  color: #92400e;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.25;
+  cursor: pointer;
+}
+
+.reading-evidence-jump:hover,
+.reading-evidence-jump:focus-visible {
+  border-color: #f59e0b;
+  background: #fef3c7;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, .18);
+}
+
+@keyframes reading-evidence-pulse {
+  0% { opacity: 0; transform: scale(.96); }
+  28% { opacity: 1; transform: scale(1.012); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reading-evidence-highlight {
+    animation: none;
+  }
+}
+
 body.annotation-enabled .pdf-annotation-canvas {
   pointer-events: auto;
   touch-action: none;
