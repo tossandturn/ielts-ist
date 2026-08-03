@@ -55,6 +55,9 @@ const DASHSCOPE_COMPAT_BASE_URL = (process.env.DASHSCOPE_COMPAT_BASE_URL || DEFA
 const WRITING_AI_MODEL = process.env.WRITING_AI_MODEL || process.env.QWEN_WRITING_MODEL || "qwen3.7-max";
 const WRITING_AI_BASE_URL = (process.env.WRITING_AI_BASE_URL || process.env.QWEN_WRITING_BASE_URL || DASHSCOPE_COMPAT_BASE_URL).replace(/\/+$/, "");
 const WRITING_AI_API_KEY = process.env.WRITING_AI_API_KEY || process.env.QWEN_WRITING_API_KEY || DASHSCOPE_API_KEY;
+const COACH_AI_MODEL = process.env.COACH_AI_MODEL || process.env.QWEN_COACH_MODEL || "qwen3.7-max";
+const COACH_AI_BASE_URL = (process.env.COACH_AI_BASE_URL || process.env.QWEN_COACH_BASE_URL || DASHSCOPE_COMPAT_BASE_URL).replace(/\/+$/, "");
+const COACH_AI_API_KEY = process.env.COACH_AI_API_KEY || process.env.QWEN_COACH_API_KEY || DASHSCOPE_API_KEY;
 const SPEAKING_AUDIO_AI_MODEL = process.env.SPEAKING_AUDIO_AI_MODEL || process.env.QWEN_SPEAKING_AUDIO_MODEL || "qwen3.5-omni-flash";
 const SPEAKING_AUDIO_AI_BASE_URL = (process.env.SPEAKING_AUDIO_AI_BASE_URL || process.env.QWEN_SPEAKING_AUDIO_BASE_URL || DASHSCOPE_COMPAT_BASE_URL).replace(/\/+$/, "");
 const SPEAKING_AUDIO_AI_API_KEY = process.env.SPEAKING_AUDIO_AI_API_KEY || process.env.QWEN_SPEAKING_AUDIO_API_KEY || DASHSCOPE_API_KEY;
@@ -885,10 +888,11 @@ function slimWritingTask(task) {
 }
 
 function tasksPayload() {
+  const coachAiEnabled = Boolean(COACH_AI_API_KEY || OPENAI_API_KEY);
   return {
-    aiEnabled: Boolean(OPENAI_API_KEY),
-    model: OPENAI_API_KEY ? MODEL : null,
-    aiBaseUrl: OPENAI_API_KEY ? OPENAI_BASE_URL : null,
+    aiEnabled: coachAiEnabled,
+    model: coachAiEnabled ? (COACH_AI_API_KEY ? COACH_AI_MODEL : MODEL) : null,
+    aiBaseUrl: coachAiEnabled ? (COACH_AI_API_KEY ? COACH_AI_BASE_URL : OPENAI_BASE_URL) : null,
     writingAiEnabled: Boolean(WRITING_AI_API_KEY),
     writingModel: WRITING_AI_API_KEY ? WRITING_AI_MODEL : null,
     writingAiBaseUrl: WRITING_AI_API_KEY ? WRITING_AI_BASE_URL : null,
@@ -2958,6 +2962,50 @@ async function callWritingAI({ system, user, temperature = 0.25 }) {
   });
 }
 
+function coachAiProviders() {
+  if (COACH_AI_API_KEY) {
+    return [{
+      apiKey: COACH_AI_API_KEY,
+      baseUrl: COACH_AI_BASE_URL,
+      model: COACH_AI_MODEL,
+      allowResponsesFallback: false,
+    }];
+  }
+  if (OPENAI_API_KEY) {
+    return [{
+      apiKey: OPENAI_API_KEY,
+      baseUrl: OPENAI_BASE_URL,
+      model: MODEL,
+      allowResponsesFallback: true,
+    }];
+  }
+  return [];
+}
+
+async function callCoachAI({ system, user, temperature = 0.25 }) {
+  const providers = coachAiProviders();
+  if (!providers.length) return null;
+  let lastError = null;
+  for (const provider of providers) {
+    try {
+      const answer = await callOpenAI({ system, user, temperature, ...provider });
+      if (answer) return answer;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  if (lastError) throw lastError;
+  return null;
+}
+
+function coachProviderWarning(error) {
+  const message = String(error?.message || error || "");
+  if (/timeout|timed out|fetch failed|econn|network/i.test(message)) {
+    return "AI Coach could not reach the model service. Please retry in a moment.";
+  }
+  return "AI Coach is temporarily unavailable. Please retry in a moment.";
+}
+
 function parseImageDataUrl(dataUrl) {
   const match = String(dataUrl || "").match(/^data:image\/(?:png|jpeg|jpg|webp);base64,([A-Za-z0-9+/=]+)$/);
   if (!match) {
@@ -2990,7 +3038,7 @@ function localHelpExplanation(ocrText, warning = "") {
     return [
       "I could not recognize enough text from this screenshot.",
       "Try selecting a tighter area around the question text, or type the sentence/question in the chat box.",
-      warning ? `Local note: ${warning}` : "",
+      warning ? "AI Coach is temporarily unavailable. Your screenshot stays in this conversation; please retry in a moment or type the question text." : "",
     ].filter(Boolean).join("\n");
   }
   return [
@@ -2998,7 +3046,7 @@ function localHelpExplanation(ocrText, warning = "") {
     clean,
     "",
     "Local mode: AI explanation is unavailable right now. You can ask a follow-up question, or retry after the AI service recovers.",
-    warning ? `Local note: ${warning}` : "",
+    warning ? "AI Coach is temporarily unavailable. Please retry in a moment." : "",
   ].filter(Boolean).join("\n");
 }
 
@@ -3172,7 +3220,7 @@ async function buildHelpExplanation(ocrText, helpContext = {}) {
   let ai = null;
   let warning = "";
   try {
-    ai = await callOpenAI({
+    ai = await callCoachAI({
       system: [
         "You are an IELTS tutor inside an IELTS practice web app.",
         "Explain the selected question area clearly and concisely.",
@@ -3194,7 +3242,7 @@ async function buildHelpExplanation(ocrText, helpContext = {}) {
       temperature: 0.2,
     });
   } catch (error) {
-    warning = error.message || "AI unavailable";
+    warning = coachProviderWarning(error);
   }
   return {
     mode: ai ? "ai" : "local",
@@ -3339,7 +3387,7 @@ async function handleHelpChat(req, res) {
     return;
   }
   try {
-    ai = await callOpenAI({
+    ai = await callCoachAI({
       system: [
         "You are an IELTS tutor helping inside an IELTS practice web app.",
         "Answer the student's follow-up based on the OCR context, structured app context, and conversation.",
@@ -3377,7 +3425,7 @@ async function handleHelpChat(req, res) {
       temperature: 0.25,
     });
   } catch (error) {
-    warning = error.message || "AI unavailable";
+    warning = coachProviderWarning(error);
   }
   const answer = ai || localHelpExplanation([contextText, imageOcrText].filter(Boolean).join("\n\n"), warning || imageOcrWarning);
   sendJson(res, 200, {
@@ -5555,6 +5603,10 @@ function buildQwenSessionUpdate(config = {}) {
 
 server.listen(PORT, () => {
   console.log(`IELTS-ist running at http://localhost:${PORT}`);
-  console.log(OPENAI_API_KEY ? `AI mode enabled with model ${MODEL}` : "Local fallback mode. Set OPENAI_API_KEY for AI feedback.");
+  console.log(COACH_AI_API_KEY
+    ? `AI Coach enabled with Qwen model ${COACH_AI_MODEL}`
+    : OPENAI_API_KEY
+      ? `AI Coach using legacy model ${MODEL}`
+      : "AI Coach local fallback mode. Set DASHSCOPE_API_KEY to enable Qwen.");
   console.log(DASHSCOPE_API_KEY && DASHSCOPE_WORKSPACE_ID ? "Qwen realtime speaking enabled." : "Qwen realtime speaking disabled. Set DASHSCOPE_API_KEY and DASHSCOPE_WORKSPACE_ID.");
 });

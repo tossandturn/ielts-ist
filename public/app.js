@@ -3151,7 +3151,7 @@ async function sendCoachMessage(message) {
     renderCoachContextChips();
     setCoachStatus(helpResponseStatus(json.mode));
   } catch (error) {
-    setCoachMessageContent(pending, "assistant", `Coach failed: ${error.message}`);
+    setCoachMessageContent(pending, "assistant", coachRequestFailureMessage());
     setCoachStatus("Error");
   } finally {
     state.coach.busy = false;
@@ -5222,6 +5222,10 @@ function helpResponseStatus(mode) {
   return "Local";
 }
 
+function coachRequestFailureMessage() {
+  return "AI Coach is temporarily unavailable. Please retry in a moment. Your practice and conversation are still saved.";
+}
+
 function openHelpPanel() {
   const panel = $("helpChatPanel");
   if (panel) panel.hidden = false;
@@ -5533,7 +5537,7 @@ async function explainHelpImage(imageDataUrl) {
     setHelpStatus(helpResponseStatus(json.mode));
   } catch (error) {
     const last = $("helpChatLog")?.lastElementChild;
-    setHelpMessageContent(last, "assistant", `AI Coach failed: ${error.message}`);
+    setHelpMessageContent(last, "assistant", coachRequestFailureMessage());
     setHelpStatus("Error");
   }
 }
@@ -5703,7 +5707,7 @@ async function sendHelpChatMessage(message) {
       }, 650);
     }
   } catch (error) {
-    const fallbackNode = addHelpMessage("assistant", `Coach failed: ${error.message}`);
+    const fallbackNode = addHelpMessage("assistant", coachRequestFailureMessage());
     appendCoachAgentActions(fallbackNode, agentActions);
     setHelpStatus("Error");
   } finally {

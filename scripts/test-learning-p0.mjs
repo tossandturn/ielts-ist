@@ -119,6 +119,13 @@ try {
   assert.match(serverSource, /function indexedReadingPassageText\(/, "Reading Coach context must index passage paragraphs and sentences");
   assert.match(serverSource, /\[P# S#\]/, "Reading Hint instructions must use the indexed passage location labels");
   assert.match(serverSource, /function ensureReadingHintLocation\(/, "Reading Hint responses must always expose a paragraph and sentence location status");
+  assert.match(serverSource, /function callCoachAI\(/, "AI Coach must use its dedicated provider route");
+  assert.match(serverSource, /COACH_AI_API_KEY[\s\S]*DASHSCOPE_API_KEY/, "AI Coach must default to the configured Qwen key");
+  assert.doesNotMatch(serverSource.match(/function localHelpExplanation\([\s\S]*?\n\}/)?.[0] || "", /Local note:/,
+    "AI Coach fallback text must not expose raw provider errors");
+  assert.match(appSource, /function coachRequestFailureMessage\(/, "Coach network failures must use a student-safe message");
+  assert.doesNotMatch(appSource, /Coach failed:\s*\$\{error\.message\}|AI Coach failed:\s*\$\{error\.message\}/,
+    "Coach UI must not render raw request errors");
   assert.match(appSource, /const firstControl = \[\.\.\.toolbarHost\.children\]\.find\(\(child\) => child !== toolbar\) \|\| null;/,
     "PDF annotation tools must use the fixed practice header control row instead of covering answers");
   assert.match(appSource, /toolbarHost\.insertBefore\(toolbar,\s*firstControl\)/,
