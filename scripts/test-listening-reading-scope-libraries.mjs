@@ -480,19 +480,23 @@ try {
   }
   const datedRecommendedId = await page.locator("#singleLaunchSelect").inputValue();
   await page.evaluate((itemId) => {
-    const completion = { completedAt: "2026-07-31T14:25:00.000Z", attemptId: "dated_render_fixture" };
+    const completion = { completedAt: "2026-07-31T14:25:00.000Z", attemptId: "dated_render_fixture", correct: 11, total: 14 };
     const entries = { [`listening:${itemId}`]: completion };
-    for (let section = 1; section <= 4; section += 1) entries[`listening:${itemId}::section::${section}`] = { ...completion, impliedBy: itemId };
+    for (let section = 1; section <= 4; section += 1) entries[`listening:${itemId}::section::${section}`] = {
+      completedAt: completion.completedAt,
+      attemptId: completion.attemptId,
+      impliedBy: itemId,
+    };
     localStorage.setItem("ieltsistCompletedItemsV1", JSON.stringify({
       version: 1,
       partitions: { guest: entries },
     }));
   }, datedRecommendedId);
   await page.locator("#singleCompletionFilter").selectOption("completed");
-  assert.match(await page.locator(`#singleLaunchSelect option[value="${datedRecommendedId}"]`).innerText(), /✓ Completed · 2026-07-31/, "Full-paper option must include the latest completion date");
-  assert.match(await page.locator(".single-launch-card.recommended").innerText(), /✓ Completed · 2026-07-31/, "Recommended paper must include the latest completion date");
+  assert.match(await page.locator(`#singleLaunchSelect option[value="${datedRecommendedId}"]`).innerText(), /✓ Completed · 11\/14 · 2026-07-31/, "Full-paper option must include the real score and latest completion date");
+  assert.match(await page.locator(".single-launch-card.recommended").innerText(), /✓ Completed · 11\/14 · 2026-07-31/, "Recommended paper must include the real score and latest completion date");
   await page.locator('[data-single-scope="section"]').click();
-  assert.match(await page.locator(".practice-unit-card .practice-status-badge").first().innerText(), /✓ Completed · 2026-07-31/, "Unit badge must include the latest completion date");
+  assert.match(await page.locator(".practice-unit-card .practice-status-badge").first().innerText(), /✓ Completed · 2026-07-31/, "An implied Section completion must keep the date without borrowing the full-paper score");
   assert.equal(await page.locator('.practice-status-badge[role="status"], .practice-status-badge[aria-live]').count(), 0, "Repeated completion badges must not be live regions");
   await page.evaluate(() => localStorage.removeItem("ieltsistCompletedItemsV1"));
   await page.locator("#singleCompletionFilter").selectOption("all");
@@ -633,6 +637,11 @@ try {
   assert.equal(await completedPassageCards.count(), 1, "Reading Passage 2 + Completed must isolate the submitted canonical unit");
   assert.equal(await completedPassageCards.first().getAttribute("data-practice-unit-id"), "cam15-r-test1::section::2");
   assert.equal(await completedPassageCards.first().getAttribute("data-practice-status"), "completed");
+  assert.match(
+    await completedPassageCards.first().locator(".practice-status-badge").innerText(),
+    new RegExp(`${passageResult.correct}/13`),
+    "An exact Reading Passage completion must show its real raw score",
+  );
 
   await activateModule(page, "reading");
   await page.locator('[data-single-scope="topic"]').click();
@@ -650,6 +659,11 @@ try {
   assert.equal(await readingTopicCard.getAttribute("data-content-topic"), readingPaper.contentTopics["2"].key);
   assert.equal(await readingTopicCard.getAttribute("data-topic-type"), null);
   assert.match(await readingTopicCard.innerText(), new RegExp(readingPaper.contentTopics["2"].title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"));
+  assert.match(
+    await readingTopicCard.locator(".practice-status-badge").innerText(),
+    new RegExp(`${passageResult.correct}/13`),
+    "The Reading Topic view must reuse the exact Passage score in its Completed badge",
+  );
   await readingTopicCard.locator("[data-start-practice-unit]").click();
   assert.deepEqual(await renderedQuestionIds(page), expectedQuestionIds(readingPaper, (question, index) => {
     const number = questionNumber(question, index);

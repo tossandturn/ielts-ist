@@ -2512,6 +2512,23 @@ function writePracticeCompletionStore(value) {
   localStorage.setItem(completionStoreKey, JSON.stringify({ version: 1, partitions: safeValue.partitions || {} }));
 }
 
+function practiceCompletionScoreFields(value = {}) {
+  const source = value && typeof value === "object" ? value : {};
+  const score = source.score && typeof source.score === "object" ? source.score : {};
+  const scores = source.scores && typeof source.scores === "object" ? source.scores : {};
+  const numeric = (raw) => raw === "" || raw === null || raw === undefined ? Number.NaN : Number(raw);
+  const correct = numeric(source.correct ?? source.scoredCorrect ?? score.correct);
+  const total = numeric(source.scoredTotal ?? source.total ?? score.scoredTotal ?? score.total);
+  const band = numeric(source.band ?? source.overallBand ?? source.overall ?? scores.overall ?? score.band ?? score.overall);
+  const fields = {};
+  if (Number.isFinite(correct) && correct >= 0 && Number.isFinite(total) && total > 0 && correct <= total) {
+    fields.correct = correct;
+    fields.total = total;
+  }
+  if (Number.isFinite(band) && band >= 0 && band <= 9) fields.band = Math.round(band * 2) / 2;
+  return fields;
+}
+
 function legacyPracticeCompletionEntries() {
   const history = readLearningLoopHistory();
   const entries = [];
@@ -2527,6 +2544,7 @@ function legacyPracticeCompletionEntries() {
       itemId: canonicalPracticeCompletionId(moduleName, item),
       completedAt: result.completedAt || result.submittedAt || result.createdAt || result.updatedAt || "",
       attemptId: result.attemptId || "",
+      ...practiceCompletionScoreFields(result),
     });
   };
   [...Object.values(history.objective || {}), ...Object.values(history.objectiveItems || {})]
@@ -2535,6 +2553,12 @@ function legacyPracticeCompletionEntries() {
   [history.speaking, ...(history.speakingAttempts || [])].filter(Boolean).forEach((result) => add("speaking", { topicId: result.topicId || result.itemId }, result));
   if (state.learningState?.completionIdentity === identity) {
     (state.learningState.completedItems || []).forEach((result) => add(result.module, { itemId: result.itemId }, result, true));
+    (state.learningState.attempts || []).forEach((attempt) => add(attempt.module, { itemId: attempt.itemId }, {
+      ...(attempt.result && typeof attempt.result === "object" ? attempt.result : {}),
+      score: attempt.score,
+      completedAt: attempt.submittedAt,
+      attemptId: attempt.attemptId,
+    }, true));
   }
   return entries;
 }
@@ -2546,17 +2570,24 @@ function readPracticeCompletionIndex() {
   const merge = (entry) => {
     if (!entry?.key || !entry.itemId) return;
     const current = index[entry.key];
-    if (!current || String(entry.completedAt || "") >= String(current.completedAt || "")) {
-      index[entry.key] = {
+    const exactReplacesImplied = Boolean(current?.impliedBy && !entry.impliedBy);
+    if (!current || exactReplacesImplied || String(entry.completedAt || "") >= String(current.completedAt || "")) {
+      const next = {
+        ...(current || {}),
         completedAt: entry.completedAt || current?.completedAt || "",
         attemptId: entry.attemptId || current?.attemptId || "",
+        ...practiceCompletionScoreFields(entry),
       };
+      if (entry.impliedBy) next.impliedBy = entry.impliedBy;
+      else delete next.impliedBy;
+      index[entry.key] = next;
     }
     if (!["listening", "reading"].includes(entry.module) || entry.itemId.includes("::")) return;
     const unitCount = entry.module === "listening" ? 4 : 3;
     for (let section = 1; section <= unitCount; section += 1) {
       const unitKey = `${entry.module}:${entry.itemId}::section::${section}`;
       const unitCurrent = index[unitKey];
+      if (unitCurrent && !unitCurrent.impliedBy) continue;
       if (!unitCurrent || String(entry.completedAt || "") >= String(unitCurrent.completedAt || "")) {
         index[unitKey] = {
           completedAt: entry.completedAt || unitCurrent?.completedAt || "",
@@ -2580,12 +2611,16 @@ function rememberPracticeCompletion(moduleName, item, result = {}) {
   const partition = { ...(store.partitions?.[identity] || {}) };
   const completedAt = result.completedAt || result.submittedAt || result.createdAt || result.updatedAt || new Date().toISOString();
   const attemptId = result.attemptId || "";
+  const scoreFields = practiceCompletionScoreFields(result);
   const remember = (targetKey, extra = {}) => {
     const current = partition[targetKey];
-    if (current && String(current.completedAt || "") > String(completedAt)) return;
+    const incomingImplied = Boolean(extra.impliedBy);
+    if (current && incomingImplied && !current.impliedBy) return;
+    const exactReplacesImplied = Boolean(current?.impliedBy && !incomingImplied);
+    if (current && !exactReplacesImplied && String(current.completedAt || "") > String(completedAt)) return;
     partition[targetKey] = { completedAt, attemptId, ...extra };
   };
-  remember(key);
+  remember(key, scoreFields);
   if (["listening", "reading"].includes(moduleKey) && !itemId.includes("::")) {
     const unitCount = moduleKey === "listening" ? 4 : 3;
     for (let section = 1; section <= unitCount; section += 1) {
@@ -2601,7 +2636,7 @@ function practiceCompletionStatus(moduleName, item, completionIndex = null) {
   const key = practiceCompletionKey(moduleName, item);
   const index = completionIndex || readPracticeCompletionIndex();
   const completion = key ? index[key] : null;
-  return { completed: Boolean(completion), completedAt: completion?.completedAt || "", attemptId: completion?.attemptId || "" };
+  return { completed: Boolean(completion), ...(completion || {}), completedAt: completion?.completedAt || "", attemptId: completion?.attemptId || "" };
 }
 
 function readPendingLearningAttempts(identity = practiceCompletionIdentityKey()) {
@@ -14921,10 +14956,25 @@ function practiceCompletionDateLabel(completedAt = "") {
   return match?.[1] || "";
 }
 
+function practiceCompletionScoreLabel(status = {}) {
+  const numeric = (raw) => raw === "" || raw === null || raw === undefined ? Number.NaN : Number(raw);
+  const correct = numeric(status.correct);
+  const total = numeric(status.total);
+  const band = numeric(status.band);
+  const labels = [];
+  if (Number.isFinite(correct) && correct >= 0 && Number.isFinite(total) && total > 0 && correct <= total) {
+    labels.push(`${correct}/${total}`);
+  }
+  if (Number.isFinite(band) && band >= 0 && band <= 9) labels.push(`Band ${band.toFixed(1)}`);
+  return labels.join(" · ");
+}
+
 function practiceCompletionDisplay(status = {}) {
   if (!status.completed) return "○ Not completed";
+  const score = practiceCompletionScoreLabel(status);
   const date = practiceCompletionDateLabel(status.completedAt);
-  return `✓ Completed${date ? ` · ${date}` : ""}`;
+  const detail = [score, date].filter(Boolean).join(" · ");
+  return `✓ Completed${detail ? ` · ${detail}` : ""}`;
 }
 
 function practiceCompletionGroupSummary(moduleName, items = [], completionIndex = null) {

@@ -2383,12 +2383,12 @@ async function handleLearningApi(req, res) {
     const attempts = db.prepare("SELECT * FROM practice_attempts WHERE user_id = ? ORDER BY submitted_at DESC LIMIT 20").all(user.id);
     const completedItems = db.prepare(`
       WITH ranked_completions AS (
-        SELECT module, item_id, submitted_at, attempt_id, rowid,
+        SELECT module, item_id, submitted_at, attempt_id, score_json, rowid,
           ROW_NUMBER() OVER (PARTITION BY module, item_id ORDER BY submitted_at DESC, rowid DESC) AS completion_rank
         FROM practice_attempts
         WHERE user_id = ? AND TRIM(item_id) != ''
       )
-      SELECT module, item_id, submitted_at, attempt_id
+      SELECT module, item_id, submitted_at, attempt_id, score_json
       FROM ranked_completions
       WHERE completion_rank = 1
       ORDER BY submitted_at DESC, rowid DESC
@@ -2397,6 +2397,7 @@ async function handleLearningApi(req, res) {
       itemId: row.item_id,
       completedAt: row.submitted_at,
       attemptId: row.attempt_id,
+      score: parseStoredJson(row.score_json, {}),
     }));
     const weakAreas = db.prepare("SELECT * FROM weak_areas WHERE user_id = ? AND status != 'resolved' ORDER BY updated_at DESC LIMIT 50").all(user.id);
     sendJson(res, 200, { profile: learnerProfileForUser(user.id), activeSession: publicPracticeSession(activeSession), attempts: attempts.map(publicPracticeAttempt), completedItems, weakAreas: weakAreas.map(publicWeakArea), todayPlan: todayPlanForUser(user.id) });

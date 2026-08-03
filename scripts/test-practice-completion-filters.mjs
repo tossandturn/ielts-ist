@@ -53,6 +53,7 @@ const completionFunctions = [
   "practiceCompletionKey",
   "readPracticeCompletionStore",
   "writePracticeCompletionStore",
+  "practiceCompletionScoreFields",
   "legacyPracticeCompletionEntries",
   "readPracticeCompletionIndex",
   "rememberPracticeCompletion",
@@ -198,6 +199,17 @@ persistence.api.rememberWritingAttempt({ itemId: "cam15-w-test1-task1", attemptI
 persistence.api.rememberSpeakingResult({ topicId: "cam15-s-test1", attemptId: "attempt_real_speaking", band: 7 });
 assert.equal(objectiveResult.itemId, "cam15-r-test1::section::2", "Objective persistence must store the canonical Passage ID, not its semantic Topic virtual/base ID");
 assert.deepEqual(
+  { ...persistence.api.practiceCompletionStatus("reading", { id: "cam15-r-test1::section::2" }) },
+  {
+    completed: true,
+    completedAt: objectiveResult.createdAt,
+    attemptId: objectiveResult.attemptId,
+    correct: 11,
+    total: 13,
+  },
+  "Reading Topic completion must retain its real raw score for the Completed badge",
+);
+assert.deepEqual(
   persistencePayloads.map((payload) => [payload.module, payload.itemId]),
   [
     ["reading", "cam15-r-test1::section::2"],
@@ -233,6 +245,32 @@ for (let passage = 1; passage <= 3; passage += 1) {
 const unitOnly = completionContext(memoryStorage());
 unitOnly.api.rememberPracticeCompletion("listening", { id: "cam15-l-test1::section::1", practiceScope: "section", practiceSection: 1 }, { attemptId: "attempt_unit_only" });
 assert.equal(unitOnly.api.practiceCompletionStatus("listening", { id: "cam15-l-test1" }).completed, false, "Unit completion must never imply full-paper completion");
+
+const exactScorePriority = completionContext(memoryStorage());
+exactScorePriority.api.rememberPracticeCompletion("reading", { id: "cam15-r-test1::section::2", practiceScope: "section", practiceSection: 2 }, {
+  attemptId: "attempt_exact_passage",
+  completedAt: "2026-08-01T01:00:00.000Z",
+  correct: 11,
+  total: 13,
+});
+exactScorePriority.api.rememberPracticeCompletion("reading", { id: "cam15-r-test1", practiceScope: "paper" }, {
+  attemptId: "attempt_later_full_paper",
+  completedAt: "2026-08-02T01:00:00.000Z",
+  correct: 30,
+  total: 40,
+  band: 7,
+});
+assert.deepEqual(
+  { ...exactScorePriority.api.practiceCompletionStatus("reading", { id: "cam15-r-test1::section::2" }) },
+  {
+    completed: true,
+    completedAt: "2026-08-01T01:00:00.000Z",
+    attemptId: "attempt_exact_passage",
+    correct: 11,
+    total: 13,
+  },
+  "A later full-paper completion must not replace an exact Passage score with implied completion metadata",
+);
 
 const legacyStorage = memoryStorage({
   ieltsistLearningLoopHistory: JSON.stringify({
@@ -651,6 +689,7 @@ try {
   assert.equal(learningState.json.completedItems.some((item) => !item.itemId), false, "Empty item IDs are not canonical completion truth");
   const latestDuplicate = learningState.json.completedItems.find((item) => item.module === canonicalItems[0].module && item.itemId === canonicalItems[0].itemId);
   assert.equal(latestDuplicate.attemptId, `completion_${process.pid}_duplicate`, "Distinct completion rows must retain the latest attempt metadata");
+  assert.deepEqual(latestDuplicate.score, { correct: 9, total: 10 }, "Distinct completion rows must expose the latest score for cross-device Completed badges");
 } finally {
   await browser?.close();
   child.kill();
