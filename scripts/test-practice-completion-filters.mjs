@@ -272,6 +272,58 @@ assert.deepEqual(
   "A later full-paper completion must not replace an exact Passage score with implied completion metadata",
 );
 
+const legacyScoreHydrationStorage = memoryStorage({
+  ieltsistCompletedItemsV1: JSON.stringify({
+    version: 1,
+    partitions: {
+      guest: {
+        "reading:cam15-r-test4::section::3": {
+          completedAt: "2026-08-03T12:00:00.000Z",
+          attemptId: "legacy_reading_score",
+        },
+      },
+    },
+  }),
+  ieltsistLearningLoopHistory: JSON.stringify({
+    objectiveItems: {
+      "cam15-r-test4::section::3": {
+        completionIdentity: "guest",
+        module: "reading",
+        itemId: "cam15-r-test4::section::3",
+        attemptId: "legacy_reading_score",
+        correct: 11,
+        total: 14,
+        createdAt: "2026-08-03T11:59:00.000Z",
+      },
+    },
+  }),
+});
+const legacyScoreHydration = completionContext(legacyScoreHydrationStorage);
+assert.deepEqual(
+  { ...legacyScoreHydration.api.practiceCompletionStatus("reading", { id: "cam15-r-test4::section::3" }) },
+  {
+    completed: true,
+    completedAt: "2026-08-03T12:00:00.000Z",
+    attemptId: "legacy_reading_score",
+    correct: 11,
+    total: 14,
+  },
+  "A scoreless legacy Completed marker must hydrate its real score from the matching attempt without replacing the newer completion date",
+);
+
+legacyScoreHydration.api.rememberPracticeCompletion("reading", { id: "cam15-r-test4::section::3" }, {
+  completedAt: "2026-08-03T12:01:00.000Z",
+  attemptId: "legacy_reading_score",
+});
+assert.deepEqual(
+  {
+    correct: legacyScoreHydration.api.practiceCompletionStatus("reading", { id: "cam15-r-test4::section::3" }).correct,
+    total: legacyScoreHydration.api.practiceCompletionStatus("reading", { id: "cam15-r-test4::section::3" }).total,
+  },
+  { correct: 11, total: 14 },
+  "Re-saving the same completion marker without a score must not erase its existing score",
+);
+
 const legacyStorage = memoryStorage({
   ieltsistLearningLoopHistory: JSON.stringify({
     writing: { prompt: "A prompt fragment without an item ID", attemptId: "legacy_prompt_only" },
@@ -533,6 +585,7 @@ try {
       guest: {
         "writing:cam15-w-test1-task1": { completedAt, attemptId: "ui-writing-task1" },
         "writing:cam15-w-test1-task2": { completedAt, attemptId: "ui-writing-task2" },
+        "writing:writing-full-test:cam15-test1": { completedAt, attemptId: "ui-writing-full-test", band: 6.5 },
         "speaking:cam15-s-test1": { completedAt, attemptId: "ui-speaking" },
       },
     },
@@ -614,11 +667,15 @@ try {
   assert.ok(await task2CompletedGroup.count(), "Task 2 needs a grouped x/y completion card");
   assert.match(await task2CompletedGroup.innerText(), /1\/\d+ completed/i);
   await desktop.locator("#writingCompletionFilter").selectOption("completed");
-  assert.equal(await desktop.locator(".writing-topic-card[data-writing-topic-group]").count(), 1, "Only the Task 2 group containing the completed question should remain");
-  await desktop.locator(".practice-writing-topic").click();
+  assert.equal(await desktop.locator(".writing-topic-card[data-writing-topic-group]").count(), 2, "Completed Topics must retain the Task 1 and Task 2 groups containing completed questions");
+  const completedTask2GroupId = await desktop.evaluate(() => {
+    const option = writingTopicOptions().find((item) => writingTaskForOption(item)?.id === "cam15-w-test1-task2");
+    return `writing-topic:${writingTopicMeta(option).accent}`;
+  });
+  await desktop.locator(`[data-writing-topic-group="${completedTask2GroupId}"] .practice-writing-topic`).click();
   const completedTask2Rows = desktop.locator('.writing-set-chooser .topic-set-row[data-practice-status="completed"]');
   assert.equal(await completedTask2Rows.count(), 1, "Completed Task 2 chooser must re-filter individual question rows");
-  assert.equal(await completedTask2Rows.first().getAttribute("data-writing-task2-id"), "cam15-w-test1-task2", "Task 2 completion must retain the exact independent task ID");
+  assert.equal(await completedTask2Rows.first().getAttribute("data-writing-task-id"), "cam15-w-test1-task2", "Task 2 completion must retain the exact independent task ID");
   assert.match(await completedTask2Rows.first().innerText(), /Completed · Band 6\.5 · 2026-08-03/);
   await desktop.locator("[data-writing-set-back]").click();
   await desktop.locator("#writingCompletionFilter").selectOption("not-completed");
@@ -630,15 +687,13 @@ try {
 
   await desktop.locator('[data-writing-scope="full"]').click();
   await desktop.locator("#writingCompletionFilter").selectOption("completed");
-  assert.equal(await desktop.locator(".writing-full-task-card").count(), 2, "Full task Completed filter must show the completed Task 1 and Task 2 together");
-  assert.equal(await desktop.locator(".writing-task1-card").count(), 1, "Task 1 completion filtering must operate on individual visual-task IDs");
-  const completedTask1 = desktop.locator('.writing-task1-card[data-writing-task1-id="cam15-w-test1-task1"]');
-  assert.equal(await completedTask1.count(), 1);
-  assert.match(await completedTask1.innerText(), /Completed · Band 6\.0 · 2026-08-02/);
-  assert.equal(await desktop.locator('[data-writing-task1-id="cam15-w-test1-task2"]').count(), 0, "Task 1 status must never couple to Task 2 history");
+  assert.equal(await desktop.locator(".writing-full-test-card").count(), 1, "Full test Completed filter must require an actual paired Full test attempt");
+  const completedFullTest = desktop.locator('.writing-full-test-card[data-writing-full-test-id="writing-full-test:cam15-test1"]');
+  assert.equal(await completedFullTest.count(), 1);
+  assert.match(await completedFullTest.innerText(), /Completed · Band 6\.5 · 2026-08-02/);
   await desktop.locator("#writingCompletionFilter").selectOption("not-completed");
-  assert.equal(await desktop.locator('.writing-task1-card[data-writing-task1-id="cam15-w-test1-task1"]').count(), 0);
-  assert.ok(await desktop.locator(".writing-task1-card").count() > 0, "Untouched Task 1 cards should remain");
+  assert.equal(await desktop.locator('.writing-full-test-card[data-writing-full-test-id="writing-full-test:cam15-test1"]').count(), 0);
+  assert.ok(await desktop.locator(".writing-full-test-card").count() > 0, "Untouched Full tests should remain");
 
   await desktop.locator('[data-writing-scope="review"]').click();
   assert.equal(await desktop.locator(".writing-review-card").count(), 3, "Review must combine Task 1, Task 2 and legacy Writing weak areas");

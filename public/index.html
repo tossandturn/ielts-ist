@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>IELTS-ist</title>
-    <link rel="stylesheet" href="/styles.css?v=20260804-writing-full-library" />
+    <link rel="stylesheet" href="/styles.css?v=20260804-writing-full-test" />
   </head>
   <body class="focus-camp-system">
     <div class="app-shell">
@@ -164,10 +164,10 @@
           <section id="writingEntry" class="panel writing-entry writing-topic-panel" aria-label="Choose Writing with AI practice">
             <nav class="single-scope-tabs writing-scope-tabs" role="tablist" aria-label="Writing practice library">
               <button class="single-scope-tab active" role="tab" type="button" data-writing-scope="full" aria-selected="true">
-                <span aria-hidden="true">📝</span><strong>Full task</strong><small data-writing-scope-detail="full">All complete Writing tasks</small>
+                <span aria-hidden="true">📝</span><strong>Full test</strong><small data-writing-scope-detail="full">Task 1 + Task 2 by test</small>
               </button>
               <button class="single-scope-tab" role="tab" type="button" data-writing-scope="topics" aria-selected="false">
-                <span aria-hidden="true">✨</span><strong>Topics</strong><small>Task 2 content topics</small>
+                <span aria-hidden="true">✨</span><strong>Topics</strong><small>Task 1 &amp; Task 2 topics</small>
               </button>
               <button class="single-scope-tab" role="tab" type="button" data-writing-scope="review" aria-selected="false">
                 <span aria-hidden="true">🔁</span><strong>Review mistakes</strong><small data-writing-scope-detail="review">Task 1 &amp; Task 2 feedback</small>
@@ -178,7 +178,7 @@
               <button id="continueWritingDraft" class="secondary small-button" type="button">Resume</button>
             </div>
             <div class="topic-toolbar writing-topic-toolbar">
-              <input id="writingTopicSearch" class="text-input" type="search" autocomplete="off" placeholder="Search Task 2 topics or questions..." />
+              <input id="writingTopicSearch" class="text-input" type="search" autocomplete="off" placeholder="Search Writing tests, topics or questions..." />
               <select id="writingTopicBook" class="text-input" aria-label="Filter Writing topics by source"></select>
               <select id="writingCompletionFilter" class="text-input" aria-label="Filter Writing by completion">
                 <option value="all">All</option>
@@ -425,6 +425,6 @@
       <button id="clearAnnotation" class="icon-btn" type="button">Clear paper</button>
     </div>
   <script src="/vendor/lucide.min.js?v=20260730-1"></script>
-  <script src="/app.js?v=20260804-writing-full-library"></script>
+  <script src="/app.js?v=20260804-writing-full-test"></script>
   </body>
 </html>

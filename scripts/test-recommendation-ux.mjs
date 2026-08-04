@@ -106,11 +106,9 @@ try {
       return node && node.textContent && !/Loading/i.test(node.textContent);
     });
 
-    assert.equal(await page.locator('[data-writing-scope="full"]').getAttribute("aria-selected"), "true", `${size.name}: Full task must be the default Writing scope`);
-    assert.ok(await page.locator('.writing-full-task-card[data-writing-task1-id]').count() >= 1, `${size.name}: Full task must include Task 1 cards`);
-    assert.ok(await page.locator('.writing-full-task-card[data-writing-task2-option]').count() >= 1, `${size.name}: Full task must include Task 2 cards`);
-    assert.match(await page.locator('.writing-full-task-card[data-writing-task1-id]').first().innerText(), /Task 1[\s\S]*150[\s\S]*20/i, `${size.name}: Full task must preserve the independent Task 1 contract`);
-    assert.match(await page.locator('.writing-full-task-card[data-writing-task2-option]').first().innerText(), /Task 2[\s\S]*250[\s\S]*40/i, `${size.name}: Full task must preserve the independent Task 2 contract`);
+    assert.equal(await page.locator('[data-writing-scope="full"]').getAttribute("aria-selected"), "true", `${size.name}: Full test must be the default Writing scope`);
+    assert.ok(await page.locator('.writing-full-test-card[data-writing-full-test-id]').count() >= 1, `${size.name}: Full test cards are missing`);
+    assert.match(await page.locator('.writing-full-test-card').first().innerText(), /Full test[\s\S]*2 tasks[\s\S]*60 min[\s\S]*1:2/i, `${size.name}: Full test must expose the paired 60-minute contract`);
     await page.locator('[data-writing-scope="topics"]').click();
 
     const writing = await page.evaluate(() => {
@@ -180,8 +178,7 @@ try {
 
     await page.screenshot({ path: resolve(outputDir, `writing-entry-${size.name}.png`), fullPage: false });
     await page.locator('[data-writing-scope="full"]').click();
-    assert.ok(await page.locator(".writing-task1-card").count() > 1, `${size.name}: Task 1 visual library is empty`);
-    assert.ok(await page.locator('.writing-full-task-card[data-writing-task2-option]').count() > 1, `${size.name}: Task 2 full-task library is empty`);
+    assert.ok(await page.locator(".writing-full-test-card").count() > 1, `${size.name}: paired Full test library is empty`);
     await page.screenshot({ path: resolve(outputDir, `writing-full-${size.name}.png`), fullPage: false });
     await page.locator('[data-writing-scope="topics"]').click();
     await page.locator('[data-writing-topic-category="recommended"]').click();
@@ -202,10 +199,10 @@ try {
     );
     await page.locator(".writing-topic-card .practice-writing-topic").first().click();
     assert.match(await page.locator(".writing-set-chooser").innerText(), /Public topics/i, `${size.name}: Public Writing question source is missing`);
-    assert.doesNotMatch(
-      await page.locator(".writing-set-chooser").innerText(),
-      /Task\s*1/i,
-      `${size.name}: Writing topic chooser must list Task 2 questions only`,
+    assert.equal(
+      await page.locator(".writing-set-chooser .topic-set-row h4").evaluateAll((nodes) => nodes.every((node) => /Task\s*2/i.test(node.textContent || ""))),
+      true,
+      `${size.name}: Public Writing topic rows must remain Task 2-only`,
     );
     await page.locator(".choose-writing-set").first().click();
     assert.equal(await page.locator(".writing-task1-picker").count(), 0, `${size.name}: Task 2 Setup must not contain Task 1 controls`);
@@ -228,8 +225,11 @@ try {
 
     await page.screenshot({ path: resolve(outputDir, `${size.name}.png`), fullPage: false });
     await page.locator("#changeWritingTask").click();
-    await page.locator('[data-writing-scope="full"]').click();
-    await page.locator(".practice-writing-task1").first().click();
+    await page.locator('[data-writing-scope="topics"]').click();
+    await page.locator("#writingTopicBook").selectOption("all");
+    await page.locator('[data-writing-topic-category="charts-data"]').click();
+    await page.locator('.writing-topic-card[data-writing-topic-group="writing-topic:charts-data"] .practice-writing-topic').click();
+    await page.locator(".writing-set-chooser .choose-writing-set").first().click();
     assert.equal(await page.locator(".unified-practice-setup").getAttribute("data-writing-task2-id"), null, `${size.name}: Task 1 Setup leaked Task 2`);
     await page.locator('[data-start-unified-practice="writing"]').click();
     assert.equal(await page.locator('[data-writing-task-tab="1"]').count(), 1, `${size.name}: Task 1 workspace is missing`);

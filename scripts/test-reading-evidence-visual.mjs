@@ -26,7 +26,19 @@ try {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ mode: "test", answer: "位置：第2段，第3句\nThe evidence is in the matching passage." }),
+        body: JSON.stringify({
+          mode: "test",
+          answer: "位置：第2段，第3句\nThe evidence is in the matching passage.",
+          readingEvidence: {
+            question: 1,
+            page: 18,
+            paragraph: 2,
+            sentence: 3,
+            quote: "The evidence is in the matching passage.",
+            rect: { left: 8, top: 30, width: 80, height: 4 },
+            confidence: "high",
+          },
+        }),
       });
     });
     await page.goto(`${baseUrl}/?visual=reading-evidence#single`, { waitUntil: "networkidle" });
@@ -161,6 +173,11 @@ try {
     assert.ok(await page.locator("#helpChatPanel").isVisible(), `${size.name}: Coach panel is not visible`);
     assert.match(await page.locator("#helpChatLog").innerText(), /第2段，第3句[\s\S]*matching passage/i,
       `${size.name}: Coach response is not visible`);
+    const highlightAction = page.locator(".reading-evidence-jump");
+    assert.equal(await highlightAction.innerText(), "Open highlight",
+      `${size.name}: evidence CTA does not use the exact Open highlight label`);
+    assert.equal(await page.locator('.coach-agent-actions button', { hasText: "Open Reading" }).count(), 0,
+      `${size.name}: generic Open Reading is duplicated beside structured evidence`);
     if (size.name.startsWith("ipad")) {
       const coachLayout = await page.evaluate(() => {
         const panel = document.querySelector("#helpChatPanel");
@@ -181,6 +198,26 @@ try {
       assert.equal(coachLayout.bodyOverflow, "hidden", `${size.name}: page scrolling is not locked while Coach is open`);
       assert.equal(coachLayout.logScrollable, true, `${size.name}: Coach conversation does not own its scrolling`);
     }
+    await highlightAction.click();
+    await page.waitForTimeout(250);
+    assert.equal(await page.locator("#helpChatPanel").isVisible(), false,
+      `${size.name}: Open highlight did not close Coach`);
+    assert.equal(await page.locator('[data-pdf-page="18"] [data-reading-evidence-highlight]').count(), 1,
+      `${size.name}: Open highlight did not retain exactly one evidence overlay`);
+    const openedHighlight = await page.locator('[data-pdf-page="18"] [data-reading-evidence-highlight]').evaluate((node) => ({
+      left: node.style.left,
+      top: node.style.top,
+      width: node.style.width,
+      height: node.style.height,
+      passageActive: node.closest(".reading-mobile-workspace")?.dataset.readingPane,
+    }));
+    assert.deepEqual(openedHighlight, {
+      left: "8%",
+      top: "30%",
+      width: "80%",
+      height: "4%",
+      passageActive: "passage",
+    }, `${size.name}: Open highlight did not reopen the structured evidence rectangle`);
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1),
       `${size.name}: page has horizontal overflow`);
     console.log(`PASS ${size.name} ${size.width}x${size.height}`);

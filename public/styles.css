@@ -15521,6 +15521,9 @@ body:has(#home.active) main {
 #writingTopicList .topic-accent-globalisation-language .objective-topic-icon { background: #eaf3ff; }
 #writingTopicList .topic-accent-consumerism-money .objective-topic-icon { background: #fff0f7; }
 #writingTopicList .topic-accent-science-research .objective-topic-icon { background: #e7fbf8; }
+#writingTopicList .topic-accent-food-agriculture .objective-topic-icon { background: #fff4e8; }
+#writingTopicList .topic-accent-charts-data .objective-topic-icon { background: #eef2ff; }
+#writingTopicList .topic-accent-essay-general .objective-topic-icon { background: #f2f4f7; }
 
 #bankList .topic-card-head > .objective-topic-icon {
   flex: 0 0 48px;

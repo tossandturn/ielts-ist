@@ -2572,17 +2572,22 @@ function readPracticeCompletionIndex() {
   const merge = (entry) => {
     if (!entry?.key || !entry.itemId) return;
     const current = index[entry.key];
+    const currentScore = practiceCompletionScoreFields(current);
+    const entryScore = practiceCompletionScoreFields(entry);
+    const sameAttempt = !current?.attemptId || !entry.attemptId || current.attemptId === entry.attemptId;
     const exactReplacesImplied = Boolean(current?.impliedBy && !entry.impliedBy);
     if (!current || exactReplacesImplied || String(entry.completedAt || "") >= String(current.completedAt || "")) {
       const next = {
         ...(current || {}),
         completedAt: entry.completedAt || current?.completedAt || "",
         attemptId: entry.attemptId || current?.attemptId || "",
-        ...practiceCompletionScoreFields(entry),
+        ...entryScore,
       };
       if (entry.impliedBy) next.impliedBy = entry.impliedBy;
       else delete next.impliedBy;
       index[entry.key] = next;
+    } else if (!current.impliedBy && sameAttempt && Object.keys(entryScore).length) {
+      index[entry.key] = { ...current, ...entryScore, ...currentScore };
     }
     if (!["listening", "reading"].includes(entry.module) || entry.itemId.includes("::")) return;
     const unitCount = entry.module === "listening" ? 4 : 3;
@@ -2620,7 +2625,9 @@ function rememberPracticeCompletion(moduleName, item, result = {}) {
     if (current && incomingImplied && !current.impliedBy) return;
     const exactReplacesImplied = Boolean(current?.impliedBy && !incomingImplied);
     if (current && !exactReplacesImplied && String(current.completedAt || "") > String(completedAt)) return;
-    partition[targetKey] = { completedAt, attemptId, ...extra };
+    const sameAttempt = !current?.attemptId || !attemptId || current.attemptId === attemptId;
+    const retainedScore = current && sameAttempt ? practiceCompletionScoreFields(current) : {};
+    partition[targetKey] = { completedAt, attemptId, ...retainedScore, ...extra };
   };
   remember(key, scoreFields);
   if (["listening", "reading"].includes(moduleKey) && !itemId.includes("::")) {
@@ -4421,7 +4428,10 @@ function currentDraftSnapshot() {
   const activeView = document.querySelector(".view.active")?.id || "practice";
   const values = {};
   document.querySelectorAll(".view.active textarea, .view.active input.answer-input, .view.active input.paper-answer-input, .view.active input.page-card-input, .view.active input.band-input").forEach((field) => {
-    if (field.closest("[hidden]")) return;
+    const pairedWritingField = activeView === "writing-upload"
+      && state.pendingWritingKind === "full-test"
+      && field.closest("[data-writing-task-panel]");
+    if (field.closest("[hidden]") && !pairedWritingField) return;
     const key = draftFieldKey(field);
     if (key) values[key] = field.value || "";
   });
@@ -5283,6 +5293,49 @@ function helpResponseStatus(mode) {
   return "Local";
 }
 
+function writingFullTestOptions() {
+  const groups = new Map();
+  mergedItems("writing").map(normalizeItem).forEach((task) => {
+    const taskNumber = writingTaskNumber(task);
+    const pairKey = examSetKey(task);
+    if (!pairKey || !taskNumber || task.source === "Public topics") return;
+    if (!groups.has(pairKey)) groups.set(pairKey, {});
+    groups.get(pairKey)[taskNumber] = task;
+  });
+  return [...groups.entries()]
+    .filter(([, pair]) => pair[1] && pair[2])
+    .map(([pairKey, pair]) => {
+      const task1 = { ...pair[1], minutes: Number(pair[1].minutes) || 20 };
+      const task2 = { ...pair[2], minutes: Number(pair[2].minutes) || 40 };
+      const book = itemBook(task1) || itemBook(task2);
+      const test = itemTest(task1) || itemTest(task2);
+      return {
+        id: `writing-full-test:${pairKey}`,
+        module: "writing",
+        type: "Full test",
+        title: [book ? `Cambridge ${book}` : "Cambridge Writing", test ? `Test ${test}` : ""].filter(Boolean).join(" · "),
+        source: task1.source || task2.source || "",
+        period: task1.period || task2.period || "",
+        book,
+        test,
+        task1Id: task1.id,
+        task2Id: task2.id,
+        writingTasks: [task1, task2],
+      };
+    })
+    .sort((a, b) => (Number(a.book) - Number(b.book)) || (Number(a.test) - Number(b.test)));
+}
+
+function writingTopicOptions() {
+  return mergedItems("writing").map(normalizeItem)
+    .filter((task) => [1, 2].includes(writingTaskNumber(task)))
+    .map((task) => ({
+      ...singleWritingTaskOption(task),
+      id: `writing-topic-task:${task.id}`,
+      taskNumber: writingTaskNumber(task),
+    }));
+}
+
 function coachRequestFailureMessage() {
   return "AI Coach is temporarily unavailable. Please retry in a moment. Your practice and conversation are still saved.";
 }
@@ -5753,10 +5806,11 @@ async function sendHelpChatMessage(message) {
       message: clean || "Please explain this screenshot.",
     });
     const answerNode = addHelpMessage("assistant", json.answer || "");
-    appendCoachAgentActions(answerNode, agentActions);
     if (json.readingEvidence) {
       focusReadingEvidence(json.readingEvidence);
       appendReadingEvidenceAction(answerNode, json.readingEvidence);
+    } else {
+      appendCoachAgentActions(answerNode, agentActions);
     }
     if (json.ocrText) state.help.contextText = [state.help.contextText, json.ocrText].filter(Boolean).join("\n\n");
     state.help.context = helpContext;
@@ -5769,7 +5823,7 @@ async function sendHelpChatMessage(message) {
     state.help.pendingImageDataUrl = "";
     updateHelpAttachmentPreview();
     setHelpStatus(helpResponseStatus(json.mode));
-    if (agentAction?.autoOpen) {
+    if (agentAction?.autoOpen && !json.readingEvidence) {
       setHelpStatus("Opening practice");
       window.setTimeout(() => {
         runCoachAgentAction(agentAction.action);
@@ -10545,7 +10599,10 @@ function renderWritingExamTwoColumn(tasks = [], prefixRoot = "exam") {
   if (!validTasks.length) {
     return `<section class="panel notice">No Writing task is available. Choose another task.</section>`;
   }
-  const totalMinutes = validTasks.reduce((sum, task) => sum + (Number(normalizeItem(task).minutes) || 40), 0);
+  const totalMinutes = validTasks.reduce((sum, task) => {
+    const item = normalizeItem(task);
+    return sum + (Number(item.minutes) || (writingTaskNumber(item) === 1 ? 20 : 40));
+  }, 0);
   const taskTabs = validTasks.map((task, index) => {
     const item = normalizeItem(task);
     const taskNumber = writingTaskNumber(item) || index + 1;
@@ -10566,7 +10623,7 @@ function renderWritingExamTwoColumn(tasks = [], prefixRoot = "exam") {
     return `<section class="writing-task-workspace" data-writing-task-panel="${taskNumber}"${index === 0 ? "" : " hidden"}>
       <div class="exam-two-column writing-two-column">
         <section class="exam-left-pane writing-task-prompt">
-          <div class="writing-pane-label"><span>Question</span><strong>${escapeHtml(item.type || `Task ${taskNumber}`)} · ${escapeHtml(String(item.minutes || 40))} min</strong></div>
+          <div class="writing-pane-label"><span>Question</span><strong>${escapeHtml(item.type || `Task ${taskNumber}`)} · ${escapeHtml(String(Number(item.minutes) || (taskNumber === 1 ? 20 : 40)))} min</strong></div>
           <h3>${escapeHtml(item.title || `Writing Task ${taskNumber}`)}</h3>
           <div class="writing-prompt-scroll">${writingPrompt}</div>
         </section>
@@ -16269,21 +16326,35 @@ function openWritingPracticeSetup(kind = "task2", selectionId = "") {
   if (!setup || !entry || !workspace) return;
   const resolvedKind = kind === "cambridge" ? "task2" : kind;
   const isTask1 = resolvedKind === "task1";
-  const option = isTask1 || resolvedKind === "custom"
+  const isFullTest = resolvedKind === "full-test";
+  const isTopic = resolvedKind === "topic";
+  const fullTest = isFullTest
+    ? writingFullTestOptions().find((item) => item.id === selectionId) || writingFullTestOptions()[0] || null
+    : null;
+  const topicOption = isTopic
+    ? writingTopicOptions().find((item) => item.id === selectionId) || null
+    : null;
+  const option = isTask1 || isFullTest || isTopic || resolvedKind === "custom"
     ? null
     : writingSystemOptions().find((item) => item.id === selectionId) || writingSystemRecommended(writingSystemOptions());
-  const task2 = writingTask2ForOption(option);
+  const topicTask = writingSetTasks(topicOption)[0] || null;
+  const task2 = isFullTest ? writingTask2ForOption(fullTest) : isTopic && writingTaskNumber(topicTask) === 2 ? topicTask : writingTask2ForOption(option);
   const task1 = isTask1
     ? writingTask1Pool().find((task) => task.id === selectionId) || writingTask1Pool()[0] || null
-    : null;
-  const resolvedSelectionId = isTask1 ? `writing-task1:${task1?.id || ""}` : option?.id || selectionId || resolvedKind;
+    : isFullTest ? writingTask1ForOption(fullTest) : isTopic && writingTaskNumber(topicTask) === 1 ? topicTask : null;
+  const activeTask = topicTask || task1 || task2;
+  const activeTaskNumber = activeTask ? writingTaskNumber(activeTask) || 2 : 2;
+  const resolvedSelectionId = isTask1 ? `writing-task1:${task1?.id || ""}` : fullTest?.id || topicOption?.id || option?.id || selectionId || resolvedKind;
   state.pendingWritingKind = resolvedKind;
   state.pendingWritingSetId = resolvedSelectionId;
   setUnifiedPracticeStage("writing", "setup", { selectionId: resolvedSelectionId });
   if (resolvedKind === "custom") {
     state.selectedWritingTask1Id = "";
     state.selectedWritingTask2Id = "";
-  } else if (isTask1) {
+  } else if (isFullTest) {
+    state.selectedWritingTask1Id = task1?.id || "";
+    state.selectedWritingTask2Id = task2?.id || "";
+  } else if (isTask1 || activeTaskNumber === 1) {
     state.selectedWritingTask1Id = task1?.id || "";
     state.selectedWritingTask2Id = "";
   } else {
@@ -16292,19 +16363,25 @@ function openWritingPracticeSetup(kind = "task2", selectionId = "") {
   }
   const label = resolvedKind === "custom"
     ? "Custom writing task"
-    : isTask1
+    : isFullTest
+      ? fullTest?.title || "Cambridge Writing full test"
+      : isTask1 || activeTaskNumber === 1
       ? writingTopicSourceLabel({ writingTasks: [task1] })
-      : writingTopicSourceLabel(option || {});
+      : writingTopicSourceLabel(topicOption || option || {});
   setup.innerHTML = unifiedPracticeSetupHtml("writing", {
     title: resolvedKind === "custom"
       ? "Submit your own essay"
-      : isTask1 ? task1?.title || "Task 1 visual" : writingTopicMeta(option || {}).title || "Task 2 topic",
+      : isFullTest
+        ? `${fullTest?.title || "Cambridge Writing"} · Task 1 + Task 2`
+        : activeTask?.title || writingTopicMeta(topicOption || option || {}).title || `Task ${activeTaskNumber} topic`,
     source: label,
     detail: resolvedKind === "custom"
       ? "Paste one IELTS task and confirm its detected type before writing."
-      : isTask1
-        ? "Task 1 only · 20 minutes · 150 words · scored independently."
-        : "Task 2 only · 40 minutes · 250 words · scored independently.",
+      : isFullTest
+        ? "Task 1 + Task 2 · 60 minutes · 400 words · official 1:2 weighted score."
+        : activeTaskNumber === 1
+          ? "Task 1 only · 20 minutes · 150 words · scored independently."
+          : "Task 2 only · 40 minutes · 250 words · scored independently.",
   });
   const setupShell = setup.querySelector(".unified-practice-setup");
   if (setupShell && task1?.id) setupShell.dataset.writingTask1Id = task1.id;
@@ -16319,12 +16396,13 @@ function openWritingPracticeSetup(kind = "task2", selectionId = "") {
       setUnifiedPracticeStage("writing", "practice", { mode, selectionId: resolvedSelectionId });
       state.writingTimerElapsed = 0;
       state.writingTimerStartedAt = Date.now();
-      state.writingTimerDuration = isTask1 ? 20 * 60 : 40 * 60;
+      state.writingTimerDuration = isFullTest ? 60 * 60 : activeTaskNumber === 1 ? 20 * 60 : 40 * 60;
       if (resolvedKind === "custom") setWritingWorkspaceMode("custom");
+      else if (isFullTest) startWritingFullTestPractice(fullTest, { scroll: true });
       else startWritingSystemPractice("selected", {
         setId: resolvedSelectionId,
-        taskNumber: isTask1 ? 1 : 2,
-        taskId: isTask1 ? task1?.id : task2?.id,
+        taskNumber: activeTaskNumber,
+        taskId: activeTask?.id,
       });
       if (resolvedKind === "custom" && state.pendingWritingReviewPrompt) {
         if ($("uploadPrompt")) $("uploadPrompt").value = state.pendingWritingReviewPrompt;
@@ -16332,7 +16410,7 @@ function openWritingPracticeSetup(kind = "task2", selectionId = "") {
         syncCustomWritingState();
         scheduleDraftAutosave();
       }
-      startWritingTimer({ reset: true, durationSeconds: isTask1 ? 20 * 60 : 40 * 60 });
+      startWritingTimer({ reset: true, durationSeconds: isFullTest ? 60 * 60 : activeTaskNumber === 1 ? 20 * 60 : 40 * 60 });
     },
   });
   setup.scrollIntoView({ block: "start" });
@@ -16389,6 +16467,10 @@ function writingTask2ForOption(option) {
   return writingSetTasks(option).find((task) => writingTaskNumber(task) === 2) || null;
 }
 
+function writingTaskForOption(option) {
+  return writingSetTasks(option)[0] || null;
+}
+
 function writingTask1OptionLabel(task) {
   const kind = writingTaskKind(task);
   const usefulKind = /^task\s*1$/i.test(kind) ? "visual" : kind;
@@ -16396,45 +16478,49 @@ function writingTask1OptionLabel(task) {
 }
 
 function writingSetSearchText(option) {
-  const task2 = writingTask2ForOption(option) || {};
+  const task = writingTaskForOption(option) || option || {};
   return [
     option?.source,
     option?.period,
-    task2.title,
-    task2.type,
-    task2.prompt,
-    task2.data,
-    task2.source,
-    task2.period,
+    task.title,
+    task.type,
+    task.prompt,
+    task.data,
+    task.source,
+    task.period,
   ].filter(Boolean).join(" ").toLowerCase();
 }
 
 function writingTopicRules() {
   return [
+    { title: "Food & agriculture", emoji: "🍽️", accent: "food-agriculture", pattern: /\b(food|meal|restaurant|coffee|tea|noodle|agriculture|agricultural|farm|farming|crop)\b/i },
     { title: "Education & learning", emoji: "📝", accent: "education-learning", pattern: /\b(school|student|education|university|teacher|learning|homework|subject|course|academic|tuition|classroom)\b/i },
     { title: "Digital technology", emoji: "🖥️", accent: "technology-digital", pattern: /\b(technology|internet|computer|online|digital|robot|automation|ai|smartphone|algorithm|data|privacy)\b/i },
-    { title: "Work & careers", emoji: "💼", accent: "work-career", pattern: /\b(work|job|career|employee|employer|office|salary|profession|business|company|workplace|retirement)\b/i },
-    { title: "Environment & climate", emoji: "🌦️", accent: "environment-climate", pattern: /\b(environment|climate|pollution|recycle|recycling|carbon|emission|energy|wildlife|habitat|animal|plant|nature|green)\b/i },
-    { title: "Transport & mobility", emoji: "🚆", accent: "transport-mobility", pattern: /\b(transport|traffic|congestion|commute|road|car|vehicle|rail|bus|cycling|pedestrian|fuel)\b/i },
+    { title: "Work & careers", emoji: "💼", accent: "work-career", pattern: /\b(work|job|jobs|career|employee|employer|employment|office|salary|profession|business|company|workplace|retirement|sector)\b/i },
+    { title: "Environment & climate", emoji: "🌦️", accent: "environment-climate", pattern: /\b(environment|climate|pollution|recycle|recycling|carbon|emission|energy|electricity|power|water|wildlife|habitat|animal|plant|nature|green|desert)\b/i },
+    { title: "Transport & travel", emoji: "🚆", accent: "transport-mobility", pattern: /\b(transport|traffic|congestion|commute|road|car|vehicle|rail|bus|cycling|pedestrian|fuel|travel|tourist|tourists|tourism|airport|harbour|harbor)\b/i },
     { title: "Cities & housing", emoji: "🏙️", accent: "cities-housing", pattern: /\b(city|cities|urban|housing|apartment|high-rise|residential|land|neighbourhood|neighborhood|public space|park)\b/i },
     { title: "Health & lifestyle", emoji: "💗", accent: "health-lifestyle", pattern: /\b(health|healthy|hospital|doctor|exercise|sport|diet|medical|wellbeing|fitness|sugar|illness|disease)\b/i },
     { title: "Family & children", emoji: "👨‍👩‍👧", accent: "family-children", pattern: /\b(family|families|children|child|parent|parents|mother|father|elderly|older people|ageing|aging)\b/i },
     { title: "Crime & law", emoji: "⚖️", accent: "crime-law", pattern: /\b(crime|criminal|prison|punishment|sentence|law|legal|police|rehabilitation|offender)\b/i },
     { title: "Government & public services", emoji: "🏛️", accent: "government-public", pattern: /\b(government|public service|policy|tax|funding|spend|spending|community service|citizen|society|population)\b/i },
-    { title: "Culture & traditions", emoji: "🎬", accent: "culture-traditions", pattern: /\b(culture|art|music|museum|history|tradition|custom|festival|heritage|local film)\b/i },
+    { title: "Culture & traditions", emoji: "🎬", accent: "culture-traditions", pattern: /\b(culture|art|music|museum|library|history|tradition|custom|festival|heritage|local film)\b/i },
     { title: "Media & advertising", emoji: "📰", accent: "media-advertising", pattern: /\b(media|news|newspaper|television|advertising|advertisement|social media|film|entertainment)\b/i },
     { title: "Globalisation & language", emoji: "🌍", accent: "globalisation-language", pattern: /\b(globalisation|globalization|international|foreign|overseas|language|multicultural|border)\b/i },
-    { title: "Consumerism & money", emoji: "🛍️", accent: "consumerism-money", pattern: /\b(consumer|consumption|shopping|商品|money|finance|financial|bank|salary|wealth|cost|price)\b/i },
+    { title: "Consumerism & money", emoji: "🛍️", accent: "consumerism-money", pattern: /\b(consumer|consumption|shopping|shop|shops|export|exports|income|money|finance|financial|bank|salary|wealth|cost|price|prices)\b/i },
     { title: "Science & research", emoji: "🔬", accent: "science-research", pattern: /\b(science|scientific|research|experiment|space|discovery|medicine|innovation)\b/i },
+    { title: "Charts & data", emoji: "📊", accent: "charts-data", pattern: /$^/ },
+    { title: "General essays", emoji: "✨", accent: "essay-general", pattern: /$^/ },
   ];
 }
 
 function writingTopicMeta(option) {
-  const task2 = writingTask2ForOption(option) || option || {};
-  const taskText = [task2.prompt, task2.data, task2.title]
+  const task = writingTaskForOption(option) || option || {};
+  const taskText = [task.prompt, task.data, task.title]
     .filter(Boolean)
     .join(" ")
     .replace(/present a written argument or case to an educated reader with no specialist knowledge/gi, " ")
+    .replace(/\bacademic\b/gi, " ")
     .replace(/you should spend about \d+ minutes on this task/gi, " ")
     .replace(/write at least \d+ words/gi, " ");
   const rules = writingTopicRules();
@@ -16447,11 +16533,14 @@ function writingTopicMeta(option) {
     lifestyle: "health-lifestyle",
     society: "government-public",
     media: "culture-traditions",
-  }[task2.topicCategory];
-  const match = rules.find((rule) => rule.accent === task2.topicSubcategory)
+  }[task.topicCategory];
+  const match = rules.find((rule) => rule.accent === task.topicSubcategory)
     || rules.find((rule) => rule.pattern.test(taskText))
     || rules.find((rule) => rule.accent === legacyAccent);
-  return match || { title: "Essay", emoji: "✨", accent: "education-learning" };
+  if (match) return match;
+  return writingTaskNumber(task) === 1
+    ? { title: "Charts & data", emoji: "📊", accent: "charts-data" }
+    : { title: "Essay", emoji: "✨", accent: "essay-general" };
 }
 
 function renderWritingTopicCategoryBar(options = []) {
@@ -16498,7 +16587,7 @@ function writingTaskKind(task) {
 }
 
 function writingTopicSourceLabel(option) {
-  const first = writingTask2ForOption(option) || writingTask1ForOption(option) || option || {};
+  const first = writingTaskForOption(option) || option || {};
   return [
     itemBook(first) ? `Cambridge ${itemBook(first)}` : first.source || option?.source || "Writing",
     itemTest(first) ? `Test ${itemTest(first)}` : "",
@@ -16510,7 +16599,7 @@ function writingTopicCards(options = writingSystemOptions(), recommendedId = "")
   const book = $("writingTopicBook")?.value || "all";
   const category = state.writingTopicCategory || "all";
   return options.filter((option) => {
-    const first = writingTask2ForOption(option) || option || {};
+    const first = writingTaskForOption(option) || option || {};
     const isPublic = first.source === "Public topics";
     const bookOk = book === "all"
       || (book === "public" ? isPublic : !isPublic && String(itemBook(first)) === book);
@@ -16528,9 +16617,9 @@ function renderWritingTopicFilters(options) {
   const select = $("writingTopicBook");
   if (!select) return;
   const current = select.value || "all";
-  const books = [...new Set(options.map((option) => itemBook(writingTask2ForOption(option) || option)).filter((value) => value !== null && value !== undefined))]
+  const books = [...new Set(options.map((option) => itemBook(writingTaskForOption(option) || option)).filter((value) => value !== null && value !== undefined))]
     .sort((a, b) => Number(a) - Number(b));
-  const hasPublic = options.some((option) => writingTask2ForOption(option)?.source === "Public topics");
+  const hasPublic = options.some((option) => writingTaskForOption(option)?.source === "Public topics");
   select.innerHTML = [
     `<option value="all">All sources</option>`,
     ...(hasPublic ? [`<option value="public">Public topics</option>`] : []),
@@ -16633,7 +16722,7 @@ function renderWritingScopeTabs() {
     button.setAttribute("aria-selected", active ? "true" : "false");
   });
   document.querySelectorAll('[data-writing-scope-detail="full"]').forEach((node) => {
-    node.textContent = "All complete Writing tasks";
+    node.textContent = "Task 1 + Task 2 by test";
   });
   document.querySelectorAll('[data-writing-scope-detail="review"]').forEach((node) => {
     node.textContent = "Task 1 & Task 2 feedback";
@@ -16807,31 +16896,66 @@ function bindWritingFullTaskCards(root) {
   });
 }
 
-function renderWritingFullBoard(task1Tasks, task2Options, recommendedTask1, recommendedTask2) {
+function renderWritingFullBoard(fullTests, recommended) {
   const root = $("writingTopicList");
   if (!root) return;
-  renderWritingFullFilters(task1Tasks, task2Options);
+  const select = $("writingTopicBook");
+  if (select) {
+    const current = select.value || "all";
+    const books = [...new Set(fullTests.map((option) => option.book).filter(Number.isFinite))].sort((a, b) => a - b);
+    select.innerHTML = [`<option value="all">All Cambridge books</option>`, ...books.map((book) => `<option value="${book}">Cambridge ${book}</option>`)].join("");
+    select.value = books.map(String).includes(current) ? current : "all";
+  }
   const completionIndex = readPracticeCompletionIndex();
-  let entries = writingFullTaskEntries(task1Tasks, task2Options, completionIndex);
-  const recommendedIds = new Set([recommendedTask1?.id, recommendedTask2?.id].filter(Boolean));
-  entries = [
-    ...entries.filter((entry) => recommendedIds.has(entry.kind === "task1" ? entry.task.id : entry.option.id)),
-    ...entries.filter((entry) => !recommendedIds.has(entry.kind === "task1" ? entry.task.id : entry.option.id)),
-  ];
-  if (!entries.length) {
-    root.innerHTML = `<div class="notice">No complete Writing tasks match the current filters.</div>`;
+  const query = ($("writingTopicSearch")?.value || "").trim().toLowerCase();
+  const book = $("writingTopicBook")?.value || "all";
+  const completionFilter = $("writingCompletionFilter")?.value || "all";
+  let visibleTests = fullTests.filter((option) => {
+    const status = practiceCompletionStatus("writing", option, completionIndex);
+    const completionOk = completionFilter === "all" || (completionFilter === "completed" ? status.completed : !status.completed);
+    const bookOk = book === "all" || String(option.book) === book;
+    const queryOk = !query || [option.title, option.book, option.test, ...option.writingTasks.map((task) => `${task.title} ${task.prompt} ${task.data}`)].join(" ").toLowerCase().includes(query);
+    return completionOk && bookOk && queryOk;
+  });
+  if (recommended && visibleTests.some((option) => option.id === recommended.id)) {
+    visibleTests = [recommended, ...visibleTests.filter((option) => option.id !== recommended.id)];
+  }
+  if (!visibleTests.length) {
+    root.innerHTML = `<div class="notice">No complete Cambridge Writing tests match the current filters.</div>`;
     renderWritingTopicPagination(0, 1, state.writingTopicPageSize);
     return;
   }
-  const totalPages = Math.max(1, Math.ceil(entries.length / state.writingTopicPageSize));
+  const totalPages = Math.max(1, Math.ceil(visibleTests.length / state.writingTopicPageSize));
   state.writingTopicPage = Math.min(Math.max(1, state.writingTopicPage || 1), totalPages);
   const start = (state.writingTopicPage - 1) * state.writingTopicPageSize;
-  const visible = entries.slice(start, start + state.writingTopicPageSize);
-  root.innerHTML = visible.map((entry) => entry.kind === "task1"
-    ? renderWritingTask1FullCard(entry.task, recommendedTask1?.id || "", completionIndex)
-    : renderWritingTask2FullCard(entry.option, recommendedTask2?.id || "", completionIndex)).join("");
-  renderWritingTopicPagination(entries.length, state.writingTopicPage, state.writingTopicPageSize);
-  bindWritingFullTaskCards(root);
+  const pageItems = visibleTests.slice(start, start + state.writingTopicPageSize);
+  root.innerHTML = pageItems.map((option) => {
+    const status = practiceCompletionStatus("writing", option, completionIndex);
+    const completed = status.completed ? "completed" : "not-completed";
+    const isRecommended = option.id === recommended?.id;
+    return `<article class="practice-unit-card tone-writing writing-full-test-card${isRecommended ? " recommended" : ""}" data-writing-full-test-id="${escapeHtml(option.id)}" data-practice-status="${completed}" role="button" tabindex="0" aria-label="Choose ${escapeHtml(option.title)} full test">
+      <div class="practice-unit-card-head"><span aria-hidden="true">📝</span><em>Full test${isRecommended ? " · AI pick" : ""}</em></div>
+      <h4>${escapeHtml(option.title)}</h4>
+      <p>Complete the original Task 1 and Task 2 from this test in one 60-minute workspace.</p>
+      <div class="practice-unit-stats"><span><strong>2</strong> tasks</span><span><strong>60</strong> min</span><span><strong>1:2</strong> weighting</span></div>
+      <span class="practice-status-badge ${completed}">${practiceCompletionDisplay(status)}</span>
+      <button class="primary" type="button" data-writing-full-test-id="${escapeHtml(option.id)}">Start full test</button>
+    </article>`;
+  }).join("");
+  renderWritingTopicPagination(visibleTests.length, state.writingTopicPage, state.writingTopicPageSize);
+  root.querySelectorAll("[data-writing-full-test-id]").forEach((node) => {
+    const open = () => openWritingPracticeSetup("full-test", node.dataset.writingFullTestId);
+    if (node.matches("article")) {
+      node.addEventListener("click", (event) => { if (!event.target.closest("button")) open(); });
+      node.addEventListener("keydown", (event) => {
+        if (!["Enter", " "].includes(event.key)) return;
+        event.preventDefault();
+        open();
+      });
+    } else {
+      node.addEventListener("click", (event) => { event.stopPropagation(); open(); });
+    }
+  });
 }
 
 function writingAttemptTaskNumber(attempt = {}) {
@@ -16858,6 +16982,7 @@ function writingReviewScores(attempt = {}) {
 function writingReviewEntries(taskNumber = 0) {
   const attempts = mineLearningAttempts()
     .filter((attempt) => String(attempt.module || attempt.result?.module || "").toLowerCase() === "writing")
+    .filter((attempt) => !attempt.isFullTestParent && !attempt.result?.isFullTestParent)
     .filter((attempt) => !taskNumber || writingAttemptTaskNumber(attempt) === taskNumber);
   const attemptIds = new Set(attempts.map((attempt) => String(attempt.attemptId || attempt.id || "")).filter(Boolean));
   const attemptEntries = attempts.map((attempt, index) => {
@@ -17018,14 +17143,15 @@ function renderWritingTopicCard(option, recommendedId = "", completionIndex = nu
     items: [option],
   };
   const featured = group.items.find((item) => item.id === recommendedId) || group.items[0] || {};
-  const task2 = writingTask2ForOption(featured) || {};
   const meta = group;
   const isRecommended = group.items.some((item) => item.id === recommendedId);
+  const taskNumbers = [...new Set(group.items.map((item) => writingTaskNumber(writingTaskForOption(item))).filter(Boolean))].sort();
+  const taskLabel = taskNumbers.length === 2 ? "Task 1 + Task 2" : taskNumbers.length ? `Task ${taskNumbers[0]}` : "Writing";
   const chips = [
-    "Task 2",
+    taskLabel,
     `${group.items.length} ${group.items.length === 1 ? "question" : "questions"}`,
   ].filter(Boolean).slice(0, 3);
-  const tasks = group.items.map(writingTask2ForOption).filter(Boolean);
+  const tasks = group.items.map(writingTaskForOption).filter(Boolean);
   const summary = practiceCompletionGroupSummary("writing", tasks, completionIndex);
   const books = tasks.map(itemBook).filter(Number.isFinite).sort((a, b) => a - b);
   const hasPublic = tasks.some((item) => item.source === "Public topics");
@@ -17061,7 +17187,7 @@ function buildWritingTopicGroups(options = [], recommendedId = "") {
   });
 }
 
-function findWritingTopicGroup(groupId, options = writingSystemOptions(), recommendedId = "") {
+function findWritingTopicGroup(groupId, options = writingTopicOptions(), recommendedId = "") {
   return buildWritingTopicGroups(options, recommendedId).find((group) => group.id === groupId) || null;
 }
 
@@ -17074,18 +17200,21 @@ function renderWritingSetChooser(group, recommendedId = "", completionIndex = re
   workspace.hidden = true;
   setup.hidden = false;
   const ordered = [...group.items]
-    .filter((option) => practiceCompletionFilterMatches("writing", writingTask2ForOption(option), completionIndex, "writingCompletionFilter"))
+    .filter((option) => practiceCompletionFilterMatches("writing", writingTaskForOption(option), completionIndex, "writingCompletionFilter"))
     .sort((a, b) => Number(b.id === recommendedId) - Number(a.id === recommendedId));
   setup.innerHTML = `<section class="topic-set-chooser writing-set-chooser">
-    <header class="bank-practice-head topic-set-chooser-head"><div><span>Task 2 topic</span><h3>${escapeHtml(group.title)}</h3><p>Choose the Task 2 question you want to answer.</p></div><button class="secondary small-button" type="button" data-writing-set-back>Back to topics</button></header>
+    <header class="bank-practice-head topic-set-chooser-head"><div><span>Writing topic</span><h3>${escapeHtml(group.title)}</h3><p>Choose a Task 1 or Task 2 question. Each opens as one independent practice.</p></div><button class="secondary small-button" type="button" data-writing-set-back>Back to topics</button></header>
     <div class="topic-set-list" role="list">${ordered.map((option, index) => {
-      const task2 = writingTask2ForOption(option) || {};
-      const completion = practiceCompletionStatus("writing", task2, completionIndex);
+      const task = writingTaskForOption(option) || {};
+      const taskNumber = writingTaskNumber(task) || 2;
+      const completion = practiceCompletionStatus("writing", task, completionIndex);
       const status = completion.completed ? "completed" : "not-completed";
-      return `<article class="topic-set-row" role="listitem" data-practice-status="${status}" data-writing-task2-id="${escapeHtml(task2.id || "")}">
+      const minutes = taskNumber === 1 ? 20 : 40;
+      const words = taskNumber === 1 ? 150 : 250;
+      return `<article class="topic-set-row" role="listitem" data-practice-status="${status}" data-writing-task-id="${escapeHtml(task.id || "")}">
         <div class="topic-set-index">${index + 1}</div>
-        <div class="topic-set-main"><div class="topic-set-source">${escapeHtml(writingTopicSourceLabel(option))}${option.id === recommendedId ? " · AI pick" : ""}</div><h4>${escapeHtml(group.title)}</h4><p>${escapeHtml(writingTaskPreview(task2, "IELTS Writing Task 2"))}</p><span class="practice-status-badge ${status}">${practiceCompletionDisplay(completion)}</span></div>
-        <button class="primary small-button choose-writing-set" type="button" data-writing-set-id="${escapeHtml(option.id)}" data-writing-task2-id="${escapeHtml(task2.id || "")}">Select question</button>
+        <div class="topic-set-main"><div class="topic-set-source">${escapeHtml(writingTopicSourceLabel(option))}${option.id === recommendedId ? " · AI pick" : ""}</div><h4>Task ${taskNumber} · ${minutes} min · ${words} words</h4><p>${escapeHtml(writingTaskPreview(task, `IELTS Writing Task ${taskNumber}`))}</p><span class="practice-status-badge ${status}">${practiceCompletionDisplay(completion)}</span></div>
+        <button class="primary small-button choose-writing-set" type="button" data-writing-set-id="${escapeHtml(option.id)}" data-writing-task-id="${escapeHtml(task.id || "")}">Select question</button>
       </article>`;
     }).join("")}</div>
   </section>`;
@@ -17095,7 +17224,7 @@ function renderWritingSetChooser(group, recommendedId = "", completionIndex = re
     entry.hidden = false;
   });
   setup.querySelectorAll("[data-writing-set-id]").forEach((button) => {
-    button.addEventListener("click", () => openWritingPracticeSetup("cambridge", button.dataset.writingSetId));
+    button.addEventListener("click", () => openWritingPracticeSetup("topic", button.dataset.writingSetId));
   });
   setup.scrollIntoView({ block: "start" });
   window.lucide?.createIcons?.({ attrs: { "stroke-width": 1.8 } });
@@ -17117,7 +17246,7 @@ function renderWritingTopicBoard(options, recommended) {
   }
   const completionIndex = readPracticeCompletionIndex();
   const groups = buildWritingTopicGroups(filtered, recommended?.id || "")
-    .filter((group) => group.items.some((option) => practiceCompletionFilterMatches("writing", writingTask2ForOption(option), completionIndex, "writingCompletionFilter")));
+    .filter((group) => group.items.some((option) => practiceCompletionFilterMatches("writing", writingTaskForOption(option), completionIndex, "writingCompletionFilter")));
   const totalPages = Math.max(1, Math.ceil(groups.length / state.writingTopicPageSize));
   state.writingTopicPage = Math.min(Math.max(1, state.writingTopicPage || 1), totalPages);
   const start = (state.writingTopicPage - 1) * state.writingTopicPageSize;
@@ -17152,7 +17281,6 @@ function renderWritingUploadHub() {
   renderWritingResumeStrip();
   if (!select || !title) return;
   const scope = writingLibraryScope();
-  if (scope === "topics") state.writingLibraryTaskNumber = 2;
   renderWritingScopeTabs();
   setWritingTopicListLayout(scope);
   const categoryBar = $("writingTopicCategoryBar");
@@ -17163,15 +17291,16 @@ function renderWritingUploadHub() {
   if ($("writingTopicSearch")) {
     $("writingTopicSearch").placeholder = scope === "review"
       ? "Search Writing feedback or weak areas..."
-      : scope === "topics" ? "Search Task 2 content topics..." : "Search complete Task 1 or Task 2 questions...";
+      : scope === "topics" ? "Search Task 1 or Task 2 content topics..." : "Search Cambridge Writing full tests...";
   }
-  const task1Tasks = writingTask1Pool();
-  const recommendedTask1 = chooseRotatingRecommendation("writing-task1", task1Tasks);
-  const options = writingSystemOptions();
-  const recommendedTask2 = options.length ? writingSystemRecommended(options) : null;
-  select.innerHTML = options.length
-    ? options.map((item) => `<option value="${escapeHtml(item.id)}">${escapeHtml(singleOptionLabel(item, "writing"))}</option>`).join("")
-    : `<option value="">No system Task 2 questions available</option>`;
+  const topicOptions = writingTopicOptions();
+  const recommendedTopic = topicOptions.length ? chooseRotatingRecommendation("writing-topics", topicOptions) : null;
+  const fullTests = writingFullTestOptions();
+  const recommendedFullTest = fullTests.length ? chooseRotatingRecommendation("writing-full-test", fullTests) : null;
+  const systemOptions = scope === "topics" ? topicOptions : fullTests;
+  select.innerHTML = systemOptions.length
+    ? systemOptions.map((item) => `<option value="${escapeHtml(item.id)}">${escapeHtml(item.title || singleOptionLabel(item, "writing"))}</option>`).join("")
+    : `<option value="">No Writing practice is available</option>`;
 
   if (scope === "review") {
     title.textContent = "Writing mistake review";
@@ -17182,48 +17311,45 @@ function renderWritingUploadHub() {
   }
 
   if (scope === "topics") {
-    if (!options.length) {
-      title.textContent = "No Task 2 questions available";
-      if (reason) reason.textContent = "Import a Task 2 question before AI can recommend a writing topic.";
-      if (entryReason) entryReason.textContent = "No Task 2 content topic is available yet.";
+    if (!topicOptions.length) {
+      title.textContent = "No Writing topics available";
+      if (reason) reason.textContent = "Import a Task 1 or Task 2 question before AI can recommend a writing topic.";
+      if (entryReason) entryReason.textContent = "No Writing content topic is available yet.";
       renderWritingTopicBoard([], null);
       $("startRecommendedWriting")?.setAttribute("disabled", "disabled");
       $("startSelectedWriting")?.setAttribute("disabled", "disabled");
       return;
     }
-    title.textContent = recommendedTask2?.title || "Recommended Task 2 topic";
-    const recommendedReason = singleRecommendationReason("writing", recommendedTask2, options);
+    title.textContent = recommendedTopic?.title || "Recommended Writing topic";
+    const recommendedReason = singleRecommendationReason("writing", recommendedTopic, topicOptions);
     if (reason) reason.textContent = recommendedReason;
-    if (entryReason) entryReason.textContent = "Choose a content topic, then select one independent Task 2 question.";
-    renderWritingTopicBoard(options, recommendedTask2);
+    if (entryReason) entryReason.textContent = "Choose a content topic, then select one independent Task 1 or Task 2 question.";
+    renderWritingTopicBoard(topicOptions, recommendedTopic);
     $("startRecommendedWriting")?.removeAttribute("disabled");
     $("startSelectedWriting")?.removeAttribute("disabled");
     return;
   }
 
-  if (!task1Tasks.length && !options.length) {
-    title.textContent = "No Task 2 questions available";
-    if (reason) reason.textContent = "Import a Writing task before starting practice.";
-    if (entryReason) entryReason.textContent = "No complete Writing task is available yet.";
-    renderWritingFullBoard([], [], null, null);
+  if (!fullTests.length) {
+    title.textContent = "No complete Writing tests available";
+    if (reason) reason.textContent = "A Full test needs Task 1 and Task 2 from the same Cambridge test.";
+    if (entryReason) entryReason.textContent = "No paired Cambridge Writing test is available yet.";
+    renderWritingFullBoard([], null);
     $("startRecommendedWriting")?.setAttribute("disabled", "disabled");
     $("startSelectedWriting")?.setAttribute("disabled", "disabled");
     return;
   }
-  title.textContent = recommendedTask2?.title || recommendedTask1?.title || "Recommended Writing task";
-  if (reason) reason.textContent = "Choose any complete Task 1 or Task 2. Each opens as one independent timed practice.";
-  if (entryReason) entryReason.textContent = "Task 1 and Task 2 are together here as one library, while drafts, timers, submissions and scores stay independent.";
-  renderWritingFullBoard(task1Tasks, options, recommendedTask1, recommendedTask2);
-  if (state.pendingWritingSetId && options.some((item) => item.id === state.pendingWritingSetId)) {
+  title.textContent = recommendedFullTest?.title || "Recommended Writing full test";
+  if (reason) reason.textContent = "Complete both tasks from one Cambridge test and receive the official 1:2 weighted Writing Band.";
+  if (entryReason) entryReason.textContent = "Choose one Cambridge test. Task 1 and Task 2 open together in a 60-minute workspace.";
+  renderWritingFullBoard(fullTests, recommendedFullTest);
+  if (state.pendingWritingSetId && fullTests.some((item) => item.id === state.pendingWritingSetId)) {
     select.value = state.pendingWritingSetId;
-  } else if (state.selectedWritingTask2Id) {
-    const activeId = options.find((item) => writingTask2ForOption(item)?.id === state.selectedWritingTask2Id)?.id;
-    if (options.some((item) => item.id === activeId)) select.value = activeId;
-  } else if (recommendedTask2) {
-    select.value = recommendedTask2.id;
+  } else if (recommendedFullTest) {
+    select.value = recommendedFullTest.id;
   }
-  $("startRecommendedWriting")?.toggleAttribute("disabled", !recommendedTask2);
-  $("startSelectedWriting")?.toggleAttribute("disabled", !options.length);
+  $("startRecommendedWriting")?.toggleAttribute("disabled", !recommendedFullTest);
+  $("startSelectedWriting")?.toggleAttribute("disabled", !fullTests.length);
 }
 
 function saveWritingUploadSessionPointer(setId = "", task1Id = "", task2Id = "") {
@@ -17235,10 +17361,44 @@ function saveWritingUploadSessionPointer(setId = "", task1Id = "", task2Id = "")
       task1Id: task1Id || state.selectedWritingTask1Id || writingUploadTaskByNumber(1)?.id || "",
       task2Id: task2Id || state.selectedWritingTask2Id || writingUploadTaskByNumber(2)?.id || "",
       activeTaskNumber: state.writingActiveTaskNumber || 1,
+      practiceKind: state.pendingWritingKind || "topic",
       setupMode: state.writingSetupMode,
       updatedAt: new Date().toISOString(),
     }));
   } catch {}
+}
+
+function startWritingFullTestPractice(option, config = {}) {
+  const selected = typeof option === "string"
+    ? writingFullTestOptions().find((item) => item.id === option)
+    : option;
+  const task1 = writingTask1ForOption(selected);
+  const task2 = writingTask2ForOption(selected);
+  if (!selected || !task1 || !task2) return false;
+  state.uploadWritingTasks = [
+    { ...normalizeItem(task1), minutes: Number(task1.minutes) || 20 },
+    { ...normalizeItem(task2), minutes: Number(task2.minutes) || 40 },
+  ];
+  state.pendingWritingKind = "full-test";
+  state.pendingWritingSetId = selected.id;
+  state.selectedWritingTask1Id = task1.id;
+  state.selectedWritingTask2Id = task2.id;
+  state.writingLibraryTaskNumber = 0;
+  state.writingActiveTaskNumber = Number(config.activeTaskNumber) === 2 ? 2 : 1;
+  state.writingTimerDuration = 60 * 60;
+  saveWritingUploadSessionPointer(selected.id, task1.id, task2.id);
+  const content = $("writingSystemContent");
+  const actions = $("writingSystemActions");
+  if (!content || !actions) return false;
+  content.innerHTML = renderWritingExamTwoColumn(state.uploadWritingTasks, "upload-system");
+  $("writingSystemWorkspace")?.classList.add("has-writing-task");
+  actions.hidden = false;
+  setWritingWorkspaceMode("cambridge");
+  if ($("writingWorkspaceTitle")) $("writingWorkspaceTitle").textContent = `${selected.title} · Full test`;
+  bindDynamicControls();
+  if (state.writingActiveTaskNumber === 2) content.querySelector('[data-writing-task-tab="2"]')?.click();
+  if (config.scroll !== false) content.scrollIntoView({ behavior: "smooth", block: "start" });
+  return true;
 }
 
 function startWritingSystemPractice(mode = "recommended", config = {}) {
@@ -17263,12 +17423,13 @@ function startWritingSystemPractice(mode = "recommended", config = {}) {
       ? options.map(writingTask2ForOption).find((item) => item?.id === config.taskId)
       : writingTask2ForOption(selected);
     if (!task) return;
-    sessionId = selected.id;
+    sessionId = config.setId || selected.id;
     state.selectedWritingTask1Id = "";
     state.selectedWritingTask2Id = task.id;
     rememberPracticeRecommendation("writing", selected);
   }
   state.uploadWritingTasks = [normalizeItem(task)];
+  state.pendingWritingKind = config.practiceKind || (taskNumber === 1 ? "task1" : "task2");
   state.pendingWritingSetId = sessionId;
   state.writingLibraryTaskNumber = taskNumber;
   state.writingActiveTaskNumber = taskNumber;
@@ -17295,6 +17456,29 @@ function restoreWritingUploadSessionAfterData() {
   const setId = String(session?.setId || "");
   const task1Id = String(session?.task1Id || "");
   const task2Id = String(session?.task2Id || "");
+  const practiceKind = String(session?.practiceKind || "");
+  const fullTest = writingFullTestOptions().find((option) => option.id === setId
+    && writingTask1ForOption(option)?.id === task1Id
+    && writingTask2ForOption(option)?.id === task2Id);
+  if (practiceKind === "full-test" || (setId.startsWith("writing-full-test:") && task1Id && task2Id)) {
+    if (!fullTest) return false;
+    state.pendingWritingSetId = setId;
+    state.pendingWritingKind = "full-test";
+    state.selectedWritingTask1Id = task1Id;
+    state.selectedWritingTask2Id = task2Id;
+    state.writingSetupMode = session?.setupMode === "exam" ? "exam" : "coach";
+    state.writingActiveTaskNumber = Number(session?.activeTaskNumber) === 2 ? 2 : 1;
+    restoreWritingTimerState(setId);
+    startWritingFullTestPractice(fullTest, { activeTaskNumber: state.writingActiveTaskNumber, scroll: false });
+    const fullDraft = uniqueDrafts([...(state.serverDrafts || []), ...readLocalDrafts()])
+      .find((item) => item.payload?.activeView === "writing-upload"
+        && item.payload?.writingSetId === setId
+        && item.payload?.writingTask1Id === task1Id
+        && item.payload?.writingTask2Id === task2Id);
+    if (fullDraft?.payload?.values) applyDraftValues(fullDraft.payload.values);
+    startWritingTimer();
+    return true;
+  }
   const taskNumber = task1Id ? 1 : task2Id ? 2 : Number(session?.activeTaskNumber || 2);
   const taskId = taskNumber === 1 ? task1Id : task2Id;
   const taskExists = taskNumber === 1
@@ -17302,6 +17486,7 @@ function restoreWritingUploadSessionAfterData() {
     : writingSystemOptions().some((option) => writingTask2ForOption(option)?.id === taskId);
   if (!setId || !taskId || !taskExists) return false;
   state.pendingWritingSetId = setId;
+  state.pendingWritingKind = practiceKind || (taskNumber === 1 ? "task1" : "task2");
   state.selectedWritingTask1Id = task1Id;
   state.selectedWritingTask2Id = task2Id;
   state.writingLibraryTaskNumber = taskNumber;
@@ -17462,8 +17647,72 @@ async function scoreSimulationWritingPair(tasks, prefixRoot = "upload-system", o
 
 async function submitSystemWriting() {
   const tasks = (state.uploadWritingTasks || []).filter(Boolean).map(normalizeItem);
+  if (tasks.length === 2 && state.pendingWritingKind === "full-test") {
+    setUnifiedPracticeStage("writing", "scoring");
+    setFeedback("uploadWritingFeedback", "Scoring Task 1 and Task 2 with official 1:2 weighting...", "uploadWritingMode", "");
+    try {
+      const pair = await scoreSimulationWritingPair(tasks, "upload-system", () => {
+        setFeedback("uploadWritingFeedback", "Generating both task reports and the weighted Writing Band...", "uploadWritingMode", "");
+      });
+      const parentAttemptId = pair.contract?.attempt?.id || learningEntityId("attempt");
+      pair.taskScores.forEach((score, index) => {
+        const task = tasks[index];
+        const taskNumber = index + 1;
+        rememberWritingAttempt({
+          attemptId: `${parentAttemptId}:task${taskNumber}`,
+          fullTestAttemptId: parentAttemptId,
+          itemId: task.id || "",
+          taskNumber,
+          source: "full-test",
+          title: `Task ${taskNumber} · ${task.title || "Writing practice"}`,
+          prompt: [task.prompt, task.data].filter(Boolean).join("\n\nData: "),
+          essay: pair.responses[index] || "",
+          feedback: score.feedback || "",
+          analysis: score.analysis || null,
+          scores: { overall: score.overall, criteria: score.criteria || [] },
+          contract: pair.contract || null,
+        });
+      });
+      const combinedFeedback = pair.taskScores.map((score) => score.feedback || "").filter(Boolean).join("\n\n---\n\n");
+      const impact = pair.contract?.highestImpact || {};
+      const analysis = {
+        overall: pair.overall,
+        criteria: pair.criteria,
+        taskScores: pair.taskScores,
+        highestImpact: {
+          criterion: impact.criterionKey || "Task Response",
+          issue: impact.issue || "Develop the weakest task more fully.",
+          evidence: pair.evidence?.[0]?.quote || "Review the highlighted response evidence.",
+          rewriteInstruction: impact.successCriterion || "Rewrite the weakest paragraph with clearer development.",
+        },
+      };
+      const fullTest = writingFullTestOptions().find((option) => option.id === state.pendingWritingSetId);
+      rememberWritingAttempt({
+        attemptId: parentAttemptId,
+        itemId: state.pendingWritingSetId,
+        taskNumber: 2,
+        isFullTestParent: true,
+        source: "full-test",
+        title: `${fullTest?.title || "Writing"} · Full test`,
+        prompt: writingPromptForTasks(tasks),
+        essay: pair.responses.join("\n\n---\n\n"),
+        feedback: combinedFeedback,
+        analysis,
+        scores: { overall: pair.overall, criteria: pair.criteria },
+        taskScores: pair.taskScores,
+        contract: pair.contract || null,
+      });
+      stopWritingTimer({ pause: true });
+      setFeedbackHtml("uploadWritingFeedback", renderWritingReportHtml(combinedFeedback, { analysis, contract: pair.contract }, "ielts-writing-full-test-feedback.pdf"), "uploadWritingMode", "ai");
+      revealWritingFeedback();
+    } catch (error) {
+      setUnifiedPracticeStage("writing", "practice");
+      setFeedback("uploadWritingFeedback", `Submission failed: ${error.message}`, "uploadWritingMode", "error");
+    }
+    return;
+  }
   if (tasks.length !== 1) {
-    setFeedback("uploadWritingFeedback", "Please start one Task 1 or Task 2 practice first.", "uploadWritingMode", "error");
+    setFeedback("uploadWritingFeedback", "Please start one topic task or one valid Full test first.", "uploadWritingMode", "error");
     return;
   }
   const task = tasks[0];
@@ -17821,9 +18070,7 @@ function appendReadingEvidenceAction(messageNode, evidence) {
   const action = document.createElement("button");
   action.type = "button";
   action.className = "reading-evidence-jump";
-  action.textContent = evidence.rect
-    ? `📍 已在左侧高亮 · 第${evidence.paragraph}段第${evidence.sentence}句`
-    : `📍 已定位到左侧第 ${evidence.page} 页`;
+  action.textContent = "Open highlight";
   action.addEventListener("click", () => focusReadingEvidence(evidence, { closeCoach: true }));
   messageNode.appendChild(action);
 }
@@ -19155,12 +19402,22 @@ function bindEvents() {
     state.writingPromptCollapsed = !state.writingPromptCollapsed;
     setWritingWorkspaceMode(state.writingWorkspaceMode);
   });
-  $("startRecommendedWriting")?.addEventListener("click", () => startWritingSystemPractice("recommended"));
-  $("startSelectedWriting")?.addEventListener("click", () => startWritingSystemPractice("selected"));
+  $("startRecommendedWriting")?.addEventListener("click", () => {
+    if (writingLibraryScope() === "full") {
+      const option = chooseRotatingRecommendation("writing-full-test", writingFullTestOptions());
+      if (option) openWritingPracticeSetup("full-test", option.id);
+    } else {
+      const option = chooseRotatingRecommendation("writing-topics", writingTopicOptions());
+      if (option) openWritingPracticeSetup("topic", option.id);
+    }
+  });
+  $("startSelectedWriting")?.addEventListener("click", () => {
+    const selectionId = $("writingSystemSelect")?.value || "";
+    if (selectionId) openWritingPracticeSetup(writingLibraryScope() === "full" ? "full-test" : "topic", selectionId);
+  });
   document.querySelectorAll("[data-writing-scope]").forEach((button) => {
     button.addEventListener("click", () => {
       state.writingLibraryScope = ["full", "topics", "review"].includes(button.dataset.writingScope) ? button.dataset.writingScope : "full";
-      if (state.writingLibraryScope === "topics") state.writingLibraryTaskNumber = 2;
       state.writingTopicCategory = "all";
       state.writingTopicPage = 1;
       if ($("writingTopicSearch")) $("writingTopicSearch").value = "";

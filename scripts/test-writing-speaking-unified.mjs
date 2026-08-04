@@ -41,29 +41,91 @@ const browser = await chromium.launch({
 });
 
 try {
-  assert.match(appSource, /function weightedWritingOverall\(/, "P0: simulation-only weighted Writing score helper is missing");
-  assert.equal(
-    (appSource.match(/\bscoreSimulationWritingPair\(/g) || []).length,
-    1,
-    "P0: independent Writing practice must not call the paired simulation scorer",
+  assert.match(appSource, /function weightedWritingOverall\(/, "P0: official Writing weighting helper is missing");
+  assert.match(appSource, /function writingFullTestOptions\(/, "Writing Full test needs paired Cambridge paper options");
+  assert.match(appSource, /function writingTopicOptions\(/, "Writing Topics need independent Task 1 and Task 2 options");
+  assert.match(appSource, /function startWritingFullTestPractice\(/, "Writing Full test needs a paired workspace start path");
+  assert.match(
+    appSource,
+    /tasks\.length\s*===\s*2\s*&&\s*state\.pendingWritingKind\s*===\s*["']full-test["']/,
+    "P0: paired scoring must be restricted to the explicit Full test path",
   );
   assert.match(appSource, /function buildUnifiedAttemptContract\(/, "P2: shared attempt contract is missing");
   assert.match(appSource, /function writingTask1Pool\(/, "Writing needs an independent Task 1 pool");
-  assert.match(appSource, /function writingTask2ForOption\(/, "Writing topics must resolve from Task 2 only");
-  assert.match(appSource, /function renderWritingFullBoard\(/, "Writing needs one Full task library containing both task types");
+  assert.match(appSource, /function writingTaskForOption\(/, "Writing Topics must resolve either task type independently");
+  assert.match(appSource, /function renderWritingFullBoard\(/, "Writing needs a Cambridge Full test library");
 
   const desktop = await browser.newPage({ viewport: { width: 1280, height: 720 } });
   await desktop.goto(`${baseUrl}/?unified=desktop#writing-upload`, { waitUntil: "networkidle" });
   await desktop.waitForFunction(() => !/Loading recommendation/i.test(document.querySelector("#writingRecommendedReason")?.textContent || ""));
-  assert.ok(await desktop.locator(".writing-full-task-card").count() > 0, "P0: Writing Full task cards must survive refresh");
-  assert.ok(await desktop.locator('.writing-full-task-card[data-writing-task1-id]').count() > 0, "P0: Full task must expose Task 1 without a separate library switch");
-  assert.ok(await desktop.locator('.writing-full-task-card[data-writing-task2-option]').count() > 0, "P0: Full task must expose Task 2 without a separate library switch");
-  await desktop.locator(".writing-full-task-card .practice-writing-task2").first().click();
-  assert.ok(await desktop.locator(".unified-practice-setup").getAttribute("data-writing-task2-id"), "Full task must retain one exact Task 2 ID");
-  assert.equal(await desktop.locator(".unified-practice-setup").getAttribute("data-writing-task1-id"), null, "Full task must not manufacture Task 1");
-  assert.match(await desktop.locator(".unified-practice-setup").innerText(), /Task 2 only[\s\S]*40 minutes[\s\S]*250 words/i, "Full task must preserve the independent Task 2 contract");
-  await desktop.locator("[data-setup-back]").click();
+  assert.equal(await desktop.locator('[data-writing-scope="full"]').getAttribute("aria-selected"), "true", "Full test must be the default Writing scope");
+  const fullTestCard = desktop.locator(".writing-full-test-card[data-writing-full-test-id]").first();
+  assert.ok(await fullTestCard.count(), "P0: Writing Full test cards must survive refresh");
+  assert.match(await fullTestCard.innerText(), /Full test[\s\S]*2 tasks[\s\S]*60 min[\s\S]*1:2 weighting/i, "Full test card must describe the paired exam contract");
+  const fullTestId = await fullTestCard.getAttribute("data-writing-full-test-id");
+  const expectedFullTest = await desktop.evaluate((id) => {
+    const option = writingFullTestOptions().find((item) => item.id === id);
+    return option ? { id: option.id, task1Id: option.task1Id, task2Id: option.task2Id } : null;
+  }, fullTestId);
+  assert.ok(expectedFullTest?.task1Id && expectedFullTest?.task2Id, "Full test card must resolve one exact same-paper Task 1 + Task 2 pair");
+  await fullTestCard.locator("button[data-writing-full-test-id]").click();
+  const fullTestSetup = desktop.locator(".unified-practice-setup");
+  assert.equal(await fullTestSetup.getAttribute("data-writing-task1-id"), expectedFullTest.task1Id, "Full test Setup lost its exact Task 1 ID");
+  assert.equal(await fullTestSetup.getAttribute("data-writing-task2-id"), expectedFullTest.task2Id, "Full test Setup lost its exact Task 2 ID");
+  assert.match(await fullTestSetup.innerText(), /Task 1 \+ Task 2[\s\S]*60 minutes[\s\S]*400 words[\s\S]*1:2 weighted/i, "Full test Setup must expose the complete Writing contract");
+  await desktop.locator('[data-start-unified-practice="writing"]').click();
+  assert.equal(await desktop.locator(".writing-practice-shell textarea").count(), 2, "Full test workspace must render exactly two editors");
+  assert.deepEqual(
+    await desktop.evaluate(() => state.uploadWritingTasks.map((task) => ({ id: task.id, number: writingTaskNumber(task) }))),
+    [
+      { id: expectedFullTest.task1Id, number: 1 },
+      { id: expectedFullTest.task2Id, number: 2 },
+    ],
+    "Full test workspace must contain the exact Task 1 + Task 2 pair",
+  );
+  assert.equal(await desktop.locator('[data-writing-task-tab="1"]').getAttribute("aria-selected"), "true", "Full test must start on Task 1");
+  const fullTimerStart = await desktop.locator("[data-writing-timer]").innerText();
+  assert.match(fullTimerStart, /^(?:60:00|59:5\d)$/, "Full test needs one 60-minute timer");
+  const task1Draft = "Task one draft preserved across refresh.";
+  const task2Draft = "Task two draft preserved across refresh.";
+  await desktop.locator("#upload-system-task1-writing").fill(task1Draft);
+  await desktop.locator('[data-writing-task-tab="2"]').click();
+  await desktop.locator("#upload-system-task2-writing").fill(task2Draft);
+  await desktop.waitForTimeout(900);
+  const fullSessionBeforeReload = await desktop.evaluate(() => JSON.parse(localStorage.getItem("ieltsistWritingUploadSessionV1") || "null"));
+  assert.deepEqual(
+    {
+      setId: fullSessionBeforeReload?.setId,
+      task1Id: fullSessionBeforeReload?.task1Id,
+      task2Id: fullSessionBeforeReload?.task2Id,
+      practiceKind: fullSessionBeforeReload?.practiceKind,
+      activeTaskNumber: fullSessionBeforeReload?.activeTaskNumber,
+    },
+    {
+      setId: expectedFullTest.id,
+      task1Id: expectedFullTest.task1Id,
+      task2Id: expectedFullTest.task2Id,
+      practiceKind: "full-test",
+      activeTaskNumber: 2,
+    },
+    "Full test session pointer must preserve the pair and active tab",
+  );
+  await desktop.reload({ waitUntil: "networkidle" });
+  await desktop.locator(".writing-practice-shell").waitFor({ state: "visible" });
+  assert.deepEqual(
+    await desktop.evaluate(() => state.uploadWritingTasks.map((task) => ({ id: task.id, number: writingTaskNumber(task) }))),
+    [
+      { id: expectedFullTest.task1Id, number: 1 },
+      { id: expectedFullTest.task2Id, number: 2 },
+    ],
+    "Full test refresh must restore both exact tasks",
+  );
+  assert.equal(await desktop.locator('[data-writing-task-tab="2"]').getAttribute("aria-selected"), "true", "Full test refresh must restore the active Task 2 tab");
+  assert.equal(await desktop.locator("#upload-system-task1-writing").inputValue(), task1Draft, "Full test refresh lost the Task 1 draft");
+  assert.equal(await desktop.locator("#upload-system-task2-writing").inputValue(), task2Draft, "Full test refresh lost the Task 2 draft");
+  assert.match(await desktop.locator("[data-writing-timer]").innerText(), /^(?:60:00|59:5\d|59:4\d)$/, "Full test refresh must restore the running 60-minute timer");
 
+  await desktop.locator("#changeWritingTask").click();
   await desktop.locator("#openCustomWriting").click();
   await desktop.locator('[data-start-unified-practice="writing"]').click();
   assert.equal(await desktop.locator("#submitUploadedWriting").isDisabled(), true, "P0: empty custom essay submit must be disabled");
@@ -76,68 +138,56 @@ try {
 
   await desktop.locator("#changeWritingTask").click();
   await desktop.locator('[data-writing-scope="topics"]').click();
-  assert.doesNotMatch(
-    await desktop.locator(".writing-topic-card").first().innerText(),
-    /Task\s*1/i,
-    "Writing topic cards must be classified and described by Task 2 only",
-  );
-  await desktop.locator(".writing-topic-card .practice-writing-topic").first().click();
-  assert.doesNotMatch(
-    await desktop.locator(".writing-set-chooser").innerText(),
-    /Task\s*1/i,
-    "The topic question chooser must list Task 2 questions only",
-  );
-  await desktop.locator(".choose-writing-set").first().click();
-  assert.equal(await desktop.locator(".writing-task1-picker").count(), 0, "Task 2 Setup must not contain any Task 1 selector");
-  const selectedTask2Id = await desktop.locator(".unified-practice-setup").getAttribute("data-writing-task2-id");
-  assert.ok(selectedTask2Id, "Setup must retain the selected Task 2 question id");
-  await desktop.locator('[data-start-unified-practice="writing"]').click();
-  const selectedWritingTasks = await desktop.evaluate(() => ({
-    tasks: state.uploadWritingTasks.map((task) => ({ id: task.id, number: writingTaskNumber(task) })),
-    selectedTask1Id: state.selectedWritingTask1Id,
-    selectedTask2Id: state.selectedWritingTask2Id,
-  }));
-  assert.deepEqual(selectedWritingTasks.tasks, [{ id: selectedTask2Id, number: 2 }], "Task 2 practice must contain Task 2 only");
-  assert.equal(selectedWritingTasks.selectedTask1Id, "", "Task 2 practice must not retain a Task 1 selection");
-  assert.equal(selectedWritingTasks.selectedTask2Id, selectedTask2Id, "Task 2 selection state is not canonical");
-  const writingContext = await desktop.evaluate(() => buildCoachHelpContext().writing);
-  assert.equal(writingContext?.activeTaskNumber, 2, "P0: Coach must bind to active Task 2");
-  assert.match(String(writingContext?.activeTaskTitle || ""), /task\s*2/i, "P0: Coach must expose the Task 2 title");
-  const timerStart = await desktop.locator("[data-writing-timer]").innerText();
-  assert.match(timerStart, /^(?:40:00|39:5\d)$/, "Task 2 needs its own 40-minute timer");
-  await desktop.waitForTimeout(1100);
-  const timerNext = await desktop.locator("[data-writing-timer]").innerText();
-  assert.notEqual(timerStart, timerNext, "P0: Cambridge Writing timer must run");
-  await desktop.reload({ waitUntil: "networkidle" });
-  await desktop.locator(".writing-practice-shell").waitFor({ state: "visible" });
-  const restoredWritingTasks = await desktop.evaluate(() => state.uploadWritingTasks.map((task) => task.id));
-  assert.deepEqual(restoredWritingTasks, [selectedTask2Id], "Task 2 practice must restore without injecting Task 1");
-  assert.equal(await desktop.locator('[data-writing-task-tab="2"]').getAttribute("aria-selected"), "true", "P0: active Writing task must survive refresh");
-  const restoredBinding = await desktop.evaluate(() => currentCoachBinding());
-  assert.equal(restoredBinding.questionId, "task2", "P0: refreshed Coach thread must remain bound to Task 2");
-  assert.match(await desktop.locator("[data-writing-timer]").innerText(), /^\d{2}:\d{2}$/, "P0: Writing timer must restore after refresh");
+  const mixedTopic = await desktop.evaluate(() => {
+    return buildWritingTopicGroups(writingTopicOptions())
+      .map((group) => ({
+        id: group.id,
+        accent: group.accent,
+        taskNumbers: [...new Set(group.items.map((option) => writingTaskNumber(writingTaskForOption(option))).filter(Boolean))].sort(),
+      }))
+      .find((group) => group.taskNumbers.includes(1) && group.taskNumbers.includes(2)) || null;
+  });
+  assert.ok(mixedTopic, "Semantic Writing Topics must contain at least one directory group with both Task 1 and Task 2");
+  await desktop.locator(`[data-writing-topic-category="${mixedTopic.accent}"]`).click();
+  const mixedTopicCard = desktop.locator(`.writing-topic-card[data-writing-topic-group="${mixedTopic.id}"]`);
+  assert.ok(await mixedTopicCard.count(), "The mixed Task 1 + Task 2 semantic topic must render in the directory");
+  assert.match(await mixedTopicCard.innerText(), /Task 1 \+ Task 2/i, "Semantic topic card must advertise both task types");
+  await mixedTopicCard.locator(".practice-writing-topic").click();
+  const topicChooser = desktop.locator(".writing-set-chooser");
+  const task1TopicRow = topicChooser.locator(".topic-set-row").filter({ hasText: /Task 1 · 20 min · 150 words/i }).first();
+  const task2TopicRow = topicChooser.locator(".topic-set-row").filter({ hasText: /Task 2 · 40 min · 250 words/i }).first();
+  assert.ok(await task1TopicRow.count(), "Semantic topic chooser must include Task 1 questions");
+  assert.ok(await task2TopicRow.count(), "Semantic topic chooser must include Task 2 questions");
 
-  await desktop.locator("#changeWritingTask").click();
-  await desktop.locator('[data-writing-scope="full"]').click();
-  assert.ok(await desktop.locator(".writing-task1-card").count() > 1, "Task 1 needs its own visual-task library");
-  await desktop.locator(".practice-writing-task1").first().click();
-  const selectedTask1Id = await desktop.locator(".unified-practice-setup").getAttribute("data-writing-task1-id");
-  assert.ok(selectedTask1Id, "Task 1 Setup must retain the selected visual-task id");
-  assert.equal(await desktop.locator(".unified-practice-setup").getAttribute("data-writing-task2-id"), null, "Task 1 Setup must not retain Task 2");
+  const selectedTask1Id = await task1TopicRow.getAttribute("data-writing-task-id");
+  await task1TopicRow.locator(".choose-writing-set").click();
+  assert.equal(await desktop.locator(".unified-practice-setup").getAttribute("data-writing-task1-id"), selectedTask1Id, "Topic Task 1 Setup lost the selected exact ID");
+  assert.equal(await desktop.locator(".unified-practice-setup").getAttribute("data-writing-task2-id"), null, "Topic Task 1 Setup must not inject Task 2");
   await desktop.locator('[data-start-unified-practice="writing"]').click();
-  assert.match(await desktop.locator("[data-writing-timer]").innerText(), /^(?:20:00|19:5\d)$/, "Task 1 needs its own 20-minute timer");
   assert.deepEqual(
     await desktop.evaluate(() => state.uploadWritingTasks.map((task) => ({ id: task.id, number: writingTaskNumber(task) }))),
     [{ id: selectedTask1Id, number: 1 }],
-    "Task 1 practice must contain Task 1 only",
+    "Topic Task 1 must open one independent task",
   );
-  await desktop.reload({ waitUntil: "networkidle" });
-  await desktop.locator(".writing-practice-shell").waitFor({ state: "visible" });
-  assert.deepEqual(await desktop.evaluate(() => state.uploadWritingTasks.map((task) => task.id)), [selectedTask1Id], "Task 1 must restore independently");
-  assert.equal(await desktop.locator('[data-writing-task-tab="1"]').getAttribute("aria-selected"), "true", "Restored Task 1 must remain active");
+  assert.match(await desktop.locator("[data-writing-timer]").innerText(), /^(?:20:00|19:5\d)$/, "Topic Task 1 needs its own 20-minute timer");
+
+  await desktop.locator("#changeWritingTask").click();
+  await desktop.locator(`[data-writing-topic-group="${mixedTopic.id}"] .practice-writing-topic`).click();
+  const refreshedTask2Row = desktop.locator(".writing-set-chooser .topic-set-row").filter({ hasText: /Task 2 · 40 min · 250 words/i }).first();
+  const selectedTask2Id = await refreshedTask2Row.getAttribute("data-writing-task-id");
+  await refreshedTask2Row.locator(".choose-writing-set").click();
+  assert.equal(await desktop.locator(".unified-practice-setup").getAttribute("data-writing-task1-id"), null, "Topic Task 2 Setup must not inject Task 1");
+  assert.equal(await desktop.locator(".unified-practice-setup").getAttribute("data-writing-task2-id"), selectedTask2Id, "Topic Task 2 Setup lost the selected exact ID");
+  await desktop.locator('[data-start-unified-practice="writing"]').click();
+  assert.deepEqual(
+    await desktop.evaluate(() => state.uploadWritingTasks.map((task) => ({ id: task.id, number: writingTaskNumber(task) }))),
+    [{ id: selectedTask2Id, number: 2 }],
+    "Topic Task 2 must open one independent task",
+  );
+  assert.match(await desktop.locator("[data-writing-timer]").innerText(), /^(?:40:00|39:5\d)$/, "Topic Task 2 needs its own 40-minute timer");
 
   const scoreMath = await desktop.evaluate(() => weightedWritingOverall(6, 7));
-  assert.equal(scoreMath, "6.5", "P0: full simulations must retain the official Task 1:Task 2 weighting");
+  assert.equal(scoreMath, "6.5", "P0: Writing Full test must retain the official Task 1:Task 2 weighting");
 
   await desktop.evaluate(() => {
     const feedback = [

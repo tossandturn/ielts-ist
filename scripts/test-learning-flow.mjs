@@ -435,8 +435,17 @@ check("Reading", "Hint actions hydrate the focused question and execute immediat
 check("Reading", "Coach evidence uses a structured non-blocking highlight overlay", ({ app, css }) => {
   const send = functionSource(app, "sendHelpChatMessage");
   const focus = functionSource(app, "focusReadingEvidence");
+  const action = functionSource(app, "appendReadingEvidenceAction");
   assert.match(send, /json\.readingEvidence/,
     "Coach responses must consume the backend's structured Reading evidence payload");
+  assert.match(send, /if\s*\(json\.readingEvidence\)[\s\S]*appendReadingEvidenceAction[\s\S]*else\s*\{[\s\S]*appendCoachAgentActions/,
+    "Structured Reading evidence must replace the generic Open Reading action");
+  assert.match(send, /agentAction\?\.autoOpen\s*&&\s*!json\.readingEvidence/,
+    "Structured Reading evidence must not be replaced by delayed generic navigation");
+  assert.match(action, /action\.textContent\s*=\s*["']Open highlight["']/,
+    "The evidence CTA must use the exact Open highlight label");
+  assert.match(action, /focusReadingEvidence\(evidence,\s*\{\s*closeCoach:\s*true\s*\}\)/,
+    "Open highlight must reopen the exact evidence and close Coach");
   assert.match(focus, /data-pdf-page/,
     "Structured evidence must target the exact PDF page instead of parsing the model's prose");
   assert.match(focus, /reading-evidence-highlight/,
@@ -567,8 +576,15 @@ check("Writing", "Topic chooser shares the Reading emoji directory system", ({ a
   assert.match(hub, /renderWritingFullBoard/);
   assert.match(hub, /renderWritingTopicBoard/);
   assert.match(hub, /renderWritingReviewBoard/);
-  assert.match(hub, /scope\s*===\s*["']topics["'][\s\S]*writingLibraryTaskNumber\s*=\s*2/,
-    "Writing Topics must stay Task 2-only");
+  assert.match(functionSource(app, "writingTopicOptions"), /writingTaskNumber\(task\)/,
+    "Writing Topics must include canonical Task 1 and Task 2 entries");
+  assert.match(functionSource(app, "renderWritingTopicCard"), /Task 1 \+ Task 2/,
+    "Writing Topic cards must show when both task types share one semantic topic");
+  const fullTests = functionSource(app, "writingFullTestOptions");
+  assert.match(fullTests, /examSetKey\(task\)/,
+    "Writing Full test must pair tasks by Cambridge book and test");
+  assert.match(fullTests, /writingTasks:\s*\[task1, task2\]/,
+    "Writing Full test must retain both exact task IDs");
   const review = functionSource(app, "writingReviewEntries");
   assert.match(review, /mineLearningAttempts\(\)/);
   assert.match(review, /mineWeakAreas\(\)/);
