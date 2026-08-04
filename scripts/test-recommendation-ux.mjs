@@ -107,8 +107,10 @@ try {
     });
 
     assert.equal(await page.locator('[data-writing-scope="full"]').getAttribute("aria-selected"), "true", `${size.name}: Full task must be the default Writing scope`);
-    assert.ok(await page.locator(".writing-full-task-card").count() >= 1, `${size.name}: complete Task 2 cards are missing`);
-    assert.match(await page.locator(".writing-full-task-card").first().innerText(), /Task 2[\s\S]*250[\s\S]*40/i, `${size.name}: Full task cards must preserve the independent Task 2 contract`);
+    assert.ok(await page.locator('.writing-full-task-card[data-writing-task1-id]').count() >= 1, `${size.name}: Full task must include Task 1 cards`);
+    assert.ok(await page.locator('.writing-full-task-card[data-writing-task2-option]').count() >= 1, `${size.name}: Full task must include Task 2 cards`);
+    assert.match(await page.locator('.writing-full-task-card[data-writing-task1-id]').first().innerText(), /Task 1[\s\S]*150[\s\S]*20/i, `${size.name}: Full task must preserve the independent Task 1 contract`);
+    assert.match(await page.locator('.writing-full-task-card[data-writing-task2-option]').first().innerText(), /Task 2[\s\S]*250[\s\S]*40/i, `${size.name}: Full task must preserve the independent Task 2 contract`);
     await page.locator('[data-writing-scope="topics"]').click();
 
     const writing = await page.evaluate(() => {
@@ -162,7 +164,7 @@ try {
     assert.equal(writing.entryIsPanel, true, `${size.name}: Writing topics must use the same panel shell as Speaking`);
     assert.equal(writing.legacyHeroCount, 0, `${size.name}: legacy Writing hero and route cards must be removed`);
     assert.ok(writing.categoryCount >= 5, `${size.name}: Writing topic categories are missing`);
-    assert.equal(writing.taskSwitchCount, 2, `${size.name}: Writing needs separate Task 1 and Task 2 library entries`);
+    assert.equal(writing.taskSwitchCount, 0, `${size.name}: Writing scopes must not be split by a Task 1 / Task 2 library switch`);
     assert.equal(writing.readingStyleCards, writing.topicCount, `${size.name}: Writing Topics must share Reading's card structure`);
     assert.equal(writing.emojiCards, writing.topicCount, `${size.name}: every Writing Topic needs a semantic emoji instead of a Lucide icon`);
     assert.equal(writing.progressCards, writing.topicCount, `${size.name}: every Writing Topic needs grouped progress`);
@@ -177,12 +179,10 @@ try {
     }
 
     await page.screenshot({ path: resolve(outputDir, `writing-entry-${size.name}.png`), fullPage: false });
-    await page.locator('[data-writing-library-task="1"]').click();
-    assert.equal(await page.locator('[data-writing-scope="full"]').getAttribute("aria-selected"), "true", `${size.name}: choosing Task 1 from Topics must return to Full task`);
+    await page.locator('[data-writing-scope="full"]').click();
     assert.ok(await page.locator(".writing-task1-card").count() > 1, `${size.name}: Task 1 visual library is empty`);
-    assert.equal(await page.locator(".writing-topic-card:not(.writing-task1-card)").count(), 0, `${size.name}: Task 1 library must not contain Task 2 topics`);
-    await page.screenshot({ path: resolve(outputDir, `writing-task1-${size.name}.png`), fullPage: false });
-    await page.locator('[data-writing-library-task="2"]').click();
+    assert.ok(await page.locator('.writing-full-task-card[data-writing-task2-option]').count() > 1, `${size.name}: Task 2 full-task library is empty`);
+    await page.screenshot({ path: resolve(outputDir, `writing-full-${size.name}.png`), fullPage: false });
     await page.locator('[data-writing-scope="topics"]').click();
     await page.locator('[data-writing-topic-category="recommended"]').click();
     assert.equal(
@@ -228,7 +228,7 @@ try {
 
     await page.screenshot({ path: resolve(outputDir, `${size.name}.png`), fullPage: false });
     await page.locator("#changeWritingTask").click();
-    await page.locator('[data-writing-library-task="1"]').click();
+    await page.locator('[data-writing-scope="full"]').click();
     await page.locator(".practice-writing-task1").first().click();
     assert.equal(await page.locator(".unified-practice-setup").getAttribute("data-writing-task2-id"), null, `${size.name}: Task 1 Setup leaked Task 2`);
     await page.locator('[data-start-unified-practice="writing"]').click();

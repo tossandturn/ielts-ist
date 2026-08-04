@@ -16625,7 +16625,7 @@ function writingLibraryScope() {
   return ["full", "topics", "review"].includes(state.writingLibraryScope) ? state.writingLibraryScope : "full";
 }
 
-function renderWritingScopeTabs(taskNumber) {
+function renderWritingScopeTabs() {
   const scope = writingLibraryScope();
   document.querySelectorAll("[data-writing-scope]").forEach((button) => {
     const active = button.dataset.writingScope === scope;
@@ -16633,10 +16633,10 @@ function renderWritingScopeTabs(taskNumber) {
     button.setAttribute("aria-selected", active ? "true" : "false");
   });
   document.querySelectorAll('[data-writing-scope-detail="full"]').forEach((node) => {
-    node.textContent = `One complete Task ${taskNumber} · ${taskNumber === 1 ? 20 : 40} min`;
+    node.textContent = "All complete Writing tasks";
   });
   document.querySelectorAll('[data-writing-scope-detail="review"]').forEach((node) => {
-    node.textContent = `Task ${taskNumber} feedback & weak areas`;
+    node.textContent = "Task 1 & Task 2 feedback";
   });
 }
 
@@ -16713,6 +16713,127 @@ function renderWritingTask2FullBoard(options, recommended) {
   });
 }
 
+function renderWritingFullFilters(task1Tasks, task2Options) {
+  const select = $("writingTopicBook");
+  if (!select) return;
+  const current = select.value || "all";
+  const books = [...new Set([
+    ...task1Tasks.map(itemBook),
+    ...task2Options.map((option) => itemBook(writingTask2ForOption(option) || option)),
+  ].filter((value) => value !== null && value !== undefined))].sort((a, b) => Number(a) - Number(b));
+  const hasPublic = task2Options.some((option) => writingTask2ForOption(option)?.source === "Public topics");
+  select.innerHTML = [
+    `<option value="all">All sources</option>`,
+    ...(hasPublic ? [`<option value="public">Public topics</option>`] : []),
+    ...books.map((book) => `<option value="${escapeHtml(book)}">Cambridge ${escapeHtml(book)}</option>`),
+  ].join("");
+  select.value = current === "public" && hasPublic
+    ? "public"
+    : books.map(String).includes(current) ? current : "all";
+}
+
+function writingFullTaskEntries(task1Tasks, task2Options, completionIndex = null) {
+  const query = ($("writingTopicSearch")?.value || "").trim().toLowerCase();
+  const source = $("writingTopicBook")?.value || "all";
+  const task1Entries = task1Tasks.filter((task) => {
+    const sourceOk = source === "all" || source !== "public" && String(itemBook(task)) === source;
+    if (!sourceOk || !practiceCompletionFilterMatches("writing", task, completionIndex, "writingCompletionFilter")) return false;
+    return !query || [task.title, task.prompt, task.data, task.source, writingTaskKind(task), "task 1"]
+      .filter(Boolean).join(" ").toLowerCase().includes(query);
+  }).map((task) => ({ kind: "task1", task }));
+  const task2Entries = task2Options.filter((option) => {
+    const task = writingTask2ForOption(option);
+    if (!task) return false;
+    const isPublic = task.source === "Public topics";
+    const sourceOk = source === "all" || (source === "public" ? isPublic : !isPublic && String(itemBook(task)) === source);
+    if (!sourceOk || !practiceCompletionFilterMatches("writing", task, completionIndex, "writingCompletionFilter")) return false;
+    return !query || `${writingSetSearchText(option)} ${writingTopicMeta(option).title} task 2`.toLowerCase().includes(query);
+  }).map((option) => ({ kind: "task2", option }));
+  const combined = [];
+  const length = Math.max(task1Entries.length, task2Entries.length);
+  for (let index = 0; index < length; index += 1) {
+    if (task1Entries[index]) combined.push(task1Entries[index]);
+    if (task2Entries[index]) combined.push(task2Entries[index]);
+  }
+  return combined;
+}
+
+function renderWritingTask1FullCard(task, recommendedId = "", completionIndex = null) {
+  const item = normalizeItem(task);
+  const taskKind = writingTaskKind(item);
+  const completion = practiceCompletionStatus("writing", item, completionIndex);
+  const status = completion.completed ? "completed" : "not-completed";
+  const isRecommended = item.id === recommendedId;
+  return `<article class="practice-unit-card tone-writing writing-full-task-card writing-task1-card${isRecommended ? " recommended" : ""}" data-writing-task1-id="${escapeHtml(item.id)}" data-practice-status="${status}" role="button" tabindex="0" aria-label="Choose ${escapeHtml(item.title || "Task 1 visual")}">
+    <div class="practice-unit-card-head"><span aria-hidden="true">📊</span><em>Task 1${isRecommended ? " · AI pick" : ""}</em></div>
+    <h4>${escapeHtml(item.title || "Writing Task 1")}</h4>
+    <p>${escapeHtml(writingTaskPreview(item, "Summarise the main features and make relevant comparisons."))}</p>
+    <div class="practice-unit-stats"><span><strong>150</strong> words</span><span><strong>20</strong> min</span><span>${escapeHtml(taskKind === "task 1" ? "Visual" : taskKind || "Visual")}</span></div>
+    <span class="practice-status-badge ${status}">${practiceCompletionDisplay(completion)}</span>
+    <button class="primary practice-writing-task1" type="button" data-writing-task1-id="${escapeHtml(item.id)}">Start this task</button>
+  </article>`;
+}
+
+function bindWritingFullTaskCards(root) {
+  root.querySelectorAll(".writing-full-task-card[data-writing-task1-id]").forEach((card) => {
+    const open = () => openWritingPracticeSetup("task1", card.dataset.writingTask1Id);
+    card.addEventListener("click", (event) => { if (!event.target.closest("button")) open(); });
+    card.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      open();
+    });
+  });
+  root.querySelectorAll(".practice-writing-task1").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      openWritingPracticeSetup("task1", button.dataset.writingTask1Id);
+    });
+  });
+  root.querySelectorAll(".writing-full-task-card[data-writing-task2-option]").forEach((card) => {
+    const open = () => openWritingPracticeSetup("task2", card.dataset.writingTask2Option);
+    card.addEventListener("click", (event) => { if (!event.target.closest("button")) open(); });
+    card.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      open();
+    });
+  });
+  root.querySelectorAll(".practice-writing-task2").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      openWritingPracticeSetup("task2", button.dataset.writingTask2Option);
+    });
+  });
+}
+
+function renderWritingFullBoard(task1Tasks, task2Options, recommendedTask1, recommendedTask2) {
+  const root = $("writingTopicList");
+  if (!root) return;
+  renderWritingFullFilters(task1Tasks, task2Options);
+  const completionIndex = readPracticeCompletionIndex();
+  let entries = writingFullTaskEntries(task1Tasks, task2Options, completionIndex);
+  const recommendedIds = new Set([recommendedTask1?.id, recommendedTask2?.id].filter(Boolean));
+  entries = [
+    ...entries.filter((entry) => recommendedIds.has(entry.kind === "task1" ? entry.task.id : entry.option.id)),
+    ...entries.filter((entry) => !recommendedIds.has(entry.kind === "task1" ? entry.task.id : entry.option.id)),
+  ];
+  if (!entries.length) {
+    root.innerHTML = `<div class="notice">No complete Writing tasks match the current filters.</div>`;
+    renderWritingTopicPagination(0, 1, state.writingTopicPageSize);
+    return;
+  }
+  const totalPages = Math.max(1, Math.ceil(entries.length / state.writingTopicPageSize));
+  state.writingTopicPage = Math.min(Math.max(1, state.writingTopicPage || 1), totalPages);
+  const start = (state.writingTopicPage - 1) * state.writingTopicPageSize;
+  const visible = entries.slice(start, start + state.writingTopicPageSize);
+  root.innerHTML = visible.map((entry) => entry.kind === "task1"
+    ? renderWritingTask1FullCard(entry.task, recommendedTask1?.id || "", completionIndex)
+    : renderWritingTask2FullCard(entry.option, recommendedTask2?.id || "", completionIndex)).join("");
+  renderWritingTopicPagination(entries.length, state.writingTopicPage, state.writingTopicPageSize);
+  bindWritingFullTaskCards(root);
+}
+
 function writingAttemptTaskNumber(attempt = {}) {
   const explicit = Number(attempt.taskNumber || attempt.evidence?.taskNumber || attempt.result?.taskNumber);
   if (explicit === 1 || explicit === 2) return explicit;
@@ -16734,12 +16855,13 @@ function writingReviewScores(attempt = {}) {
   return extractWritingScores(attempt.feedback || attempt.result?.feedback || "", attempt.analysis || attempt.result?.analysis);
 }
 
-function writingReviewEntries(taskNumber) {
+function writingReviewEntries(taskNumber = 0) {
   const attempts = mineLearningAttempts()
     .filter((attempt) => String(attempt.module || attempt.result?.module || "").toLowerCase() === "writing")
-    .filter((attempt) => writingAttemptTaskNumber(attempt) === taskNumber);
+    .filter((attempt) => !taskNumber || writingAttemptTaskNumber(attempt) === taskNumber);
   const attemptIds = new Set(attempts.map((attempt) => String(attempt.attemptId || attempt.id || "")).filter(Boolean));
   const attemptEntries = attempts.map((attempt, index) => {
+    const resolvedTaskNumber = writingAttemptTaskNumber(attempt);
     const feedback = attempt.feedback || attempt.result?.feedback || "";
     const analysis = attempt.analysis || attempt.result?.analysis || null;
     const normalized = { ...attempt, feedback, analysis, essay: attempt.essay || attempt.result?.essay || "" };
@@ -16747,9 +16869,9 @@ function writingReviewEntries(taskNumber) {
     const impact = writingImpactInsight(feedback, scores, normalized, analysis);
     return {
       id: String(attempt.attemptId || attempt.id || `writing-review-${index}`),
-      taskNumber,
+      taskNumber: resolvedTaskNumber,
       itemId: String(attempt.itemId || attempt.result?.itemId || ""),
-      title: attempt.title || attempt.result?.title || `Task ${taskNumber} attempt`,
+      title: attempt.title || attempt.result?.title || `Task ${resolvedTaskNumber} attempt`,
       band: scores.overall || "",
       criterion: impact.criterion,
       issue: impact.issue || "Review the saved criterion feedback before your next attempt.",
@@ -16763,23 +16885,26 @@ function writingReviewEntries(taskNumber) {
   });
   const weakEntries = mineWeakAreas()
     .filter((area) => area.module === "writing")
-    .filter((area) => writingAttemptTaskNumber(area) === taskNumber)
+    .filter((area) => !taskNumber || writingAttemptTaskNumber(area) === taskNumber)
     .filter((area) => !area.sourceAttemptId || !attemptIds.has(String(area.sourceAttemptId)))
-    .map((area, index) => ({
-      id: String(area.id || `writing-weak-${index}`),
-      taskNumber,
-      itemId: String(area.itemId || area.evidence?.itemId || ""),
-      title: area.title || area.skillKey || `Task ${taskNumber} weak area`,
-      band: area.evidence?.score || "",
-      criterion: area.evidence?.criterion || area.skillKey || "Writing criterion",
-      issue: area.summary || "Saved writing weak area",
-      evidence: area.evidence?.originalExcerpt || "No essay excerpt was saved for this weak area.",
-      instruction: area.evidence?.rewriteInstruction || "Rewrite the weak paragraph and check it against the saved criterion.",
-      date: area.createdAt || area.updatedAt || "",
-      prompt: area.evidence?.prompt || "",
-      sourceAttemptId: String(area.sourceAttemptId || ""),
-      attempt: null,
-    }));
+    .map((area, index) => {
+      const resolvedTaskNumber = writingAttemptTaskNumber(area);
+      return {
+        id: String(area.id || `writing-weak-${index}`),
+        taskNumber: resolvedTaskNumber,
+        itemId: String(area.itemId || area.evidence?.itemId || ""),
+        title: area.title || area.skillKey || `Task ${resolvedTaskNumber} weak area`,
+        band: area.evidence?.score || "",
+        criterion: area.evidence?.criterion || area.skillKey || "Writing criterion",
+        issue: area.summary || "Saved writing weak area",
+        evidence: area.evidence?.originalExcerpt || "No essay excerpt was saved for this weak area.",
+        instruction: area.evidence?.rewriteInstruction || "Rewrite the weak paragraph and check it against the saved criterion.",
+        date: area.createdAt || area.updatedAt || "",
+        prompt: area.evidence?.prompt || "",
+        sourceAttemptId: String(area.sourceAttemptId || ""),
+        attempt: null,
+      };
+    });
   const query = ($("writingTopicSearch")?.value || "").trim().toLowerCase();
   return [...attemptEntries, ...weakEntries]
     .filter((entry) => !query || [entry.title, entry.criterion, entry.issue, entry.evidence, entry.instruction].join(" ").toLowerCase().includes(query))
@@ -16815,13 +16940,13 @@ function openWritingReviewRetry(entry) {
   openWritingPracticeSetup("custom", "writing-review");
 }
 
-function renderWritingReviewBoard(taskNumber) {
+function renderWritingReviewBoard(taskNumber = 0) {
   const root = $("writingTopicList");
   if (!root) return;
   const entries = writingReviewEntries(taskNumber);
   renderWritingTopicPagination(0, 1, state.writingTopicPageSize);
   if (!entries.length) {
-    root.innerHTML = `<div class="practice-unit-empty writing-review-empty"><span aria-hidden="true">🌱</span><p>Complete and score a Task ${taskNumber} first. Your Band, weakest criterion, evidence and rewrite target will appear here.</p></div>`;
+    root.innerHTML = `<div class="practice-unit-empty writing-review-empty"><span aria-hidden="true">🌱</span><p>Complete and score a Writing task first. Your Band, weakest criterion, evidence and rewrite target will appear here.</p></div>`;
     return;
   }
   root.innerHTML = entries.map((entry) => {
@@ -16830,7 +16955,7 @@ function renderWritingReviewBoard(taskNumber) {
     const band = entry.band ? `Band ${roundWritingBand(entry.band) || escapeHtml(entry.band)}` : "Weak area";
     return `<article class="writing-review-card" data-writing-review-id="${escapeHtml(entry.id)}">
       <header><span class="objective-topic-icon" aria-hidden="true">🔁</span><strong>${escapeHtml(band)}</strong></header>
-      <div><span class="eyebrow">Task ${taskNumber} · ${escapeHtml(date)}</span><h4>${escapeHtml(entry.criterion)}</h4><p>${escapeHtml(entry.issue)}</p></div>
+      <div><span class="eyebrow">Task ${entry.taskNumber} · ${escapeHtml(date)}</span><h4>${escapeHtml(entry.criterion)}</h4><p>${escapeHtml(entry.issue)}</p></div>
       <blockquote><span>Exact evidence</span>${escapeHtml(entry.evidence)}</blockquote>
       <div class="writing-review-next"><span>Rewrite target</span><strong>${escapeHtml(entry.instruction)}</strong></div>
       <footer><span>${escapeHtml(entry.title)}</span><button class="primary" type="button" data-writing-review-retry="${escapeHtml(entry.id)}">${retry ? "Retry task" : "Targeted practice"} ${objectiveTopicArrowIcon()}</button></footer>
@@ -16855,7 +16980,7 @@ function renderWritingTopicPagination(total, page, pageSize) {
   }
   if (totalPages <= 1) {
     root.hidden = false;
-    root.innerHTML = `<div class="topic-pagination-summary">Showing ${total} writing topics</div>`;
+    root.innerHTML = `<div class="topic-pagination-summary">Showing ${total} writing ${writingLibraryScope() === "topics" ? "topics" : "tasks"}</div>`;
     return;
   }
   const pages = new Set([1, totalPages, page - 1, page, page + 1].filter((value) => value >= 1 && value <= totalPages));
@@ -16869,7 +16994,7 @@ function renderWritingTopicPagination(total, page, pageSize) {
   const end = Math.min(total, page * pageSize);
   root.hidden = false;
   root.innerHTML = `
-    <div class="topic-pagination-summary">Showing ${start}-${end} of ${total} writing topics</div>
+    <div class="topic-pagination-summary">Showing ${start}-${end} of ${total} writing ${writingLibraryScope() === "topics" ? "topics" : "tasks"}</div>
     <div class="topic-pagination-controls">
       <button class="topic-page-button" type="button" data-writing-topic-page="${page - 1}" ${page <= 1 ? "disabled" : ""}>Prev</button>
       ${pageButtons.join("")}
@@ -17026,19 +17151,10 @@ function renderWritingUploadHub() {
   const entryReason = $("writingRecommendedReason");
   renderWritingResumeStrip();
   if (!select || !title) return;
-  let taskNumber = Number(state.writingLibraryTaskNumber) === 1 ? 1 : 2;
   const scope = writingLibraryScope();
-  if (scope === "topics" && taskNumber !== 2) {
-    state.writingLibraryTaskNumber = 2;
-    taskNumber = 2;
-  }
-  renderWritingScopeTabs(taskNumber);
+  if (scope === "topics") state.writingLibraryTaskNumber = 2;
+  renderWritingScopeTabs();
   setWritingTopicListLayout(scope);
-  document.querySelectorAll("[data-writing-library-task]").forEach((button) => {
-    const active = Number(button.dataset.writingLibraryTask) === taskNumber;
-    button.classList.toggle("active", active);
-    button.setAttribute("aria-selected", active ? "true" : "false");
-  });
   const categoryBar = $("writingTopicCategoryBar");
   if (categoryBar) categoryBar.hidden = scope !== "topics";
   if ($("writingTopicBook")) $("writingTopicBook").hidden = scope === "review";
@@ -17046,62 +17162,68 @@ function renderWritingUploadHub() {
   if ($("openCustomWriting")) $("openCustomWriting").hidden = scope === "review";
   if ($("writingTopicSearch")) {
     $("writingTopicSearch").placeholder = scope === "review"
-      ? `Search Task ${taskNumber} feedback or weak areas...`
-      : taskNumber === 1
-        ? "Search Task 1 charts or visuals..."
-        : scope === "topics" ? "Search Task 2 content topics..." : "Search complete Task 2 questions...";
+      ? "Search Writing feedback or weak areas..."
+      : scope === "topics" ? "Search Task 2 content topics..." : "Search complete Task 1 or Task 2 questions...";
   }
-  if (taskNumber === 1) {
-    const tasks = writingTask1Pool();
-    const recommended = chooseRotatingRecommendation("writing-task1", tasks);
-    title.textContent = recommended?.title || "Recommended Task 1 visual";
-    const task1Reason = recommended
-      ? `Task 1 visual practice · ${writingTaskKind(recommended)} · 20 minutes · scored independently.`
-      : "No Task 1 visual is available yet.";
-    if (reason) reason.textContent = task1Reason;
-    if (entryReason) entryReason.textContent = scope === "review" ? "Your saved Task 1 scores, evidence and rewrite targets." : `Why this: ${task1Reason}`;
-    select.innerHTML = tasks.map((task) => `<option value="${escapeHtml(task.id)}">${escapeHtml(task.title || writingTask1OptionLabel(task))}</option>`).join("");
-    if (scope === "review") renderWritingReviewBoard(1);
-    else renderWritingTask1Board(tasks, recommended);
-    if (state.selectedWritingTask1Id && tasks.some((task) => task.id === state.selectedWritingTask1Id)) select.value = state.selectedWritingTask1Id;
-    $("startRecommendedWriting")?.toggleAttribute("disabled", !recommended);
-    $("startSelectedWriting")?.toggleAttribute("disabled", !tasks.length);
+  const task1Tasks = writingTask1Pool();
+  const recommendedTask1 = chooseRotatingRecommendation("writing-task1", task1Tasks);
+  const options = writingSystemOptions();
+  const recommendedTask2 = options.length ? writingSystemRecommended(options) : null;
+  select.innerHTML = options.length
+    ? options.map((item) => `<option value="${escapeHtml(item.id)}">${escapeHtml(singleOptionLabel(item, "writing"))}</option>`).join("")
+    : `<option value="">No system Task 2 questions available</option>`;
+
+  if (scope === "review") {
+    title.textContent = "Writing mistake review";
+    if (reason) reason.textContent = "Retry each Task 1 or Task 2 independently from its saved feedback.";
+    if (entryReason) entryReason.textContent = "Your saved Task 1 and Task 2 scores, evidence and rewrite targets.";
+    renderWritingReviewBoard();
     return;
   }
-  const options = writingSystemOptions();
-  if (!options.length) {
+
+  if (scope === "topics") {
+    if (!options.length) {
+      title.textContent = "No Task 2 questions available";
+      if (reason) reason.textContent = "Import a Task 2 question before AI can recommend a writing topic.";
+      if (entryReason) entryReason.textContent = "No Task 2 content topic is available yet.";
+      renderWritingTopicBoard([], null);
+      $("startRecommendedWriting")?.setAttribute("disabled", "disabled");
+      $("startSelectedWriting")?.setAttribute("disabled", "disabled");
+      return;
+    }
+    title.textContent = recommendedTask2?.title || "Recommended Task 2 topic";
+    const recommendedReason = singleRecommendationReason("writing", recommendedTask2, options);
+    if (reason) reason.textContent = recommendedReason;
+    if (entryReason) entryReason.textContent = "Choose a content topic, then select one independent Task 2 question.";
+    renderWritingTopicBoard(options, recommendedTask2);
+    $("startRecommendedWriting")?.removeAttribute("disabled");
+    $("startSelectedWriting")?.removeAttribute("disabled");
+    return;
+  }
+
+  if (!task1Tasks.length && !options.length) {
     title.textContent = "No Task 2 questions available";
-    if (reason) reason.textContent = "Import a Task 2 question before AI can recommend a writing topic.";
-    if (entryReason) entryReason.textContent = "No Cambridge Task 2 question is available yet.";
-    select.innerHTML = `<option value="">No system writing questions available</option>`;
-    if (scope === "review") renderWritingReviewBoard(2);
-    else if (scope === "topics") renderWritingTopicBoard([], null);
-    else renderWritingTask2FullBoard([], null);
+    if (reason) reason.textContent = "Import a Writing task before starting practice.";
+    if (entryReason) entryReason.textContent = "No complete Writing task is available yet.";
+    renderWritingFullBoard([], [], null, null);
     $("startRecommendedWriting")?.setAttribute("disabled", "disabled");
     $("startSelectedWriting")?.setAttribute("disabled", "disabled");
     return;
   }
-  const recommended = writingSystemRecommended(options);
-  title.textContent = recommended?.title || "Recommended Task 2 topic";
-  const recommendedReason = singleRecommendationReason("writing", recommended, options);
-  if (reason) reason.textContent = recommendedReason;
-  if (entryReason) entryReason.textContent = scope === "review"
-    ? "Your saved Task 2 scores, evidence and rewrite targets."
-    : scope === "topics" ? "Choose a content topic, then select one independent Task 2 question." : `Why this: ${recommendedReason}`;
-  select.innerHTML = options.map((item) => `<option value="${escapeHtml(item.id)}">${escapeHtml(singleOptionLabel(item, "writing"))}</option>`).join("");
-  if (scope === "review") renderWritingReviewBoard(2);
-  else if (scope === "topics") renderWritingTopicBoard(options, recommended);
-  else renderWritingTask2FullBoard(options, recommended);
+  title.textContent = recommendedTask2?.title || recommendedTask1?.title || "Recommended Writing task";
+  if (reason) reason.textContent = "Choose any complete Task 1 or Task 2. Each opens as one independent timed practice.";
+  if (entryReason) entryReason.textContent = "Task 1 and Task 2 are together here as one library, while drafts, timers, submissions and scores stay independent.";
+  renderWritingFullBoard(task1Tasks, options, recommendedTask1, recommendedTask2);
   if (state.pendingWritingSetId && options.some((item) => item.id === state.pendingWritingSetId)) {
     select.value = state.pendingWritingSetId;
   } else if (state.selectedWritingTask2Id) {
     const activeId = options.find((item) => writingTask2ForOption(item)?.id === state.selectedWritingTask2Id)?.id;
     if (options.some((item) => item.id === activeId)) select.value = activeId;
-  } else if (recommended) {
-    select.value = recommended.id;
+  } else if (recommendedTask2) {
+    select.value = recommendedTask2.id;
   }
-  $("startRecommendedWriting")?.removeAttribute("disabled");
-  $("startSelectedWriting")?.removeAttribute("disabled");
+  $("startRecommendedWriting")?.toggleAttribute("disabled", !recommendedTask2);
+  $("startSelectedWriting")?.toggleAttribute("disabled", !options.length);
 }
 
 function saveWritingUploadSessionPointer(setId = "", task1Id = "", task2Id = "") {
@@ -19035,18 +19157,6 @@ function bindEvents() {
   });
   $("startRecommendedWriting")?.addEventListener("click", () => startWritingSystemPractice("recommended"));
   $("startSelectedWriting")?.addEventListener("click", () => startWritingSystemPractice("selected"));
-  document.querySelectorAll("[data-writing-library-task]").forEach((button) => {
-    button.addEventListener("click", () => {
-      state.writingLibraryTaskNumber = Number(button.dataset.writingLibraryTask) === 1 ? 1 : 2;
-      if (state.writingLibraryTaskNumber === 1 && writingLibraryScope() === "topics") state.writingLibraryScope = "full";
-      state.writingTopicCategory = "all";
-      state.writingTopicPage = 1;
-      document.querySelectorAll("[data-writing-topic-category]").forEach((item) => {
-        item.classList.toggle("active", item.dataset.writingTopicCategory === "all");
-      });
-      renderWritingUploadHub();
-    });
-  });
   document.querySelectorAll("[data-writing-scope]").forEach((button) => {
     button.addEventListener("click", () => {
       state.writingLibraryScope = ["full", "topics", "review"].includes(button.dataset.writingScope) ? button.dataset.writingScope : "full";
@@ -19054,6 +19164,8 @@ function bindEvents() {
       state.writingTopicCategory = "all";
       state.writingTopicPage = 1;
       if ($("writingTopicSearch")) $("writingTopicSearch").value = "";
+      if ($("writingTopicBook")) $("writingTopicBook").value = "all";
+      if ($("writingCompletionFilter")) $("writingCompletionFilter").value = "all";
       renderWritingUploadHub();
     });
   });

@@ -148,8 +148,10 @@ check("Writing", "Writing offers topic, custom and resumable draft entry paths",
   assert.match(html, /data-writing-topic-category=["']all["']/);
   assert.match(html, /id=["']openCustomWriting["']/);
   assert.match(html, /id=["']continueWritingDraft["']/);
-  assert.match(html, /data-writing-library-task=["']1["']/);
-  assert.match(html, /data-writing-library-task=["']2["']/);
+  assert.doesNotMatch(html, /data-writing-library-task=/, "Writing scopes must not be gated by a Task 1 / Task 2 library switch");
+  assert.match(html, /data-writing-scope=["']full["']/);
+  assert.match(html, /data-writing-scope=["']topics["']/);
+  assert.match(html, /data-writing-scope=["']review["']/);
   assert.match(html, /id=["']startRecommendedWriting["']/);
   assert.match(html, /id=["']startSelectedWriting["']/);
   assert.match(html, /id=["']uploadPrompt["']/);
@@ -562,7 +564,7 @@ check("Writing", "Topic chooser shares the Reading emoji directory system", ({ a
   assert.match(functionSource(app, "renderWritingTopicCard"), /objective-topic-icon/,
     "Writing Topic cards must render semantic emoji icons");
   const hub = functionSource(app, "renderWritingUploadHub");
-  assert.match(hub, /renderWritingTask2FullBoard/);
+  assert.match(hub, /renderWritingFullBoard/);
   assert.match(hub, /renderWritingTopicBoard/);
   assert.match(hub, /renderWritingReviewBoard/);
   assert.match(hub, /scope\s*===\s*["']topics["'][\s\S]*writingLibraryTaskNumber\s*=\s*2/,
@@ -570,8 +572,8 @@ check("Writing", "Topic chooser shares the Reading emoji directory system", ({ a
   const review = functionSource(app, "writingReviewEntries");
   assert.match(review, /mineLearningAttempts\(\)/);
   assert.match(review, /mineWeakAreas\(\)/);
-  assert.match(review, /writingAttemptTaskNumber\(attempt\)\s*===\s*taskNumber/,
-    "Writing Review must filter Task 1 and Task 2 independently");
+  assert.match(review, /!taskNumber\s*\|\|\s*writingAttemptTaskNumber\(attempt\)\s*===\s*taskNumber/,
+    "Writing Review must support one combined Task 1 and Task 2 timeline plus optional filtering");
   assert.match(functionSource(app, "renderBankList"), /group\.emoji/,
     "Speaking Topic cards must use their semantic group emoji");
   assert.match(functionSource(app, "renderTopicSetChooser"), /group\.emoji/,

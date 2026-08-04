@@ -628,8 +628,9 @@ try {
   assert.ok(await desktop.locator('.writing-set-chooser .topic-set-row[data-practice-status="not-completed"]').count() > 0);
   await desktop.locator("[data-writing-set-back]").click();
 
-  await desktop.locator('[data-writing-library-task="1"]').click();
+  await desktop.locator('[data-writing-scope="full"]').click();
   await desktop.locator("#writingCompletionFilter").selectOption("completed");
+  assert.equal(await desktop.locator(".writing-full-task-card").count(), 2, "Full task Completed filter must show the completed Task 1 and Task 2 together");
   assert.equal(await desktop.locator(".writing-task1-card").count(), 1, "Task 1 completion filtering must operate on individual visual-task IDs");
   const completedTask1 = desktop.locator('.writing-task1-card[data-writing-task1-id="cam15-w-test1-task1"]');
   assert.equal(await completedTask1.count(), 1);
@@ -640,18 +641,15 @@ try {
   assert.ok(await desktop.locator(".writing-task1-card").count() > 0, "Untouched Task 1 cards should remain");
 
   await desktop.locator('[data-writing-scope="review"]').click();
-  assert.equal(await desktop.locator(".writing-review-card").count(), 1, "Task 1 Review must show only Task 1 attempts");
-  assert.match(await desktop.locator(".writing-review-card").innerText(), /Band 6\.0[\s\S]*Task Achievement[\s\S]*Task one evidence sentence[\s\S]*overview sentence/i);
-  assert.doesNotMatch(await desktop.locator(".writing-review-card").innerText(), /Task two evidence sentence/i, "Task 2 evidence leaked into Task 1 Review");
+  assert.equal(await desktop.locator(".writing-review-card").count(), 3, "Review must combine Task 1, Task 2 and legacy Writing weak areas");
+  const task1AttemptReview = desktop.locator('.writing-review-card [data-writing-review-retry="review-task1"]').locator("xpath=ancestor::article");
+  assert.match(await task1AttemptReview.innerText(), /Band 6\.0[\s\S]*Task 1[\s\S]*Task Achievement[\s\S]*Task one evidence sentence[\s\S]*overview sentence/i);
   await desktop.locator('.writing-review-card [data-writing-review-retry="review-task1"]').click();
   assert.equal(await desktop.locator(".unified-practice-setup").getAttribute("data-writing-task1-id"), "cam15-w-test1-task1", "Task 1 Review retry must open the exact original task");
   assert.equal(await desktop.locator(".unified-practice-setup").getAttribute("data-writing-task2-id"), null, "Task 1 Review retry leaked Task 2");
   await desktop.locator("[data-setup-back]").click();
-  await desktop.locator('[data-writing-library-task="2"]').click();
-  assert.equal(await desktop.locator(".writing-review-card").count(), 2, "Task 2 Review must include scored attempts and legacy weak areas");
   const task2AttemptReview = desktop.locator('.writing-review-card [data-writing-review-retry="review-task2"]').locator("xpath=ancestor::article");
-  assert.match(await task2AttemptReview.innerText(), /Band 6\.5[\s\S]*Task Response[\s\S]*Task two evidence sentence[\s\S]*supporting example/i);
-  assert.doesNotMatch(await desktop.locator(".writing-review-card").allInnerTexts().then((items) => items.join(" ")), /Task one evidence sentence/i, "Task 1 evidence leaked into Task 2 Review");
+  assert.match(await task2AttemptReview.innerText(), /Band 6\.5[\s\S]*Task 2[\s\S]*Task Response[\s\S]*Task two evidence sentence[\s\S]*supporting example/i);
   await desktop.locator('.writing-review-card [data-writing-review-retry="review-task2"]').click();
   assert.equal(await desktop.locator(".unified-practice-setup").getAttribute("data-writing-task2-id"), "cam15-w-test1-task2", "Task 2 Review retry must open the exact original task");
   assert.equal(await desktop.locator(".unified-practice-setup").getAttribute("data-writing-task1-id"), null, "Task 2 Review retry leaked Task 1");

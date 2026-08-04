@@ -50,12 +50,14 @@ try {
   assert.match(appSource, /function buildUnifiedAttemptContract\(/, "P2: shared attempt contract is missing");
   assert.match(appSource, /function writingTask1Pool\(/, "Writing needs an independent Task 1 pool");
   assert.match(appSource, /function writingTask2ForOption\(/, "Writing topics must resolve from Task 2 only");
-  assert.match(appSource, /function renderWritingTask1Board\(/, "Writing needs a separate Task 1 library");
+  assert.match(appSource, /function renderWritingFullBoard\(/, "Writing needs one Full task library containing both task types");
 
   const desktop = await browser.newPage({ viewport: { width: 1280, height: 720 } });
   await desktop.goto(`${baseUrl}/?unified=desktop#writing-upload`, { waitUntil: "networkidle" });
   await desktop.waitForFunction(() => !/Loading recommendation/i.test(document.querySelector("#writingRecommendedReason")?.textContent || ""));
   assert.ok(await desktop.locator(".writing-full-task-card").count() > 0, "P0: Writing Full task cards must survive refresh");
+  assert.ok(await desktop.locator('.writing-full-task-card[data-writing-task1-id]').count() > 0, "P0: Full task must expose Task 1 without a separate library switch");
+  assert.ok(await desktop.locator('.writing-full-task-card[data-writing-task2-option]').count() > 0, "P0: Full task must expose Task 2 without a separate library switch");
   await desktop.locator(".writing-full-task-card .practice-writing-task2").first().click();
   assert.ok(await desktop.locator(".unified-practice-setup").getAttribute("data-writing-task2-id"), "Full task must retain one exact Task 2 ID");
   assert.equal(await desktop.locator(".unified-practice-setup").getAttribute("data-writing-task1-id"), null, "Full task must not manufacture Task 1");
@@ -116,7 +118,7 @@ try {
   assert.match(await desktop.locator("[data-writing-timer]").innerText(), /^\d{2}:\d{2}$/, "P0: Writing timer must restore after refresh");
 
   await desktop.locator("#changeWritingTask").click();
-  await desktop.locator('[data-writing-library-task="1"]').click();
+  await desktop.locator('[data-writing-scope="full"]').click();
   assert.ok(await desktop.locator(".writing-task1-card").count() > 1, "Task 1 needs its own visual-task library");
   await desktop.locator(".practice-writing-task1").first().click();
   const selectedTask1Id = await desktop.locator(".unified-practice-setup").getAttribute("data-writing-task1-id");
