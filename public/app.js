@@ -19531,7 +19531,7 @@ async function fetchTaskDataWithRetry(attempts = 3) {
   let lastError = null;
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     try {
-      const response = await fetch(`/api/tasks?fresh=${Date.now()}`, { cache: "no-store" });
+      const response = await fetch("/api/tasks", { cache: "no-cache" });
       if (!response.ok) throw new Error(`Task library returned ${response.status}`);
       const json = await response.json();
       if (!json || !Array.isArray(json.writingTasks) || !Array.isArray(json.speakingSets)) throw new Error("Task library response is incomplete");

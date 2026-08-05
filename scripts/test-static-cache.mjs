@@ -73,7 +73,18 @@ try {
   assert.equal(identity.headers["content-encoding"], undefined);
   assert.equal(identity.body.length, source.length);
 
-  console.log("Static asset cache: gzip, validators, 304, and identity responses passed.");
+  const tasks = await request("/api/tasks", { "accept-encoding": "gzip" });
+  assert.equal(tasks.status, 200);
+  assert.equal(tasks.headers["content-encoding"], "gzip");
+  assert.match(tasks.headers.etag || "", /^"tasks-[a-f0-9]+"$/);
+  const unchangedTasks = await request("/api/tasks", {
+    "accept-encoding": "gzip",
+    "if-none-match": tasks.headers.etag,
+  });
+  assert.equal(unchangedTasks.status, 304);
+  assert.equal(unchangedTasks.body.length, 0);
+
+  console.log("Static asset and task-catalog cache: gzip, validators, 304, and identity responses passed.");
 } finally {
   child.kill("SIGTERM");
 }
