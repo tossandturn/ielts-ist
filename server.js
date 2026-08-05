@@ -93,6 +93,7 @@ const LISTENING_SCRIPT_CACHE_TTL_MS = 10 * 60_000;
 const REPORT_DOWNLOAD_TTL_MS = 2 * 60 * 60_000;
 const RECORDING_DOWNLOAD_TTL_MS = REPORT_DOWNLOAD_TTL_MS;
 let tasksPayloadCache = null;
+const staticGzipCache = new Map();
 const reportDownloads = new Map();
 const recordingDownloads = new Map();
 const listeningScriptCache = new Map();
@@ -2753,12 +2754,32 @@ function serveStatic(req, res) {
       res.end(body);
     };
     if (acceptsGzip && gzipEligible) {
-      zlib.gzip(data, { level: 6 }, (gzipErr, compressed) => {
-        if (gzipErr) {
-          sendBody(data);
+      fs.stat(filePath, (statErr, stat) => {
+        const signature = statErr ? `${data.length}` : `${stat.mtimeMs}:${stat.size}`;
+        const etag = statErr ? "" : `W/"${stat.mtimeMs.toString(16)}-${stat.size.toString(16)}"`;
+        const validatorHeaders = {
+          ...(etag ? { etag } : {}),
+          ...(statErr ? {} : { "last-modified": stat.mtime.toUTCString() }),
+        };
+        if (etag && req.headers["if-none-match"] === etag) {
+          res.writeHead(304, { "cache-control": cacheControl, ...validatorHeaders });
+          res.end();
           return;
         }
-        sendBody(compressed, { "content-encoding": "gzip" });
+        const cached = staticGzipCache.get(filePath);
+        if (cached?.signature === signature) {
+          sendBody(cached.body, { ...validatorHeaders, "content-encoding": "gzip" });
+          return;
+        }
+        zlib.gzip(data, { level: 6 }, (gzipErr, compressed) => {
+          if (gzipErr) {
+            sendBody(data);
+            return;
+          }
+          staticGzipCache.set(filePath, { signature, body: compressed });
+          if (staticGzipCache.size > 24) staticGzipCache.clear();
+          sendBody(compressed, { ...validatorHeaders, "content-encoding": "gzip" });
+        });
       });
       return;
     }
