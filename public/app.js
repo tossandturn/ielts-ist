@@ -3693,11 +3693,12 @@ function renderVocabularyTrainer() {
       </div>
       <div class="vocab-meaning-face" ${revealed ? "" : "hidden"}>
         <strong>${escapeHtml(item.meaning)}</strong>
-        ${item.definition ? `<p class="vocab-definition" lang="en">${escapeHtml(item.definition)}</p>` : ""}
-        <p>${escapeHtml(item.cn)}</p>
+        ${item.definition ? `<div class="vocab-field"><span class="vocab-field-label">Definition</span><p class="vocab-definition" lang="en">${escapeHtml(item.definition)}</p></div>` : ""}
+        <div class="vocab-field"><span class="vocab-field-label">中文解释</span><p>${escapeHtml(item.cn)}</p></div>
         <div class="vocab-example-pair">
+          <span class="vocab-field-label">Question example</span>
           <blockquote lang="en">${escapeHtml(item.example)}</blockquote>
-          ${item.translation ? `<p lang="zh-CN">${escapeHtml(item.translation)}</p>` : ""}
+          ${item.translation ? `<p lang="zh-CN"><span class="vocab-field-label">中文翻译</span>${escapeHtml(item.translation)}</p>` : ""}
         </div>
         <div class="vocab-collocations">
           ${(item.collocations || []).map((phrase) => `<span>${escapeHtml(phrase)}</span>`).join("")}

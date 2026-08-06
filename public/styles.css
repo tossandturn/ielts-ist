@@ -10584,6 +10584,19 @@ button.vocab-catalog-status.is-error {
   font-weight: 800;
 }
 
+.vocab-field {
+  display: grid;
+  gap: 4px;
+}
+
+.vocab-field-label {
+  color: #667085;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
 .vocab-example-pair {
   display: grid;
   gap: 8px;
@@ -10598,6 +10611,8 @@ button.vocab-catalog-status.is-error {
 }
 
 .vocab-example-pair p {
+  display: grid;
+  gap: 4px;
   padding-left: 17px;
   color: #667085;
 }

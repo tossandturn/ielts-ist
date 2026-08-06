@@ -25,6 +25,7 @@ for (const item of catalog.items) {
   for (const field of ["subject", "topic", "topicLabel", "type", "word", "meaning", "definition", "cn", "example", "translation"]) {
     assert.ok(String(item[field] || "").trim(), `${item.id} is missing ${field}`);
   }
+  assert.ok(String(item.definition).trim().length >= 12, `${item.id} needs a useful English definition`);
   assert.ok(Array.isArray(item.collocations), `${item.id} collocations must be an array`);
 }
 
