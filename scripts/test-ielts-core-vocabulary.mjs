@@ -47,6 +47,8 @@ for (const expected of [
 
 assert.match(app, /ensureIeltsCoreVocabularyLoaded/);
 assert.match(app, /\/data\/ielts-core-vocabulary\.json/);
-assert.match(html, /20260807-vocabulary-hub-v4/);
+assert.match(app, /aria-controls="vocabMeaning"/);
+assert.match(app, /meaningFace\.hidden = !state\.vocabularyReview\.revealed/);
+assert.match(html, /20260807-vocabulary-review-v5/);
 
 console.log(`IELTS Core vocabulary checks passed: ${catalog.items.length} items.`);

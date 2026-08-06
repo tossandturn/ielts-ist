@@ -3774,7 +3774,10 @@ function renderVocabularyReviewPage(allItems, subjectCounts, deck, item, knownCo
         <h3>${escapeHtml(item.word)}</h3>
         <p>${escapeHtml(item.phonetic || vocabularyTypeLabel(item.type))}</p>
       </div>
-      <div class="vocab-meaning-face" ${revealed ? "" : "hidden"}>
+      <div class="vocab-reveal-action">
+        <button id="vocabReveal" class="primary" type="button" aria-controls="vocabMeaning" aria-expanded="${revealed ? "true" : "false"}">${revealed ? "Hide meaning" : "Show meaning"}</button>
+      </div>
+      <div id="vocabMeaning" class="vocab-meaning-face" ${revealed ? "" : "hidden"}>
         <strong>${escapeHtml(item.meaning)}</strong>
         ${item.definition ? `<div class="vocab-field"><span class="vocab-field-label">Definition</span><p class="vocab-definition" lang="en">${escapeHtml(item.definition)}</p></div>` : ""}
         ${item.formula ? `<div class="vocab-field vocab-formula-field"><span class="vocab-field-label">Formula / equation</span><p class="vocab-formula" lang="en">${escapeHtml(item.formula)}</p></div>` : ""}
@@ -3790,7 +3793,6 @@ function renderVocabularyReviewPage(allItems, subjectCounts, deck, item, knownCo
         </div>
       </div>
       <div class="vocab-review-actions">
-        <button id="vocabReveal" class="primary" type="button">${revealed ? "Hide meaning" : "Show meaning"}</button>
         <button id="vocabAgain" class="secondary" type="button">Again</button>
         <button id="vocabKnown" class="secondary" type="button">Know it</button>
       </div>
@@ -3903,7 +3905,17 @@ function bindVocabularyControls() {
   });
   $("vocabReveal")?.addEventListener("click", () => {
     state.vocabularyReview.revealed = !state.vocabularyReview.revealed;
-    renderVocabularyTrainer();
+    const revealButton = $("vocabReveal");
+    const meaningFace = $("vocabMeaning");
+    const reviewCard = document.querySelector(".vocab-review-card");
+    if (!revealButton || !meaningFace) {
+      renderVocabularyTrainer();
+      return;
+    }
+    meaningFace.hidden = !state.vocabularyReview.revealed;
+    reviewCard?.classList.toggle("is-revealed", state.vocabularyReview.revealed);
+    revealButton.textContent = state.vocabularyReview.revealed ? "Hide meaning" : "Show meaning";
+    revealButton.setAttribute("aria-expanded", String(state.vocabularyReview.revealed));
   });
   $("vocabAgain")?.addEventListener("click", () => {
     const item = currentCoreVocabularyItem();

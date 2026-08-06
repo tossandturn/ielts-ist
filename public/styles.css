@@ -9575,6 +9575,15 @@ body.immersive-mode[data-immersive-module="speaking"] .exam-section.focused-sect
     padding-right: 12px;
   }
 
+  body.focus-camp-system:not(.single-immersive-mode):not(.immersive-mode) .focus-page > .view-head {
+    padding-right: 48px;
+    padding-left: 48px;
+  }
+
+  body.focus-camp-system:not(.single-immersive-mode):not(.immersive-mode) .focus-page > .view-head::before {
+    left: 48px;
+  }
+
   .dashboard-task-card {
     min-height: 122px;
   }
@@ -10769,6 +10778,12 @@ button.vocab-catalog-status.is-error {
   color: #667085;
   font-size: 18px;
   font-weight: 800;
+}
+
+.vocab-reveal-action {
+  display: flex;
+  justify-content: center;
+  min-height: 40px;
 }
 
 .vocab-meaning-face {
