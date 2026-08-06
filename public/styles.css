@@ -10483,6 +10483,130 @@ button.vocab-catalog-status.is-error {
   cursor: pointer;
 }
 
+.vocab-import-panel {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 12px;
+  padding: 16px 18px;
+  border: 1px solid rgba(226, 232, 240, .86);
+  border-radius: 16px;
+  background: rgba(248, 250, 252, .88);
+}
+
+.vocab-import-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.vocab-import-head h3 {
+  margin: 2px 0 0;
+  font-size: 18px;
+}
+
+.vocab-import-head small {
+  color: #667085;
+  font-weight: 800;
+}
+
+.vocab-import-intro {
+  margin: 0;
+  color: #344054;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.vocab-import-grid {
+  display: grid;
+  grid-template-columns: minmax(180px, .7fr) minmax(0, .9fr) minmax(0, 2fr);
+  gap: 10px;
+  align-items: end;
+}
+
+.vocab-import-grid label {
+  display: grid;
+  gap: 6px;
+}
+
+.vocab-import-grid label > span {
+  color: #667085;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.vocab-import-grid select,
+.vocab-import-grid input,
+.vocab-import-grid textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  background: #fff;
+  color: #101828;
+}
+
+.vocab-import-grid textarea {
+  min-height: 86px;
+  resize: vertical;
+}
+
+.vocab-import-text {
+  grid-column: 1 / -1;
+}
+
+.vocab-import-format {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px dashed rgba(22, 119, 255, .28);
+  border-radius: 12px;
+  background: rgba(239, 246, 255, .72);
+  color: #344054;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.vocab-import-format strong {
+  color: #175cd3;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.vocab-import-format code {
+  display: block;
+  white-space: normal;
+  color: #101828;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+}
+
+.vocab-import-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.vocab-import-actions .compact-notice {
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  color: #667085;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.vocab-import-actions .compact-notice.is-error {
+  color: #b42318;
+}
+
 .vocab-trainer-shell {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
@@ -10587,6 +10711,14 @@ button.vocab-catalog-status.is-error {
 .vocab-field {
   display: grid;
   gap: 4px;
+}
+
+.vocab-formula {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 14px;
+  font-weight: 800;
+  color: #101828;
+  word-break: break-word;
 }
 
 .vocab-field-label {

@@ -1,7 +1,7 @@
 {
   "schemaVersion": "alevel-stem-vocabulary.v1",
   "catalogVersion": "2026-08-06",
-  "itemCount": 552,
+  "itemCount": 603,
   "items": [
     {
       "id": "physics-measurement-and-practical-scalar",
@@ -16,6 +16,8 @@
       "cn": "用于测量、实验设计、数据处理和误差分析题。",
       "example": "State how scalar should be determined from the experimental data.",
       "translation": "说明应如何根据实验数据确定标量。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "scalar quantity",
         "scalar measurement"
@@ -34,6 +36,8 @@
       "cn": "用于测量、实验设计、数据处理和误差分析题。",
       "example": "State how vector should be determined from the experimental data.",
       "translation": "说明应如何根据实验数据确定矢量。",
+      "formula": "",
+      "knowledgePoint": "A vector has both magnitude and direction; draw or state the direction as well as the size.",
       "collocations": [
         "vector quantity",
         "resultant vector"
@@ -52,6 +56,8 @@
       "cn": "用于测量、实验设计、数据处理和误差分析题。",
       "example": "State how SI unit should be determined from the experimental data.",
       "translation": "说明应如何根据实验数据确定国际单位制单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "SI base unit",
         "convert to SI units"
@@ -70,6 +76,8 @@
       "cn": "用于测量、实验设计、数据处理和误差分析题。",
       "example": "State how base unit should be determined from the experimental data.",
       "translation": "说明应如何根据实验数据确定基本单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "seven base units",
         "express in base units"
@@ -88,6 +96,8 @@
       "cn": "用于测量、实验设计、数据处理和误差分析题。",
       "example": "State how derived unit should be determined from the experimental data.",
       "translation": "说明应如何根据实验数据确定导出单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "derived SI unit",
         "unit derivation"
@@ -106,6 +116,8 @@
       "cn": "用于测量、实验设计、数据处理和误差分析题。",
       "example": "State how dimension should be determined from the experimental data.",
       "translation": "说明应如何根据实验数据确定量纲。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "dimensional analysis",
         "dimensionally consistent"
@@ -124,6 +136,8 @@
       "cn": "用于测量、实验设计、数据处理和误差分析题。",
       "example": "State how precision should be determined from the experimental data.",
       "translation": "说明应如何根据实验数据确定精密度。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "high precision",
         "measurement precision"
@@ -142,6 +156,8 @@
       "cn": "用于测量、实验设计、数据处理和误差分析题。",
       "example": "State how accuracy should be determined from the experimental data.",
       "translation": "说明应如何根据实验数据确定准确度。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "measurement accuracy",
         "improve accuracy"
@@ -160,6 +176,8 @@
       "cn": "用于测量、实验设计、数据处理和误差分析题。",
       "example": "State how uncertainty should be determined from the experimental data.",
       "translation": "说明应如何根据实验数据确定不确定度。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "measurement uncertainty",
         "uncertainty range"
@@ -178,6 +196,8 @@
       "cn": "用于测量、实验设计、数据处理和误差分析题。",
       "example": "State how absolute uncertainty should be determined from the experimental data.",
       "translation": "说明应如何根据实验数据确定绝对不确定度。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "absolute uncertainty of 0.1 cm"
       ]
@@ -195,6 +215,8 @@
       "cn": "用于测量、实验设计、数据处理和误差分析题。",
       "example": "State how percentage uncertainty should be determined from the experimental data.",
       "translation": "说明应如何根据实验数据确定百分比不确定度。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "calculate percentage uncertainty"
       ]
@@ -212,6 +234,8 @@
       "cn": "用于测量、实验设计、数据处理和误差分析题。",
       "example": "State how random error should be determined from the experimental data.",
       "translation": "说明应如何根据实验数据确定随机误差。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "reduce random error",
         "random variation"
@@ -230,6 +254,8 @@
       "cn": "用于测量、实验设计、数据处理和误差分析题。",
       "example": "State how systematic error should be determined from the experimental data.",
       "translation": "说明应如何根据实验数据确定系统误差。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "identify systematic error",
         "systematic bias"
@@ -248,6 +274,8 @@
       "cn": "用于测量、实验设计、数据处理和误差分析题。",
       "example": "State how zero error should be determined from the experimental data.",
       "translation": "说明应如何根据实验数据确定零点误差。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "correct for zero error"
       ]
@@ -265,6 +293,8 @@
       "cn": "用于测量、实验设计、数据处理和误差分析题。",
       "example": "State how calibration should be determined from the experimental data.",
       "translation": "说明应如何根据实验数据确定校准。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "calibration curve",
         "calibrate the sensor"
@@ -283,6 +313,8 @@
       "cn": "用于测量、实验设计、数据处理和误差分析题。",
       "example": "State how resolution should be determined from the experimental data.",
       "translation": "说明应如何根据实验数据确定分辨率。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "instrument resolution",
         "higher resolution"
@@ -301,6 +333,8 @@
       "cn": "用于测量、实验设计、数据处理和误差分析题。",
       "example": "State how sensitivity should be determined from the experimental data.",
       "translation": "说明应如何根据实验数据确定灵敏度。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "sensor sensitivity",
         "sensitivity of the balance"
@@ -319,6 +353,8 @@
       "cn": "用于测量、实验设计、数据处理和误差分析题。",
       "example": "State how repeatability should be determined from the experimental data.",
       "translation": "说明应如何根据实验数据确定重复性。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "repeatable readings",
         "check repeatability"
@@ -337,6 +373,8 @@
       "cn": "用于测量、实验设计、数据处理和误差分析题。",
       "example": "State how reproducibility should be determined from the experimental data.",
       "translation": "说明应如何根据实验数据确定再现性。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "reproducible result",
         "test reproducibility"
@@ -355,6 +393,8 @@
       "cn": "用于测量、实验设计、数据处理和误差分析题。",
       "example": "State how anomalous result should be determined from the experimental data.",
       "translation": "说明应如何根据实验数据确定异常结果。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "identify an anomalous result"
       ]
@@ -372,6 +412,8 @@
       "cn": "用于测量、实验设计、数据处理和误差分析题。",
       "example": "State how significant figures should be determined from the experimental data.",
       "translation": "说明应如何根据实验数据确定有效数字。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "three significant figures",
         "appropriate significant figures"
@@ -390,6 +432,8 @@
       "cn": "用于测量、实验设计、数据处理和误差分析题。",
       "example": "State how independent variable should be determined from the experimental data.",
       "translation": "说明应如何根据实验数据确定自变量。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "vary the independent variable"
       ]
@@ -407,6 +451,8 @@
       "cn": "用于测量、实验设计、数据处理和误差分析题。",
       "example": "State how dependent variable should be determined from the experimental data.",
       "translation": "说明应如何根据实验数据确定因变量。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "measure the dependent variable"
       ]
@@ -424,6 +470,8 @@
       "cn": "用于测量、实验设计、数据处理和误差分析题。",
       "example": "State how control variable should be determined from the experimental data.",
       "translation": "说明应如何根据实验数据确定控制变量。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "keep control variables constant"
       ]
@@ -441,6 +489,8 @@
       "cn": "用于测量、实验设计、数据处理和误差分析题。",
       "example": "State how best-fit line should be determined from the experimental data.",
       "translation": "说明应如何根据实验数据确定最佳拟合线。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "draw a best-fit line"
       ]
@@ -458,6 +508,8 @@
       "cn": "用于测量、实验设计、数据处理和误差分析题。",
       "example": "State how error bar should be determined from the experimental data.",
       "translation": "说明应如何根据实验数据确定误差棒。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "plot error bars",
         "overlapping error bars"
@@ -476,6 +528,8 @@
       "cn": "用于测量、实验设计、数据处理和误差分析题。",
       "example": "State how gradient should be determined from the experimental data.",
       "translation": "说明应如何根据实验数据确定斜率。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "calculate the gradient",
         "gradient triangle"
@@ -494,6 +548,8 @@
       "cn": "用于测量、实验设计、数据处理和误差分析题。",
       "example": "State how intercept should be determined from the experimental data.",
       "translation": "说明应如何根据实验数据确定截距。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "y-intercept",
         "non-zero intercept"
@@ -512,6 +568,8 @@
       "cn": "用于测量、实验设计、数据处理和误差分析题。",
       "example": "State how logarithmic scale should be determined from the experimental data.",
       "translation": "说明应如何根据实验数据确定对数刻度。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "logarithmic axis",
         "log scale"
@@ -530,6 +588,8 @@
       "cn": "用于测量、实验设计、数据处理和误差分析题。",
       "example": "State how data logger should be determined from the experimental data.",
       "translation": "说明应如何根据实验数据确定数据记录器。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "connect a data logger",
         "sampling interval"
@@ -548,6 +608,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the distance of the object and give an appropriate unit.",
       "translation": "计算物体的路程，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "total distance",
         "distance travelled"
@@ -566,6 +628,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the displacement of the object and give an appropriate unit.",
       "translation": "计算物体的位移，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "resultant displacement",
         "displacement-time graph"
@@ -584,6 +648,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the speed of the object and give an appropriate unit.",
       "translation": "计算物体的速率，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "average speed",
         "instantaneous speed"
@@ -602,6 +668,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the velocity of the object and give an appropriate unit.",
       "translation": "计算物体的速度，并写出合适的单位。",
+      "formula": "v = displacement / time",
+      "knowledgePoint": "Velocity is a vector, so direction matters; speed is scalar.",
       "collocations": [
         "constant velocity",
         "velocity vector"
@@ -620,6 +688,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the acceleration of the object and give an appropriate unit.",
       "translation": "计算物体的加速度，并写出合适的单位。",
+      "formula": "a = Δv / Δt",
+      "knowledgePoint": "Acceleration is the rate of change of velocity and can be negative or directional.",
       "collocations": [
         "constant acceleration",
         "acceleration due to gravity"
@@ -638,6 +708,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the deceleration of the object and give an appropriate unit.",
       "translation": "计算物体的减速度，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "uniform deceleration"
       ]
@@ -655,6 +727,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the instantaneous velocity of the object and give an appropriate unit.",
       "translation": "计算物体的瞬时速度，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "instantaneous velocity from a tangent"
       ]
@@ -672,6 +746,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the average velocity of the object and give an appropriate unit.",
       "translation": "计算物体的平均速度，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "calculate average velocity"
       ]
@@ -689,6 +765,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the free fall of the object and give an appropriate unit.",
       "translation": "计算物体的自由落体，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "object in free fall"
       ]
@@ -706,6 +784,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the projectile motion of the object and give an appropriate unit.",
       "translation": "计算物体的抛体运动，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "projectile trajectory",
         "horizontal projectile"
@@ -724,6 +804,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the trajectory of the object and give an appropriate unit.",
       "translation": "计算物体的轨迹，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "parabolic trajectory"
       ]
@@ -741,6 +823,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the resultant force of the object and give an appropriate unit.",
       "translation": "计算物体的合力，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "resultant force is zero"
       ]
@@ -758,6 +842,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the equilibrium of the object and give an appropriate unit.",
       "translation": "计算物体的平衡，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "static equilibrium",
         "translational equilibrium"
@@ -776,6 +862,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the inertia of the object and give an appropriate unit.",
       "translation": "计算物体的惯性，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "inertial mass",
         "law of inertia"
@@ -794,6 +882,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the mass of the object and give an appropriate unit.",
       "translation": "计算物体的质量，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "inertial mass",
         "mass in kilograms"
@@ -812,6 +902,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the weight of the object and give an appropriate unit.",
       "translation": "计算物体的重力，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "weight equals mg",
         "apparent weight"
@@ -830,6 +922,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the momentum of the object and give an appropriate unit.",
       "translation": "计算物体的动量，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "linear momentum",
         "conservation of momentum"
@@ -848,6 +942,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the impulse of the object and give an appropriate unit.",
       "translation": "计算物体的冲量，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "impulse-momentum relation"
       ]
@@ -865,6 +961,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the conservation of momentum of the object and give an appropriate unit.",
       "translation": "计算物体的动量守恒，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "apply conservation of momentum"
       ]
@@ -882,6 +980,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the Newton's first law of the object and give an appropriate unit.",
       "translation": "计算物体的牛顿第一定律，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "state Newton's first law"
       ]
@@ -899,6 +999,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the Newton's second law of the object and give an appropriate unit.",
       "translation": "计算物体的牛顿第二定律，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "apply Newton's second law"
       ]
@@ -916,6 +1018,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the Newton's third law of the object and give an appropriate unit.",
       "translation": "计算物体的牛顿第三定律，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "Newton's third-law pair"
       ]
@@ -933,6 +1037,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the drag of the object and give an appropriate unit.",
       "translation": "计算物体的阻力，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "air resistance",
         "drag force"
@@ -951,6 +1057,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the friction of the object and give an appropriate unit.",
       "translation": "计算物体的摩擦力，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "limiting friction",
         "frictional force"
@@ -969,6 +1077,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the terminal velocity of the object and give an appropriate unit.",
       "translation": "计算物体的终端速度，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "reach terminal velocity"
       ]
@@ -986,6 +1096,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the work done of the object and give an appropriate unit.",
       "translation": "计算物体的做功，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "work done by a force"
       ]
@@ -1003,6 +1115,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the kinetic energy of the object and give an appropriate unit.",
       "translation": "计算物体的动能，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "change in kinetic energy"
       ]
@@ -1020,6 +1134,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the gravitational potential energy of the object and give an appropriate unit.",
       "translation": "计算物体的重力势能，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "gain in gravitational potential energy"
       ]
@@ -1037,6 +1153,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the power of the object and give an appropriate unit.",
       "translation": "计算物体的功率，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "average power",
         "power output"
@@ -1055,6 +1173,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the efficiency of the object and give an appropriate unit.",
       "translation": "计算物体的效率，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "percentage efficiency"
       ]
@@ -1072,6 +1192,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the moment of the object and give an appropriate unit.",
       "translation": "计算物体的力矩，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "moment of a force",
         "principle of moments"
@@ -1090,6 +1212,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the torque of the object and give an appropriate unit.",
       "translation": "计算物体的转矩，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "driving torque",
         "resistive torque"
@@ -1108,6 +1232,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the centre of mass of the object and give an appropriate unit.",
       "translation": "计算物体的质心，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "locate the centre of mass"
       ]
@@ -1125,6 +1251,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the couple of the object and give an appropriate unit.",
       "translation": "计算物体的力偶，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "moment of a couple"
       ]
@@ -1142,6 +1270,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the angular velocity of the object and give an appropriate unit.",
       "translation": "计算物体的角速度，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "constant angular velocity"
       ]
@@ -1159,6 +1289,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the centripetal acceleration of the object and give an appropriate unit.",
       "translation": "计算物体的向心加速度，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "centripetal acceleration v squared over r"
       ]
@@ -1176,6 +1308,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the centripetal force of the object and give an appropriate unit.",
       "translation": "计算物体的向心力，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "provide centripetal force"
       ]
@@ -1193,6 +1327,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the elastic collision of the object and give an appropriate unit.",
       "translation": "计算物体的弹性碰撞，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "perfectly elastic collision"
       ]
@@ -1210,6 +1346,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the inelastic collision of the object and give an appropriate unit.",
       "translation": "计算物体的非弹性碰撞，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "perfectly inelastic collision"
       ]
@@ -1227,6 +1365,8 @@
       "cn": "用于运动学、动力学、能量、动量和圆周运动题。",
       "example": "Calculate the upthrust of the object and give an appropriate unit.",
       "translation": "计算物体的浮力，并写出合适的单位。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "upthrust equals weight displaced"
       ]
@@ -1244,6 +1384,8 @@
       "cn": "用于材料性质、形变以及应力—应变图题。",
       "example": "Use the graph to determine the density of the material.",
       "translation": "利用图像确定材料的密度。",
+      "formula": "rho = m / V",
+      "knowledgePoint": "Density connects mass and volume; always check units before substituting.",
       "collocations": [
         "uniform density",
         "calculate density"
@@ -1262,6 +1404,8 @@
       "cn": "用于材料性质、形变以及应力—应变图题。",
       "example": "Use the graph to determine the pressure of the material.",
       "translation": "利用图像确定材料的压强。",
+      "formula": "p = F / A",
+      "knowledgePoint": "Pressure increases when the same force acts over a smaller area.",
       "collocations": [
         "fluid pressure",
         "pressure difference"
@@ -1280,6 +1424,8 @@
       "cn": "用于材料性质、形变以及应力—应变图题。",
       "example": "Use the graph to determine the stress of the material.",
       "translation": "利用图像确定材料的应力。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "tensile stress",
         "breaking stress"
@@ -1298,6 +1444,8 @@
       "cn": "用于材料性质、形变以及应力—应变图题。",
       "example": "Use the graph to determine the strain of the material.",
       "translation": "利用图像确定材料的应变。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "tensile strain",
         "strain is dimensionless"
@@ -1316,6 +1464,8 @@
       "cn": "用于材料性质、形变以及应力—应变图题。",
       "example": "Use the graph to determine the Young modulus of the material.",
       "translation": "利用图像确定材料的杨氏模量。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "determine Young modulus"
       ]
@@ -1333,6 +1483,8 @@
       "cn": "用于材料性质、形变以及应力—应变图题。",
       "example": "Use the graph to determine the elastic deformation of the material.",
       "translation": "利用图像确定材料的弹性形变。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "elastic behaviour"
       ]
@@ -1350,6 +1502,8 @@
       "cn": "用于材料性质、形变以及应力—应变图题。",
       "example": "Use the graph to determine the plastic deformation of the material.",
       "translation": "利用图像确定材料的塑性形变。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "plastic region"
       ]
@@ -1367,6 +1521,8 @@
       "cn": "用于材料性质、形变以及应力—应变图题。",
       "example": "Use the graph to determine the limit of proportionality of the material.",
       "translation": "利用图像确定材料的比例极限。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "below the limit of proportionality"
       ]
@@ -1384,6 +1540,8 @@
       "cn": "用于材料性质、形变以及应力—应变图题。",
       "example": "Use the graph to determine the elastic limit of the material.",
       "translation": "利用图像确定材料的弹性极限。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "exceed the elastic limit"
       ]
@@ -1401,6 +1559,8 @@
       "cn": "用于材料性质、形变以及应力—应变图题。",
       "example": "Use the graph to determine the yield point of the material.",
       "translation": "利用图像确定材料的屈服点。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "yield stress",
         "yield point"
@@ -1419,6 +1579,8 @@
       "cn": "用于材料性质、形变以及应力—应变图题。",
       "example": "Use the graph to determine the ultimate tensile stress of the material.",
       "translation": "利用图像确定材料的极限抗拉强度。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "maximum tensile stress"
       ]
@@ -1436,6 +1598,8 @@
       "cn": "用于材料性质、形变以及应力—应变图题。",
       "example": "Use the graph to determine the breaking stress of the material.",
       "translation": "利用图像确定材料的断裂应力。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "breaking stress of the wire"
       ]
@@ -1453,6 +1617,8 @@
       "cn": "用于材料性质、形变以及应力—应变图题。",
       "example": "Use the graph to determine the Hooke's law of the material.",
       "translation": "利用图像确定材料的胡克定律。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "obeys Hooke's law"
       ]
@@ -1470,6 +1636,8 @@
       "cn": "用于材料性质、形变以及应力—应变图题。",
       "example": "Use the graph to determine the spring constant of the material.",
       "translation": "利用图像确定材料的劲度系数。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "spring constant k"
       ]
@@ -1487,6 +1655,8 @@
       "cn": "用于材料性质、形变以及应力—应变图题。",
       "example": "Use the graph to determine the tensile force of the material.",
       "translation": "利用图像确定材料的拉力。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "apply a tensile force"
       ]
@@ -1504,6 +1674,8 @@
       "cn": "用于材料性质、形变以及应力—应变图题。",
       "example": "Use the graph to determine the compression of the material.",
       "translation": "利用图像确定材料的压缩。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "under compression"
       ]
@@ -1521,6 +1693,8 @@
       "cn": "用于材料性质、形变以及应力—应变图题。",
       "example": "Use the graph to determine the extension of the material.",
       "translation": "利用图像确定材料的伸长量。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "measure extension"
       ]
@@ -1538,6 +1712,8 @@
       "cn": "用于材料性质、形变以及应力—应变图题。",
       "example": "Use the graph to determine the elastic energy of the material.",
       "translation": "利用图像确定材料的弹性势能。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "elastic strain energy"
       ]
@@ -1555,6 +1731,8 @@
       "cn": "用于材料性质、形变以及应力—应变图题。",
       "example": "Use the graph to determine the ductile of the material.",
       "translation": "利用图像确定材料的有延展性的。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "ductile material"
       ]
@@ -1572,6 +1750,8 @@
       "cn": "用于材料性质、形变以及应力—应变图题。",
       "example": "Use the graph to determine the brittle of the material.",
       "translation": "利用图像确定材料的脆性的。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "brittle fracture"
       ]
@@ -1589,6 +1769,8 @@
       "cn": "用于波动、干涉、衍射、驻波和光学题。",
       "example": "Explain how progressive wave affects the observed wave pattern.",
       "translation": "解释行波如何影响观察到的波形或图样。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "progressive wave equation"
       ]
@@ -1606,6 +1788,8 @@
       "cn": "用于波动、干涉、衍射、驻波和光学题。",
       "example": "Explain how transverse wave affects the observed wave pattern.",
       "translation": "解释横波如何影响观察到的波形或图样。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "transverse oscillation"
       ]
@@ -1623,6 +1807,8 @@
       "cn": "用于波动、干涉、衍射、驻波和光学题。",
       "example": "Explain how longitudinal wave affects the observed wave pattern.",
       "translation": "解释纵波如何影响观察到的波形或图样。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "compression and rarefaction"
       ]
@@ -1640,6 +1826,8 @@
       "cn": "用于波动、干涉、衍射、驻波和光学题。",
       "example": "Explain how amplitude affects the observed wave pattern.",
       "translation": "解释振幅如何影响观察到的波形或图样。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "wave amplitude"
       ]
@@ -1657,6 +1845,8 @@
       "cn": "用于波动、干涉、衍射、驻波和光学题。",
       "example": "Explain how wavelength affects the observed wave pattern.",
       "translation": "解释波长如何影响观察到的波形或图样。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "wavelength lambda"
       ]
@@ -1674,6 +1864,8 @@
       "cn": "用于波动、干涉、衍射、驻波和光学题。",
       "example": "Explain how frequency affects the observed wave pattern.",
       "translation": "解释频率如何影响观察到的波形或图样。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "wave frequency"
       ]
@@ -1691,6 +1883,8 @@
       "cn": "用于波动、干涉、衍射、驻波和光学题。",
       "example": "Explain how period affects the observed wave pattern.",
       "translation": "解释周期如何影响观察到的波形或图样。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "oscillation period"
       ]
@@ -1708,6 +1902,8 @@
       "cn": "用于波动、干涉、衍射、驻波和光学题。",
       "example": "Explain how wave speed affects the observed wave pattern.",
       "translation": "解释波速如何影响观察到的波形或图样。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "wave equation",
         "wave speed"
@@ -1726,6 +1922,8 @@
       "cn": "用于波动、干涉、衍射、驻波和光学题。",
       "example": "Explain how phase difference affects the observed wave pattern.",
       "translation": "解释相位差如何影响观察到的波形或图样。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "phase difference in radians"
       ]
@@ -1743,6 +1941,8 @@
       "cn": "用于波动、干涉、衍射、驻波和光学题。",
       "example": "Explain how coherent sources affects the observed wave pattern.",
       "translation": "解释相干波源如何影响观察到的波形或图样。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "coherent light sources"
       ]
@@ -1760,6 +1960,8 @@
       "cn": "用于波动、干涉、衍射、驻波和光学题。",
       "example": "Explain how superposition affects the observed wave pattern.",
       "translation": "解释叠加原理如何影响观察到的波形或图样。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "principle of superposition"
       ]
@@ -1777,6 +1979,8 @@
       "cn": "用于波动、干涉、衍射、驻波和光学题。",
       "example": "Explain how interference affects the observed wave pattern.",
       "translation": "解释干涉如何影响观察到的波形或图样。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "interference pattern"
       ]
@@ -1794,6 +1998,8 @@
       "cn": "用于波动、干涉、衍射、驻波和光学题。",
       "example": "Explain how constructive interference affects the observed wave pattern.",
       "translation": "解释相长干涉如何影响观察到的波形或图样。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "constructive interference maximum"
       ]
@@ -1811,6 +2017,8 @@
       "cn": "用于波动、干涉、衍射、驻波和光学题。",
       "example": "Explain how destructive interference affects the observed wave pattern.",
       "translation": "解释相消干涉如何影响观察到的波形或图样。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "destructive interference minimum"
       ]
@@ -1828,6 +2036,8 @@
       "cn": "用于波动、干涉、衍射、驻波和光学题。",
       "example": "Explain how diffraction affects the observed wave pattern.",
       "translation": "解释衍射如何影响观察到的波形或图样。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "diffraction pattern"
       ]
@@ -1845,6 +2055,8 @@
       "cn": "用于波动、干涉、衍射、驻波和光学题。",
       "example": "Explain how refraction affects the observed wave pattern.",
       "translation": "解释折射如何影响观察到的波形或图样。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "refraction at a boundary"
       ]
@@ -1862,6 +2074,8 @@
       "cn": "用于波动、干涉、衍射、驻波和光学题。",
       "example": "Explain how reflection affects the observed wave pattern.",
       "translation": "解释反射如何影响观察到的波形或图样。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "law of reflection"
       ]
@@ -1879,6 +2093,8 @@
       "cn": "用于波动、干涉、衍射、驻波和光学题。",
       "example": "Explain how stationary wave affects the observed wave pattern.",
       "translation": "解释驻波如何影响观察到的波形或图样。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "stationary wave pattern"
       ]
@@ -1896,6 +2112,8 @@
       "cn": "用于波动、干涉、衍射、驻波和光学题。",
       "example": "Explain how node affects the observed wave pattern.",
       "translation": "解释波节如何影响观察到的波形或图样。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "adjacent nodes"
       ]
@@ -1913,6 +2131,8 @@
       "cn": "用于波动、干涉、衍射、驻波和光学题。",
       "example": "Explain how antinode affects the observed wave pattern.",
       "translation": "解释波腹如何影响观察到的波形或图样。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "adjacent antinodes"
       ]
@@ -1930,6 +2150,8 @@
       "cn": "用于波动、干涉、衍射、驻波和光学题。",
       "example": "Explain how fundamental frequency affects the observed wave pattern.",
       "translation": "解释基频如何影响观察到的波形或图样。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "fundamental mode"
       ]
@@ -1947,6 +2169,8 @@
       "cn": "用于波动、干涉、衍射、驻波和光学题。",
       "example": "Explain how harmonic affects the observed wave pattern.",
       "translation": "解释谐波如何影响观察到的波形或图样。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "second harmonic",
         "higher harmonics"
@@ -1965,6 +2189,8 @@
       "cn": "用于波动、干涉、衍射、驻波和光学题。",
       "example": "Explain how resonance affects the observed wave pattern.",
       "translation": "解释共振如何影响观察到的波形或图样。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "resonant frequency"
       ]
@@ -1982,6 +2208,8 @@
       "cn": "用于波动、干涉、衍射、驻波和光学题。",
       "example": "Explain how intensity affects the observed wave pattern.",
       "translation": "解释强度如何影响观察到的波形或图样。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "wave intensity"
       ]
@@ -1999,6 +2227,8 @@
       "cn": "用于波动、干涉、衍射、驻波和光学题。",
       "example": "Explain how inverse-square law affects the observed wave pattern.",
       "translation": "解释平方反比定律如何影响观察到的波形或图样。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "obeys inverse-square law"
       ]
@@ -2016,6 +2246,8 @@
       "cn": "用于波动、干涉、衍射、驻波和光学题。",
       "example": "Explain how polarisation affects the observed wave pattern.",
       "translation": "解释偏振如何影响观察到的波形或图样。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "plane-polarised light"
       ]
@@ -2033,6 +2265,8 @@
       "cn": "用于波动、干涉、衍射、驻波和光学题。",
       "example": "Explain how critical angle affects the observed wave pattern.",
       "translation": "解释临界角如何影响观察到的波形或图样。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "calculate critical angle"
       ]
@@ -2050,6 +2284,8 @@
       "cn": "用于波动、干涉、衍射、驻波和光学题。",
       "example": "Explain how total internal reflection affects the observed wave pattern.",
       "translation": "解释全反射如何影响观察到的波形或图样。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "conditions for total internal reflection"
       ]
@@ -2067,6 +2303,8 @@
       "cn": "用于波动、干涉、衍射、驻波和光学题。",
       "example": "Explain how refractive index affects the observed wave pattern.",
       "translation": "解释折射率如何影响观察到的波形或图样。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "refractive index n"
       ]
@@ -2084,6 +2322,8 @@
       "cn": "用于波动、干涉、衍射、驻波和光学题。",
       "example": "Explain how Snell's law affects the observed wave pattern.",
       "translation": "解释斯涅尔定律如何影响观察到的波形或图样。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "apply Snell's law"
       ]
@@ -2101,6 +2341,8 @@
       "cn": "用于波动、干涉、衍射、驻波和光学题。",
       "example": "Explain how optical fibre affects the observed wave pattern.",
       "translation": "解释光纤如何影响观察到的波形或图样。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "optical-fibre communication"
       ]
@@ -2118,6 +2360,8 @@
       "cn": "用于波动、干涉、衍射、驻波和光学题。",
       "example": "Explain how Doppler effect affects the observed wave pattern.",
       "translation": "解释多普勒效应如何影响观察到的波形或图样。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "Doppler shift"
       ]
@@ -2135,6 +2379,8 @@
       "cn": "用于波动、干涉、衍射、驻波和光学题。",
       "example": "Explain how path difference affects the observed wave pattern.",
       "translation": "解释程差如何影响观察到的波形或图样。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "path difference of one wavelength"
       ]
@@ -2152,6 +2398,8 @@
       "cn": "用于波动、干涉、衍射、驻波和光学题。",
       "example": "Explain how fringe spacing affects the observed wave pattern.",
       "translation": "解释条纹间距如何影响观察到的波形或图样。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "double-slit fringe spacing"
       ]
@@ -2169,6 +2417,8 @@
       "cn": "用于波动、干涉、衍射、驻波和光学题。",
       "example": "Explain how double-slit interference affects the observed wave pattern.",
       "translation": "解释双缝干涉如何影响观察到的波形或图样。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "Young double-slit experiment"
       ]
@@ -2186,6 +2436,8 @@
       "cn": "用于电路、电阻率、电容器和交流电题。",
       "example": "Determine the electric charge in the circuit and justify the equation used.",
       "translation": "确定电路中的电荷，并说明所用方程的依据。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "charge conservation",
         "elementary charge"
@@ -2204,6 +2456,8 @@
       "cn": "用于电路、电阻率、电容器和交流电题。",
       "example": "Determine the electric current in the circuit and justify the equation used.",
       "translation": "确定电路中的电流，并说明所用方程的依据。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "conventional current"
       ]
@@ -2221,6 +2475,8 @@
       "cn": "用于电路、电阻率、电容器和交流电题。",
       "example": "Determine the potential difference in the circuit and justify the equation used.",
       "translation": "确定电路中的电势差，并说明所用方程的依据。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "potential difference across a component"
       ]
@@ -2238,6 +2494,8 @@
       "cn": "用于电路、电阻率、电容器和交流电题。",
       "example": "Determine the electromotive force in the circuit and justify the equation used.",
       "translation": "确定电路中的电动势，并说明所用方程的依据。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "emf of a cell"
       ]
@@ -2255,6 +2513,8 @@
       "cn": "用于电路、电阻率、电容器和交流电题。",
       "example": "Determine the resistance in the circuit and justify the equation used.",
       "translation": "确定电路中的电阻，并说明所用方程的依据。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "electrical resistance"
       ]
@@ -2272,6 +2532,8 @@
       "cn": "用于电路、电阻率、电容器和交流电题。",
       "example": "Determine the resistivity in the circuit and justify the equation used.",
       "translation": "确定电路中的电阻率，并说明所用方程的依据。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "resistivity of a wire"
       ]
@@ -2289,6 +2551,8 @@
       "cn": "用于电路、电阻率、电容器和交流电题。",
       "example": "Determine the conductivity in the circuit and justify the equation used.",
       "translation": "确定电路中的电导率，并说明所用方程的依据。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "electrical conductivity"
       ]
@@ -2306,6 +2570,8 @@
       "cn": "用于电路、电阻率、电容器和交流电题。",
       "example": "Determine the Ohm's law in the circuit and justify the equation used.",
       "translation": "确定电路中的欧姆定律，并说明所用方程的依据。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "ohmic conductor"
       ]
@@ -2323,6 +2589,8 @@
       "cn": "用于电路、电阻率、电容器和交流电题。",
       "example": "Determine the internal resistance in the circuit and justify the equation used.",
       "translation": "确定电路中的内阻，并说明所用方程的依据。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "lost volts",
         "internal resistance r"
@@ -2341,6 +2609,8 @@
       "cn": "用于电路、电阻率、电容器和交流电题。",
       "example": "Determine the terminal potential difference in the circuit and justify the equation used.",
       "translation": "确定电路中的端电压，并说明所用方程的依据。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "terminal pd"
       ]
@@ -2358,6 +2628,8 @@
       "cn": "用于电路、电阻率、电容器和交流电题。",
       "example": "Determine the potential divider in the circuit and justify the equation used.",
       "translation": "确定电路中的分压器，并说明所用方程的依据。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "potential-divider equation"
       ]
@@ -2375,6 +2647,8 @@
       "cn": "用于电路、电阻率、电容器和交流电题。",
       "example": "Determine the Kirchhoff's first law in the circuit and justify the equation used.",
       "translation": "确定电路中的基尔霍夫第一定律，并说明所用方程的依据。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "junction rule"
       ]
@@ -2392,6 +2666,8 @@
       "cn": "用于电路、电阻率、电容器和交流电题。",
       "example": "Determine the Kirchhoff's second law in the circuit and justify the equation used.",
       "translation": "确定电路中的基尔霍夫第二定律，并说明所用方程的依据。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "loop rule"
       ]
@@ -2409,6 +2685,8 @@
       "cn": "用于电路、电阻率、电容器和交流电题。",
       "example": "Determine the series circuit in the circuit and justify the equation used.",
       "translation": "确定电路中的串联电路，并说明所用方程的依据。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "resistors in series"
       ]
@@ -2426,6 +2704,8 @@
       "cn": "用于电路、电阻率、电容器和交流电题。",
       "example": "Determine the parallel circuit in the circuit and justify the equation used.",
       "translation": "确定电路中的并联电路，并说明所用方程的依据。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "resistors in parallel"
       ]
@@ -2443,6 +2723,8 @@
       "cn": "用于电路、电阻率、电容器和交流电题。",
       "example": "Determine the power dissipation in the circuit and justify the equation used.",
       "translation": "确定电路中的功率耗散，并说明所用方程的依据。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "power dissipated by a resistor"
       ]
@@ -2460,6 +2742,8 @@
       "cn": "用于电路、电阻率、电容器和交流电题。",
       "example": "Determine the electrical energy in the circuit and justify the equation used.",
       "translation": "确定电路中的电能，并说明所用方程的依据。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "electrical energy transferred"
       ]
@@ -2477,6 +2761,8 @@
       "cn": "用于电路、电阻率、电容器和交流电题。",
       "example": "Determine the drift velocity in the circuit and justify the equation used.",
       "translation": "确定电路中的漂移速度，并说明所用方程的依据。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "electron drift velocity"
       ]
@@ -2494,6 +2780,8 @@
       "cn": "用于电路、电阻率、电容器和交流电题。",
       "example": "Determine the number density in the circuit and justify the equation used.",
       "translation": "确定电路中的数密度，并说明所用方程的依据。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "charge-carrier number density"
       ]
@@ -2511,6 +2799,8 @@
       "cn": "用于电路、电阻率、电容器和交流电题。",
       "example": "Determine the charge carrier in the circuit and justify the equation used.",
       "translation": "确定电路中的载流子，并说明所用方程的依据。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "free charge carriers"
       ]
@@ -2528,6 +2818,8 @@
       "cn": "用于电路、电阻率、电容器和交流电题。",
       "example": "Determine the semiconductor in the circuit and justify the equation used.",
       "translation": "确定电路中的半导体，并说明所用方程的依据。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "semiconductor device"
       ]
@@ -2545,6 +2837,8 @@
       "cn": "用于电路、电阻率、电容器和交流电题。",
       "example": "Determine the thermistor in the circuit and justify the equation used.",
       "translation": "确定电路中的热敏电阻，并说明所用方程的依据。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "negative-temperature-coefficient thermistor"
       ]
@@ -2562,6 +2856,8 @@
       "cn": "用于电路、电阻率、电容器和交流电题。",
       "example": "Determine the light-dependent resistor in the circuit and justify the equation used.",
       "translation": "确定电路中的光敏电阻，并说明所用方程的依据。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "LDR resistance"
       ]
@@ -2579,6 +2875,8 @@
       "cn": "用于电路、电阻率、电容器和交流电题。",
       "example": "Determine the diode in the circuit and justify the equation used.",
       "translation": "确定电路中的二极管，并说明所用方程的依据。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "forward-biased diode"
       ]
@@ -2596,6 +2894,8 @@
       "cn": "用于电路、电阻率、电容器和交流电题。",
       "example": "Determine the I-V characteristic in the circuit and justify the equation used.",
       "translation": "确定电路中的伏安特性，并说明所用方程的依据。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "I-V curve"
       ]
@@ -2613,6 +2913,8 @@
       "cn": "用于电路、电阻率、电容器和交流电题。",
       "example": "Determine the alternating current in the circuit and justify the equation used.",
       "translation": "确定电路中的交流电，并说明所用方程的依据。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "sinusoidal alternating current"
       ]
@@ -2630,6 +2932,8 @@
       "cn": "用于电路、电阻率、电容器和交流电题。",
       "example": "Determine the root-mean-square value in the circuit and justify the equation used.",
       "translation": "确定电路中的均方根值，并说明所用方程的依据。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "rms voltage",
         "rms current"
@@ -2648,6 +2952,8 @@
       "cn": "用于电路、电阻率、电容器和交流电题。",
       "example": "Determine the peak voltage in the circuit and justify the equation used.",
       "translation": "确定电路中的峰值电压，并说明所用方程的依据。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "peak-to-peak voltage"
       ]
@@ -2665,6 +2971,8 @@
       "cn": "用于电路、电阻率、电容器和交流电题。",
       "example": "Determine the capacitance in the circuit and justify the equation used.",
       "translation": "确定电路中的电容，并说明所用方程的依据。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "capacitance in farads"
       ]
@@ -2682,6 +2990,8 @@
       "cn": "用于电路、电阻率、电容器和交流电题。",
       "example": "Determine the capacitor in the circuit and justify the equation used.",
       "translation": "确定电路中的电容器，并说明所用方程的依据。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "parallel-plate capacitor"
       ]
@@ -2699,6 +3009,8 @@
       "cn": "用于电路、电阻率、电容器和交流电题。",
       "example": "Determine the dielectric in the circuit and justify the equation used.",
       "translation": "确定电路中的电介质，并说明所用方程的依据。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "dielectric constant"
       ]
@@ -2716,6 +3028,8 @@
       "cn": "用于电路、电阻率、电容器和交流电题。",
       "example": "Determine the time constant in the circuit and justify the equation used.",
       "translation": "确定电路中的时间常数，并说明所用方程的依据。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "RC time constant"
       ]
@@ -2733,6 +3047,8 @@
       "cn": "用于电路、电阻率、电容器和交流电题。",
       "example": "Determine the exponential discharge in the circuit and justify the equation used.",
       "translation": "确定电路中的指数放电，并说明所用方程的依据。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "discharge curve"
       ]
@@ -2750,6 +3066,8 @@
       "cn": "用于电路、电阻率、电容器和交流电题。",
       "example": "Determine the Coulomb in the circuit and justify the equation used.",
       "translation": "确定电路中的库仑，并说明所用方程的依据。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "charge in coulombs"
       ]
@@ -2767,6 +3085,8 @@
       "cn": "用于内能、气体定律、热容和黑体辐射题。",
       "example": "Explain the change in internal energy using the particle model.",
       "translation": "利用粒子模型解释内能的变化。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "change in internal energy"
       ]
@@ -2784,6 +3104,8 @@
       "cn": "用于内能、气体定律、热容和黑体辐射题。",
       "example": "Explain the change in thermal equilibrium using the particle model.",
       "translation": "利用粒子模型解释热平衡的变化。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "reach thermal equilibrium"
       ]
@@ -2801,6 +3123,8 @@
       "cn": "用于内能、气体定律、热容和黑体辐射题。",
       "example": "Explain the change in specific heat capacity using the particle model.",
       "translation": "利用粒子模型解释比热容的变化。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "specific heat capacity c"
       ]
@@ -2818,6 +3142,8 @@
       "cn": "用于内能、气体定律、热容和黑体辐射题。",
       "example": "Explain the change in specific latent heat using the particle model.",
       "translation": "利用粒子模型解释比潜热的变化。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "specific latent heat of fusion"
       ]
@@ -2835,6 +3161,8 @@
       "cn": "用于内能、气体定律、热容和黑体辐射题。",
       "example": "Explain the change in phase change using the particle model.",
       "translation": "利用粒子模型解释物态变化的变化。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "change of phase"
       ]
@@ -2852,6 +3180,8 @@
       "cn": "用于内能、气体定律、热容和黑体辐射题。",
       "example": "Explain the change in kinetic theory using the particle model.",
       "translation": "利用粒子模型解释分子动理论的变化。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "kinetic theory of gases"
       ]
@@ -2869,6 +3199,8 @@
       "cn": "用于内能、气体定律、热容和黑体辐射题。",
       "example": "Explain the change in absolute zero using the particle model.",
       "translation": "利用粒子模型解释绝对零度的变化。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "zero kelvin"
       ]
@@ -2886,6 +3218,8 @@
       "cn": "用于内能、气体定律、热容和黑体辐射题。",
       "example": "Explain the change in kelvin scale using the particle model.",
       "translation": "利用粒子模型解释开尔文温标的变化。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "temperature in kelvin"
       ]
@@ -2903,6 +3237,8 @@
       "cn": "用于内能、气体定律、热容和黑体辐射题。",
       "example": "Explain the change in ideal gas using the particle model.",
       "translation": "利用粒子模型解释理想气体的变化。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "ideal-gas equation"
       ]
@@ -2920,6 +3256,8 @@
       "cn": "用于内能、气体定律、热容和黑体辐射题。",
       "example": "Explain the change in mole using the particle model.",
       "translation": "利用粒子模型解释摩尔的变化。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "number of moles"
       ]
@@ -2937,6 +3275,8 @@
       "cn": "用于内能、气体定律、热容和黑体辐射题。",
       "example": "Explain the change in molar mass using the particle model.",
       "translation": "利用粒子模型解释摩尔质量的变化。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "molar mass in kg per mol"
       ]
@@ -2954,6 +3294,8 @@
       "cn": "用于内能、气体定律、热容和黑体辐射题。",
       "example": "Explain the change in Avogadro constant using the particle model.",
       "translation": "利用粒子模型解释阿伏伽德罗常数的变化。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "Avogadro constant NA"
       ]
@@ -2971,6 +3313,8 @@
       "cn": "用于内能、气体定律、热容和黑体辐射题。",
       "example": "Explain the change in Brownian motion using the particle model.",
       "translation": "利用粒子模型解释布朗运动的变化。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "evidence for molecular motion"
       ]
@@ -2988,6 +3332,8 @@
       "cn": "用于内能、气体定律、热容和黑体辐射题。",
       "example": "Explain the change in Boyle's law using the particle model.",
       "translation": "利用粒子模型解释玻意耳定律的变化。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "Boyle's law graph"
       ]
@@ -3005,6 +3351,8 @@
       "cn": "用于内能、气体定律、热容和黑体辐射题。",
       "example": "Explain the change in Charles's law using the particle model.",
       "translation": "利用粒子模型解释查理定律的变化。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "Charles's law"
       ]
@@ -3022,6 +3370,8 @@
       "cn": "用于内能、气体定律、热容和黑体辐射题。",
       "example": "Explain the change in pressure law using the particle model.",
       "translation": "利用粒子模型解释压强定律的变化。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "constant-volume gas"
       ]
@@ -3039,6 +3389,8 @@
       "cn": "用于内能、气体定律、热容和黑体辐射题。",
       "example": "Explain the change in root-mean-square speed using the particle model.",
       "translation": "利用粒子模型解释方均根速率的变化。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "rms molecular speed"
       ]
@@ -3056,6 +3408,8 @@
       "cn": "用于内能、气体定律、热容和黑体辐射题。",
       "example": "Explain the change in black-body radiation using the particle model.",
       "translation": "利用粒子模型解释黑体辐射的变化。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "black-body spectrum"
       ]
@@ -3073,6 +3427,8 @@
       "cn": "用于内能、气体定律、热容和黑体辐射题。",
       "example": "Explain the change in Stefan-Boltzmann law using the particle model.",
       "translation": "利用粒子模型解释斯特藩—玻尔兹曼定律的变化。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "Stefan law"
       ]
@@ -3090,6 +3446,8 @@
       "cn": "用于内能、气体定律、热容和黑体辐射题。",
       "example": "Explain the change in Wien's displacement law using the particle model.",
       "translation": "利用粒子模型解释维恩位移定律的变化。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "Wien displacement law"
       ]
@@ -3107,6 +3465,8 @@
       "cn": "用于引力场、电场、磁场、电磁感应和轨道题。",
       "example": "Use the field model to calculate the gravitational field at the stated point.",
       "translation": "利用场模型计算指定位置的引力场。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "uniform gravitational field"
       ]
@@ -3124,6 +3484,8 @@
       "cn": "用于引力场、电场、磁场、电磁感应和轨道题。",
       "example": "Use the field model to calculate the gravitational field strength at the stated point.",
       "translation": "利用场模型计算指定位置的引力场强。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "field strength g"
       ]
@@ -3141,6 +3503,8 @@
       "cn": "用于引力场、电场、磁场、电磁感应和轨道题。",
       "example": "Use the field model to calculate the gravitational potential at the stated point.",
       "translation": "利用场模型计算指定位置的引力势。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "gravitational potential energy"
       ]
@@ -3158,6 +3522,8 @@
       "cn": "用于引力场、电场、磁场、电磁感应和轨道题。",
       "example": "Use the field model to calculate the electric field at the stated point.",
       "translation": "利用场模型计算指定位置的电场。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "uniform electric field"
       ]
@@ -3175,6 +3541,8 @@
       "cn": "用于引力场、电场、磁场、电磁感应和轨道题。",
       "example": "Use the field model to calculate the electric field strength at the stated point.",
       "translation": "利用场模型计算指定位置的电场强度。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "electric field strength E"
       ]
@@ -3192,6 +3560,8 @@
       "cn": "用于引力场、电场、磁场、电磁感应和轨道题。",
       "example": "Use the field model to calculate the electric potential at the stated point.",
       "translation": "利用场模型计算指定位置的电势。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "electric potential V"
       ]
@@ -3209,6 +3579,8 @@
       "cn": "用于引力场、电场、磁场、电磁感应和轨道题。",
       "example": "Use the field model to calculate the equipotential at the stated point.",
       "translation": "利用场模型计算指定位置的等势面。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "equipotential line"
       ]
@@ -3226,6 +3598,8 @@
       "cn": "用于引力场、电场、磁场、电磁感应和轨道题。",
       "example": "Use the field model to calculate the Coulomb's law at the stated point.",
       "translation": "利用场模型计算指定位置的库仑定律。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "apply Coulomb's law"
       ]
@@ -3243,6 +3617,8 @@
       "cn": "用于引力场、电场、磁场、电磁感应和轨道题。",
       "example": "Use the field model to calculate the inverse-square field at the stated point.",
       "translation": "利用场模型计算指定位置的平方反比场。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "inverse-square dependence"
       ]
@@ -3260,6 +3636,8 @@
       "cn": "用于引力场、电场、磁场、电磁感应和轨道题。",
       "example": "Use the field model to calculate the field line at the stated point.",
       "translation": "利用场模型计算指定位置的场线。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "field-line pattern"
       ]
@@ -3277,6 +3655,8 @@
       "cn": "用于引力场、电场、磁场、电磁感应和轨道题。",
       "example": "Use the field model to calculate the magnetic field at the stated point.",
       "translation": "利用场模型计算指定位置的磁场。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "uniform magnetic field"
       ]
@@ -3294,6 +3674,8 @@
       "cn": "用于引力场、电场、磁场、电磁感应和轨道题。",
       "example": "Use the field model to calculate the magnetic flux density at the stated point.",
       "translation": "利用场模型计算指定位置的磁感应强度。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "magnetic flux density B"
       ]
@@ -3311,6 +3693,8 @@
       "cn": "用于引力场、电场、磁场、电磁感应和轨道题。",
       "example": "Use the field model to calculate the magnetic flux at the stated point.",
       "translation": "利用场模型计算指定位置的磁通量。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "magnetic flux phi"
       ]
@@ -3328,6 +3712,8 @@
       "cn": "用于引力场、电场、磁场、电磁感应和轨道题。",
       "example": "Use the field model to calculate the Lorentz force at the stated point.",
       "translation": "利用场模型计算指定位置的洛伦兹力。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "magnetic Lorentz force"
       ]
@@ -3345,6 +3731,8 @@
       "cn": "用于引力场、电场、磁场、电磁感应和轨道题。",
       "example": "Use the field model to calculate the Fleming's left-hand rule at the stated point.",
       "translation": "利用场模型计算指定位置的弗莱明左手定则。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "motor effect"
       ]
@@ -3362,6 +3750,8 @@
       "cn": "用于引力场、电场、磁场、电磁感应和轨道题。",
       "example": "Use the field model to calculate the Hall effect at the stated point.",
       "translation": "利用场模型计算指定位置的霍尔效应。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "Hall voltage"
       ]
@@ -3379,6 +3769,8 @@
       "cn": "用于引力场、电场、磁场、电磁感应和轨道题。",
       "example": "Use the field model to calculate the electromagnetic induction at the stated point.",
       "translation": "利用场模型计算指定位置的电磁感应。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "induced emf"
       ]
@@ -3396,6 +3788,8 @@
       "cn": "用于引力场、电场、磁场、电磁感应和轨道题。",
       "example": "Use the field model to calculate the Faraday's law at the stated point.",
       "translation": "利用场模型计算指定位置的法拉第定律。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "Faraday induction law"
       ]
@@ -3413,6 +3807,8 @@
       "cn": "用于引力场、电场、磁场、电磁感应和轨道题。",
       "example": "Use the field model to calculate the Lenz's law at the stated point.",
       "translation": "利用场模型计算指定位置的楞次定律。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "direction from Lenz's law"
       ]
@@ -3430,6 +3826,8 @@
       "cn": "用于引力场、电场、磁场、电磁感应和轨道题。",
       "example": "Use the field model to calculate the magnetic flux linkage at the stated point.",
       "translation": "利用场模型计算指定位置的磁通链。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "change in flux linkage"
       ]
@@ -3447,6 +3845,8 @@
       "cn": "用于引力场、电场、磁场、电磁感应和轨道题。",
       "example": "Use the field model to calculate the transformer at the stated point.",
       "translation": "利用场模型计算指定位置的变压器。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "ideal transformer"
       ]
@@ -3464,6 +3864,8 @@
       "cn": "用于引力场、电场、磁场、电磁感应和轨道题。",
       "example": "Use the field model to calculate the step-up transformer at the stated point.",
       "translation": "利用场模型计算指定位置的升压变压器。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "step-up ratio"
       ]
@@ -3481,6 +3883,8 @@
       "cn": "用于引力场、电场、磁场、电磁感应和轨道题。",
       "example": "Use the field model to calculate the step-down transformer at the stated point.",
       "translation": "利用场模型计算指定位置的降压变压器。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "step-down transformer"
       ]
@@ -3498,6 +3902,8 @@
       "cn": "用于引力场、电场、磁场、电磁感应和轨道题。",
       "example": "Use the field model to calculate the eddy current at the stated point.",
       "translation": "利用场模型计算指定位置的涡流。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "reduce eddy currents"
       ]
@@ -3515,6 +3921,8 @@
       "cn": "用于引力场、电场、磁场、电磁感应和轨道题。",
       "example": "Use the field model to calculate the solenoid at the stated point.",
       "translation": "利用场模型计算指定位置的螺线管。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "field inside a solenoid"
       ]
@@ -3532,6 +3940,8 @@
       "cn": "用于引力场、电场、磁场、电磁感应和轨道题。",
       "example": "Use the field model to calculate the cyclotron at the stated point.",
       "translation": "利用场模型计算指定位置的回旋加速器。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "cyclotron frequency"
       ]
@@ -3549,6 +3959,8 @@
       "cn": "用于引力场、电场、磁场、电磁感应和轨道题。",
       "example": "Use the field model to calculate the mass spectrometer at the stated point.",
       "translation": "利用场模型计算指定位置的质谱仪。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "mass spectrometry"
       ]
@@ -3566,6 +3978,8 @@
       "cn": "用于引力场、电场、磁场、电磁感应和轨道题。",
       "example": "Use the field model to calculate the specific charge at the stated point.",
       "translation": "利用场模型计算指定位置的比荷。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "specific charge of electron"
       ]
@@ -3583,6 +3997,8 @@
       "cn": "用于引力场、电场、磁场、电磁感应和轨道题。",
       "example": "Use the field model to calculate the escape velocity at the stated point.",
       "translation": "利用场模型计算指定位置的逃逸速度。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "escape speed"
       ]
@@ -3600,6 +4016,8 @@
       "cn": "用于引力场、电场、磁场、电磁感应和轨道题。",
       "example": "Use the field model to calculate the orbital speed at the stated point.",
       "translation": "利用场模型计算指定位置的轨道速度。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "circular orbital speed"
       ]
@@ -3617,6 +4035,8 @@
       "cn": "用于引力场、电场、磁场、电磁感应和轨道题。",
       "example": "Use the field model to calculate the geostationary orbit at the stated point.",
       "translation": "利用场模型计算指定位置的地球同步静止轨道。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "geostationary satellite"
       ]
@@ -3634,6 +4054,8 @@
       "cn": "用于粒子分类、放射性、核反应和量子现象题。",
       "example": "Define proton and apply it to the nuclear or particle process shown.",
       "translation": "定义质子，并将其应用于图示核过程或粒子过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "proton number"
       ]
@@ -3651,6 +4073,8 @@
       "cn": "用于粒子分类、放射性、核反应和量子现象题。",
       "example": "Define neutron and apply it to the nuclear or particle process shown.",
       "translation": "定义中子，并将其应用于图示核过程或粒子过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "neutron number"
       ]
@@ -3668,6 +4092,8 @@
       "cn": "用于粒子分类、放射性、核反应和量子现象题。",
       "example": "Define electron and apply it to the nuclear or particle process shown.",
       "translation": "定义电子，并将其应用于图示核过程或粒子过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "electron charge"
       ]
@@ -3685,6 +4111,8 @@
       "cn": "用于粒子分类、放射性、核反应和量子现象题。",
       "example": "Define positron and apply it to the nuclear or particle process shown.",
       "translation": "定义正电子，并将其应用于图示核过程或粒子过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "positron emission"
       ]
@@ -3702,6 +4130,8 @@
       "cn": "用于粒子分类、放射性、核反应和量子现象题。",
       "example": "Define neutrino and apply it to the nuclear or particle process shown.",
       "translation": "定义中微子，并将其应用于图示核过程或粒子过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "electron neutrino"
       ]
@@ -3719,6 +4149,8 @@
       "cn": "用于粒子分类、放射性、核反应和量子现象题。",
       "example": "Define antiparticle and apply it to the nuclear or particle process shown.",
       "translation": "定义反粒子，并将其应用于图示核过程或粒子过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "particle-antiparticle pair"
       ]
@@ -3736,6 +4168,8 @@
       "cn": "用于粒子分类、放射性、核反应和量子现象题。",
       "example": "Define nucleon number and apply it to the nuclear or particle process shown.",
       "translation": "定义核子数，并将其应用于图示核过程或粒子过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "mass number A"
       ]
@@ -3753,6 +4187,8 @@
       "cn": "用于粒子分类、放射性、核反应和量子现象题。",
       "example": "Define proton number and apply it to the nuclear or particle process shown.",
       "translation": "定义质子数，并将其应用于图示核过程或粒子过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "atomic number Z"
       ]
@@ -3770,6 +4206,8 @@
       "cn": "用于粒子分类、放射性、核反应和量子现象题。",
       "example": "Define isotope and apply it to the nuclear or particle process shown.",
       "translation": "定义同位素，并将其应用于图示核过程或粒子过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "radioactive isotope"
       ]
@@ -3787,6 +4225,8 @@
       "cn": "用于粒子分类、放射性、核反应和量子现象题。",
       "example": "Define mass defect and apply it to the nuclear or particle process shown.",
       "translation": "定义质量亏损，并将其应用于图示核过程或粒子过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "calculate mass defect"
       ]
@@ -3804,6 +4244,8 @@
       "cn": "用于粒子分类、放射性、核反应和量子现象题。",
       "example": "Define binding energy and apply it to the nuclear or particle process shown.",
       "translation": "定义结合能，并将其应用于图示核过程或粒子过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "nuclear binding energy"
       ]
@@ -3821,6 +4263,8 @@
       "cn": "用于粒子分类、放射性、核反应和量子现象题。",
       "example": "Define binding energy per nucleon and apply it to the nuclear or particle process shown.",
       "translation": "定义平均每核子结合能，并将其应用于图示核过程或粒子过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "stability curve"
       ]
@@ -3838,6 +4282,8 @@
       "cn": "用于粒子分类、放射性、核反应和量子现象题。",
       "example": "Define atomic mass unit and apply it to the nuclear or particle process shown.",
       "translation": "定义原子质量单位，并将其应用于图示核过程或粒子过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "unified atomic mass unit"
       ]
@@ -3855,6 +4301,8 @@
       "cn": "用于粒子分类、放射性、核反应和量子现象题。",
       "example": "Define decay constant and apply it to the nuclear or particle process shown.",
       "translation": "定义衰变常数，并将其应用于图示核过程或粒子过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "decay constant lambda"
       ]
@@ -3872,6 +4320,8 @@
       "cn": "用于粒子分类、放射性、核反应和量子现象题。",
       "example": "Define activity and apply it to the nuclear or particle process shown.",
       "translation": "定义放射性活度，并将其应用于图示核过程或粒子过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "activity in becquerels"
       ]
@@ -3889,6 +4339,8 @@
       "cn": "用于粒子分类、放射性、核反应和量子现象题。",
       "example": "Define half-life and apply it to the nuclear or particle process shown.",
       "translation": "定义半衰期，并将其应用于图示核过程或粒子过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "determine half-life"
       ]
@@ -3906,6 +4358,8 @@
       "cn": "用于粒子分类、放射性、核反应和量子现象题。",
       "example": "Define background radiation and apply it to the nuclear or particle process shown.",
       "translation": "定义本底辐射，并将其应用于图示核过程或粒子过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "subtract background count"
       ]
@@ -3923,6 +4377,8 @@
       "cn": "用于粒子分类、放射性、核反应和量子现象题。",
       "example": "Define alpha radiation and apply it to the nuclear or particle process shown.",
       "translation": "定义阿尔法辐射，并将其应用于图示核过程或粒子过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "alpha particle"
       ]
@@ -3940,6 +4396,8 @@
       "cn": "用于粒子分类、放射性、核反应和量子现象题。",
       "example": "Define beta radiation and apply it to the nuclear or particle process shown.",
       "translation": "定义贝塔辐射，并将其应用于图示核过程或粒子过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "beta-minus decay"
       ]
@@ -3957,6 +4415,8 @@
       "cn": "用于粒子分类、放射性、核反应和量子现象题。",
       "example": "Define gamma radiation and apply it to the nuclear or particle process shown.",
       "translation": "定义伽马辐射，并将其应用于图示核过程或粒子过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "gamma photon"
       ]
@@ -3974,6 +4434,8 @@
       "cn": "用于粒子分类、放射性、核反应和量子现象题。",
       "example": "Define ionising power and apply it to the nuclear or particle process shown.",
       "translation": "定义电离能力，并将其应用于图示核过程或粒子过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "high ionising power"
       ]
@@ -3991,6 +4453,8 @@
       "cn": "用于粒子分类、放射性、核反应和量子现象题。",
       "example": "Define penetrating power and apply it to the nuclear or particle process shown.",
       "translation": "定义穿透能力，并将其应用于图示核过程或粒子过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "penetrating ability"
       ]
@@ -4008,6 +4472,8 @@
       "cn": "用于粒子分类、放射性、核反应和量子现象题。",
       "example": "Define nuclear fission and apply it to the nuclear or particle process shown.",
       "translation": "定义核裂变，并将其应用于图示核过程或粒子过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "fission chain reaction"
       ]
@@ -4025,6 +4491,8 @@
       "cn": "用于粒子分类、放射性、核反应和量子现象题。",
       "example": "Define nuclear fusion and apply it to the nuclear or particle process shown.",
       "translation": "定义核聚变，并将其应用于图示核过程或粒子过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "fusion reaction"
       ]
@@ -4042,6 +4510,8 @@
       "cn": "用于粒子分类、放射性、核反应和量子现象题。",
       "example": "Define chain reaction and apply it to the nuclear or particle process shown.",
       "translation": "定义链式反应，并将其应用于图示核过程或粒子过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "controlled chain reaction"
       ]
@@ -4059,6 +4529,8 @@
       "cn": "用于粒子分类、放射性、核反应和量子现象题。",
       "example": "Define quark and apply it to the nuclear or particle process shown.",
       "translation": "定义夸克，并将其应用于图示核过程或粒子过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "up quark",
         "down quark"
@@ -4077,6 +4549,8 @@
       "cn": "用于粒子分类、放射性、核反应和量子现象题。",
       "example": "Define lepton and apply it to the nuclear or particle process shown.",
       "translation": "定义轻子，并将其应用于图示核过程或粒子过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "lepton family"
       ]
@@ -4094,6 +4568,8 @@
       "cn": "用于粒子分类、放射性、核反应和量子现象题。",
       "example": "Define baryon and apply it to the nuclear or particle process shown.",
       "translation": "定义重子，并将其应用于图示核过程或粒子过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "proton is a baryon"
       ]
@@ -4111,6 +4587,8 @@
       "cn": "用于粒子分类、放射性、核反应和量子现象题。",
       "example": "Define meson and apply it to the nuclear or particle process shown.",
       "translation": "定义介子，并将其应用于图示核过程或粒子过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "pion meson"
       ]
@@ -4128,6 +4606,8 @@
       "cn": "用于粒子分类、放射性、核反应和量子现象题。",
       "example": "Define annihilation and apply it to the nuclear or particle process shown.",
       "translation": "定义湮灭，并将其应用于图示核过程或粒子过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "electron-positron annihilation"
       ]
@@ -4145,6 +4625,8 @@
       "cn": "用于粒子分类、放射性、核反应和量子现象题。",
       "example": "Define pair production and apply it to the nuclear or particle process shown.",
       "translation": "定义电子对产生，并将其应用于图示核过程或粒子过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "pair-production threshold"
       ]
@@ -4162,6 +4644,8 @@
       "cn": "用于粒子分类、放射性、核反应和量子现象题。",
       "example": "Define photoelectric effect and apply it to the nuclear or particle process shown.",
       "translation": "定义光电效应，并将其应用于图示核过程或粒子过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "photoelectric equation"
       ]
@@ -4179,6 +4663,8 @@
       "cn": "用于粒子分类、放射性、核反应和量子现象题。",
       "example": "Define photon and apply it to the nuclear or particle process shown.",
       "translation": "定义光子，并将其应用于图示核过程或粒子过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "photon energy"
       ]
@@ -4196,6 +4682,8 @@
       "cn": "用于粒子分类、放射性、核反应和量子现象题。",
       "example": "Define work function and apply it to the nuclear or particle process shown.",
       "translation": "定义逸出功，并将其应用于图示核过程或粒子过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "metal work function"
       ]
@@ -4213,6 +4701,8 @@
       "cn": "用于粒子分类、放射性、核反应和量子现象题。",
       "example": "Define threshold frequency and apply it to the nuclear or particle process shown.",
       "translation": "定义阈频，并将其应用于图示核过程或粒子过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "threshold frequency f0"
       ]
@@ -4230,6 +4720,8 @@
       "cn": "用于粒子分类、放射性、核反应和量子现象题。",
       "example": "Define de Broglie wavelength and apply it to the nuclear or particle process shown.",
       "translation": "定义德布罗意波长，并将其应用于图示核过程或粒子过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "matter wave"
       ]
@@ -4247,6 +4739,8 @@
       "cn": "用于简谐运动、阻尼、受迫振动与共振题。",
       "example": "Describe how simple harmonic motion changes the oscillation shown on the graph.",
       "translation": "描述简谐运动如何改变图中所示的振动。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "SHM equation"
       ]
@@ -4264,6 +4758,8 @@
       "cn": "用于简谐运动、阻尼、受迫振动与共振题。",
       "example": "Describe how angular frequency changes the oscillation shown on the graph.",
       "translation": "描述角频率如何改变图中所示的振动。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "angular frequency omega"
       ]
@@ -4281,6 +4777,8 @@
       "cn": "用于简谐运动、阻尼、受迫振动与共振题。",
       "example": "Describe how restoring force changes the oscillation shown on the graph.",
       "translation": "描述回复力如何改变图中所示的振动。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "restoring force proportional to displacement"
       ]
@@ -4298,6 +4796,8 @@
       "cn": "用于简谐运动、阻尼、受迫振动与共振题。",
       "example": "Describe how equilibrium position changes the oscillation shown on the graph.",
       "translation": "描述平衡位置如何改变图中所示的振动。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "oscillate about equilibrium"
       ]
@@ -4315,6 +4815,8 @@
       "cn": "用于简谐运动、阻尼、受迫振动与共振题。",
       "example": "Describe how damping changes the oscillation shown on the graph.",
       "translation": "描述阻尼如何改变图中所示的振动。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "light damping"
       ]
@@ -4332,6 +4834,8 @@
       "cn": "用于简谐运动、阻尼、受迫振动与共振题。",
       "example": "Describe how critical damping changes the oscillation shown on the graph.",
       "translation": "描述临界阻尼如何改变图中所示的振动。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "critically damped system"
       ]
@@ -4349,6 +4853,8 @@
       "cn": "用于简谐运动、阻尼、受迫振动与共振题。",
       "example": "Describe how forced oscillation changes the oscillation shown on the graph.",
       "translation": "描述受迫振动如何改变图中所示的振动。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "driving frequency"
       ]
@@ -4366,6 +4872,8 @@
       "cn": "用于简谐运动、阻尼、受迫振动与共振题。",
       "example": "Describe how natural frequency changes the oscillation shown on the graph.",
       "translation": "描述固有频率如何改变图中所示的振动。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "natural mode"
       ]
@@ -4383,6 +4891,8 @@
       "cn": "用于简谐运动、阻尼、受迫振动与共振题。",
       "example": "Describe how resonance curve changes the oscillation shown on the graph.",
       "translation": "描述共振曲线如何改变图中所示的振动。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "sharp resonance curve"
       ]
@@ -4400,6 +4910,8 @@
       "cn": "用于简谐运动、阻尼、受迫振动与共振题。",
       "example": "Describe how phase changes the oscillation shown on the graph.",
       "translation": "描述相位如何改变图中所示的振动。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "phase relationship"
       ]
@@ -4417,6 +4929,8 @@
       "cn": "用于简谐运动、阻尼、受迫振动与共振题。",
       "example": "Describe how quality factor changes the oscillation shown on the graph.",
       "translation": "描述品质因数如何改变图中所示的振动。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "high Q factor"
       ]
@@ -4434,6 +4948,8 @@
       "cn": "用于简谐运动、阻尼、受迫振动与共振题。",
       "example": "Describe how underdamped changes the oscillation shown on the graph.",
       "translation": "描述欠阻尼的如何改变图中所示的振动。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "underdamped response"
       ]
@@ -4451,6 +4967,8 @@
       "cn": "用于简谐运动、阻尼、受迫振动与共振题。",
       "example": "Describe how overdamped changes the oscillation shown on the graph.",
       "translation": "描述过阻尼的如何改变图中所示的振动。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "overdamped response"
       ]
@@ -4468,6 +4986,8 @@
       "cn": "用于简谐运动、阻尼、受迫振动与共振题。",
       "example": "Describe how energy transfer changes the oscillation shown on the graph.",
       "translation": "描述能量传递如何改变图中所示的振动。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "maximum energy transfer"
       ]
@@ -4485,6 +5005,8 @@
       "cn": "用于恒星、宇宙学、光谱和距离测量题。",
       "example": "Use the astronomical data to determine the luminosity of the object.",
       "translation": "利用天文数据确定该天体的光度。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "stellar luminosity"
       ]
@@ -4502,6 +5024,8 @@
       "cn": "用于恒星、宇宙学、光谱和距离测量题。",
       "example": "Use the astronomical data to determine the apparent brightness of the object.",
       "translation": "利用天文数据确定该天体的视亮度。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "apparent brightness at Earth"
       ]
@@ -4519,6 +5043,8 @@
       "cn": "用于恒星、宇宙学、光谱和距离测量题。",
       "example": "Use the astronomical data to determine the parallax of the object.",
       "translation": "利用天文数据确定该天体的视差。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "stellar parallax"
       ]
@@ -4536,6 +5062,8 @@
       "cn": "用于恒星、宇宙学、光谱和距离测量题。",
       "example": "Use the astronomical data to determine the parsec of the object.",
       "translation": "利用天文数据确定该天体的秒差距。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "distance in parsecs"
       ]
@@ -4553,6 +5081,8 @@
       "cn": "用于恒星、宇宙学、光谱和距离测量题。",
       "example": "Use the astronomical data to determine the standard candle of the object.",
       "translation": "利用天文数据确定该天体的标准烛光。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "standard-candle method"
       ]
@@ -4570,6 +5100,8 @@
       "cn": "用于恒星、宇宙学、光谱和距离测量题。",
       "example": "Use the astronomical data to determine the redshift of the object.",
       "translation": "利用天文数据确定该天体的红移。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "cosmological redshift"
       ]
@@ -4587,6 +5119,8 @@
       "cn": "用于恒星、宇宙学、光谱和距离测量题。",
       "example": "Use the astronomical data to determine the Hubble's law of the object.",
       "translation": "利用天文数据确定该天体的哈勃定律。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "Hubble constant"
       ]
@@ -4604,6 +5138,8 @@
       "cn": "用于恒星、宇宙学、光谱和距离测量题。",
       "example": "Use the astronomical data to determine the cosmological expansion of the object.",
       "translation": "利用天文数据确定该天体的宇宙膨胀。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "expanding universe"
       ]
@@ -4621,6 +5157,8 @@
       "cn": "用于恒星、宇宙学、光谱和距离测量题。",
       "example": "Use the astronomical data to determine the main sequence of the object.",
       "translation": "利用天文数据确定该天体的主序。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "main-sequence star"
       ]
@@ -4638,6 +5176,8 @@
       "cn": "用于恒星、宇宙学、光谱和距离测量题。",
       "example": "Use the astronomical data to determine the white dwarf of the object.",
       "translation": "利用天文数据确定该天体的白矮星。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "white-dwarf radius"
       ]
@@ -4655,6 +5195,8 @@
       "cn": "用于恒星、宇宙学、光谱和距离测量题。",
       "example": "Use the astronomical data to determine the neutron star of the object.",
       "translation": "利用天文数据确定该天体的中子星。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "pulsar neutron star"
       ]
@@ -4672,6 +5214,8 @@
       "cn": "用于恒星、宇宙学、光谱和距离测量题。",
       "example": "Use the astronomical data to determine the supernova of the object.",
       "translation": "利用天文数据确定该天体的超新星。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "Type Ia supernova"
       ]
@@ -4689,6 +5233,8 @@
       "cn": "用于恒星、宇宙学、光谱和距离测量题。",
       "example": "Use the astronomical data to determine the black hole of the object.",
       "translation": "利用天文数据确定该天体的黑洞。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "black-hole mass"
       ]
@@ -4706,6 +5252,8 @@
       "cn": "用于恒星、宇宙学、光谱和距离测量题。",
       "example": "Use the astronomical data to determine the event horizon of the object.",
       "translation": "利用天文数据确定该天体的事件视界。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "cross the event horizon"
       ]
@@ -4723,6 +5271,8 @@
       "cn": "用于恒星、宇宙学、光谱和距离测量题。",
       "example": "Use the astronomical data to determine the Schwarzschild radius of the object.",
       "translation": "利用天文数据确定该天体的史瓦西半径。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "calculate Schwarzschild radius"
       ]
@@ -4740,6 +5290,8 @@
       "cn": "用于恒星、宇宙学、光谱和距离测量题。",
       "example": "Use the astronomical data to determine the stellar spectrum of the object.",
       "translation": "利用天文数据确定该天体的恒星光谱。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "analyse a stellar spectrum"
       ]
@@ -4757,6 +5309,8 @@
       "cn": "用于恒星、宇宙学、光谱和距离测量题。",
       "example": "Use the astronomical data to determine the absorption line of the object.",
       "translation": "利用天文数据确定该天体的吸收线。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "spectral absorption line"
       ]
@@ -4774,6 +5328,8 @@
       "cn": "用于恒星、宇宙学、光谱和距离测量题。",
       "example": "Use the astronomical data to determine the cosmic microwave background of the object.",
       "translation": "利用天文数据确定该天体的宇宙微波背景。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "CMB radiation"
       ]
@@ -4791,6 +5347,8 @@
       "cn": "用于恒星、宇宙学、光谱和距离测量题。",
       "example": "Use the astronomical data to determine the dark matter of the object.",
       "translation": "利用天文数据确定该天体的暗物质。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "dark-matter evidence"
       ]
@@ -4808,6 +5366,8 @@
       "cn": "用于恒星、宇宙学、光谱和距离测量题。",
       "example": "Use the astronomical data to determine the stellar evolution of the object.",
       "translation": "利用天文数据确定该天体的恒星演化。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "stellar life cycle"
       ]
@@ -4825,6 +5385,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the coefficient and show each algebraic step clearly.",
       "translation": "求出系数，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "leading coefficient"
       ]
@@ -4842,6 +5404,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the constant and show each algebraic step clearly.",
       "translation": "求出常数，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "constant term"
       ]
@@ -4859,6 +5423,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the variable and show each algebraic step clearly.",
       "translation": "求出变量，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "independent variable"
       ]
@@ -4876,6 +5442,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the expression and show each algebraic step clearly.",
       "translation": "求出代数式，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "simplify the expression"
       ]
@@ -4893,6 +5461,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the equation and show each algebraic step clearly.",
       "translation": "求出方程，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "solve the equation"
       ]
@@ -4910,6 +5480,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the identity and show each algebraic step clearly.",
       "translation": "求出恒等式，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "prove the identity"
       ]
@@ -4927,6 +5499,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the inequality and show each algebraic step clearly.",
       "translation": "求出不等式，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "solve the inequality"
       ]
@@ -4944,6 +5518,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the simultaneous equations and show each algebraic step clearly.",
       "translation": "求出联立方程，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "solve simultaneously"
       ]
@@ -4961,6 +5537,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the quadratic equation and show each algebraic step clearly.",
       "translation": "求出二次方程，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "roots of a quadratic"
       ]
@@ -4978,6 +5556,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the discriminant and show each algebraic step clearly.",
       "translation": "求出判别式，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "discriminant condition"
       ]
@@ -4995,6 +5575,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the root and show each algebraic step clearly.",
       "translation": "求出根，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "real root"
       ]
@@ -5012,6 +5594,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the repeated root and show each algebraic step clearly.",
       "translation": "求出重根，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "equal roots"
       ]
@@ -5029,6 +5613,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the factor theorem and show each algebraic step clearly.",
       "translation": "求出因式定理，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "apply the factor theorem"
       ]
@@ -5046,6 +5632,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the remainder theorem and show each algebraic step clearly.",
       "translation": "求出余式定理，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "use the remainder theorem"
       ]
@@ -5063,6 +5651,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the polynomial and show each algebraic step clearly.",
       "translation": "求出多项式，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "cubic polynomial"
       ]
@@ -5080,6 +5670,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the rational function and show each algebraic step clearly.",
       "translation": "求出有理函数，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "rational expression"
       ]
@@ -5097,6 +5689,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the modulus and show each algebraic step clearly.",
       "translation": "求出模；绝对值，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "modulus function"
       ]
@@ -5114,6 +5708,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the domain and show each algebraic step clearly.",
       "translation": "求出定义域，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "restricted domain"
       ]
@@ -5131,6 +5727,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the range and show each algebraic step clearly.",
       "translation": "求出值域，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "range of the function"
       ]
@@ -5148,6 +5746,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the inverse function and show each algebraic step clearly.",
       "translation": "求出反函数，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "find the inverse"
       ]
@@ -5165,6 +5765,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the composite function and show each algebraic step clearly.",
       "translation": "求出复合函数，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "composite fg"
       ]
@@ -5182,6 +5784,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the one-to-one function and show each algebraic step clearly.",
       "translation": "求出一一函数，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "one-to-one mapping"
       ]
@@ -5199,6 +5803,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the mapping and show each algebraic step clearly.",
       "translation": "求出映射，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "mapping diagram"
       ]
@@ -5216,6 +5822,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the asymptote and show each algebraic step clearly.",
       "translation": "求出渐近线，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "vertical asymptote"
       ]
@@ -5233,6 +5841,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the translation and show each algebraic step clearly.",
       "translation": "求出平移，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "graph translation"
       ]
@@ -5250,6 +5860,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the stretch and show each algebraic step clearly.",
       "translation": "求出伸缩变换，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "vertical stretch"
       ]
@@ -5267,6 +5879,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the reflection and show each algebraic step clearly.",
       "translation": "求出反射变换，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "reflection in the y-axis"
       ]
@@ -5284,6 +5898,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the parametric equation and show each algebraic step clearly.",
       "translation": "求出参数方程，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "eliminate the parameter"
       ]
@@ -5301,6 +5917,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the partial fraction and show each algebraic step clearly.",
       "translation": "求出部分分式，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "partial-fraction decomposition"
       ]
@@ -5318,6 +5936,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the binomial expansion and show each algebraic step clearly.",
       "translation": "求出二项式展开，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "binomial coefficient"
       ]
@@ -5335,6 +5955,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the index law and show each algebraic step clearly.",
       "translation": "求出指数律，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "laws of indices"
       ]
@@ -5352,6 +5974,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the logarithm and show each algebraic step clearly.",
       "translation": "求出对数，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "logarithmic equation"
       ]
@@ -5369,6 +5993,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the exponential function and show each algebraic step clearly.",
       "translation": "求出指数函数，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "exponential growth"
       ]
@@ -5386,6 +6012,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the natural logarithm and show each algebraic step clearly.",
       "translation": "求出自然对数，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "natural log ln"
       ]
@@ -5403,6 +6031,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the change-of-base formula and show each algebraic step clearly.",
       "translation": "求出换底公式，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "change the logarithm base"
       ]
@@ -5420,6 +6050,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the completing the square and show each algebraic step clearly.",
       "translation": "求出配方法，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "complete the square"
       ]
@@ -5437,6 +6069,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the proof by contradiction and show each algebraic step clearly.",
       "translation": "求出反证法，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "contradiction argument"
       ]
@@ -5454,6 +6088,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the counterexample and show each algebraic step clearly.",
       "translation": "求出反例，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "give a counterexample"
       ]
@@ -5471,6 +6107,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the necessary condition and show each algebraic step clearly.",
       "translation": "求出必要条件，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "necessary but not sufficient"
       ]
@@ -5488,6 +6126,8 @@
       "cn": "用于代数运算、函数、证明和图像变换题。",
       "example": "Determine the sufficient condition and show each algebraic step clearly.",
       "translation": "求出充分条件，并清楚写出每一步代数过程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "sufficient condition"
       ]
@@ -5505,6 +6145,8 @@
       "cn": "用于微分、积分、微分方程和数值方法题。",
       "example": "Use calculus to determine the derivative and justify the method.",
       "translation": "使用微积分确定导数，并说明所用方法。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "first derivative"
       ]
@@ -5522,6 +6164,8 @@
       "cn": "用于微分、积分、微分方程和数值方法题。",
       "example": "Use calculus to determine the differentiate and justify the method.",
       "translation": "使用微积分确定求导，并说明所用方法。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "differentiate with respect to x"
       ]
@@ -5539,6 +6183,8 @@
       "cn": "用于微分、积分、微分方程和数值方法题。",
       "example": "Use calculus to determine the gradient function and justify the method.",
       "translation": "使用微积分确定斜率函数，并说明所用方法。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "derive the gradient function"
       ]
@@ -5556,6 +6202,8 @@
       "cn": "用于微分、积分、微分方程和数值方法题。",
       "example": "Use calculus to determine the stationary point and justify the method.",
       "translation": "使用微积分确定驻点，并说明所用方法。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "coordinates of stationary points"
       ]
@@ -5573,6 +6221,8 @@
       "cn": "用于微分、积分、微分方程和数值方法题。",
       "example": "Use calculus to determine the local maximum and justify the method.",
       "translation": "使用微积分确定局部极大值，并说明所用方法。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "local maximum point"
       ]
@@ -5590,6 +6240,8 @@
       "cn": "用于微分、积分、微分方程和数值方法题。",
       "example": "Use calculus to determine the local minimum and justify the method.",
       "translation": "使用微积分确定局部极小值，并说明所用方法。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "local minimum point"
       ]
@@ -5607,6 +6259,8 @@
       "cn": "用于微分、积分、微分方程和数值方法题。",
       "example": "Use calculus to determine the point of inflection and justify the method.",
       "translation": "使用微积分确定拐点，并说明所用方法。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "stationary point of inflection"
       ]
@@ -5624,6 +6278,8 @@
       "cn": "用于微分、积分、微分方程和数值方法题。",
       "example": "Use calculus to determine the increasing function and justify the method.",
       "translation": "使用微积分确定增函数，并说明所用方法。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "increasing interval"
       ]
@@ -5641,6 +6297,8 @@
       "cn": "用于微分、积分、微分方程和数值方法题。",
       "example": "Use calculus to determine the decreasing function and justify the method.",
       "translation": "使用微积分确定减函数，并说明所用方法。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "decreasing interval"
       ]
@@ -5658,6 +6316,8 @@
       "cn": "用于微分、积分、微分方程和数值方法题。",
       "example": "Use calculus to determine the second derivative and justify the method.",
       "translation": "使用微积分确定二阶导数，并说明所用方法。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "second-derivative test"
       ]
@@ -5675,6 +6335,8 @@
       "cn": "用于微分、积分、微分方程和数值方法题。",
       "example": "Use calculus to determine the rate of change and justify the method.",
       "translation": "使用微积分确定变化率，并说明所用方法。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "instantaneous rate of change"
       ]
@@ -5692,6 +6354,8 @@
       "cn": "用于微分、积分、微分方程和数值方法题。",
       "example": "Use calculus to determine the tangent and justify the method.",
       "translation": "使用微积分确定切线，并说明所用方法。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "equation of the tangent"
       ]
@@ -5709,6 +6373,8 @@
       "cn": "用于微分、积分、微分方程和数值方法题。",
       "example": "Use calculus to determine the normal and justify the method.",
       "translation": "使用微积分确定法线，并说明所用方法。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "equation of the normal"
       ]
@@ -5726,6 +6392,8 @@
       "cn": "用于微分、积分、微分方程和数值方法题。",
       "example": "Use calculus to determine the implicit differentiation and justify the method.",
       "translation": "使用微积分确定隐函数求导，并说明所用方法。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "differentiate implicitly"
       ]
@@ -5743,6 +6411,8 @@
       "cn": "用于微分、积分、微分方程和数值方法题。",
       "example": "Use calculus to determine the parametric differentiation and justify the method.",
       "translation": "使用微积分确定参数求导，并说明所用方法。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "dy by dx in parametric form"
       ]
@@ -5760,6 +6430,8 @@
       "cn": "用于微分、积分、微分方程和数值方法题。",
       "example": "Use calculus to determine the product rule and justify the method.",
       "translation": "使用微积分确定乘积法则，并说明所用方法。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "apply the product rule"
       ]
@@ -5777,6 +6449,8 @@
       "cn": "用于微分、积分、微分方程和数值方法题。",
       "example": "Use calculus to determine the quotient rule and justify the method.",
       "translation": "使用微积分确定商法则，并说明所用方法。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "apply the quotient rule"
       ]
@@ -5794,6 +6468,8 @@
       "cn": "用于微分、积分、微分方程和数值方法题。",
       "example": "Use calculus to determine the chain rule and justify the method.",
       "translation": "使用微积分确定链式法则，并说明所用方法。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "apply the chain rule"
       ]
@@ -5811,6 +6487,8 @@
       "cn": "用于微分、积分、微分方程和数值方法题。",
       "example": "Use calculus to determine the integration and justify the method.",
       "translation": "使用微积分确定积分，并说明所用方法。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "integration technique"
       ]
@@ -5828,6 +6506,8 @@
       "cn": "用于微分、积分、微分方程和数值方法题。",
       "example": "Use calculus to determine the indefinite integral and justify the method.",
       "translation": "使用微积分确定不定积分，并说明所用方法。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "constant of integration"
       ]
@@ -5845,6 +6525,8 @@
       "cn": "用于微分、积分、微分方程和数值方法题。",
       "example": "Use calculus to determine the definite integral and justify the method.",
       "translation": "使用微积分确定定积分，并说明所用方法。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "limits of integration"
       ]
@@ -5862,6 +6544,8 @@
       "cn": "用于微分、积分、微分方程和数值方法题。",
       "example": "Use calculus to determine the area under a curve and justify the method.",
       "translation": "使用微积分确定曲线下面积，并说明所用方法。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "signed area"
       ]
@@ -5879,6 +6563,8 @@
       "cn": "用于微分、积分、微分方程和数值方法题。",
       "example": "Use calculus to determine the area between curves and justify the method.",
       "translation": "使用微积分确定曲线间面积，并说明所用方法。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "points of intersection"
       ]
@@ -5896,6 +6582,8 @@
       "cn": "用于微分、积分、微分方程和数值方法题。",
       "example": "Use calculus to determine the volume of revolution and justify the method.",
       "translation": "使用微积分确定旋转体体积，并说明所用方法。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "rotate about the x-axis"
       ]
@@ -5913,6 +6601,8 @@
       "cn": "用于微分、积分、微分方程和数值方法题。",
       "example": "Use calculus to determine the substitution and justify the method.",
       "translation": "使用微积分确定换元积分，并说明所用方法。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "integration by substitution"
       ]
@@ -5930,6 +6620,8 @@
       "cn": "用于微分、积分、微分方程和数值方法题。",
       "example": "Use calculus to determine the integration by parts and justify the method.",
       "translation": "使用微积分确定分部积分，并说明所用方法。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "apply integration by parts"
       ]
@@ -5947,6 +6639,8 @@
       "cn": "用于微分、积分、微分方程和数值方法题。",
       "example": "Use calculus to determine the differential equation and justify the method.",
       "translation": "使用微积分确定微分方程，并说明所用方法。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "first-order differential equation"
       ]
@@ -5964,6 +6658,8 @@
       "cn": "用于微分、积分、微分方程和数值方法题。",
       "example": "Use calculus to determine the separation of variables and justify the method.",
       "translation": "使用微积分确定变量分离，并说明所用方法。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "separate the variables"
       ]
@@ -5981,6 +6677,8 @@
       "cn": "用于微分、积分、微分方程和数值方法题。",
       "example": "Use calculus to determine the initial condition and justify the method.",
       "translation": "使用微积分确定初始条件，并说明所用方法。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "apply the initial condition"
       ]
@@ -5998,6 +6696,8 @@
       "cn": "用于微分、积分、微分方程和数值方法题。",
       "example": "Use calculus to determine the trapezium rule and justify the method.",
       "translation": "使用微积分确定梯形法则，并说明所用方法。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "trapezium-rule estimate"
       ]
@@ -6015,6 +6715,8 @@
       "cn": "用于微分、积分、微分方程和数值方法题。",
       "example": "Use calculus to determine the iteration and justify the method.",
       "translation": "使用微积分确定迭代，并说明所用方法。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "iterative formula"
       ]
@@ -6032,6 +6734,8 @@
       "cn": "用于微分、积分、微分方程和数值方法题。",
       "example": "Use calculus to determine the convergence and justify the method.",
       "translation": "使用微积分确定收敛，并说明所用方法。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "iteration converges"
       ]
@@ -6049,6 +6753,8 @@
       "cn": "用于微分、积分、微分方程和数值方法题。",
       "example": "Use calculus to determine the divergence and justify the method.",
       "translation": "使用微积分确定发散，并说明所用方法。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "iteration diverges"
       ]
@@ -6066,6 +6772,8 @@
       "cn": "用于微分、积分、微分方程和数值方法题。",
       "example": "Use calculus to determine the numerical solution and justify the method.",
       "translation": "使用微积分确定数值解，并说明所用方法。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "numerical root"
       ]
@@ -6083,6 +6791,8 @@
       "cn": "用于三角函数、弧度制、向量和空间几何题。",
       "example": "Use the diagram to determine the sine and state any assumptions.",
       "translation": "利用图形确定正弦，并写出所作假设。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "sine rule"
       ]
@@ -6100,6 +6810,8 @@
       "cn": "用于三角函数、弧度制、向量和空间几何题。",
       "example": "Use the diagram to determine the cosine and state any assumptions.",
       "translation": "利用图形确定余弦，并写出所作假设。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "cosine rule"
       ]
@@ -6117,6 +6829,8 @@
       "cn": "用于三角函数、弧度制、向量和空间几何题。",
       "example": "Use the diagram to determine the tangent ratio and state any assumptions.",
       "translation": "利用图形确定正切，并写出所作假设。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "tangent equation"
       ]
@@ -6134,6 +6848,8 @@
       "cn": "用于三角函数、弧度制、向量和空间几何题。",
       "example": "Use the diagram to determine the radian and state any assumptions.",
       "translation": "利用图形确定弧度，并写出所作假设。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "angle in radians"
       ]
@@ -6151,6 +6867,8 @@
       "cn": "用于三角函数、弧度制、向量和空间几何题。",
       "example": "Use the diagram to determine the arc length and state any assumptions.",
       "translation": "利用图形确定弧长，并写出所作假设。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "arc-length formula"
       ]
@@ -6168,6 +6886,8 @@
       "cn": "用于三角函数、弧度制、向量和空间几何题。",
       "example": "Use the diagram to determine the sector area and state any assumptions.",
       "translation": "利用图形确定扇形面积，并写出所作假设。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "area of a sector"
       ]
@@ -6185,6 +6905,8 @@
       "cn": "用于三角函数、弧度制、向量和空间几何题。",
       "example": "Use the diagram to determine the unit circle and state any assumptions.",
       "translation": "利用图形确定单位圆，并写出所作假设。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "unit-circle definition"
       ]
@@ -6202,6 +6924,8 @@
       "cn": "用于三角函数、弧度制、向量和空间几何题。",
       "example": "Use the diagram to determine the periodic function and state any assumptions.",
       "translation": "利用图形确定周期函数，并写出所作假设。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "period of sine"
       ]
@@ -6219,6 +6943,8 @@
       "cn": "用于三角函数、弧度制、向量和空间几何题。",
       "example": "Use the diagram to determine the trigonometric identity and state any assumptions.",
       "translation": "利用图形确定三角恒等式，并写出所作假设。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "prove a trigonometric identity"
       ]
@@ -6236,6 +6962,8 @@
       "cn": "用于三角函数、弧度制、向量和空间几何题。",
       "example": "Use the diagram to determine the double-angle formula and state any assumptions.",
       "translation": "利用图形确定二倍角公式，并写出所作假设。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "double-angle identity"
       ]
@@ -6253,6 +6981,8 @@
       "cn": "用于三角函数、弧度制、向量和空间几何题。",
       "example": "Use the diagram to determine the addition formula and state any assumptions.",
       "translation": "利用图形确定和角公式，并写出所作假设。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "angle-addition formula"
       ]
@@ -6270,6 +7000,8 @@
       "cn": "用于三角函数、弧度制、向量和空间几何题。",
       "example": "Use the diagram to determine the inverse trigonometric function and state any assumptions.",
       "translation": "利用图形确定反三角函数，并写出所作假设。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "inverse sine"
       ]
@@ -6287,6 +7019,8 @@
       "cn": "用于三角函数、弧度制、向量和空间几何题。",
       "example": "Use the diagram to determine the bearing and state any assumptions.",
       "translation": "利用图形确定方位角，并写出所作假设。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "three-figure bearing"
       ]
@@ -6304,6 +7038,8 @@
       "cn": "用于三角函数、弧度制、向量和空间几何题。",
       "example": "Use the diagram to determine the vector and state any assumptions.",
       "translation": "利用图形确定向量，并写出所作假设。",
+      "formula": "|v| = sqrt(x^2 + y^2) for a 2D vector (x, y)",
+      "knowledgePoint": "A vector is a quantity with magnitude and direction. In coordinate form, use components to calculate magnitude and direction.",
       "collocations": [
         "column vector"
       ]
@@ -6321,6 +7057,8 @@
       "cn": "用于三角函数、弧度制、向量和空间几何题。",
       "example": "Use the diagram to determine the magnitude and state any assumptions.",
       "translation": "利用图形确定模长，并写出所作假设。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "magnitude of a vector"
       ]
@@ -6338,6 +7076,8 @@
       "cn": "用于三角函数、弧度制、向量和空间几何题。",
       "example": "Use the diagram to determine the unit vector and state any assumptions.",
       "translation": "利用图形确定单位向量，并写出所作假设。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "unit direction vector"
       ]
@@ -6355,6 +7095,8 @@
       "cn": "用于三角函数、弧度制、向量和空间几何题。",
       "example": "Use the diagram to determine the position vector and state any assumptions.",
       "translation": "利用图形确定位置向量，并写出所作假设。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "position vector of P"
       ]
@@ -6372,6 +7114,8 @@
       "cn": "用于三角函数、弧度制、向量和空间几何题。",
       "example": "Use the diagram to determine the direction vector and state any assumptions.",
       "translation": "利用图形确定方向向量，并写出所作假设。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "direction vector of the line"
       ]
@@ -6389,6 +7133,8 @@
       "cn": "用于三角函数、弧度制、向量和空间几何题。",
       "example": "Use the diagram to determine the scalar product and state any assumptions.",
       "translation": "利用图形确定数量积，并写出所作假设。",
+      "formula": "a · b = |a||b|cos(theta)",
+      "knowledgePoint": "Use the scalar product to find angles or prove vectors are perpendicular.",
       "collocations": [
         "scalar product",
         "dot product"
@@ -6407,6 +7153,8 @@
       "cn": "用于三角函数、弧度制、向量和空间几何题。",
       "example": "Use the diagram to determine the parallel vectors and state any assumptions.",
       "translation": "利用图形确定平行向量，并写出所作假设。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "vectors are parallel"
       ]
@@ -6424,6 +7172,8 @@
       "cn": "用于三角函数、弧度制、向量和空间几何题。",
       "example": "Use the diagram to determine the perpendicular vectors and state any assumptions.",
       "translation": "利用图形确定垂直向量，并写出所作假设。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "prove perpendicular"
       ]
@@ -6441,6 +7191,8 @@
       "cn": "用于三角函数、弧度制、向量和空间几何题。",
       "example": "Use the diagram to determine the collinear points and state any assumptions.",
       "translation": "利用图形确定共线点，并写出所作假设。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "show points are collinear"
       ]
@@ -6458,6 +7210,8 @@
       "cn": "用于三角函数、弧度制、向量和空间几何题。",
       "example": "Use the diagram to determine the resultant vector and state any assumptions.",
       "translation": "利用图形确定合向量，并写出所作假设。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "resultant displacement"
       ]
@@ -6475,6 +7229,8 @@
       "cn": "用于三角函数、弧度制、向量和空间几何题。",
       "example": "Use the diagram to determine the vector component and state any assumptions.",
       "translation": "利用图形确定向量分量，并写出所作假设。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "horizontal component"
       ]
@@ -6492,6 +7248,8 @@
       "cn": "用于三角函数、弧度制、向量和空间几何题。",
       "example": "Use the diagram to determine the vector equation of a line and state any assumptions.",
       "translation": "利用图形确定直线的向量方程，并写出所作假设。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "line in vector form"
       ]
@@ -6509,6 +7267,8 @@
       "cn": "用于三角函数、弧度制、向量和空间几何题。",
       "example": "Use the diagram to determine the intersection and state any assumptions.",
       "translation": "利用图形确定交点，并写出所作假设。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "point of intersection"
       ]
@@ -6526,6 +7286,8 @@
       "cn": "用于三角函数、弧度制、向量和空间几何题。",
       "example": "Use the diagram to determine the angle between vectors and state any assumptions.",
       "translation": "利用图形确定向量夹角，并写出所作假设。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "find the angle between vectors"
       ]
@@ -6543,6 +7305,8 @@
       "cn": "用于三角函数、弧度制、向量和空间几何题。",
       "example": "Use the diagram to determine the relative velocity and state any assumptions.",
       "translation": "利用图形确定相对速度，并写出所作假设。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "relative-velocity vector"
       ]
@@ -6560,6 +7324,8 @@
       "cn": "用于三角函数、弧度制、向量和空间几何题。",
       "example": "Use the diagram to determine the basis vector and state any assumptions.",
       "translation": "利用图形确定基向量，并写出所作假设。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "standard basis"
       ]
@@ -6577,6 +7343,8 @@
       "cn": "用于三角函数、弧度制、向量和空间几何题。",
       "example": "Use the diagram to determine the projection and state any assumptions.",
       "translation": "利用图形确定投影，并写出所作假设。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "scalar projection"
       ]
@@ -6594,6 +7362,8 @@
       "cn": "用于直线、圆、轨迹和曲线草图题。",
       "example": "Find the Cartesian coordinates and express the answer in exact form where possible.",
       "translation": "求出笛卡尔坐标，并尽可能将答案写成精确形式。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "Cartesian plane"
       ]
@@ -6611,6 +7381,8 @@
       "cn": "用于直线、圆、轨迹和曲线草图题。",
       "example": "Find the straight-line equation and express the answer in exact form where possible.",
       "translation": "求出直线方程，并尽可能将答案写成精确形式。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "equation y equals mx plus c"
       ]
@@ -6628,6 +7400,8 @@
       "cn": "用于直线、圆、轨迹和曲线草图题。",
       "example": "Find the y-intercept and express the answer in exact form where possible.",
       "translation": "求出纵截距，并尽可能将答案写成精确形式。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "find the y-intercept"
       ]
@@ -6645,6 +7419,8 @@
       "cn": "用于直线、圆、轨迹和曲线草图题。",
       "example": "Find the midpoint and express the answer in exact form where possible.",
       "translation": "求出中点，并尽可能将答案写成精确形式。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "midpoint formula"
       ]
@@ -6662,6 +7438,8 @@
       "cn": "用于直线、圆、轨迹和曲线草图题。",
       "example": "Find the distance formula and express the answer in exact form where possible.",
       "translation": "求出距离公式，并尽可能将答案写成精确形式。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "distance between points"
       ]
@@ -6679,6 +7457,8 @@
       "cn": "用于直线、圆、轨迹和曲线草图题。",
       "example": "Find the circle equation and express the answer in exact form where possible.",
       "translation": "求出圆方程，并尽可能将答案写成精确形式。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "equation of a circle"
       ]
@@ -6696,6 +7476,8 @@
       "cn": "用于直线、圆、轨迹和曲线草图题。",
       "example": "Find the centre of a circle and express the answer in exact form where possible.",
       "translation": "求出圆心，并尽可能将答案写成精确形式。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "coordinates of the centre"
       ]
@@ -6713,6 +7495,8 @@
       "cn": "用于直线、圆、轨迹和曲线草图题。",
       "example": "Find the radius and express the answer in exact form where possible.",
       "translation": "求出半径，并尽可能将答案写成精确形式。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "radius of the circle"
       ]
@@ -6730,6 +7514,8 @@
       "cn": "用于直线、圆、轨迹和曲线草图题。",
       "example": "Find the perpendicular bisector and express the answer in exact form where possible.",
       "translation": "求出垂直平分线，并尽可能将答案写成精确形式。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "equation of perpendicular bisector"
       ]
@@ -6747,6 +7533,8 @@
       "cn": "用于直线、圆、轨迹和曲线草图题。",
       "example": "Find the locus and express the answer in exact form where possible.",
       "translation": "求出轨迹，并尽可能将答案写成精确形式。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "locus of a moving point"
       ]
@@ -6764,6 +7552,8 @@
       "cn": "用于直线、圆、轨迹和曲线草图题。",
       "example": "Find the parametric curve and express the answer in exact form where possible.",
       "translation": "求出参数曲线，并尽可能将答案写成精确形式。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "parametric representation"
       ]
@@ -6781,6 +7571,8 @@
       "cn": "用于直线、圆、轨迹和曲线草图题。",
       "example": "Find the curve sketch and express the answer in exact form where possible.",
       "translation": "求出曲线草图，并尽可能将答案写成精确形式。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "sketch the curve"
       ]
@@ -6798,6 +7590,8 @@
       "cn": "用于直线、圆、轨迹和曲线草图题。",
       "example": "Find the turning point and express the answer in exact form where possible.",
       "translation": "求出转折点，并尽可能将答案写成精确形式。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "coordinates of turning point"
       ]
@@ -6815,6 +7609,8 @@
       "cn": "用于直线、圆、轨迹和曲线草图题。",
       "example": "Find the horizontal asymptote and express the answer in exact form where possible.",
       "translation": "求出水平渐近线，并尽可能将答案写成精确形式。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "horizontal asymptote"
       ]
@@ -6832,6 +7628,8 @@
       "cn": "用于直线、圆、轨迹和曲线草图题。",
       "example": "Find the vertical asymptote and express the answer in exact form where possible.",
       "translation": "求出垂直渐近线，并尽可能将答案写成精确形式。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "vertical asymptote"
       ]
@@ -6849,6 +7647,8 @@
       "cn": "用于直线、圆、轨迹和曲线草图题。",
       "example": "Find the intersection condition and express the answer in exact form where possible.",
       "translation": "求出相交条件，并尽可能将答案写成精确形式。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "two distinct intersections"
       ]
@@ -6866,6 +7666,8 @@
       "cn": "用于直线、圆、轨迹和曲线草图题。",
       "example": "Find the implicit curve and express the answer in exact form where possible.",
       "translation": "求出隐式曲线，并尽可能将答案写成精确形式。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "implicit equation"
       ]
@@ -6883,6 +7685,8 @@
       "cn": "用于直线、圆、轨迹和曲线草图题。",
       "example": "Find the coordinate transformation and express the answer in exact form where possible.",
       "translation": "求出坐标变换，并尽可能将答案写成精确形式。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "transform coordinates"
       ]
@@ -6900,6 +7704,8 @@
       "cn": "用于直线、圆、轨迹和曲线草图题。",
       "example": "Find the normal gradient and express the answer in exact form where possible.",
       "translation": "求出法线斜率，并尽可能将答案写成精确形式。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "gradient of the normal"
       ]
@@ -6917,6 +7723,8 @@
       "cn": "用于直线、圆、轨迹和曲线草图题。",
       "example": "Find the tangent condition and express the answer in exact form where possible.",
       "translation": "求出相切条件，并尽可能将答案写成精确形式。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "line tangent to circle"
       ]
@@ -6934,6 +7742,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the population and interpret it in context.",
       "translation": "利用已知信息计算总体，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "target population"
       ]
@@ -6951,6 +7761,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the sample and interpret it in context.",
       "translation": "利用已知信息计算样本，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "representative sample"
       ]
@@ -6968,6 +7780,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the census and interpret it in context.",
       "translation": "利用已知信息计算普查，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "conduct a census"
       ]
@@ -6985,6 +7799,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the sampling frame and interpret it in context.",
       "translation": "利用已知信息计算抽样框，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "complete sampling frame"
       ]
@@ -7002,6 +7818,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the simple random sample and interpret it in context.",
       "translation": "利用已知信息计算简单随机样本，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "select at random"
       ]
@@ -7019,6 +7837,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the stratified sample and interpret it in context.",
       "translation": "利用已知信息计算分层样本，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "stratified sampling"
       ]
@@ -7036,6 +7856,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the systematic sample and interpret it in context.",
       "translation": "利用已知信息计算系统抽样，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "sampling interval"
       ]
@@ -7053,6 +7875,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the sampling bias and interpret it in context.",
       "translation": "利用已知信息计算抽样偏差，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "biased sample"
       ]
@@ -7070,6 +7894,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the outlier and interpret it in context.",
       "translation": "利用已知信息计算离群值，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "identify an outlier"
       ]
@@ -7087,6 +7913,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the mean and interpret it in context.",
       "translation": "利用已知信息计算平均数，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "sample mean"
       ]
@@ -7104,6 +7932,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the median and interpret it in context.",
       "translation": "利用已知信息计算中位数，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "median value"
       ]
@@ -7121,6 +7951,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the mode and interpret it in context.",
       "translation": "利用已知信息计算众数，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "modal class"
       ]
@@ -7138,6 +7970,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the variance and interpret it in context.",
       "translation": "利用已知信息计算方差，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "population variance"
       ]
@@ -7155,6 +7989,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the standard deviation and interpret it in context.",
       "translation": "利用已知信息计算标准差，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "small standard deviation"
       ]
@@ -7172,6 +8008,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the quartile and interpret it in context.",
       "translation": "利用已知信息计算四分位数，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "lower quartile",
         "upper quartile"
@@ -7190,6 +8028,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the interquartile range and interpret it in context.",
       "translation": "利用已知信息计算四分位距，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "IQR"
       ]
@@ -7207,6 +8047,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the cumulative frequency and interpret it in context.",
       "translation": "利用已知信息计算累积频数，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "cumulative-frequency curve"
       ]
@@ -7224,6 +8066,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the frequency density and interpret it in context.",
       "translation": "利用已知信息计算频率密度，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "histogram frequency density"
       ]
@@ -7241,6 +8085,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the histogram and interpret it in context.",
       "translation": "利用已知信息计算直方图，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "draw a histogram"
       ]
@@ -7258,6 +8104,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the box plot and interpret it in context.",
       "translation": "利用已知信息计算箱线图，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "compare box plots"
       ]
@@ -7275,6 +8123,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the correlation and interpret it in context.",
       "translation": "利用已知信息计算相关性，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "positive correlation"
       ]
@@ -7292,6 +8142,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the regression line and interpret it in context.",
       "translation": "利用已知信息计算回归直线，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "least-squares regression line"
       ]
@@ -7309,6 +8161,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the interpolation and interpret it in context.",
       "translation": "利用已知信息计算内插，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "interpolate a value"
       ]
@@ -7326,6 +8180,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the extrapolation and interpret it in context.",
       "translation": "利用已知信息计算外推，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "unreliable extrapolation"
       ]
@@ -7343,6 +8199,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the probability and interpret it in context.",
       "translation": "利用已知信息计算概率，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "calculate probability"
       ]
@@ -7360,6 +8218,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the outcome and interpret it in context.",
       "translation": "利用已知信息计算结果，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "equally likely outcomes"
       ]
@@ -7377,6 +8237,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the event and interpret it in context.",
       "translation": "利用已知信息计算事件，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "probability of an event"
       ]
@@ -7394,6 +8256,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the sample space and interpret it in context.",
       "translation": "利用已知信息计算样本空间，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "sample-space diagram"
       ]
@@ -7411,6 +8275,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the mutually exclusive events and interpret it in context.",
       "translation": "利用已知信息计算互斥事件，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "mutually exclusive outcomes"
       ]
@@ -7428,6 +8294,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the independent events and interpret it in context.",
       "translation": "利用已知信息计算独立事件，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "test for independence"
       ]
@@ -7445,6 +8313,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the conditional probability and interpret it in context.",
       "translation": "利用已知信息计算条件概率，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "conditional-probability formula"
       ]
@@ -7462,6 +8332,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the tree diagram and interpret it in context.",
       "translation": "利用已知信息计算树状图，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "probability tree"
       ]
@@ -7479,6 +8351,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the Venn diagram and interpret it in context.",
       "translation": "利用已知信息计算维恩图，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "shade a Venn diagram"
       ]
@@ -7496,6 +8370,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the complement and interpret it in context.",
       "translation": "利用已知信息计算补集，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "complementary event"
       ]
@@ -7513,6 +8389,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the union and interpret it in context.",
       "translation": "利用已知信息计算并集，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "A union B"
       ]
@@ -7530,6 +8408,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the intersection and interpret it in context.",
       "translation": "利用已知信息计算交集，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "A intersection B"
       ]
@@ -7547,6 +8427,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the discrete random variable and interpret it in context.",
       "translation": "利用已知信息计算离散随机变量，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "probability distribution table"
       ]
@@ -7564,6 +8446,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the expected value and interpret it in context.",
       "translation": "利用已知信息计算期望值，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "calculate expectation"
       ]
@@ -7581,6 +8465,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the binomial distribution and interpret it in context.",
       "translation": "利用已知信息计算二项分布，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "binomial probability"
       ]
@@ -7598,6 +8484,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the normal distribution and interpret it in context.",
       "translation": "利用已知信息计算正态分布，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "normal approximation"
       ]
@@ -7615,6 +8503,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the z-score and interpret it in context.",
       "translation": "利用已知信息计算标准分数，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "standardise using z"
       ]
@@ -7632,6 +8522,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the null hypothesis and interpret it in context.",
       "translation": "利用已知信息计算原假设，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "null hypothesis H0"
       ]
@@ -7649,6 +8541,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the alternative hypothesis and interpret it in context.",
       "translation": "利用已知信息计算备择假设，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "alternative hypothesis H1"
       ]
@@ -7666,6 +8560,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the significance level and interpret it in context.",
       "translation": "利用已知信息计算显著性水平，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "5 percent significance level"
       ]
@@ -7683,6 +8579,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the critical region and interpret it in context.",
       "translation": "利用已知信息计算拒绝域，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "critical value"
       ]
@@ -7700,6 +8598,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the p-value and interpret it in context.",
       "translation": "利用已知信息计算p 值，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "compare p-value"
       ]
@@ -7717,6 +8617,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the Type I error and interpret it in context.",
       "translation": "利用已知信息计算第一类错误，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "probability of Type I error"
       ]
@@ -7734,6 +8636,8 @@
       "cn": "用于抽样、统计图、概率分布和假设检验题。",
       "example": "Use the information given to calculate the Type II error and interpret it in context.",
       "translation": "利用已知信息计算第二类错误，并结合题目背景解释。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "risk of Type II error"
       ]
@@ -7751,6 +8655,8 @@
       "cn": "用于受力、运动学、动量、功能和连接物体题。",
       "example": "Model the situation and determine the particle using the stated assumptions.",
       "translation": "根据题目所给假设建立模型，并求出质点。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "particle model"
       ]
@@ -7768,6 +8674,8 @@
       "cn": "用于受力、运动学、动量、功能和连接物体题。",
       "example": "Model the situation and determine the rigid body using the stated assumptions.",
       "translation": "根据题目所给假设建立模型，并求出刚体。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "rigid-body equilibrium"
       ]
@@ -7785,6 +8693,8 @@
       "cn": "用于受力、运动学、动量、功能和连接物体题。",
       "example": "Model the situation and determine the smooth surface using the stated assumptions.",
       "translation": "根据题目所给假设建立模型，并求出光滑表面。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "smooth plane"
       ]
@@ -7802,6 +8712,8 @@
       "cn": "用于受力、运动学、动量、功能和连接物体题。",
       "example": "Model the situation and determine the rough surface using the stated assumptions.",
       "translation": "根据题目所给假设建立模型，并求出粗糙表面。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "rough inclined plane"
       ]
@@ -7819,6 +8731,8 @@
       "cn": "用于受力、运动学、动量、功能和连接物体题。",
       "example": "Model the situation and determine the light string using the stated assumptions.",
       "translation": "根据题目所给假设建立模型，并求出轻绳。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "light inextensible string"
       ]
@@ -7836,6 +8750,8 @@
       "cn": "用于受力、运动学、动量、功能和连接物体题。",
       "example": "Model the situation and determine the inextensible string using the stated assumptions.",
       "translation": "根据题目所给假设建立模型，并求出不可伸长的绳。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "connected particles"
       ]
@@ -7853,6 +8769,8 @@
       "cn": "用于受力、运动学、动量、功能和连接物体题。",
       "example": "Model the situation and determine the tension using the stated assumptions.",
       "translation": "根据题目所给假设建立模型，并求出张力。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "tension in the string"
       ]
@@ -7870,6 +8788,8 @@
       "cn": "用于受力、运动学、动量、功能和连接物体题。",
       "example": "Model the situation and determine the thrust using the stated assumptions.",
       "translation": "根据题目所给假设建立模型，并求出推力。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "thrust in the rod"
       ]
@@ -7887,6 +8807,8 @@
       "cn": "用于受力、运动学、动量、功能和连接物体题。",
       "example": "Model the situation and determine the normal reaction using the stated assumptions.",
       "translation": "根据题目所给假设建立模型，并求出支持力。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "normal reaction force"
       ]
@@ -7904,6 +8826,8 @@
       "cn": "用于受力、运动学、动量、功能和连接物体题。",
       "example": "Model the situation and determine the limiting friction using the stated assumptions.",
       "translation": "根据题目所给假设建立模型，并求出极限摩擦力。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "friction is limiting"
       ]
@@ -7921,6 +8845,8 @@
       "cn": "用于受力、运动学、动量、功能和连接物体题。",
       "example": "Model the situation and determine the coefficient of friction using the stated assumptions.",
       "translation": "根据题目所给假设建立模型，并求出摩擦系数。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "coefficient mu"
       ]
@@ -7938,6 +8864,8 @@
       "cn": "用于受力、运动学、动量、功能和连接物体题。",
       "example": "Model the situation and determine the resolving forces using the stated assumptions.",
       "translation": "根据题目所给假设建立模型，并求出分解力。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "resolve parallel to the plane"
       ]
@@ -7955,6 +8883,8 @@
       "cn": "用于受力、运动学、动量、功能和连接物体题。",
       "example": "Model the situation and determine the equations of motion using the stated assumptions.",
       "translation": "根据题目所给假设建立模型，并求出运动方程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "SUVAT equations"
       ]
@@ -7972,6 +8902,8 @@
       "cn": "用于受力、运动学、动量、功能和连接物体题。",
       "example": "Model the situation and determine the displacement-time graph using the stated assumptions.",
       "translation": "根据题目所给假设建立模型，并求出位移—时间图。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "gradient of displacement-time graph"
       ]
@@ -7989,6 +8921,8 @@
       "cn": "用于受力、运动学、动量、功能和连接物体题。",
       "example": "Model the situation and determine the velocity-time graph using the stated assumptions.",
       "translation": "根据题目所给假设建立模型，并求出速度—时间图。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "area under velocity-time graph"
       ]
@@ -8006,6 +8940,8 @@
       "cn": "用于受力、运动学、动量、功能和连接物体题。",
       "example": "Model the situation and determine the connected particles using the stated assumptions.",
       "translation": "根据题目所给假设建立模型，并求出连接物体。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "connected-particle system"
       ]
@@ -8023,6 +8959,8 @@
       "cn": "用于受力、运动学、动量、功能和连接物体题。",
       "example": "Model the situation and determine the pulley using the stated assumptions.",
       "translation": "根据题目所给假设建立模型，并求出滑轮。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "smooth pulley"
       ]
@@ -8040,6 +8978,8 @@
       "cn": "用于受力、运动学、动量、功能和连接物体题。",
       "example": "Model the situation and determine the equilibrium of a particle using the stated assumptions.",
       "translation": "根据题目所给假设建立模型，并求出质点平衡。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "particle in equilibrium"
       ]
@@ -8057,6 +8997,8 @@
       "cn": "用于受力、运动学、动量、功能和连接物体题。",
       "example": "Model the situation and determine the moment of a force using the stated assumptions.",
       "translation": "根据题目所给假设建立模型，并求出力矩。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "take moments about the pivot"
       ]
@@ -8074,6 +9016,8 @@
       "cn": "用于受力、运动学、动量、功能和连接物体题。",
       "example": "Model the situation and determine the projectile range using the stated assumptions.",
       "translation": "根据题目所给假设建立模型，并求出射程。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "maximum range"
       ]
@@ -8091,6 +9035,8 @@
       "cn": "用于受力、运动学、动量、功能和连接物体题。",
       "example": "Model the situation and determine the time of flight using the stated assumptions.",
       "translation": "根据题目所给假设建立模型，并求出飞行时间。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "calculate time of flight"
       ]
@@ -8108,6 +9054,8 @@
       "cn": "用于受力、运动学、动量、功能和连接物体题。",
       "example": "Model the situation and determine the work-energy principle using the stated assumptions.",
       "translation": "根据题目所给假设建立模型，并求出功能原理。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "apply work-energy principle"
       ]
@@ -8125,6 +9073,8 @@
       "cn": "用于受力、运动学、动量、功能和连接物体题。",
       "example": "Model the situation and determine the impulse-momentum principle using the stated assumptions.",
       "translation": "根据题目所给假设建立模型，并求出冲量—动量原理。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "apply impulse-momentum"
       ]
@@ -8142,6 +9092,8 @@
       "cn": "用于受力、运动学、动量、功能和连接物体题。",
       "example": "Model the situation and determine the relative motion using the stated assumptions.",
       "translation": "根据题目所给假设建立模型，并求出相对运动。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "relative velocity"
       ]
@@ -8159,8 +9111,1030 @@
       "cn": "用于受力、运动学、动量、功能和连接物体题。",
       "example": "Model the situation and determine the modelling assumption using the stated assumptions.",
       "translation": "根据题目所给假设建立模型，并求出建模假设。",
+      "formula": "",
+      "knowledgePoint": "",
       "collocations": [
         "state a modelling assumption"
+      ]
+    },
+    {
+      "id": "chemistry-atomic-and-quantitative-atom",
+      "subject": "chemistry",
+      "topic": "atomic-and-quantitative",
+      "topicLabel": "Chemistry: Atomic & Quantitative",
+      "type": "term",
+      "word": "atom",
+      "phonetic": "",
+      "meaning": "原子",
+      "definition": "the smallest particle of an element that keeps the chemical identity of that element",
+      "cn": "用于原子结构、摩尔、化学式、浓度、滴定和定量计算题。",
+      "example": "Use atom to explain or calculate the chemical quantity in the question.",
+      "translation": "用 原子 解释或计算题目中的化学量。",
+      "formula": "",
+      "knowledgePoint": "Atoms contain protons, neutrons, and electrons.",
+      "collocations": [
+        "atomic structure",
+        "single atom"
+      ]
+    },
+    {
+      "id": "chemistry-atomic-and-quantitative-ion",
+      "subject": "chemistry",
+      "topic": "atomic-and-quantitative",
+      "topicLabel": "Chemistry: Atomic & Quantitative",
+      "type": "term",
+      "word": "ion",
+      "phonetic": "",
+      "meaning": "离子",
+      "definition": "an atom or group of atoms with a net electric charge",
+      "cn": "用于原子结构、摩尔、化学式、浓度、滴定和定量计算题。",
+      "example": "Use ion to explain or calculate the chemical quantity in the question.",
+      "translation": "用 离子 解释或计算题目中的化学量。",
+      "formula": "",
+      "knowledgePoint": "Ions form when atoms lose or gain electrons.",
+      "collocations": [
+        "positive ion",
+        "negative ion"
+      ]
+    },
+    {
+      "id": "chemistry-atomic-and-quantitative-isotope",
+      "subject": "chemistry",
+      "topic": "atomic-and-quantitative",
+      "topicLabel": "Chemistry: Atomic & Quantitative",
+      "type": "term",
+      "word": "isotope",
+      "phonetic": "",
+      "meaning": "同位素",
+      "definition": "atoms of the same element with the same proton number but different neutron numbers",
+      "cn": "用于原子结构、摩尔、化学式、浓度、滴定和定量计算题。",
+      "example": "Use isotope to explain or calculate the chemical quantity in the question.",
+      "translation": "用 同位素 解释或计算题目中的化学量。",
+      "formula": "",
+      "knowledgePoint": "Isotopes have the same atomic number but different mass numbers.",
+      "collocations": [
+        "stable isotope",
+        "radioactive isotope"
+      ]
+    },
+    {
+      "id": "chemistry-atomic-and-quantitative-relative-atomic-mass",
+      "subject": "chemistry",
+      "topic": "atomic-and-quantitative",
+      "topicLabel": "Chemistry: Atomic & Quantitative",
+      "type": "term",
+      "word": "relative atomic mass",
+      "phonetic": "",
+      "meaning": "相对原子质量",
+      "definition": "the weighted mean mass of an atom compared with one twelfth of carbon-12",
+      "cn": "用于原子结构、摩尔、化学式、浓度、滴定和定量计算题。",
+      "example": "Use relative atomic mass to explain or calculate the chemical quantity in the question.",
+      "translation": "用 相对原子质量 解释或计算题目中的化学量。",
+      "formula": "Ar",
+      "knowledgePoint": "Use isotope abundances to calculate the weighted mean.",
+      "collocations": [
+        "Ar value",
+        "relative atomic mass"
+      ]
+    },
+    {
+      "id": "chemistry-atomic-and-quantitative-relative-formula-mass",
+      "subject": "chemistry",
+      "topic": "atomic-and-quantitative",
+      "topicLabel": "Chemistry: Atomic & Quantitative",
+      "type": "term",
+      "word": "relative formula mass",
+      "phonetic": "",
+      "meaning": "相对式量",
+      "definition": "the sum of the relative atomic masses of all atoms in a formula unit",
+      "cn": "用于原子结构、摩尔、化学式、浓度、滴定和定量计算题。",
+      "example": "Use relative formula mass to explain or calculate the chemical quantity in the question.",
+      "translation": "用 相对式量 解释或计算题目中的化学量。",
+      "formula": "Mr",
+      "knowledgePoint": "Add the Ar values for every atom in the formula.",
+      "collocations": [
+        "Mr value",
+        "relative formula mass"
+      ]
+    },
+    {
+      "id": "chemistry-atomic-and-quantitative-mole",
+      "subject": "chemistry",
+      "topic": "atomic-and-quantitative",
+      "topicLabel": "Chemistry: Atomic & Quantitative",
+      "type": "term",
+      "word": "mole",
+      "phonetic": "",
+      "meaning": "摩尔",
+      "definition": "the amount of substance containing 6.02 × 10^23 specified particles",
+      "cn": "用于原子结构、摩尔、化学式、浓度、滴定和定量计算题。",
+      "example": "Use mole to explain or calculate the chemical quantity in the question.",
+      "translation": "用 摩尔 解释或计算题目中的化学量。",
+      "formula": "n = m / Mr",
+      "knowledgePoint": "Moles connect mass, particles, and gas volume.",
+      "collocations": [
+        "one mole",
+        "mole calculation"
+      ]
+    },
+    {
+      "id": "chemistry-atomic-and-quantitative-avogadro-constant",
+      "subject": "chemistry",
+      "topic": "atomic-and-quantitative",
+      "topicLabel": "Chemistry: Atomic & Quantitative",
+      "type": "term",
+      "word": "Avogadro constant",
+      "phonetic": "",
+      "meaning": "阿伏伽德罗常数",
+      "definition": "the number of particles in one mole of substance",
+      "cn": "用于原子结构、摩尔、化学式、浓度、滴定和定量计算题。",
+      "example": "Use Avogadro constant to explain or calculate the chemical quantity in the question.",
+      "translation": "用 阿伏伽德罗常数 解释或计算题目中的化学量。",
+      "formula": "N = nNA",
+      "knowledgePoint": "Use NA to convert between moles and number of particles.",
+      "collocations": [
+        "Avogadro number",
+        "Avogadro constant"
+      ]
+    },
+    {
+      "id": "chemistry-atomic-and-quantitative-empirical-formula",
+      "subject": "chemistry",
+      "topic": "atomic-and-quantitative",
+      "topicLabel": "Chemistry: Atomic & Quantitative",
+      "type": "term",
+      "word": "empirical formula",
+      "phonetic": "",
+      "meaning": "实验式",
+      "definition": "the simplest whole-number ratio of atoms of each element in a compound",
+      "cn": "用于原子结构、摩尔、化学式、浓度、滴定和定量计算题。",
+      "example": "Use empirical formula to explain or calculate the chemical quantity in the question.",
+      "translation": "用 实验式 解释或计算题目中的化学量。",
+      "formula": "",
+      "knowledgePoint": "Convert masses to moles, then divide by the smallest mole value.",
+      "collocations": [
+        "empirical formula",
+        "empirical ratio"
+      ]
+    },
+    {
+      "id": "chemistry-atomic-and-quantitative-molecular-formula",
+      "subject": "chemistry",
+      "topic": "atomic-and-quantitative",
+      "topicLabel": "Chemistry: Atomic & Quantitative",
+      "type": "term",
+      "word": "molecular formula",
+      "phonetic": "",
+      "meaning": "分子式",
+      "definition": "the actual number of atoms of each element in a molecule",
+      "cn": "用于原子结构、摩尔、化学式、浓度、滴定和定量计算题。",
+      "example": "Use molecular formula to explain or calculate the chemical quantity in the question.",
+      "translation": "用 分子式 解释或计算题目中的化学量。",
+      "formula": "",
+      "knowledgePoint": "The molecular formula is a whole-number multiple of the empirical formula.",
+      "collocations": [
+        "molecular formula",
+        "actual formula"
+      ]
+    },
+    {
+      "id": "chemistry-atomic-and-quantitative-concentration",
+      "subject": "chemistry",
+      "topic": "atomic-and-quantitative",
+      "topicLabel": "Chemistry: Atomic & Quantitative",
+      "type": "term",
+      "word": "concentration",
+      "phonetic": "",
+      "meaning": "浓度",
+      "definition": "the amount of solute dissolved per unit volume of solution",
+      "cn": "用于原子结构、摩尔、化学式、浓度、滴定和定量计算题。",
+      "example": "Use concentration to explain or calculate the chemical quantity in the question.",
+      "translation": "用 浓度 解释或计算题目中的化学量。",
+      "formula": "c = n / V",
+      "knowledgePoint": "Use dm^3 for volume when concentration is in mol dm^-3.",
+      "collocations": [
+        "solution concentration",
+        "concentration calculation"
+      ]
+    },
+    {
+      "id": "chemistry-atomic-and-quantitative-titration",
+      "subject": "chemistry",
+      "topic": "atomic-and-quantitative",
+      "topicLabel": "Chemistry: Atomic & Quantitative",
+      "type": "term",
+      "word": "titration",
+      "phonetic": "",
+      "meaning": "滴定",
+      "definition": "a method for finding an unknown concentration by reacting it with a solution of known concentration",
+      "cn": "用于原子结构、摩尔、化学式、浓度、滴定和定量计算题。",
+      "example": "Use titration to explain or calculate the chemical quantity in the question.",
+      "translation": "用 滴定 解释或计算题目中的化学量。",
+      "formula": "",
+      "knowledgePoint": "Use the concordant titres and balanced equation mole ratio.",
+      "collocations": [
+        "acid-base titration",
+        "titration curve"
+      ]
+    },
+    {
+      "id": "chemistry-atomic-and-quantitative-limiting-reagent",
+      "subject": "chemistry",
+      "topic": "atomic-and-quantitative",
+      "topicLabel": "Chemistry: Atomic & Quantitative",
+      "type": "term",
+      "word": "limiting reagent",
+      "phonetic": "",
+      "meaning": "限量试剂",
+      "definition": "the reactant that is used up first and controls the maximum amount of product",
+      "cn": "用于原子结构、摩尔、化学式、浓度、滴定和定量计算题。",
+      "example": "Use limiting reagent to explain or calculate the chemical quantity in the question.",
+      "translation": "用 限量试剂 解释或计算题目中的化学量。",
+      "formula": "",
+      "knowledgePoint": "The limiting reagent determines the theoretical yield.",
+      "collocations": [
+        "limiting reagent",
+        "limiting reactant"
+      ]
+    },
+    {
+      "id": "chemistry-atomic-and-quantitative-percentage-yield",
+      "subject": "chemistry",
+      "topic": "atomic-and-quantitative",
+      "topicLabel": "Chemistry: Atomic & Quantitative",
+      "type": "term",
+      "word": "percentage yield",
+      "phonetic": "",
+      "meaning": "百分产率",
+      "definition": "the actual yield as a percentage of the theoretical yield",
+      "cn": "用于原子结构、摩尔、化学式、浓度、滴定和定量计算题。",
+      "example": "Use percentage yield to explain or calculate the chemical quantity in the question.",
+      "translation": "用 百分产率 解释或计算题目中的化学量。",
+      "formula": "percentage yield = actual yield / theoretical yield × 100",
+      "knowledgePoint": "Actual yield is often lower because reactions may be incomplete.",
+      "collocations": [
+        "percentage yield",
+        "theoretical yield"
+      ]
+    },
+    {
+      "id": "chemistry-atomic-and-quantitative-atom-economy",
+      "subject": "chemistry",
+      "topic": "atomic-and-quantitative",
+      "topicLabel": "Chemistry: Atomic & Quantitative",
+      "type": "term",
+      "word": "atom economy",
+      "phonetic": "",
+      "meaning": "原子经济性",
+      "definition": "the percentage of reactant atoms that become part of the desired product",
+      "cn": "用于原子结构、摩尔、化学式、浓度、滴定和定量计算题。",
+      "example": "Use atom economy to explain or calculate the chemical quantity in the question.",
+      "translation": "用 原子经济性 解释或计算题目中的化学量。",
+      "formula": "atom economy = Mr desired product / total Mr reactants × 100",
+      "knowledgePoint": "High atom economy means less waste.",
+      "collocations": [
+        "atom economy",
+        "green chemistry"
+      ]
+    },
+    {
+      "id": "chemistry-atomic-and-quantitative-gas-volume",
+      "subject": "chemistry",
+      "topic": "atomic-and-quantitative",
+      "topicLabel": "Chemistry: Atomic & Quantitative",
+      "type": "term",
+      "word": "gas volume",
+      "phonetic": "",
+      "meaning": "气体体积",
+      "definition": "the volume occupied by a gas under stated conditions",
+      "cn": "用于原子结构、摩尔、化学式、浓度、滴定和定量计算题。",
+      "example": "Use gas volume to explain or calculate the chemical quantity in the question.",
+      "translation": "用 气体体积 解释或计算题目中的化学量。",
+      "formula": "V = n × 24 dm^3 at RTP",
+      "knowledgePoint": "At room temperature and pressure, one mole of gas occupies about 24 dm^3.",
+      "collocations": [
+        "molar gas volume",
+        "gas volume"
+      ]
+    },
+    {
+      "id": "chemistry-bonding-reactions-covalent-bond",
+      "subject": "chemistry",
+      "topic": "bonding-reactions",
+      "topicLabel": "Chemistry: Bonding & Reactions",
+      "type": "term",
+      "word": "covalent bond",
+      "phonetic": "",
+      "meaning": "共价键",
+      "definition": "a strong electrostatic attraction between a shared pair of electrons and the bonded nuclei",
+      "cn": "用于化学键、结构、氧化还原、催化、能量和可逆反应题。",
+      "example": "Explain how covalent bond affects the structure, reaction, or property described.",
+      "translation": "解释 共价键 如何影响题目中的结构、反应或性质。",
+      "formula": "",
+      "knowledgePoint": "Covalent bonding usually occurs between non-metals.",
+      "collocations": [
+        "single covalent bond",
+        "covalent molecule"
+      ]
+    },
+    {
+      "id": "chemistry-bonding-reactions-ionic-bond",
+      "subject": "chemistry",
+      "topic": "bonding-reactions",
+      "topicLabel": "Chemistry: Bonding & Reactions",
+      "type": "term",
+      "word": "ionic bond",
+      "phonetic": "",
+      "meaning": "离子键",
+      "definition": "the electrostatic attraction between oppositely charged ions",
+      "cn": "用于化学键、结构、氧化还原、催化、能量和可逆反应题。",
+      "example": "Explain how ionic bond affects the structure, reaction, or property described.",
+      "translation": "解释 离子键 如何影响题目中的结构、反应或性质。",
+      "formula": "",
+      "knowledgePoint": "Ionic compounds form giant lattices and often have high melting points.",
+      "collocations": [
+        "ionic bond",
+        "ionic compound"
+      ]
+    },
+    {
+      "id": "chemistry-bonding-reactions-metallic-bond",
+      "subject": "chemistry",
+      "topic": "bonding-reactions",
+      "topicLabel": "Chemistry: Bonding & Reactions",
+      "type": "term",
+      "word": "metallic bond",
+      "phonetic": "",
+      "meaning": "金属键",
+      "definition": "the electrostatic attraction between positive metal ions and delocalised electrons",
+      "cn": "用于化学键、结构、氧化还原、催化、能量和可逆反应题。",
+      "example": "Explain how metallic bond affects the structure, reaction, or property described.",
+      "translation": "解释 金属键 如何影响题目中的结构、反应或性质。",
+      "formula": "",
+      "knowledgePoint": "Delocalised electrons explain electrical conductivity.",
+      "collocations": [
+        "metallic bonding",
+        "metallic lattice"
+      ]
+    },
+    {
+      "id": "chemistry-bonding-reactions-intermolecular-forces",
+      "subject": "chemistry",
+      "topic": "bonding-reactions",
+      "topicLabel": "Chemistry: Bonding & Reactions",
+      "type": "term",
+      "word": "intermolecular forces",
+      "phonetic": "",
+      "meaning": "分子间作用力",
+      "definition": "forces of attraction between molecules",
+      "cn": "用于化学键、结构、氧化还原、催化、能量和可逆反应题。",
+      "example": "Explain how intermolecular forces affects the structure, reaction, or property described.",
+      "translation": "解释 分子间作用力 如何影响题目中的结构、反应或性质。",
+      "formula": "",
+      "knowledgePoint": "Stronger intermolecular forces usually give higher boiling points.",
+      "collocations": [
+        "weak intermolecular forces",
+        "intermolecular attraction"
+      ]
+    },
+    {
+      "id": "chemistry-bonding-reactions-giant-covalent-structure",
+      "subject": "chemistry",
+      "topic": "bonding-reactions",
+      "topicLabel": "Chemistry: Bonding & Reactions",
+      "type": "term",
+      "word": "giant covalent structure",
+      "phonetic": "",
+      "meaning": "巨型共价结构",
+      "definition": "a network of atoms joined by covalent bonds throughout the structure",
+      "cn": "用于化学键、结构、氧化还原、催化、能量和可逆反应题。",
+      "example": "Explain how giant covalent structure affects the structure, reaction, or property described.",
+      "translation": "解释 巨型共价结构 如何影响题目中的结构、反应或性质。",
+      "formula": "",
+      "knowledgePoint": "Diamond and graphite have different properties because their bonding networks differ.",
+      "collocations": [
+        "giant covalent lattice",
+        "diamond structure"
+      ]
+    },
+    {
+      "id": "chemistry-bonding-reactions-electronegativity",
+      "subject": "chemistry",
+      "topic": "bonding-reactions",
+      "topicLabel": "Chemistry: Bonding & Reactions",
+      "type": "term",
+      "word": "electronegativity",
+      "phonetic": "",
+      "meaning": "电负性",
+      "definition": "the ability of an atom to attract the bonding pair of electrons",
+      "cn": "用于化学键、结构、氧化还原、催化、能量和可逆反应题。",
+      "example": "Explain how electronegativity affects the structure, reaction, or property described.",
+      "translation": "解释 电负性 如何影响题目中的结构、反应或性质。",
+      "formula": "",
+      "knowledgePoint": "Large electronegativity differences can create polar or ionic bonding.",
+      "collocations": [
+        "electronegativity difference",
+        "polar bond"
+      ]
+    },
+    {
+      "id": "chemistry-bonding-reactions-oxidation",
+      "subject": "chemistry",
+      "topic": "bonding-reactions",
+      "topicLabel": "Chemistry: Bonding & Reactions",
+      "type": "term",
+      "word": "oxidation",
+      "phonetic": "",
+      "meaning": "氧化",
+      "definition": "loss of electrons or an increase in oxidation number",
+      "cn": "用于化学键、结构、氧化还原、催化、能量和可逆反应题。",
+      "example": "Explain how oxidation affects the structure, reaction, or property described.",
+      "translation": "解释 氧化 如何影响题目中的结构、反应或性质。",
+      "formula": "",
+      "knowledgePoint": "OIL RIG: oxidation is loss, reduction is gain.",
+      "collocations": [
+        "oxidation reaction",
+        "oxidation number"
+      ]
+    },
+    {
+      "id": "chemistry-bonding-reactions-reduction",
+      "subject": "chemistry",
+      "topic": "bonding-reactions",
+      "topicLabel": "Chemistry: Bonding & Reactions",
+      "type": "term",
+      "word": "reduction",
+      "phonetic": "",
+      "meaning": "还原",
+      "definition": "gain of electrons or a decrease in oxidation number",
+      "cn": "用于化学键、结构、氧化还原、催化、能量和可逆反应题。",
+      "example": "Explain how reduction affects the structure, reaction, or property described.",
+      "translation": "解释 还原 如何影响题目中的结构、反应或性质。",
+      "formula": "",
+      "knowledgePoint": "A species that is reduced gains electrons.",
+      "collocations": [
+        "reduction reaction",
+        "reducing agent"
+      ]
+    },
+    {
+      "id": "chemistry-bonding-reactions-catalyst",
+      "subject": "chemistry",
+      "topic": "bonding-reactions",
+      "topicLabel": "Chemistry: Bonding & Reactions",
+      "type": "term",
+      "word": "catalyst",
+      "phonetic": "",
+      "meaning": "催化剂",
+      "definition": "a substance that increases reaction rate without being used up",
+      "cn": "用于化学键、结构、氧化还原、催化、能量和可逆反应题。",
+      "example": "Explain how catalyst affects the structure, reaction, or property described.",
+      "translation": "解释 催化剂 如何影响题目中的结构、反应或性质。",
+      "formula": "",
+      "knowledgePoint": "A catalyst provides an alternative route with lower activation energy.",
+      "collocations": [
+        "industrial catalyst",
+        "catalytic converter"
+      ]
+    },
+    {
+      "id": "chemistry-bonding-reactions-activation-energy",
+      "subject": "chemistry",
+      "topic": "bonding-reactions",
+      "topicLabel": "Chemistry: Bonding & Reactions",
+      "type": "term",
+      "word": "activation energy",
+      "phonetic": "",
+      "meaning": "活化能",
+      "definition": "the minimum energy required for particles to react",
+      "cn": "用于化学键、结构、氧化还原、催化、能量和可逆反应题。",
+      "example": "Explain how activation energy affects the structure, reaction, or property described.",
+      "translation": "解释 活化能 如何影响题目中的结构、反应或性质。",
+      "formula": "",
+      "knowledgePoint": "Only successful collisions with enough energy form products.",
+      "collocations": [
+        "activation energy barrier",
+        "low activation energy"
+      ]
+    },
+    {
+      "id": "chemistry-bonding-reactions-reversible-reaction",
+      "subject": "chemistry",
+      "topic": "bonding-reactions",
+      "topicLabel": "Chemistry: Bonding & Reactions",
+      "type": "term",
+      "word": "reversible reaction",
+      "phonetic": "",
+      "meaning": "可逆反应",
+      "definition": "a reaction that can proceed in both forward and reverse directions",
+      "cn": "用于化学键、结构、氧化还原、催化、能量和可逆反应题。",
+      "example": "Explain how reversible reaction affects the structure, reaction, or property described.",
+      "translation": "解释 可逆反应 如何影响题目中的结构、反应或性质。",
+      "formula": "",
+      "knowledgePoint": "At equilibrium, forward and reverse reaction rates are equal.",
+      "collocations": [
+        "reversible reaction",
+        "dynamic equilibrium"
+      ]
+    },
+    {
+      "id": "chemistry-bonding-reactions-enthalpy-change",
+      "subject": "chemistry",
+      "topic": "bonding-reactions",
+      "topicLabel": "Chemistry: Bonding & Reactions",
+      "type": "term",
+      "word": "enthalpy change",
+      "phonetic": "",
+      "meaning": "焓变",
+      "definition": "the heat energy change of a reaction at constant pressure",
+      "cn": "用于化学键、结构、氧化还原、催化、能量和可逆反应题。",
+      "example": "Explain how enthalpy change affects the structure, reaction, or property described.",
+      "translation": "解释 焓变 如何影响题目中的结构、反应或性质。",
+      "formula": "ΔH",
+      "knowledgePoint": "Negative ΔH means exothermic; positive ΔH means endothermic.",
+      "collocations": [
+        "enthalpy change",
+        "reaction enthalpy"
+      ]
+    },
+    {
+      "id": "economics-microeconomics-scarcity",
+      "subject": "economics",
+      "topic": "microeconomics",
+      "topicLabel": "Economics: Microeconomics",
+      "type": "term",
+      "word": "scarcity",
+      "phonetic": "",
+      "meaning": "稀缺性",
+      "definition": "the basic economic problem that resources are limited while wants are unlimited",
+      "cn": "用于稀缺性、供需、市场均衡、弹性和市场失灵题。",
+      "example": "Explain how scarcity affects price, quantity, or resource allocation.",
+      "translation": "解释 稀缺性 如何影响价格、数量或资源配置。",
+      "formula": "",
+      "knowledgePoint": "Scarcity forces economic choices.",
+      "collocations": [
+        "resource scarcity",
+        "scarcity problem"
+      ]
+    },
+    {
+      "id": "economics-microeconomics-opportunity-cost",
+      "subject": "economics",
+      "topic": "microeconomics",
+      "topicLabel": "Economics: Microeconomics",
+      "type": "term",
+      "word": "opportunity cost",
+      "phonetic": "",
+      "meaning": "机会成本",
+      "definition": "the next best alternative forgone when a choice is made",
+      "cn": "用于稀缺性、供需、市场均衡、弹性和市场失灵题。",
+      "example": "Explain how opportunity cost affects price, quantity, or resource allocation.",
+      "translation": "解释 机会成本 如何影响价格、数量或资源配置。",
+      "formula": "",
+      "knowledgePoint": "Opportunity cost is the value of what is given up.",
+      "collocations": [
+        "opportunity cost",
+        "economic choice"
+      ]
+    },
+    {
+      "id": "economics-microeconomics-demand",
+      "subject": "economics",
+      "topic": "microeconomics",
+      "topicLabel": "Economics: Microeconomics",
+      "type": "term",
+      "word": "demand",
+      "phonetic": "",
+      "meaning": "需求",
+      "definition": "the quantity consumers are willing and able to buy at different prices",
+      "cn": "用于稀缺性、供需、市场均衡、弹性和市场失灵题。",
+      "example": "Explain how demand affects price, quantity, or resource allocation.",
+      "translation": "解释 需求 如何影响价格、数量或资源配置。",
+      "formula": "",
+      "knowledgePoint": "Demand normally contracts when price rises.",
+      "collocations": [
+        "market demand",
+        "demand curve"
+      ]
+    },
+    {
+      "id": "economics-microeconomics-supply",
+      "subject": "economics",
+      "topic": "microeconomics",
+      "topicLabel": "Economics: Microeconomics",
+      "type": "term",
+      "word": "supply",
+      "phonetic": "",
+      "meaning": "供给",
+      "definition": "the quantity producers are willing and able to sell at different prices",
+      "cn": "用于稀缺性、供需、市场均衡、弹性和市场失灵题。",
+      "example": "Explain how supply affects price, quantity, or resource allocation.",
+      "translation": "解释 供给 如何影响价格、数量或资源配置。",
+      "formula": "",
+      "knowledgePoint": "Supply normally expands when price rises.",
+      "collocations": [
+        "market supply",
+        "supply curve"
+      ]
+    },
+    {
+      "id": "economics-microeconomics-market-equilibrium",
+      "subject": "economics",
+      "topic": "microeconomics",
+      "topicLabel": "Economics: Microeconomics",
+      "type": "term",
+      "word": "market equilibrium",
+      "phonetic": "",
+      "meaning": "市场均衡",
+      "definition": "the point where quantity demanded equals quantity supplied",
+      "cn": "用于稀缺性、供需、市场均衡、弹性和市场失灵题。",
+      "example": "Explain how market equilibrium affects price, quantity, or resource allocation.",
+      "translation": "解释 市场均衡 如何影响价格、数量或资源配置。",
+      "formula": "",
+      "knowledgePoint": "At equilibrium there is no shortage or surplus.",
+      "collocations": [
+        "equilibrium price",
+        "market equilibrium"
+      ]
+    },
+    {
+      "id": "economics-microeconomics-price-elasticity-of-demand",
+      "subject": "economics",
+      "topic": "microeconomics",
+      "topicLabel": "Economics: Microeconomics",
+      "type": "term",
+      "word": "price elasticity of demand",
+      "phonetic": "",
+      "meaning": "需求价格弹性",
+      "definition": "the responsiveness of quantity demanded to a change in price",
+      "cn": "用于稀缺性、供需、市场均衡、弹性和市场失灵题。",
+      "example": "Explain how price elasticity of demand affects price, quantity, or resource allocation.",
+      "translation": "解释 需求价格弹性 如何影响价格、数量或资源配置。",
+      "formula": "PED = %ΔQd / %ΔP",
+      "knowledgePoint": "Elastic demand means quantity responds strongly to price change.",
+      "collocations": [
+        "PED",
+        "elastic demand"
+      ]
+    },
+    {
+      "id": "economics-microeconomics-subsidy",
+      "subject": "economics",
+      "topic": "microeconomics",
+      "topicLabel": "Economics: Microeconomics",
+      "type": "term",
+      "word": "subsidy",
+      "phonetic": "",
+      "meaning": "补贴",
+      "definition": "a payment that reduces producers' or consumers' effective costs",
+      "cn": "用于稀缺性、供需、市场均衡、弹性和市场失灵题。",
+      "example": "Explain how subsidy affects price, quantity, or resource allocation.",
+      "translation": "解释 补贴 如何影响价格、数量或资源配置。",
+      "formula": "",
+      "knowledgePoint": "A subsidy can increase supply and lower consumer prices.",
+      "collocations": [
+        "government subsidy",
+        "production subsidy"
+      ]
+    },
+    {
+      "id": "economics-microeconomics-indirect-tax",
+      "subject": "economics",
+      "topic": "microeconomics",
+      "topicLabel": "Economics: Microeconomics",
+      "type": "term",
+      "word": "indirect tax",
+      "phonetic": "",
+      "meaning": "间接税",
+      "definition": "a tax on spending or sales rather than income",
+      "cn": "用于稀缺性、供需、市场均衡、弹性和市场失灵题。",
+      "example": "Explain how indirect tax affects price, quantity, or resource allocation.",
+      "translation": "解释 间接税 如何影响价格、数量或资源配置。",
+      "formula": "",
+      "knowledgePoint": "An indirect tax usually shifts supply upward and raises price.",
+      "collocations": [
+        "sales tax",
+        "excise duty"
+      ]
+    },
+    {
+      "id": "economics-microeconomics-market-failure",
+      "subject": "economics",
+      "topic": "microeconomics",
+      "topicLabel": "Economics: Microeconomics",
+      "type": "term",
+      "word": "market failure",
+      "phonetic": "",
+      "meaning": "市场失灵",
+      "definition": "a situation where the free market allocates resources inefficiently",
+      "cn": "用于稀缺性、供需、市场均衡、弹性和市场失灵题。",
+      "example": "Explain how market failure affects price, quantity, or resource allocation.",
+      "translation": "解释 市场失灵 如何影响价格、数量或资源配置。",
+      "formula": "",
+      "knowledgePoint": "Externalities and public goods commonly cause market failure.",
+      "collocations": [
+        "market failure",
+        "correct market failure"
+      ]
+    },
+    {
+      "id": "economics-microeconomics-externality",
+      "subject": "economics",
+      "topic": "microeconomics",
+      "topicLabel": "Economics: Microeconomics",
+      "type": "term",
+      "word": "externality",
+      "phonetic": "",
+      "meaning": "外部性",
+      "definition": "a cost or benefit from production or consumption affecting a third party",
+      "cn": "用于稀缺性、供需、市场均衡、弹性和市场失灵题。",
+      "example": "Explain how externality affects price, quantity, or resource allocation.",
+      "translation": "解释 外部性 如何影响价格、数量或资源配置。",
+      "formula": "",
+      "knowledgePoint": "Pollution is a common negative externality.",
+      "collocations": [
+        "negative externality",
+        "positive externality"
+      ]
+    },
+    {
+      "id": "economics-microeconomics-monopoly",
+      "subject": "economics",
+      "topic": "microeconomics",
+      "topicLabel": "Economics: Microeconomics",
+      "type": "term",
+      "word": "monopoly",
+      "phonetic": "",
+      "meaning": "垄断",
+      "definition": "a market structure with one dominant seller and high barriers to entry",
+      "cn": "用于稀缺性、供需、市场均衡、弹性和市场失灵题。",
+      "example": "Explain how monopoly affects price, quantity, or resource allocation.",
+      "translation": "解释 垄断 如何影响价格、数量或资源配置。",
+      "formula": "",
+      "knowledgePoint": "Monopolies may restrict output and raise prices.",
+      "collocations": [
+        "monopoly power",
+        "natural monopoly"
+      ]
+    },
+    {
+      "id": "economics-microeconomics-consumer-surplus",
+      "subject": "economics",
+      "topic": "microeconomics",
+      "topicLabel": "Economics: Microeconomics",
+      "type": "term",
+      "word": "consumer surplus",
+      "phonetic": "",
+      "meaning": "消费者剩余",
+      "definition": "the difference between what consumers are willing to pay and what they actually pay",
+      "cn": "用于稀缺性、供需、市场均衡、弹性和市场失灵题。",
+      "example": "Explain how consumer surplus affects price, quantity, or resource allocation.",
+      "translation": "解释 消费者剩余 如何影响价格、数量或资源配置。",
+      "formula": "",
+      "knowledgePoint": "Consumer surplus measures a benefit to buyers.",
+      "collocations": [
+        "consumer surplus",
+        "welfare gain"
+      ]
+    },
+    {
+      "id": "economics-macroeconomics-gdp",
+      "subject": "economics",
+      "topic": "macroeconomics",
+      "topicLabel": "Economics: Macroeconomics",
+      "type": "term",
+      "word": "GDP",
+      "phonetic": "",
+      "meaning": "国内生产总值",
+      "definition": "the total value of goods and services produced within an economy in a period",
+      "cn": "用于 GDP、通胀、失业、财政政策、货币政策和贸易题。",
+      "example": "Discuss how GDP influences the wider economy.",
+      "translation": "讨论 国内生产总值 如何影响宏观经济。",
+      "formula": "",
+      "knowledgePoint": "Real GDP adjusts for inflation and is used to compare output over time.",
+      "collocations": [
+        "real GDP",
+        "GDP growth"
+      ]
+    },
+    {
+      "id": "economics-macroeconomics-inflation",
+      "subject": "economics",
+      "topic": "macroeconomics",
+      "topicLabel": "Economics: Macroeconomics",
+      "type": "term",
+      "word": "inflation",
+      "phonetic": "",
+      "meaning": "通货膨胀",
+      "definition": "a sustained increase in the general price level",
+      "cn": "用于 GDP、通胀、失业、财政政策、货币政策和贸易题。",
+      "example": "Discuss how inflation influences the wider economy.",
+      "translation": "讨论 通货膨胀 如何影响宏观经济。",
+      "formula": "",
+      "knowledgePoint": "Inflation reduces purchasing power.",
+      "collocations": [
+        "inflation rate",
+        "high inflation"
+      ]
+    },
+    {
+      "id": "economics-macroeconomics-unemployment",
+      "subject": "economics",
+      "topic": "macroeconomics",
+      "topicLabel": "Economics: Macroeconomics",
+      "type": "term",
+      "word": "unemployment",
+      "phonetic": "",
+      "meaning": "失业",
+      "definition": "the state of wanting work but being unable to find it",
+      "cn": "用于 GDP、通胀、失业、财政政策、货币政策和贸易题。",
+      "example": "Discuss how unemployment influences the wider economy.",
+      "translation": "讨论 失业 如何影响宏观经济。",
+      "formula": "",
+      "knowledgePoint": "Unemployment can be cyclical, structural, frictional, or seasonal.",
+      "collocations": [
+        "unemployment rate",
+        "youth unemployment"
+      ]
+    },
+    {
+      "id": "economics-macroeconomics-fiscal-policy",
+      "subject": "economics",
+      "topic": "macroeconomics",
+      "topicLabel": "Economics: Macroeconomics",
+      "type": "term",
+      "word": "fiscal policy",
+      "phonetic": "",
+      "meaning": "财政政策",
+      "definition": "government use of taxation and spending to influence economic activity",
+      "cn": "用于 GDP、通胀、失业、财政政策、货币政策和贸易题。",
+      "example": "Discuss how fiscal policy influences the wider economy.",
+      "translation": "讨论 财政政策 如何影响宏观经济。",
+      "formula": "",
+      "knowledgePoint": "Fiscal policy works through government spending and taxation.",
+      "collocations": [
+        "expansionary fiscal policy",
+        "fiscal stimulus"
+      ]
+    },
+    {
+      "id": "economics-macroeconomics-monetary-policy",
+      "subject": "economics",
+      "topic": "macroeconomics",
+      "topicLabel": "Economics: Macroeconomics",
+      "type": "term",
+      "word": "monetary policy",
+      "phonetic": "",
+      "meaning": "货币政策",
+      "definition": "central bank actions affecting interest rates and the money supply",
+      "cn": "用于 GDP、通胀、失业、财政政策、货币政策和贸易题。",
+      "example": "Discuss how monetary policy influences the wider economy.",
+      "translation": "讨论 货币政策 如何影响宏观经济。",
+      "formula": "",
+      "knowledgePoint": "Higher interest rates usually reduce borrowing and spending.",
+      "collocations": [
+        "monetary policy",
+        "interest-rate policy"
+      ]
+    },
+    {
+      "id": "economics-macroeconomics-interest-rate",
+      "subject": "economics",
+      "topic": "macroeconomics",
+      "topicLabel": "Economics: Macroeconomics",
+      "type": "term",
+      "word": "interest rate",
+      "phonetic": "",
+      "meaning": "利率",
+      "definition": "the cost of borrowing money or the reward for saving",
+      "cn": "用于 GDP、通胀、失业、财政政策、货币政策和贸易题。",
+      "example": "Discuss how interest rate influences the wider economy.",
+      "translation": "讨论 利率 如何影响宏观经济。",
+      "formula": "",
+      "knowledgePoint": "Interest rates affect consumption, investment, and exchange rates.",
+      "collocations": [
+        "base rate",
+        "interest-rate rise"
+      ]
+    },
+    {
+      "id": "economics-macroeconomics-budget-deficit",
+      "subject": "economics",
+      "topic": "macroeconomics",
+      "topicLabel": "Economics: Macroeconomics",
+      "type": "term",
+      "word": "budget deficit",
+      "phonetic": "",
+      "meaning": "预算赤字",
+      "definition": "government spending greater than government revenue",
+      "cn": "用于 GDP、通胀、失业、财政政策、货币政策和贸易题。",
+      "example": "Discuss how budget deficit influences the wider economy.",
+      "translation": "讨论 预算赤字 如何影响宏观经济。",
+      "formula": "",
+      "knowledgePoint": "A deficit is usually financed by borrowing.",
+      "collocations": [
+        "budget deficit",
+        "fiscal deficit"
+      ]
+    },
+    {
+      "id": "economics-macroeconomics-economic-growth",
+      "subject": "economics",
+      "topic": "macroeconomics",
+      "topicLabel": "Economics: Macroeconomics",
+      "type": "term",
+      "word": "economic growth",
+      "phonetic": "",
+      "meaning": "经济增长",
+      "definition": "an increase in an economy's real output over time",
+      "cn": "用于 GDP、通胀、失业、财政政策、货币政策和贸易题。",
+      "example": "Discuss how economic growth influences the wider economy.",
+      "translation": "讨论 经济增长 如何影响宏观经济。",
+      "formula": "",
+      "knowledgePoint": "Growth is commonly measured by real GDP.",
+      "collocations": [
+        "long-run growth",
+        "economic growth"
+      ]
+    },
+    {
+      "id": "economics-macroeconomics-productivity",
+      "subject": "economics",
+      "topic": "macroeconomics",
+      "topicLabel": "Economics: Macroeconomics",
+      "type": "term",
+      "word": "productivity",
+      "phonetic": "",
+      "meaning": "生产率",
+      "definition": "output per unit of input, often output per worker or per hour",
+      "cn": "用于 GDP、通胀、失业、财政政策、货币政策和贸易题。",
+      "example": "Discuss how productivity influences the wider economy.",
+      "translation": "讨论 生产率 如何影响宏观经济。",
+      "formula": "productivity = output / input",
+      "knowledgePoint": "Higher productivity can raise wages and living standards.",
+      "collocations": [
+        "labour productivity",
+        "productivity growth"
+      ]
+    },
+    {
+      "id": "economics-macroeconomics-exchange-rate",
+      "subject": "economics",
+      "topic": "macroeconomics",
+      "topicLabel": "Economics: Macroeconomics",
+      "type": "term",
+      "word": "exchange rate",
+      "phonetic": "",
+      "meaning": "汇率",
+      "definition": "the value of one currency in terms of another currency",
+      "cn": "用于 GDP、通胀、失业、财政政策、货币政策和贸易题。",
+      "example": "Discuss how exchange rate influences the wider economy.",
+      "translation": "讨论 汇率 如何影响宏观经济。",
+      "formula": "",
+      "knowledgePoint": "Currency depreciation can make exports cheaper and imports more expensive.",
+      "collocations": [
+        "floating exchange rate",
+        "exchange-rate depreciation"
+      ]
+    },
+    {
+      "id": "economics-macroeconomics-trade-balance",
+      "subject": "economics",
+      "topic": "macroeconomics",
+      "topicLabel": "Economics: Macroeconomics",
+      "type": "term",
+      "word": "trade balance",
+      "phonetic": "",
+      "meaning": "贸易差额",
+      "definition": "the difference between the value of exports and imports",
+      "cn": "用于 GDP、通胀、失业、财政政策、货币政策和贸易题。",
+      "example": "Discuss how trade balance influences the wider economy.",
+      "translation": "讨论 贸易差额 如何影响宏观经济。",
+      "formula": "trade balance = exports - imports",
+      "knowledgePoint": "A deficit means imports exceed exports.",
+      "collocations": [
+        "trade surplus",
+        "trade deficit"
+      ]
+    },
+    {
+      "id": "economics-macroeconomics-aggregate-demand",
+      "subject": "economics",
+      "topic": "macroeconomics",
+      "topicLabel": "Economics: Macroeconomics",
+      "type": "term",
+      "word": "aggregate demand",
+      "phonetic": "",
+      "meaning": "总需求",
+      "definition": "total spending on goods and services in an economy at a given price level",
+      "cn": "用于 GDP、通胀、失业、财政政策、货币政策和贸易题。",
+      "example": "Discuss how aggregate demand influences the wider economy.",
+      "translation": "讨论 总需求 如何影响宏观经济。",
+      "formula": "AD = C + I + G + (X - M)",
+      "knowledgePoint": "Aggregate demand includes consumption, investment, government spending, and net exports.",
+      "collocations": [
+        "AD curve",
+        "aggregate demand"
       ]
     },
     {

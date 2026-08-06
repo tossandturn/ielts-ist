@@ -9,9 +9,27 @@ function parseTerms(value) {
     .map((line) => line.trim())
     .filter(Boolean)
     .map((line) => {
-      const [word, meaning, definition, collocations = ""] = line.split("|").map((item) => item.trim());
-      return { word, meaning, definition, collocations: collocations.split(";").map((item) => item.trim()).filter(Boolean) };
+      const [word, meaning, definition, collocations = "", formula = "", knowledgePoint = ""] = line.split("|").map((item) => item.trim());
+      return {
+        word,
+        meaning,
+        definition,
+        collocations: collocations.split(";").map((item) => item.trim()).filter(Boolean),
+        formula,
+        knowledgePoint,
+      };
     });
+}
+
+function customTerms(entries) {
+  return entries.map((entry) => ({
+    word: entry.word,
+    meaning: entry.meaning,
+    definition: entry.definition,
+    collocations: Array.isArray(entry.collocations) ? entry.collocations.filter(Boolean) : [],
+    formula: entry.formula || "",
+    knowledgePoint: entry.knowledgePoint || "",
+  }));
 }
 
 function slug(value) {
@@ -628,6 +646,89 @@ relative motion|相对运动|motion described from a moving reference object|rel
 modelling assumption|建模假设|a simplification used to make a physical situation mathematically tractable|state a modelling assumption
     `),
   },
+  {
+    subject: "chemistry", topic: "atomic-and-quantitative", label: "Chemistry: Atomic & Quantitative",
+    note: "用于原子结构、摩尔、化学式、浓度、滴定和定量计算题。",
+    example: "Use {word} to explain or calculate the chemical quantity in the question.",
+    translation: "用 {meaning} 解释或计算题目中的化学量。",
+    terms: customTerms([
+      { word: "atom", meaning: "原子", definition: "the smallest particle of an element that keeps the chemical identity of that element", collocations: ["atomic structure", "single atom"], knowledgePoint: "Atoms contain protons, neutrons, and electrons." },
+      { word: "ion", meaning: "离子", definition: "an atom or group of atoms with a net electric charge", collocations: ["positive ion", "negative ion"], knowledgePoint: "Ions form when atoms lose or gain electrons." },
+      { word: "isotope", meaning: "同位素", definition: "atoms of the same element with the same proton number but different neutron numbers", collocations: ["stable isotope", "radioactive isotope"], knowledgePoint: "Isotopes have the same atomic number but different mass numbers." },
+      { word: "relative atomic mass", meaning: "相对原子质量", definition: "the weighted mean mass of an atom compared with one twelfth of carbon-12", collocations: ["Ar value", "relative atomic mass"], formula: "Ar", knowledgePoint: "Use isotope abundances to calculate the weighted mean." },
+      { word: "relative formula mass", meaning: "相对式量", definition: "the sum of the relative atomic masses of all atoms in a formula unit", collocations: ["Mr value", "relative formula mass"], formula: "Mr", knowledgePoint: "Add the Ar values for every atom in the formula." },
+      { word: "mole", meaning: "摩尔", definition: "the amount of substance containing 6.02 × 10^23 specified particles", collocations: ["one mole", "mole calculation"], formula: "n = m / Mr", knowledgePoint: "Moles connect mass, particles, and gas volume." },
+      { word: "Avogadro constant", meaning: "阿伏伽德罗常数", definition: "the number of particles in one mole of substance", collocations: ["Avogadro number", "Avogadro constant"], formula: "N = nNA", knowledgePoint: "Use NA to convert between moles and number of particles." },
+      { word: "empirical formula", meaning: "实验式", definition: "the simplest whole-number ratio of atoms of each element in a compound", collocations: ["empirical formula", "empirical ratio"], knowledgePoint: "Convert masses to moles, then divide by the smallest mole value." },
+      { word: "molecular formula", meaning: "分子式", definition: "the actual number of atoms of each element in a molecule", collocations: ["molecular formula", "actual formula"], knowledgePoint: "The molecular formula is a whole-number multiple of the empirical formula." },
+      { word: "concentration", meaning: "浓度", definition: "the amount of solute dissolved per unit volume of solution", collocations: ["solution concentration", "concentration calculation"], formula: "c = n / V", knowledgePoint: "Use dm^3 for volume when concentration is in mol dm^-3." },
+      { word: "titration", meaning: "滴定", definition: "a method for finding an unknown concentration by reacting it with a solution of known concentration", collocations: ["acid-base titration", "titration curve"], knowledgePoint: "Use the concordant titres and balanced equation mole ratio." },
+      { word: "limiting reagent", meaning: "限量试剂", definition: "the reactant that is used up first and controls the maximum amount of product", collocations: ["limiting reagent", "limiting reactant"], knowledgePoint: "The limiting reagent determines the theoretical yield." },
+      { word: "percentage yield", meaning: "百分产率", definition: "the actual yield as a percentage of the theoretical yield", collocations: ["percentage yield", "theoretical yield"], formula: "percentage yield = actual yield / theoretical yield × 100", knowledgePoint: "Actual yield is often lower because reactions may be incomplete." },
+      { word: "atom economy", meaning: "原子经济性", definition: "the percentage of reactant atoms that become part of the desired product", collocations: ["atom economy", "green chemistry"], formula: "atom economy = Mr desired product / total Mr reactants × 100", knowledgePoint: "High atom economy means less waste." },
+      { word: "gas volume", meaning: "气体体积", definition: "the volume occupied by a gas under stated conditions", collocations: ["molar gas volume", "gas volume"], formula: "V = n × 24 dm^3 at RTP", knowledgePoint: "At room temperature and pressure, one mole of gas occupies about 24 dm^3." },
+    ]),
+  },
+  {
+    subject: "chemistry", topic: "bonding-reactions", label: "Chemistry: Bonding & Reactions",
+    note: "用于化学键、结构、氧化还原、催化、能量和可逆反应题。",
+    example: "Explain how {word} affects the structure, reaction, or property described.",
+    translation: "解释 {meaning} 如何影响题目中的结构、反应或性质。",
+    terms: customTerms([
+      { word: "covalent bond", meaning: "共价键", definition: "a strong electrostatic attraction between a shared pair of electrons and the bonded nuclei", collocations: ["single covalent bond", "covalent molecule"], knowledgePoint: "Covalent bonding usually occurs between non-metals." },
+      { word: "ionic bond", meaning: "离子键", definition: "the electrostatic attraction between oppositely charged ions", collocations: ["ionic bond", "ionic compound"], knowledgePoint: "Ionic compounds form giant lattices and often have high melting points." },
+      { word: "metallic bond", meaning: "金属键", definition: "the electrostatic attraction between positive metal ions and delocalised electrons", collocations: ["metallic bonding", "metallic lattice"], knowledgePoint: "Delocalised electrons explain electrical conductivity." },
+      { word: "intermolecular forces", meaning: "分子间作用力", definition: "forces of attraction between molecules", collocations: ["weak intermolecular forces", "intermolecular attraction"], knowledgePoint: "Stronger intermolecular forces usually give higher boiling points." },
+      { word: "giant covalent structure", meaning: "巨型共价结构", definition: "a network of atoms joined by covalent bonds throughout the structure", collocations: ["giant covalent lattice", "diamond structure"], knowledgePoint: "Diamond and graphite have different properties because their bonding networks differ." },
+      { word: "electronegativity", meaning: "电负性", definition: "the ability of an atom to attract the bonding pair of electrons", collocations: ["electronegativity difference", "polar bond"], knowledgePoint: "Large electronegativity differences can create polar or ionic bonding." },
+      { word: "oxidation", meaning: "氧化", definition: "loss of electrons or an increase in oxidation number", collocations: ["oxidation reaction", "oxidation number"], knowledgePoint: "OIL RIG: oxidation is loss, reduction is gain." },
+      { word: "reduction", meaning: "还原", definition: "gain of electrons or a decrease in oxidation number", collocations: ["reduction reaction", "reducing agent"], knowledgePoint: "A species that is reduced gains electrons." },
+      { word: "catalyst", meaning: "催化剂", definition: "a substance that increases reaction rate without being used up", collocations: ["industrial catalyst", "catalytic converter"], knowledgePoint: "A catalyst provides an alternative route with lower activation energy." },
+      { word: "activation energy", meaning: "活化能", definition: "the minimum energy required for particles to react", collocations: ["activation energy barrier", "low activation energy"], knowledgePoint: "Only successful collisions with enough energy form products." },
+      { word: "reversible reaction", meaning: "可逆反应", definition: "a reaction that can proceed in both forward and reverse directions", collocations: ["reversible reaction", "dynamic equilibrium"], knowledgePoint: "At equilibrium, forward and reverse reaction rates are equal." },
+      { word: "enthalpy change", meaning: "焓变", definition: "the heat energy change of a reaction at constant pressure", collocations: ["enthalpy change", "reaction enthalpy"], formula: "ΔH", knowledgePoint: "Negative ΔH means exothermic; positive ΔH means endothermic." },
+    ]),
+  },
+  {
+    subject: "economics", topic: "microeconomics", label: "Economics: Microeconomics",
+    note: "用于稀缺性、供需、市场均衡、弹性和市场失灵题。",
+    example: "Explain how {word} affects price, quantity, or resource allocation.",
+    translation: "解释 {meaning} 如何影响价格、数量或资源配置。",
+    terms: customTerms([
+      { word: "scarcity", meaning: "稀缺性", definition: "the basic economic problem that resources are limited while wants are unlimited", collocations: ["resource scarcity", "scarcity problem"], knowledgePoint: "Scarcity forces economic choices." },
+      { word: "opportunity cost", meaning: "机会成本", definition: "the next best alternative forgone when a choice is made", collocations: ["opportunity cost", "economic choice"], knowledgePoint: "Opportunity cost is the value of what is given up." },
+      { word: "demand", meaning: "需求", definition: "the quantity consumers are willing and able to buy at different prices", collocations: ["market demand", "demand curve"], knowledgePoint: "Demand normally contracts when price rises." },
+      { word: "supply", meaning: "供给", definition: "the quantity producers are willing and able to sell at different prices", collocations: ["market supply", "supply curve"], knowledgePoint: "Supply normally expands when price rises." },
+      { word: "market equilibrium", meaning: "市场均衡", definition: "the point where quantity demanded equals quantity supplied", collocations: ["equilibrium price", "market equilibrium"], knowledgePoint: "At equilibrium there is no shortage or surplus." },
+      { word: "price elasticity of demand", meaning: "需求价格弹性", definition: "the responsiveness of quantity demanded to a change in price", collocations: ["PED", "elastic demand"], formula: "PED = %ΔQd / %ΔP", knowledgePoint: "Elastic demand means quantity responds strongly to price change." },
+      { word: "subsidy", meaning: "补贴", definition: "a payment that reduces producers' or consumers' effective costs", collocations: ["government subsidy", "production subsidy"], knowledgePoint: "A subsidy can increase supply and lower consumer prices." },
+      { word: "indirect tax", meaning: "间接税", definition: "a tax on spending or sales rather than income", collocations: ["sales tax", "excise duty"], knowledgePoint: "An indirect tax usually shifts supply upward and raises price." },
+      { word: "market failure", meaning: "市场失灵", definition: "a situation where the free market allocates resources inefficiently", collocations: ["market failure", "correct market failure"], knowledgePoint: "Externalities and public goods commonly cause market failure." },
+      { word: "externality", meaning: "外部性", definition: "a cost or benefit from production or consumption affecting a third party", collocations: ["negative externality", "positive externality"], knowledgePoint: "Pollution is a common negative externality." },
+      { word: "monopoly", meaning: "垄断", definition: "a market structure with one dominant seller and high barriers to entry", collocations: ["monopoly power", "natural monopoly"], knowledgePoint: "Monopolies may restrict output and raise prices." },
+      { word: "consumer surplus", meaning: "消费者剩余", definition: "the difference between what consumers are willing to pay and what they actually pay", collocations: ["consumer surplus", "welfare gain"], knowledgePoint: "Consumer surplus measures a benefit to buyers." },
+    ]),
+  },
+  {
+    subject: "economics", topic: "macroeconomics", label: "Economics: Macroeconomics",
+    note: "用于 GDP、通胀、失业、财政政策、货币政策和贸易题。",
+    example: "Discuss how {word} influences the wider economy.",
+    translation: "讨论 {meaning} 如何影响宏观经济。",
+    terms: customTerms([
+      { word: "GDP", meaning: "国内生产总值", definition: "the total value of goods and services produced within an economy in a period", collocations: ["real GDP", "GDP growth"], knowledgePoint: "Real GDP adjusts for inflation and is used to compare output over time." },
+      { word: "inflation", meaning: "通货膨胀", definition: "a sustained increase in the general price level", collocations: ["inflation rate", "high inflation"], knowledgePoint: "Inflation reduces purchasing power." },
+      { word: "unemployment", meaning: "失业", definition: "the state of wanting work but being unable to find it", collocations: ["unemployment rate", "youth unemployment"], knowledgePoint: "Unemployment can be cyclical, structural, frictional, or seasonal." },
+      { word: "fiscal policy", meaning: "财政政策", definition: "government use of taxation and spending to influence economic activity", collocations: ["expansionary fiscal policy", "fiscal stimulus"], knowledgePoint: "Fiscal policy works through government spending and taxation." },
+      { word: "monetary policy", meaning: "货币政策", definition: "central bank actions affecting interest rates and the money supply", collocations: ["monetary policy", "interest-rate policy"], knowledgePoint: "Higher interest rates usually reduce borrowing and spending." },
+      { word: "interest rate", meaning: "利率", definition: "the cost of borrowing money or the reward for saving", collocations: ["base rate", "interest-rate rise"], knowledgePoint: "Interest rates affect consumption, investment, and exchange rates." },
+      { word: "budget deficit", meaning: "预算赤字", definition: "government spending greater than government revenue", collocations: ["budget deficit", "fiscal deficit"], knowledgePoint: "A deficit is usually financed by borrowing." },
+      { word: "economic growth", meaning: "经济增长", definition: "an increase in an economy's real output over time", collocations: ["long-run growth", "economic growth"], knowledgePoint: "Growth is commonly measured by real GDP." },
+      { word: "productivity", meaning: "生产率", definition: "output per unit of input, often output per worker or per hour", collocations: ["labour productivity", "productivity growth"], formula: "productivity = output / input", knowledgePoint: "Higher productivity can raise wages and living standards." },
+      { word: "exchange rate", meaning: "汇率", definition: "the value of one currency in terms of another currency", collocations: ["floating exchange rate", "exchange-rate depreciation"], knowledgePoint: "Currency depreciation can make exports cheaper and imports more expensive." },
+      { word: "trade balance", meaning: "贸易差额", definition: "the difference between the value of exports and imports", collocations: ["trade surplus", "trade deficit"], formula: "trade balance = exports - imports", knowledgePoint: "A deficit means imports exceed exports." },
+      { word: "aggregate demand", meaning: "总需求", definition: "total spending on goods and services in an economy at a given price level", collocations: ["AD curve", "aggregate demand"], formula: "AD = C + I + G + (X - M)", knowledgePoint: "Aggregate demand includes consumption, investment, government spending, and net exports." },
+    ]),
+  },
 ];
 
 const commandRows = [
@@ -711,11 +812,43 @@ const phraseRows = [
   ["use your answer to the previous part", "使用上一问答案", "Carry forward the previous result even if it may be numerically imperfect.", "Use your answer to the previous part to calculate the power.", "使用上一问的答案计算功率。"],
 ];
 
+const itemOverrides = {
+  "physics-measurement-and-practical-vector": {
+    knowledgePoint: "A vector has both magnitude and direction; draw or state the direction as well as the size.",
+  },
+  "mathematics-trigonometry-and-vectors-vector": {
+    formula: "|v| = sqrt(x^2 + y^2) for a 2D vector (x, y)",
+    knowledgePoint: "A vector is a quantity with magnitude and direction. In coordinate form, use components to calculate magnitude and direction.",
+  },
+  "mathematics-trigonometry-and-vectors-scalar-product": {
+    formula: "a · b = |a||b|cos(theta)",
+    knowledgePoint: "Use the scalar product to find angles or prove vectors are perpendicular.",
+  },
+  "physics-mechanics-velocity": {
+    formula: "v = displacement / time",
+    knowledgePoint: "Velocity is a vector, so direction matters; speed is scalar.",
+  },
+  "physics-mechanics-acceleration": {
+    formula: "a = Δv / Δt",
+    knowledgePoint: "Acceleration is the rate of change of velocity and can be negative or directional.",
+  },
+  "physics-materials-density": {
+    formula: "rho = m / V",
+    knowledgePoint: "Density connects mass and volume; always check units before substituting.",
+  },
+  "physics-materials-pressure": {
+    formula: "p = F / A",
+    knowledgePoint: "Pressure increases when the same force acts over a smaller area.",
+  },
+};
+
 const items = [];
 for (const group of groups) {
   for (const term of group.terms) {
+    const id = `${group.subject}-${group.topic}-${slug(term.word)}`;
+    const override = itemOverrides[id] || {};
     items.push({
-      id: `${group.subject}-${group.topic}-${slug(term.word)}`,
+      id,
       subject: group.subject,
       topic: group.topic,
       topicLabel: group.label,
@@ -727,6 +860,8 @@ for (const group of groups) {
       cn: group.note,
       example: group.example.replaceAll("{word}", term.word).replaceAll("{meaning}", term.meaning),
       translation: group.translation.replaceAll("{word}", term.word).replaceAll("{meaning}", term.meaning),
+      formula: term.formula || override.formula || "",
+      knowledgePoint: term.knowledgePoint || override.knowledgePoint || "",
       collocations: term.collocations,
     });
   }

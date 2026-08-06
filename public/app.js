@@ -180,7 +180,7 @@ const listeningAudioGraphs = new WeakMap();
 const listeningAsrCacheSource = "qwen-asr-live-vad-v1";
 const listeningCaptionDefaultWordsPerSecond = 1.45;
 const listeningCaptionLoopWarmupMs = 9000;
-const ieltsCoreVocabulary = [
+const ieltsCoreVocabularySeed = [
   { word: "significant", phonetic: "/sɪɡˈnɪfɪkənt/", meaning: "显著的，重要的", cn: "常用于小作文趋势和大作文观点。", example: "There was a significant increase in public transport use.", collocations: ["significant increase", "significant impact"] },
   { word: "approximately", phonetic: "/əˈprɒksɪmətli/", meaning: "大约，近似", cn: "小作文描述数字时比 about 更正式。", example: "Approximately 40% of respondents chose online shopping.", collocations: ["approximately half", "approximately 30 percent"] },
   { word: "fluctuate", phonetic: "/ˈflʌktʃueɪt/", meaning: "波动", cn: "描述图表数值上下变化。", example: "The figure fluctuated slightly throughout the period.", collocations: ["fluctuate slightly", "fluctuate dramatically"] },
@@ -202,6 +202,8 @@ const ieltsCoreVocabulary = [
   { word: "obstacle", phonetic: "/ˈɒbstəkl/", meaning: "障碍，阻碍", cn: "同义替换 problem / challenge。", example: "High cost is a major obstacle to university education.", collocations: ["major obstacle", "overcome obstacles"] },
   { word: "interpret", phonetic: "/ɪnˈtɜːprət/", meaning: "理解，解释", cn: "阅读和图表描述都常用。", example: "Students should learn how to interpret data accurately.", collocations: ["interpret data", "interpret the results"] },
 ];
+let ieltsCoreVocabulary = ieltsCoreVocabularySeed.slice();
+let ieltsCoreVocabularyLoadPromise = null;
 let alevelStemVocabulary = [];
 let alevelVocabularyLoadPromise = null;
 const builtInPublicWritingTopics = [
@@ -3558,6 +3560,33 @@ function saveCoreVocabularyKnown() {
   localStorage.setItem(coreVocabularyStoreKey, JSON.stringify([...state.vocabularyReview.known]));
 }
 
+async function ensureIeltsCoreVocabularyLoaded() {
+  if (ieltsCoreVocabularyLoadPromise) return ieltsCoreVocabularyLoadPromise;
+  ieltsCoreVocabularyLoadPromise = fetch("/data/ielts-core-vocabulary.json?v=20260806-1", { cache: "no-cache" })
+    .then(async (response) => {
+      if (!response.ok) throw new Error(`Vocabulary catalog returned ${response.status}`);
+      const payload = await response.json();
+      const items = Array.isArray(payload?.items) ? payload.items : [];
+      const normalizedItems = items.filter((item) => item && item.word && item.meaning && item.definition).map((item) => ({
+        ...item,
+        subject: "ielts",
+        topic: String(item.topic || "ielts-core"),
+        topicLabel: String(item.topicLabel || "IELTS Core"),
+        type: ["term", "command", "phrase"].includes(item.type) ? item.type : "term",
+        collocations: Array.isArray(item.collocations) ? item.collocations.slice(0, 8) : [],
+      }));
+      if (normalizedItems.length < 150) throw new Error("IELTS Core vocabulary catalog is incomplete");
+      ieltsCoreVocabulary = normalizedItems;
+      if (activeViewId() === "vocabulary") renderVocabularyTrainer();
+      return normalizedItems;
+    })
+    .catch(() => ieltsCoreVocabulary)
+    .finally(() => {
+      ieltsCoreVocabularyLoadPromise = null;
+    });
+  return ieltsCoreVocabularyLoadPromise;
+}
+
 function normalizedCoreVocabularyItems() {
   const ieltsItems = ieltsCoreVocabulary.map((item, index) => ({
     ...item,
@@ -3582,12 +3611,20 @@ function vocabularySubjectLabel(subject) {
     ielts: "IELTS Core",
     physics: "A-Level Physics",
     mathematics: "A-Level Mathematics",
+    chemistry: "A-Level Chemistry",
+    economics: "A-Level Economics",
     "exam-language": "Exam Language",
   }[subject] || "Core vocabulary";
 }
 
 function vocabularyTypeLabel(type) {
   return { all: "All types", term: "Term", command: "Command word", phrase: "Question sentence" }[type] || "Term";
+}
+
+function vocabularyExampleLabel(item) {
+  if (item?.type === "phrase") return "Question sentence";
+  if (item?.subject && item.subject !== "ielts") return "Exam sentence";
+  return "Example sentence";
 }
 
 function filteredCoreVocabulary() {
@@ -3598,7 +3635,7 @@ function filteredCoreVocabulary() {
     if (review.topic !== "all" && item.topic !== review.topic) return false;
     if (review.type !== "all" && item.type !== review.type) return false;
     if (!query) return true;
-    return [item.word, item.meaning, item.definition, item.cn, item.example, item.translation, ...(item.collocations || [])]
+    return [item.word, item.meaning, item.definition, item.cn, item.formula, item.knowledgePoint, item.example, item.translation, ...(item.collocations || [])]
       .join(" ")
       .toLowerCase()
       .includes(query);
@@ -3642,6 +3679,36 @@ function currentCoreVocabularyItem() {
   return deck[index] || null;
 }
 
+function renderVocabularyImportPanel() {
+  const importSubjects = ["mathematics", "physics", "chemistry", "economics", "exam-language"];
+  const selectedSubject = importSubjects.includes(state.vocabularyReview.subject) ? state.vocabularyReview.subject : "chemistry";
+  const selectedTopic = state.vocabularyReview.topic && state.vocabularyReview.topic !== "all" ? state.vocabularyReview.topic : "uploaded-terms";
+  return `<section class="vocab-import-panel" aria-label="Upload professional vocabulary">
+    <div class="vocab-import-head">
+      <div>
+        <span class="eyebrow">Professional terms</span>
+        <h3>Upload terminology</h3>
+      </div>
+      <small>${state.authToken ? "Saved to Mine vocabulary notebook" : "Login required to save"}</small>
+    </div>
+    <p class="vocab-import-intro">Each professional term is saved as a concept card: Chinese name, definition, optional formula, knowledge point, exam sentence and Chinese translation.</p>
+    <div class="vocab-import-grid">
+      <label><span>Subject</span><select id="vocabImportSubject">
+        ${importSubjects.map((subject) => `<option value="${escapeHtml(subject)}" ${selectedSubject === subject ? "selected" : ""}>${escapeHtml(vocabularySubjectLabel(subject))}</option>`).join("")}
+      </select></label>
+      <label><span>Topic</span><input id="vocabImportTopic" type="text" value="${escapeHtml(selectedTopic)}" placeholder="e.g. vectors, organic chemistry" /></label>
+      <label><span>Upload file</span><input id="vocabImportFile" type="file" accept=".txt,.csv,.tsv,text/plain,text/csv" /></label>
+      <label class="vocab-import-text"><span>Terms</span><textarea id="vocabImportInput" rows="5" placeholder="vector | 向量 | a quantity with magnitude and direction | | It has both size and direction; resolve into components when needed. | A velocity vector must include both speed and direction. | 速度向量必须同时包含大小和方向。 | column vector;resultant vector"></textarea></label>
+    </div>
+    <div class="vocab-import-format"><strong>Format</strong><code>term | 中文名 | definition | formula(optional) | knowledge point | exam sentence | 中文翻译 | collocations</code><span>Use one line per term. TXT, TSV and CSV are supported.</span></div>
+    <div class="vocab-import-actions">
+      <button id="vocabImportSample" class="secondary small-button" type="button">Fill sample</button>
+      <button id="vocabImportSubmit" class="primary small-button" type="button">Import terms</button>
+      <span id="vocabImportStatus" class="compact-notice"></span>
+    </div>
+  </section>`;
+}
+
 function renderVocabularyTrainer() {
   const node = $("vocabularyContent");
   if (!node) return;
@@ -3652,7 +3719,7 @@ function renderVocabularyTrainer() {
   const revealed = Boolean(state.vocabularyReview.revealed);
   const deckPosition = item ? `${state.vocabularyReview.index + 1} / ${deck.length}` : `0 / ${deck.length}`;
   const subjectCounts = allItems.reduce((counts, entry) => ({ ...counts, [entry.subject]: (counts[entry.subject] || 0) + 1 }), {});
-  const subjects = ["all", "ielts", "physics", "mathematics", "exam-language"];
+  const subjects = ["all", "ielts", "physics", "mathematics", "chemistry", "economics", "exam-language"];
   const availableTopics = [...new Map(allItems
     .filter((entry) => state.vocabularyReview.subject === "all" || entry.subject === state.vocabularyReview.subject)
     .map((entry) => [entry.topic, entry.topicLabel || entry.topic]))]
@@ -3682,6 +3749,7 @@ function renderVocabularyTrainer() {
       <label class="vocab-search-label"><span>Search</span><input id="vocabSearch" type="search" value="${escapeHtml(state.vocabularyReview.query)}" placeholder="Search term, 中文, example..." /></label>
       ${catalogStatus}
     </div>
+    ${renderVocabularyImportPanel()}
     ${item ? `<article class="vocab-review-card ${revealed ? "is-revealed" : ""}">
       <div class="vocab-review-top">
         <span class="eyebrow">${escapeHtml(vocabularySubjectLabel(item.subject))} · ${escapeHtml(item.topicLabel || item.topic || "Core")}</span>
@@ -3694,9 +3762,11 @@ function renderVocabularyTrainer() {
       <div class="vocab-meaning-face" ${revealed ? "" : "hidden"}>
         <strong>${escapeHtml(item.meaning)}</strong>
         ${item.definition ? `<div class="vocab-field"><span class="vocab-field-label">Definition</span><p class="vocab-definition" lang="en">${escapeHtml(item.definition)}</p></div>` : ""}
+        ${item.formula ? `<div class="vocab-field vocab-formula-field"><span class="vocab-field-label">Formula / equation</span><p class="vocab-formula" lang="en">${escapeHtml(item.formula)}</p></div>` : ""}
+        ${item.knowledgePoint ? `<div class="vocab-field"><span class="vocab-field-label">Knowledge point</span><p>${escapeHtml(item.knowledgePoint)}</p></div>` : ""}
         <div class="vocab-field"><span class="vocab-field-label">中文解释</span><p>${escapeHtml(item.cn)}</p></div>
         <div class="vocab-example-pair">
-          <span class="vocab-field-label">Question example</span>
+          <span class="vocab-field-label">${escapeHtml(vocabularyExampleLabel(item))}</span>
           <blockquote lang="en">${escapeHtml(item.example)}</blockquote>
           ${item.translation ? `<p lang="zh-CN"><span class="vocab-field-label">中文翻译</span>${escapeHtml(item.translation)}</p>` : ""}
         </div>
@@ -3803,6 +3873,18 @@ function bindVocabularyControls() {
     state.vocabularyReview.error = "";
     void ensureAlevelVocabularyLoaded();
     renderVocabularyTrainer();
+  });
+  $("vocabImportSample")?.addEventListener("click", () => {
+    const subject = $("vocabImportSubject")?.value || "mathematics";
+    const input = $("vocabImportInput");
+    if (input) input.value = vocabularyImportSampleForSubject(subject);
+    setVocabularyImportStatus("Sample filled. Edit it before importing.");
+  });
+  $("vocabImportFile")?.addEventListener("change", (event) => {
+    void readVocabularyImportFile(event.target.files?.[0]);
+  });
+  $("vocabImportSubmit")?.addEventListener("click", () => {
+    void submitVocabularyImport();
   });
 }
 
@@ -4375,12 +4457,30 @@ function renderVocabularyList(items) {
 }
 
 function renderVocabularyItem(item, label) {
-  const rawTerm = cleanReviewText(item.term || item.context || "Untitled");
+  const structured = parseImportedVocabularyPayload(item);
+  const rawTerm = cleanReviewText(structured?.term || item.term || item.context || "Untitled");
   const title = compactText(rawTerm, classifyVocabularyItem(item) === "word" ? 48 : 96);
+  const meaning = cleanReviewText(structured?.meaning || "");
+  const definition = cleanReviewText(structured?.definition || "");
+  const formula = cleanReviewText(structured?.formula || "");
+  const knowledgePoint = cleanReviewText(structured?.knowledgePoint || "");
+  const example = cleanReviewText(structured?.example || "");
+  const translation = cleanReviewText(structured?.translation || "");
+  const collocations = Array.isArray(structured?.collocations) ? structured.collocations : [];
   const explanation = cleanReviewText(item.explanation || "");
   const context = cleanReviewText(item.context || "");
   const date = new Date(item.updated_at || item.updatedAt || Date.now()).toLocaleDateString();
-  const details = [
+  const details = structured ? [
+    meaning ? `<div><span>中文名</span><p>${escapeHtml(meaning)}</p></div>` : "",
+    definition ? `<div><span>Definition / 定义</span><p>${escapeHtml(definition)}</p></div>` : "",
+    formula ? `<div><span>Formula / 公式</span><p class="vocab-formula">${escapeHtml(formula)}</p></div>` : "",
+    knowledgePoint ? `<div><span>Knowledge point / 知识点</span><p>${escapeHtml(knowledgePoint)}</p></div>` : "",
+    example ? `<div><span>Exam sentence / 题目句</span><p>${escapeHtml(example)}</p></div>` : "",
+    translation ? `<div><span>中文翻译</span><p>${escapeHtml(translation)}</p></div>` : "",
+    collocations.length ? `<div><span>Related phrases</span><p>${collocations.map((phrase) => escapeHtml(phrase)).join(" · ")}</p></div>` : "",
+    `<div><span>Type</span><p>${escapeHtml(label)}</p></div>`,
+    `<div><span>Saved</span><p>${escapeHtml(date)}</p></div>`,
+  ].filter(Boolean).join("") : [
     explanation ? `<div><span>Analysis</span><p>${escapeHtml(explanation)}</p></div>` : "",
     context && context !== rawTerm ? `<div><span>Captured text</span><p>${escapeHtml(context)}</p></div>` : "",
     `<div><span>Type</span><p>${escapeHtml(label)}</p></div>`,
@@ -15329,6 +15429,142 @@ function renderObjectiveTopicCard(group, moduleName) {
   </article>`;
 }
 
+const VOCAB_IMPORT_MARKER = "__IELTS_VOCAB_IMPORT__";
+
+function encodeVocabularyImportPayload(payload) {
+  return `${VOCAB_IMPORT_MARKER}${JSON.stringify(payload)}`;
+}
+
+function parseImportedVocabularyPayload(item) {
+  const raw = String(item?.explanation || item?.context || "");
+  const source = String(item?.source || "");
+  const shouldParse = raw.startsWith(VOCAB_IMPORT_MARKER) || source.startsWith("ProfessionalImport:");
+  if (!shouldParse) return null;
+  const payloadText = raw.startsWith(VOCAB_IMPORT_MARKER) ? raw.slice(VOCAB_IMPORT_MARKER.length) : raw;
+  try {
+    const payload = JSON.parse(payloadText);
+    if (!payload || typeof payload !== "object") return null;
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+function splitVocabularyImportLine(line) {
+  if (line.includes("\t")) return line.split("\t");
+  if (line.includes("|")) return line.split("|");
+  const cells = [];
+  let current = "";
+  let quoted = false;
+  for (let index = 0; index < line.length; index += 1) {
+    const char = line[index];
+    const next = line[index + 1];
+    if (char === '"' && quoted && next === '"') {
+      current += '"';
+      index += 1;
+    } else if (char === '"') {
+      quoted = !quoted;
+    } else if (char === "," && !quoted) {
+      cells.push(current);
+      current = "";
+    } else {
+      current += char;
+    }
+  }
+  cells.push(current);
+  return cells;
+}
+
+function parseVocabularyImportLines(text, defaults = {}) {
+  return String(text || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line && !/^term\s*[\t|,]/i.test(line))
+    .map((line) => {
+      const parts = splitVocabularyImportLine(line);
+      const [term, meaning, definition, formula = "", knowledgePoint = "", example = "", translation = "", collocations = ""] = parts.map((part) => String(part || "").trim());
+      if (!term || !meaning || !definition || !knowledgePoint || !example || !translation) {
+        throw new Error("Each line must include term, 中文名, definition, knowledge point, exam sentence and 中文翻译. Formula can be blank.");
+      }
+      return {
+        subject: defaults.subject || "mathematics",
+        topic: defaults.topic || "uploaded-terms",
+        term,
+        meaning,
+        definition,
+        formula,
+        knowledgePoint,
+        example,
+        translation,
+        collocations: collocations.split(";").map((part) => part.trim()).filter(Boolean),
+      };
+    });
+}
+
+function vocabularyImportSampleForSubject(subject) {
+  if (subject === "economics") {
+    return "price elasticity of demand | 需求价格弹性 | the responsiveness of quantity demanded to a change in price | PED = %ΔQd / %ΔP | Elastic demand means quantity demanded changes strongly when price changes. | If demand is price elastic, a rise in price may reduce total revenue. | 如果需求富有价格弹性，价格上涨可能会降低总收益。 | elastic demand;total revenue";
+  }
+  if (subject === "chemistry") {
+    return "mole | 摩尔 | the amount of substance containing 6.02 × 10^23 specified particles | n = m / Mr | Moles connect mass, particles, and gas volume in calculations. | Calculate the number of moles before using the balanced equation. | 先计算物质的量，再使用配平方程式。 | mole ratio;amount of substance";
+  }
+  if (subject === "physics") {
+    return "vector | 向量 | a quantity with magnitude and direction | | A vector has both size and direction; draw an arrow or resolve it into components. | A velocity vector must include both speed and direction. | 速度向量必须同时包含大小和方向。 | vector quantity;resultant vector;components";
+  }
+  return "vector | 向量 | a quantity with magnitude and direction | | A vector has both size and direction and can be resolved into components. | A velocity vector must include both speed and direction. | 速度向量必须同时包含大小和方向。 | column vector;resultant vector";
+}
+
+async function readVocabularyImportFile(file) {
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const input = $("vocabImportInput");
+    if (input) input.value = text;
+    setVocabularyImportStatus(`Loaded ${file.name}. Check the columns before importing.`);
+  } catch (error) {
+    setVocabularyImportStatus(error.message || "Could not read this file.", true);
+  }
+}
+
+function setVocabularyImportStatus(message, isError = false) {
+  const node = $("vocabImportStatus");
+  if (!node) return;
+  node.textContent = message || "";
+  node.classList.toggle("is-error", Boolean(isError));
+}
+
+async function submitVocabularyImport() {
+  if (!state.authToken) {
+    setVocabularyImportStatus("Login first, then import professional terms.", true);
+    activateView("mine", true);
+    return;
+  }
+  const subject = $("vocabImportSubject")?.value || "mathematics";
+  const topic = cleanReviewText($("vocabImportTopic")?.value || "uploaded-terms") || "uploaded-terms";
+  const input = $("vocabImportInput");
+  try {
+    const rows = parseVocabularyImportLines(input?.value || "", { subject, topic });
+    if (!rows.length) {
+      setVocabularyImportStatus("Paste at least one term line.", true);
+      return;
+    }
+    setVocabularyImportStatus(`Importing ${rows.length} term${rows.length === 1 ? "" : "s"}...`);
+    for (const row of rows) {
+      await postJson("/api/vocabulary", {
+        term: row.term,
+        context: `${vocabularySubjectLabel(row.subject)} · ${row.topic}`,
+        explanation: encodeVocabularyImportPayload(row),
+        source: `ProfessionalImport:${row.subject}:${row.topic}`,
+      });
+    }
+    if (input) input.value = "";
+    await refreshMineData();
+    setVocabularyImportStatus(`Imported ${rows.length} professional term${rows.length === 1 ? "" : "s"} to Mine.`);
+  } catch (error) {
+    setVocabularyImportStatus(error.message || "Import failed.", true);
+  }
+}
+
 function renderObjectiveTopicLibrary(moduleName, visibleOptions, progressOptions, completionIndex) {
   const groups = buildObjectiveTopicGroups(moduleName, visibleOptions, progressOptions, completionIndex);
   const selectedKey = String(state.objectiveTopicSelection?.[moduleName] || "");
@@ -19407,6 +19643,7 @@ function activateView(viewId, updateHash = false, options = {}) {
   if (viewId === "bank") renderBankList();
   if (viewId === "vocabulary") {
     renderVocabularyTrainer();
+    void ensureIeltsCoreVocabularyLoaded();
     void ensureAlevelVocabularyLoaded();
   }
   updateAnnotationToolbarAvailability();
@@ -19740,6 +19977,7 @@ async function init() {
   renderSubscription();
   renderMine();
   renderVocabularyTrainer();
+  void ensureIeltsCoreVocabularyLoaded();
   renderWritingUploadHub();
   window.lucide?.createIcons?.({ attrs: { "stroke-width": 1.8 } });
   renderCoach();

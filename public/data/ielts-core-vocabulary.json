@@ -1,0 +1,3573 @@
+{
+  "schemaVersion": "ielts-core-vocabulary.v1",
+  "catalogVersion": "2026-08-06",
+  "itemCount": 210,
+  "items": [
+    {
+      "id": "ielts-academic-core-significant",
+      "subject": "ielts",
+      "topic": "academic-core",
+      "topicLabel": "Academic Core",
+      "type": "term",
+      "word": "significant",
+      "meaning": "显著的，重要的",
+      "definition": "large or important enough to be noticed",
+      "cn": "用于小作文趋势、阅读定位和大作文论证的高频学术表达。",
+      "example": "IELTS writers should use significant precisely when building an argument.",
+      "translation": "雅思写作中应准确使用“显著的，重要的”来组织论证。",
+      "collocations": [
+        "significant increase",
+        "significant impact"
+      ]
+    },
+    {
+      "id": "ielts-academic-core-approximately",
+      "subject": "ielts",
+      "topic": "academic-core",
+      "topicLabel": "Academic Core",
+      "type": "term",
+      "word": "approximately",
+      "meaning": "大约，近似",
+      "definition": "used to show that a number is close but not exact",
+      "cn": "用于小作文趋势、阅读定位和大作文论证的高频学术表达。",
+      "example": "IELTS writers should use approximately precisely when building an argument.",
+      "translation": "雅思写作中应准确使用“大约，近似”来组织论证。",
+      "collocations": [
+        "approximately half",
+        "approximately 30 percent"
+      ]
+    },
+    {
+      "id": "ielts-academic-core-fluctuate",
+      "subject": "ielts",
+      "topic": "academic-core",
+      "topicLabel": "Academic Core",
+      "type": "term",
+      "word": "fluctuate",
+      "meaning": "波动",
+      "definition": "to rise and fall irregularly over time",
+      "cn": "用于小作文趋势、阅读定位和大作文论证的高频学术表达。",
+      "example": "IELTS writers should use fluctuate precisely when building an argument.",
+      "translation": "雅思写作中应准确使用“波动”来组织论证。",
+      "collocations": [
+        "fluctuate slightly",
+        "fluctuate dramatically"
+      ]
+    },
+    {
+      "id": "ielts-academic-core-proportion",
+      "subject": "ielts",
+      "topic": "academic-core",
+      "topicLabel": "Academic Core",
+      "type": "term",
+      "word": "proportion",
+      "meaning": "比例",
+      "definition": "a part or share of a whole group or amount",
+      "cn": "用于小作文趋势、阅读定位和大作文论证的高频学术表达。",
+      "example": "IELTS writers should use proportion precisely when building an argument.",
+      "translation": "雅思写作中应准确使用“比例”来组织论证。",
+      "collocations": [
+        "a large proportion",
+        "the proportion of"
+      ]
+    },
+    {
+      "id": "ielts-academic-core-whereas",
+      "subject": "ielts",
+      "topic": "academic-core",
+      "topicLabel": "Academic Core",
+      "type": "term",
+      "word": "whereas",
+      "meaning": "然而，相比之下",
+      "definition": "used to compare two different facts or ideas",
+      "cn": "用于小作文趋势、阅读定位和大作文论证的高频学术表达。",
+      "example": "IELTS writers should use whereas precisely when building an argument.",
+      "translation": "雅思写作中应准确使用“然而，相比之下”来组织论证。",
+      "collocations": [
+        "whereas others",
+        "whereas the figure for"
+      ]
+    },
+    {
+      "id": "ielts-academic-core-consequently",
+      "subject": "ielts",
+      "topic": "academic-core",
+      "topicLabel": "Academic Core",
+      "type": "term",
+      "word": "consequently",
+      "meaning": "因此，所以",
+      "definition": "as a result of something that happened before",
+      "cn": "用于小作文趋势、阅读定位和大作文论证的高频学术表达。",
+      "example": "IELTS writers should use consequently precisely when building an argument.",
+      "translation": "雅思写作中应准确使用“因此，所以”来组织论证。",
+      "collocations": [
+        "consequently many",
+        "consequently this"
+      ]
+    },
+    {
+      "id": "ielts-academic-core-inevitable",
+      "subject": "ielts",
+      "topic": "academic-core",
+      "topicLabel": "Academic Core",
+      "type": "term",
+      "word": "inevitable",
+      "meaning": "不可避免的",
+      "definition": "certain to happen and difficult to avoid",
+      "cn": "用于小作文趋势、阅读定位和大作文论证的高频学术表达。",
+      "example": "IELTS writers should use inevitable precisely when building an argument.",
+      "translation": "雅思写作中应准确使用“不可避免的”来组织论证。",
+      "collocations": [
+        "almost inevitable",
+        "an inevitable result"
+      ]
+    },
+    {
+      "id": "ielts-academic-core-conventional",
+      "subject": "ielts",
+      "topic": "academic-core",
+      "topicLabel": "Academic Core",
+      "type": "term",
+      "word": "conventional",
+      "meaning": "传统的，常规的",
+      "definition": "based on usual or traditional ways of doing things",
+      "cn": "用于小作文趋势、阅读定位和大作文论证的高频学术表达。",
+      "example": "IELTS writers should use conventional precisely when building an argument.",
+      "translation": "雅思写作中应准确使用“传统的，常规的”来组织论证。",
+      "collocations": [
+        "conventional methods",
+        "conventional wisdom"
+      ]
+    },
+    {
+      "id": "ielts-academic-core-enhance",
+      "subject": "ielts",
+      "topic": "academic-core",
+      "topicLabel": "Academic Core",
+      "type": "term",
+      "word": "enhance",
+      "meaning": "提升，增强",
+      "definition": "to improve the quality or value of something",
+      "cn": "用于小作文趋势、阅读定位和大作文论证的高频学术表达。",
+      "example": "IELTS writers should use enhance precisely when building an argument.",
+      "translation": "雅思写作中应准确使用“提升，增强”来组织论证。",
+      "collocations": [
+        "enhance performance",
+        "enhance quality"
+      ]
+    },
+    {
+      "id": "ielts-academic-core-adapt",
+      "subject": "ielts",
+      "topic": "academic-core",
+      "topicLabel": "Academic Core",
+      "type": "term",
+      "word": "adapt",
+      "meaning": "适应，调整",
+      "definition": "to change so that something works in a new situation",
+      "cn": "用于小作文趋势、阅读定位和大作文论证的高频学术表达。",
+      "example": "IELTS writers should use adapt precisely when building an argument.",
+      "translation": "雅思写作中应准确使用“适应，调整”来组织论证。",
+      "collocations": [
+        "adapt to change",
+        "adapt quickly"
+      ]
+    },
+    {
+      "id": "ielts-academic-core-evidence",
+      "subject": "ielts",
+      "topic": "academic-core",
+      "topicLabel": "Academic Core",
+      "type": "term",
+      "word": "evidence",
+      "meaning": "证据",
+      "definition": "information or facts that support a claim or answer",
+      "cn": "用于小作文趋势、阅读定位和大作文论证的高频学术表达。",
+      "example": "IELTS writers should use evidence precisely when building an argument.",
+      "translation": "雅思写作中应准确使用“证据”来组织论证。",
+      "collocations": [
+        "strong evidence",
+        "supporting evidence"
+      ]
+    },
+    {
+      "id": "ielts-academic-core-outweigh",
+      "subject": "ielts",
+      "topic": "academic-core",
+      "topicLabel": "Academic Core",
+      "type": "term",
+      "word": "outweigh",
+      "meaning": "超过，胜过",
+      "definition": "to be more important than another factor",
+      "cn": "用于小作文趋势、阅读定位和大作文论证的高频学术表达。",
+      "example": "IELTS writers should use outweigh precisely when building an argument.",
+      "translation": "雅思写作中应准确使用“超过，胜过”来组织论证。",
+      "collocations": [
+        "outweigh the drawbacks",
+        "advantages outweigh"
+      ]
+    },
+    {
+      "id": "ielts-academic-core-prioritise",
+      "subject": "ielts",
+      "topic": "academic-core",
+      "topicLabel": "Academic Core",
+      "type": "term",
+      "word": "prioritise",
+      "meaning": "优先考虑",
+      "definition": "to treat something as more important than other things",
+      "cn": "用于小作文趋势、阅读定位和大作文论证的高频学术表达。",
+      "example": "IELTS writers should use prioritise precisely when building an argument.",
+      "translation": "雅思写作中应准确使用“优先考虑”来组织论证。",
+      "collocations": [
+        "prioritise safety",
+        "prioritise education"
+      ]
+    },
+    {
+      "id": "ielts-academic-core-obstacle",
+      "subject": "ielts",
+      "topic": "academic-core",
+      "topicLabel": "Academic Core",
+      "type": "term",
+      "word": "obstacle",
+      "meaning": "障碍，阻碍",
+      "definition": "something that makes progress difficult",
+      "cn": "用于小作文趋势、阅读定位和大作文论证的高频学术表达。",
+      "example": "IELTS writers should use obstacle precisely when building an argument.",
+      "translation": "雅思写作中应准确使用“障碍，阻碍”来组织论证。",
+      "collocations": [
+        "major obstacle",
+        "overcome obstacles"
+      ]
+    },
+    {
+      "id": "ielts-academic-core-interpret",
+      "subject": "ielts",
+      "topic": "academic-core",
+      "topicLabel": "Academic Core",
+      "type": "term",
+      "word": "interpret",
+      "meaning": "理解，解释",
+      "definition": "to understand or explain the meaning of something",
+      "cn": "用于小作文趋势、阅读定位和大作文论证的高频学术表达。",
+      "example": "IELTS writers should use interpret precisely when building an argument.",
+      "translation": "雅思写作中应准确使用“理解，解释”来组织论证。",
+      "collocations": [
+        "interpret data",
+        "interpret the results"
+      ]
+    },
+    {
+      "id": "ielts-education-learning-curriculum",
+      "subject": "ielts",
+      "topic": "education-learning",
+      "topicLabel": "Education & Learning",
+      "type": "term",
+      "word": "curriculum",
+      "meaning": "课程设置",
+      "definition": "the subjects and content taught in a school or course",
+      "cn": "用于教育公平、课程、考试、学校管理和学习方式类题目。",
+      "example": "A strong IELTS answer can discuss curriculum when writing about schools or universities.",
+      "translation": "写学校或大学话题时，可以用“课程设置”说明教育问题。",
+      "collocations": [
+        "national curriculum",
+        "broad curriculum"
+      ]
+    },
+    {
+      "id": "ielts-education-learning-syllabus",
+      "subject": "ielts",
+      "topic": "education-learning",
+      "topicLabel": "Education & Learning",
+      "type": "term",
+      "word": "syllabus",
+      "meaning": "教学大纲",
+      "definition": "a plan showing what will be taught in a course",
+      "cn": "用于教育公平、课程、考试、学校管理和学习方式类题目。",
+      "example": "A strong IELTS answer can discuss syllabus when writing about schools or universities.",
+      "translation": "写学校或大学话题时，可以用“教学大纲”说明教育问题。",
+      "collocations": [
+        "course syllabus",
+        "exam syllabus"
+      ]
+    },
+    {
+      "id": "ielts-education-learning-assessment",
+      "subject": "ielts",
+      "topic": "education-learning",
+      "topicLabel": "Education & Learning",
+      "type": "term",
+      "word": "assessment",
+      "meaning": "评估，考核",
+      "definition": "a way of judging knowledge, progress, or performance",
+      "cn": "用于教育公平、课程、考试、学校管理和学习方式类题目。",
+      "example": "A strong IELTS answer can discuss assessment when writing about schools or universities.",
+      "translation": "写学校或大学话题时，可以用“评估，考核”说明教育问题。",
+      "collocations": [
+        "continuous assessment",
+        "formal assessment"
+      ]
+    },
+    {
+      "id": "ielts-education-learning-literacy",
+      "subject": "ielts",
+      "topic": "education-learning",
+      "topicLabel": "Education & Learning",
+      "type": "term",
+      "word": "literacy",
+      "meaning": "读写能力",
+      "definition": "the ability to read and write effectively",
+      "cn": "用于教育公平、课程、考试、学校管理和学习方式类题目。",
+      "example": "A strong IELTS answer can discuss literacy when writing about schools or universities.",
+      "translation": "写学校或大学话题时，可以用“读写能力”说明教育问题。",
+      "collocations": [
+        "adult literacy",
+        "digital literacy"
+      ]
+    },
+    {
+      "id": "ielts-education-learning-numeracy",
+      "subject": "ielts",
+      "topic": "education-learning",
+      "topicLabel": "Education & Learning",
+      "type": "term",
+      "word": "numeracy",
+      "meaning": "数字能力",
+      "definition": "the ability to understand and use numbers",
+      "cn": "用于教育公平、课程、考试、学校管理和学习方式类题目。",
+      "example": "A strong IELTS answer can discuss numeracy when writing about schools or universities.",
+      "translation": "写学校或大学话题时，可以用“数字能力”说明教育问题。",
+      "collocations": [
+        "basic numeracy",
+        "numeracy skills"
+      ]
+    },
+    {
+      "id": "ielts-education-learning-enrolment",
+      "subject": "ielts",
+      "topic": "education-learning",
+      "topicLabel": "Education & Learning",
+      "type": "term",
+      "word": "enrolment",
+      "meaning": "入学，注册人数",
+      "definition": "the act or number of students joining a course",
+      "cn": "用于教育公平、课程、考试、学校管理和学习方式类题目。",
+      "example": "A strong IELTS answer can discuss enrolment when writing about schools or universities.",
+      "translation": "写学校或大学话题时，可以用“入学，注册人数”说明教育问题。",
+      "collocations": [
+        "student enrolment",
+        "school enrolment"
+      ]
+    },
+    {
+      "id": "ielts-education-learning-attendance",
+      "subject": "ielts",
+      "topic": "education-learning",
+      "topicLabel": "Education & Learning",
+      "type": "term",
+      "word": "attendance",
+      "meaning": "出勤，参加",
+      "definition": "being present at a school, class, or event",
+      "cn": "用于教育公平、课程、考试、学校管理和学习方式类题目。",
+      "example": "A strong IELTS answer can discuss attendance when writing about schools or universities.",
+      "translation": "写学校或大学话题时，可以用“出勤，参加”说明教育问题。",
+      "collocations": [
+        "regular attendance",
+        "attendance rate"
+      ]
+    },
+    {
+      "id": "ielts-education-learning-discipline",
+      "subject": "ielts",
+      "topic": "education-learning",
+      "topicLabel": "Education & Learning",
+      "type": "term",
+      "word": "discipline",
+      "meaning": "纪律，自律",
+      "definition": "controlled behaviour or training that builds self-control",
+      "cn": "用于教育公平、课程、考试、学校管理和学习方式类题目。",
+      "example": "A strong IELTS answer can discuss discipline when writing about schools or universities.",
+      "translation": "写学校或大学话题时，可以用“纪律，自律”说明教育问题。",
+      "collocations": [
+        "school discipline",
+        "self-discipline"
+      ]
+    },
+    {
+      "id": "ielts-education-learning-scholarship",
+      "subject": "ielts",
+      "topic": "education-learning",
+      "topicLabel": "Education & Learning",
+      "type": "term",
+      "word": "scholarship",
+      "meaning": "奖学金",
+      "definition": "money given to support a student's education",
+      "cn": "用于教育公平、课程、考试、学校管理和学习方式类题目。",
+      "example": "A strong IELTS answer can discuss scholarship when writing about schools or universities.",
+      "translation": "写学校或大学话题时，可以用“奖学金”说明教育问题。",
+      "collocations": [
+        "full scholarship",
+        "scholarship scheme"
+      ]
+    },
+    {
+      "id": "ielts-education-learning-qualification",
+      "subject": "ielts",
+      "topic": "education-learning",
+      "topicLabel": "Education & Learning",
+      "type": "term",
+      "word": "qualification",
+      "meaning": "资格，学历",
+      "definition": "an official record showing training or ability",
+      "cn": "用于教育公平、课程、考试、学校管理和学习方式类题目。",
+      "example": "A strong IELTS answer can discuss qualification when writing about schools or universities.",
+      "translation": "写学校或大学话题时，可以用“资格，学历”说明教育问题。",
+      "collocations": [
+        "academic qualification",
+        "professional qualification"
+      ]
+    },
+    {
+      "id": "ielts-education-learning-tuition",
+      "subject": "ielts",
+      "topic": "education-learning",
+      "topicLabel": "Education & Learning",
+      "type": "term",
+      "word": "tuition",
+      "meaning": "学费，教学",
+      "definition": "teaching or the money paid for education",
+      "cn": "用于教育公平、课程、考试、学校管理和学习方式类题目。",
+      "example": "A strong IELTS answer can discuss tuition when writing about schools or universities.",
+      "translation": "写学校或大学话题时，可以用“学费，教学”说明教育问题。",
+      "collocations": [
+        "private tuition",
+        "tuition fees"
+      ]
+    },
+    {
+      "id": "ielts-education-learning-lecture",
+      "subject": "ielts",
+      "topic": "education-learning",
+      "topicLabel": "Education & Learning",
+      "type": "term",
+      "word": "lecture",
+      "meaning": "讲座，授课",
+      "definition": "a formal talk given to teach a subject",
+      "cn": "用于教育公平、课程、考试、学校管理和学习方式类题目。",
+      "example": "A strong IELTS answer can discuss lecture when writing about schools or universities.",
+      "translation": "写学校或大学话题时，可以用“讲座，授课”说明教育问题。",
+      "collocations": [
+        "university lecture",
+        "attend lectures"
+      ]
+    },
+    {
+      "id": "ielts-education-learning-seminar",
+      "subject": "ielts",
+      "topic": "education-learning",
+      "topicLabel": "Education & Learning",
+      "type": "term",
+      "word": "seminar",
+      "meaning": "研讨课",
+      "definition": "a small class for discussion and deeper study",
+      "cn": "用于教育公平、课程、考试、学校管理和学习方式类题目。",
+      "example": "A strong IELTS answer can discuss seminar when writing about schools or universities.",
+      "translation": "写学校或大学话题时，可以用“研讨课”说明教育问题。",
+      "collocations": [
+        "seminar discussion",
+        "weekly seminar"
+      ]
+    },
+    {
+      "id": "ielts-education-learning-tutorial",
+      "subject": "ielts",
+      "topic": "education-learning",
+      "topicLabel": "Education & Learning",
+      "type": "term",
+      "word": "tutorial",
+      "meaning": "辅导课",
+      "definition": "a lesson with individual or small-group guidance",
+      "cn": "用于教育公平、课程、考试、学校管理和学习方式类题目。",
+      "example": "A strong IELTS answer can discuss tutorial when writing about schools or universities.",
+      "translation": "写学校或大学话题时，可以用“辅导课”说明教育问题。",
+      "collocations": [
+        "tutorial support",
+        "online tutorial"
+      ]
+    },
+    {
+      "id": "ielts-education-learning-compulsory",
+      "subject": "ielts",
+      "topic": "education-learning",
+      "topicLabel": "Education & Learning",
+      "type": "term",
+      "word": "compulsory",
+      "meaning": "强制的，必修的",
+      "definition": "required by a rule or law",
+      "cn": "用于教育公平、课程、考试、学校管理和学习方式类题目。",
+      "example": "A strong IELTS answer can discuss compulsory when writing about schools or universities.",
+      "translation": "写学校或大学话题时，可以用“强制的，必修的”说明教育问题。",
+      "collocations": [
+        "compulsory education",
+        "compulsory subjects"
+      ]
+    },
+    {
+      "id": "ielts-technology-digital-software",
+      "subject": "ielts",
+      "topic": "technology-digital",
+      "topicLabel": "Technology & Digital Life",
+      "type": "term",
+      "word": "software",
+      "meaning": "软件",
+      "definition": "programs and applications used by computers or devices",
+      "cn": "用于人工智能、隐私、线上服务、学习平台和工作自动化类题目。",
+      "example": "IELTS candidates can discuss software when explaining the benefits or risks of technology.",
+      "translation": "解释科技的好处或风险时，可以使用“软件”。",
+      "collocations": [
+        "educational software",
+        "software update"
+      ]
+    },
+    {
+      "id": "ielts-technology-digital-hardware",
+      "subject": "ielts",
+      "topic": "technology-digital",
+      "topicLabel": "Technology & Digital Life",
+      "type": "term",
+      "word": "hardware",
+      "meaning": "硬件",
+      "definition": "the physical parts of a computer or device",
+      "cn": "用于人工智能、隐私、线上服务、学习平台和工作自动化类题目。",
+      "example": "IELTS candidates can discuss hardware when explaining the benefits or risks of technology.",
+      "translation": "解释科技的好处或风险时，可以使用“硬件”。",
+      "collocations": [
+        "computer hardware",
+        "hardware failure"
+      ]
+    },
+    {
+      "id": "ielts-technology-digital-algorithm",
+      "subject": "ielts",
+      "topic": "technology-digital",
+      "topicLabel": "Technology & Digital Life",
+      "type": "term",
+      "word": "algorithm",
+      "meaning": "算法",
+      "definition": "a set of rules a computer follows to solve a problem",
+      "cn": "用于人工智能、隐私、线上服务、学习平台和工作自动化类题目。",
+      "example": "IELTS candidates can discuss algorithm when explaining the benefits or risks of technology.",
+      "translation": "解释科技的好处或风险时，可以使用“算法”。",
+      "collocations": [
+        "search algorithm",
+        "recommendation algorithm"
+      ]
+    },
+    {
+      "id": "ielts-technology-digital-automation",
+      "subject": "ielts",
+      "topic": "technology-digital",
+      "topicLabel": "Technology & Digital Life",
+      "type": "term",
+      "word": "automation",
+      "meaning": "自动化",
+      "definition": "the use of machines or software to do tasks automatically",
+      "cn": "用于人工智能、隐私、线上服务、学习平台和工作自动化类题目。",
+      "example": "IELTS candidates can discuss automation when explaining the benefits or risks of technology.",
+      "translation": "解释科技的好处或风险时，可以使用“自动化”。",
+      "collocations": [
+        "workplace automation",
+        "automation technology"
+      ]
+    },
+    {
+      "id": "ielts-technology-digital-digitalisation",
+      "subject": "ielts",
+      "topic": "technology-digital",
+      "topicLabel": "Technology & Digital Life",
+      "type": "term",
+      "word": "digitalisation",
+      "meaning": "数字化",
+      "definition": "the process of changing services or information into digital form",
+      "cn": "用于人工智能、隐私、线上服务、学习平台和工作自动化类题目。",
+      "example": "IELTS candidates can discuss digitalisation when explaining the benefits or risks of technology.",
+      "translation": "解释科技的好处或风险时，可以使用“数字化”。",
+      "collocations": [
+        "digitalisation of services",
+        "rapid digitalisation"
+      ]
+    },
+    {
+      "id": "ielts-technology-digital-network",
+      "subject": "ielts",
+      "topic": "technology-digital",
+      "topicLabel": "Technology & Digital Life",
+      "type": "term",
+      "word": "network",
+      "meaning": "网络",
+      "definition": "a connected system for communication, data, or people",
+      "cn": "用于人工智能、隐私、线上服务、学习平台和工作自动化类题目。",
+      "example": "IELTS candidates can discuss network when explaining the benefits or risks of technology.",
+      "translation": "解释科技的好处或风险时，可以使用“网络”。",
+      "collocations": [
+        "mobile network",
+        "social network"
+      ]
+    },
+    {
+      "id": "ielts-technology-digital-platform",
+      "subject": "ielts",
+      "topic": "technology-digital",
+      "topicLabel": "Technology & Digital Life",
+      "type": "term",
+      "word": "platform",
+      "meaning": "平台",
+      "definition": "a digital service or system where users interact",
+      "cn": "用于人工智能、隐私、线上服务、学习平台和工作自动化类题目。",
+      "example": "IELTS candidates can discuss platform when explaining the benefits or risks of technology.",
+      "translation": "解释科技的好处或风险时，可以使用“平台”。",
+      "collocations": [
+        "learning platform",
+        "online platform"
+      ]
+    },
+    {
+      "id": "ielts-technology-digital-database",
+      "subject": "ielts",
+      "topic": "technology-digital",
+      "topicLabel": "Technology & Digital Life",
+      "type": "term",
+      "word": "database",
+      "meaning": "数据库",
+      "definition": "an organised collection of stored information",
+      "cn": "用于人工智能、隐私、线上服务、学习平台和工作自动化类题目。",
+      "example": "IELTS candidates can discuss database when explaining the benefits or risks of technology.",
+      "translation": "解释科技的好处或风险时，可以使用“数据库”。",
+      "collocations": [
+        "student database",
+        "database security"
+      ]
+    },
+    {
+      "id": "ielts-technology-digital-interface",
+      "subject": "ielts",
+      "topic": "technology-digital",
+      "topicLabel": "Technology & Digital Life",
+      "type": "term",
+      "word": "interface",
+      "meaning": "界面",
+      "definition": "the part of a system that users see and control",
+      "cn": "用于人工智能、隐私、线上服务、学习平台和工作自动化类题目。",
+      "example": "IELTS candidates can discuss interface when explaining the benefits or risks of technology.",
+      "translation": "解释科技的好处或风险时，可以使用“界面”。",
+      "collocations": [
+        "user interface",
+        "simple interface"
+      ]
+    },
+    {
+      "id": "ielts-technology-digital-storage",
+      "subject": "ielts",
+      "topic": "technology-digital",
+      "topicLabel": "Technology & Digital Life",
+      "type": "term",
+      "word": "storage",
+      "meaning": "存储",
+      "definition": "space or systems used to keep data or materials",
+      "cn": "用于人工智能、隐私、线上服务、学习平台和工作自动化类题目。",
+      "example": "IELTS candidates can discuss storage when explaining the benefits or risks of technology.",
+      "translation": "解释科技的好处或风险时，可以使用“存储”。",
+      "collocations": [
+        "cloud storage",
+        "data storage"
+      ]
+    },
+    {
+      "id": "ielts-technology-digital-innovation",
+      "subject": "ielts",
+      "topic": "technology-digital",
+      "topicLabel": "Technology & Digital Life",
+      "type": "term",
+      "word": "innovation",
+      "meaning": "创新",
+      "definition": "a new idea, method, or product that brings improvement",
+      "cn": "用于人工智能、隐私、线上服务、学习平台和工作自动化类题目。",
+      "example": "IELTS candidates can discuss innovation when explaining the benefits or risks of technology.",
+      "translation": "解释科技的好处或风险时，可以使用“创新”。",
+      "collocations": [
+        "technological innovation",
+        "encourage innovation"
+      ]
+    },
+    {
+      "id": "ielts-technology-digital-artificial-intelligence",
+      "subject": "ielts",
+      "topic": "technology-digital",
+      "topicLabel": "Technology & Digital Life",
+      "type": "term",
+      "word": "artificial intelligence",
+      "meaning": "人工智能",
+      "definition": "computer systems that perform tasks requiring human-like thinking",
+      "cn": "用于人工智能、隐私、线上服务、学习平台和工作自动化类题目。",
+      "example": "IELTS candidates can discuss artificial intelligence when explaining the benefits or risks of technology.",
+      "translation": "解释科技的好处或风险时，可以使用“人工智能”。",
+      "collocations": [
+        "artificial intelligence tools",
+        "AI development"
+      ]
+    },
+    {
+      "id": "ielts-technology-digital-privacy",
+      "subject": "ielts",
+      "topic": "technology-digital",
+      "topicLabel": "Technology & Digital Life",
+      "type": "term",
+      "word": "privacy",
+      "meaning": "隐私",
+      "definition": "the right to control personal information and personal space",
+      "cn": "用于人工智能、隐私、线上服务、学习平台和工作自动化类题目。",
+      "example": "IELTS candidates can discuss privacy when explaining the benefits or risks of technology.",
+      "translation": "解释科技的好处或风险时，可以使用“隐私”。",
+      "collocations": [
+        "online privacy",
+        "privacy protection"
+      ]
+    },
+    {
+      "id": "ielts-technology-digital-cybersecurity",
+      "subject": "ielts",
+      "topic": "technology-digital",
+      "topicLabel": "Technology & Digital Life",
+      "type": "term",
+      "word": "cybersecurity",
+      "meaning": "网络安全",
+      "definition": "protection of computers, systems, and data from digital attacks",
+      "cn": "用于人工智能、隐私、线上服务、学习平台和工作自动化类题目。",
+      "example": "IELTS candidates can discuss cybersecurity when explaining the benefits or risks of technology.",
+      "translation": "解释科技的好处或风险时，可以使用“网络安全”。",
+      "collocations": [
+        "cybersecurity risk",
+        "cybersecurity policy"
+      ]
+    },
+    {
+      "id": "ielts-technology-digital-compatibility",
+      "subject": "ielts",
+      "topic": "technology-digital",
+      "topicLabel": "Technology & Digital Life",
+      "type": "term",
+      "word": "compatibility",
+      "meaning": "兼容性",
+      "definition": "the ability of systems or people to work well together",
+      "cn": "用于人工智能、隐私、线上服务、学习平台和工作自动化类题目。",
+      "example": "IELTS candidates can discuss compatibility when explaining the benefits or risks of technology.",
+      "translation": "解释科技的好处或风险时，可以使用“兼容性”。",
+      "collocations": [
+        "software compatibility",
+        "device compatibility"
+      ]
+    },
+    {
+      "id": "ielts-environment-climate-pollution",
+      "subject": "ielts",
+      "topic": "environment-climate",
+      "topicLabel": "Environment & Climate",
+      "type": "term",
+      "word": "pollution",
+      "meaning": "污染",
+      "definition": "harmful substances or noise added to the environment",
+      "cn": "用于污染、气候变化、资源利用、生态保护和可持续发展类题目。",
+      "example": "A clear IELTS paragraph can use pollution to explain an environmental cause or effect.",
+      "translation": "清晰段落可以用“污染”说明环境原因或影响。",
+      "collocations": [
+        "air pollution",
+        "pollution control"
+      ]
+    },
+    {
+      "id": "ielts-environment-climate-emission",
+      "subject": "ielts",
+      "topic": "environment-climate",
+      "topicLabel": "Environment & Climate",
+      "type": "term",
+      "word": "emission",
+      "meaning": "排放",
+      "definition": "gas, heat, or radiation released into the air",
+      "cn": "用于污染、气候变化、资源利用、生态保护和可持续发展类题目。",
+      "example": "A clear IELTS paragraph can use emission to explain an environmental cause or effect.",
+      "translation": "清晰段落可以用“排放”说明环境原因或影响。",
+      "collocations": [
+        "carbon emission",
+        "vehicle emissions"
+      ]
+    },
+    {
+      "id": "ielts-environment-climate-biodiversity",
+      "subject": "ielts",
+      "topic": "environment-climate",
+      "topicLabel": "Environment & Climate",
+      "type": "term",
+      "word": "biodiversity",
+      "meaning": "生物多样性",
+      "definition": "the variety of living things in an area or ecosystem",
+      "cn": "用于污染、气候变化、资源利用、生态保护和可持续发展类题目。",
+      "example": "A clear IELTS paragraph can use biodiversity to explain an environmental cause or effect.",
+      "translation": "清晰段落可以用“生物多样性”说明环境原因或影响。",
+      "collocations": [
+        "protect biodiversity",
+        "loss of biodiversity"
+      ]
+    },
+    {
+      "id": "ielts-environment-climate-conservation",
+      "subject": "ielts",
+      "topic": "environment-climate",
+      "topicLabel": "Environment & Climate",
+      "type": "term",
+      "word": "conservation",
+      "meaning": "保护，保育",
+      "definition": "the protection of nature, resources, or cultural objects",
+      "cn": "用于污染、气候变化、资源利用、生态保护和可持续发展类题目。",
+      "example": "A clear IELTS paragraph can use conservation to explain an environmental cause or effect.",
+      "translation": "清晰段落可以用“保护，保育”说明环境原因或影响。",
+      "collocations": [
+        "wildlife conservation",
+        "conservation project"
+      ]
+    },
+    {
+      "id": "ielts-environment-climate-habitat",
+      "subject": "ielts",
+      "topic": "environment-climate",
+      "topicLabel": "Environment & Climate",
+      "type": "term",
+      "word": "habitat",
+      "meaning": "栖息地",
+      "definition": "the natural place where a plant or animal lives",
+      "cn": "用于污染、气候变化、资源利用、生态保护和可持续发展类题目。",
+      "example": "A clear IELTS paragraph can use habitat to explain an environmental cause or effect.",
+      "translation": "清晰段落可以用“栖息地”说明环境原因或影响。",
+      "collocations": [
+        "natural habitat",
+        "destroy habitats"
+      ]
+    },
+    {
+      "id": "ielts-environment-climate-ecosystem",
+      "subject": "ielts",
+      "topic": "environment-climate",
+      "topicLabel": "Environment & Climate",
+      "type": "term",
+      "word": "ecosystem",
+      "meaning": "生态系统",
+      "definition": "living things and their environment working as a system",
+      "cn": "用于污染、气候变化、资源利用、生态保护和可持续发展类题目。",
+      "example": "A clear IELTS paragraph can use ecosystem to explain an environmental cause or effect.",
+      "translation": "清晰段落可以用“生态系统”说明环境原因或影响。",
+      "collocations": [
+        "fragile ecosystem",
+        "marine ecosystem"
+      ]
+    },
+    {
+      "id": "ielts-environment-climate-renewable",
+      "subject": "ielts",
+      "topic": "environment-climate",
+      "topicLabel": "Environment & Climate",
+      "type": "term",
+      "word": "renewable",
+      "meaning": "可再生的",
+      "definition": "able to be replaced naturally or used without running out",
+      "cn": "用于污染、气候变化、资源利用、生态保护和可持续发展类题目。",
+      "example": "A clear IELTS paragraph can use renewable to explain an environmental cause or effect.",
+      "translation": "清晰段落可以用“可再生的”说明环境原因或影响。",
+      "collocations": [
+        "renewable energy",
+        "renewable resources"
+      ]
+    },
+    {
+      "id": "ielts-environment-climate-sustainable",
+      "subject": "ielts",
+      "topic": "environment-climate",
+      "topicLabel": "Environment & Climate",
+      "type": "term",
+      "word": "sustainable",
+      "meaning": "可持续的",
+      "definition": "able to continue without causing long-term damage",
+      "cn": "用于污染、气候变化、资源利用、生态保护和可持续发展类题目。",
+      "example": "A clear IELTS paragraph can use sustainable to explain an environmental cause or effect.",
+      "translation": "清晰段落可以用“可持续的”说明环境原因或影响。",
+      "collocations": [
+        "sustainable development",
+        "sustainable solution"
+      ]
+    },
+    {
+      "id": "ielts-environment-climate-recycling",
+      "subject": "ielts",
+      "topic": "environment-climate",
+      "topicLabel": "Environment & Climate",
+      "type": "term",
+      "word": "recycling",
+      "meaning": "回收利用",
+      "definition": "processing waste so materials can be used again",
+      "cn": "用于污染、气候变化、资源利用、生态保护和可持续发展类题目。",
+      "example": "A clear IELTS paragraph can use recycling to explain an environmental cause or effect.",
+      "translation": "清晰段落可以用“回收利用”说明环境原因或影响。",
+      "collocations": [
+        "recycling scheme",
+        "household recycling"
+      ]
+    },
+    {
+      "id": "ielts-environment-climate-waste",
+      "subject": "ielts",
+      "topic": "environment-climate",
+      "topicLabel": "Environment & Climate",
+      "type": "term",
+      "word": "waste",
+      "meaning": "废弃物，浪费",
+      "definition": "unwanted material or the poor use of resources",
+      "cn": "用于污染、气候变化、资源利用、生态保护和可持续发展类题目。",
+      "example": "A clear IELTS paragraph can use waste to explain an environmental cause or effect.",
+      "translation": "清晰段落可以用“废弃物，浪费”说明环境原因或影响。",
+      "collocations": [
+        "plastic waste",
+        "waste reduction"
+      ]
+    },
+    {
+      "id": "ielts-environment-climate-contamination",
+      "subject": "ielts",
+      "topic": "environment-climate",
+      "topicLabel": "Environment & Climate",
+      "type": "term",
+      "word": "contamination",
+      "meaning": "污染，沾染",
+      "definition": "the presence of harmful or unwanted substances",
+      "cn": "用于污染、气候变化、资源利用、生态保护和可持续发展类题目。",
+      "example": "A clear IELTS paragraph can use contamination to explain an environmental cause or effect.",
+      "translation": "清晰段落可以用“污染，沾染”说明环境原因或影响。",
+      "collocations": [
+        "water contamination",
+        "soil contamination"
+      ]
+    },
+    {
+      "id": "ielts-environment-climate-drought",
+      "subject": "ielts",
+      "topic": "environment-climate",
+      "topicLabel": "Environment & Climate",
+      "type": "term",
+      "word": "drought",
+      "meaning": "干旱",
+      "definition": "a long period with little or no rain",
+      "cn": "用于污染、气候变化、资源利用、生态保护和可持续发展类题目。",
+      "example": "A clear IELTS paragraph can use drought to explain an environmental cause or effect.",
+      "translation": "清晰段落可以用“干旱”说明环境原因或影响。",
+      "collocations": [
+        "severe drought",
+        "drought conditions"
+      ]
+    },
+    {
+      "id": "ielts-environment-climate-flood",
+      "subject": "ielts",
+      "topic": "environment-climate",
+      "topicLabel": "Environment & Climate",
+      "type": "term",
+      "word": "flood",
+      "meaning": "洪水",
+      "definition": "a large amount of water covering normally dry land",
+      "cn": "用于污染、气候变化、资源利用、生态保护和可持续发展类题目。",
+      "example": "A clear IELTS paragraph can use flood to explain an environmental cause or effect.",
+      "translation": "清晰段落可以用“洪水”说明环境原因或影响。",
+      "collocations": [
+        "flash flood",
+        "flood risk"
+      ]
+    },
+    {
+      "id": "ielts-environment-climate-deforestation",
+      "subject": "ielts",
+      "topic": "environment-climate",
+      "topicLabel": "Environment & Climate",
+      "type": "term",
+      "word": "deforestation",
+      "meaning": "森林砍伐",
+      "definition": "the large-scale removal of trees from forests",
+      "cn": "用于污染、气候变化、资源利用、生态保护和可持续发展类题目。",
+      "example": "A clear IELTS paragraph can use deforestation to explain an environmental cause or effect.",
+      "translation": "清晰段落可以用“森林砍伐”说明环境原因或影响。",
+      "collocations": [
+        "deforestation rate",
+        "reduce deforestation"
+      ]
+    },
+    {
+      "id": "ielts-environment-climate-deteriorate",
+      "subject": "ielts",
+      "topic": "environment-climate",
+      "topicLabel": "Environment & Climate",
+      "type": "term",
+      "word": "deteriorate",
+      "meaning": "恶化，变差",
+      "definition": "to become worse in quality or condition",
+      "cn": "用于污染、气候变化、资源利用、生态保护和可持续发展类题目。",
+      "example": "A clear IELTS paragraph can use deteriorate to explain an environmental cause or effect.",
+      "translation": "清晰段落可以用“恶化，变差”说明环境原因或影响。",
+      "collocations": [
+        "deteriorate rapidly",
+        "conditions deteriorate"
+      ]
+    },
+    {
+      "id": "ielts-health-lifestyle-obesity",
+      "subject": "ielts",
+      "topic": "health-lifestyle",
+      "topicLabel": "Health & Lifestyle",
+      "type": "term",
+      "word": "obesity",
+      "meaning": "肥胖",
+      "definition": "a medical condition involving excessive body fat",
+      "cn": "用于公共健康、饮食、运动、医疗服务和心理健康类题目。",
+      "example": "IELTS answers about health can use obesity to describe a problem or solution.",
+      "translation": "健康类答案可以用“肥胖”描述问题或解决方案。",
+      "collocations": [
+        "childhood obesity",
+        "obesity rate"
+      ]
+    },
+    {
+      "id": "ielts-health-lifestyle-hygiene",
+      "subject": "ielts",
+      "topic": "health-lifestyle",
+      "topicLabel": "Health & Lifestyle",
+      "type": "term",
+      "word": "hygiene",
+      "meaning": "卫生",
+      "definition": "practices that keep people clean and prevent disease",
+      "cn": "用于公共健康、饮食、运动、医疗服务和心理健康类题目。",
+      "example": "IELTS answers about health can use hygiene to describe a problem or solution.",
+      "translation": "健康类答案可以用“卫生”描述问题或解决方案。",
+      "collocations": [
+        "personal hygiene",
+        "food hygiene"
+      ]
+    },
+    {
+      "id": "ielts-health-lifestyle-nutrition",
+      "subject": "ielts",
+      "topic": "health-lifestyle",
+      "topicLabel": "Health & Lifestyle",
+      "type": "term",
+      "word": "nutrition",
+      "meaning": "营养",
+      "definition": "the food and substances needed for health and growth",
+      "cn": "用于公共健康、饮食、运动、医疗服务和心理健康类题目。",
+      "example": "IELTS answers about health can use nutrition to describe a problem or solution.",
+      "translation": "健康类答案可以用“营养”描述问题或解决方案。",
+      "collocations": [
+        "good nutrition",
+        "balanced nutrition"
+      ]
+    },
+    {
+      "id": "ielts-health-lifestyle-exercise",
+      "subject": "ielts",
+      "topic": "health-lifestyle",
+      "topicLabel": "Health & Lifestyle",
+      "type": "term",
+      "word": "exercise",
+      "meaning": "运动，锻炼",
+      "definition": "physical activity done to improve health or fitness",
+      "cn": "用于公共健康、饮食、运动、医疗服务和心理健康类题目。",
+      "example": "IELTS answers about health can use exercise to describe a problem or solution.",
+      "translation": "健康类答案可以用“运动，锻炼”描述问题或解决方案。",
+      "collocations": [
+        "regular exercise",
+        "daily exercise"
+      ]
+    },
+    {
+      "id": "ielts-health-lifestyle-vaccine",
+      "subject": "ielts",
+      "topic": "health-lifestyle",
+      "topicLabel": "Health & Lifestyle",
+      "type": "term",
+      "word": "vaccine",
+      "meaning": "疫苗",
+      "definition": "a substance that helps the body resist a disease",
+      "cn": "用于公共健康、饮食、运动、医疗服务和心理健康类题目。",
+      "example": "IELTS answers about health can use vaccine to describe a problem or solution.",
+      "translation": "健康类答案可以用“疫苗”描述问题或解决方案。",
+      "collocations": [
+        "vaccine programme",
+        "receive a vaccine"
+      ]
+    },
+    {
+      "id": "ielts-health-lifestyle-disease",
+      "subject": "ielts",
+      "topic": "health-lifestyle",
+      "topicLabel": "Health & Lifestyle",
+      "type": "term",
+      "word": "disease",
+      "meaning": "疾病",
+      "definition": "an illness that affects people, animals, or plants",
+      "cn": "用于公共健康、饮食、运动、医疗服务和心理健康类题目。",
+      "example": "IELTS answers about health can use disease to describe a problem or solution.",
+      "translation": "健康类答案可以用“疾病”描述问题或解决方案。",
+      "collocations": [
+        "infectious disease",
+        "chronic disease"
+      ]
+    },
+    {
+      "id": "ielts-health-lifestyle-epidemic",
+      "subject": "ielts",
+      "topic": "health-lifestyle",
+      "topicLabel": "Health & Lifestyle",
+      "type": "term",
+      "word": "epidemic",
+      "meaning": "流行病",
+      "definition": "a disease spreading quickly among many people",
+      "cn": "用于公共健康、饮食、运动、医疗服务和心理健康类题目。",
+      "example": "IELTS answers about health can use epidemic to describe a problem or solution.",
+      "translation": "健康类答案可以用“流行病”描述问题或解决方案。",
+      "collocations": [
+        "flu epidemic",
+        "epidemic outbreak"
+      ]
+    },
+    {
+      "id": "ielts-health-lifestyle-stress",
+      "subject": "ielts",
+      "topic": "health-lifestyle",
+      "topicLabel": "Health & Lifestyle",
+      "type": "term",
+      "word": "stress",
+      "meaning": "压力",
+      "definition": "mental or emotional pressure caused by difficulty or demand",
+      "cn": "用于公共健康、饮食、运动、医疗服务和心理健康类题目。",
+      "example": "IELTS answers about health can use stress to describe a problem or solution.",
+      "translation": "健康类答案可以用“压力”描述问题或解决方案。",
+      "collocations": [
+        "work stress",
+        "reduce stress"
+      ]
+    },
+    {
+      "id": "ielts-health-lifestyle-therapy",
+      "subject": "ielts",
+      "topic": "health-lifestyle",
+      "topicLabel": "Health & Lifestyle",
+      "type": "term",
+      "word": "therapy",
+      "meaning": "疗法，治疗",
+      "definition": "treatment for a physical or mental problem",
+      "cn": "用于公共健康、饮食、运动、医疗服务和心理健康类题目。",
+      "example": "IELTS answers about health can use therapy to describe a problem or solution.",
+      "translation": "健康类答案可以用“疗法，治疗”描述问题或解决方案。",
+      "collocations": [
+        "physical therapy",
+        "talk therapy"
+      ]
+    },
+    {
+      "id": "ielts-health-lifestyle-treatment",
+      "subject": "ielts",
+      "topic": "health-lifestyle",
+      "topicLabel": "Health & Lifestyle",
+      "type": "term",
+      "word": "treatment",
+      "meaning": "治疗",
+      "definition": "medical care given to improve an illness or injury",
+      "cn": "用于公共健康、饮食、运动、医疗服务和心理健康类题目。",
+      "example": "IELTS answers about health can use treatment to describe a problem or solution.",
+      "translation": "健康类答案可以用“治疗”描述问题或解决方案。",
+      "collocations": [
+        "medical treatment",
+        "effective treatment"
+      ]
+    },
+    {
+      "id": "ielts-health-lifestyle-prevention",
+      "subject": "ielts",
+      "topic": "health-lifestyle",
+      "topicLabel": "Health & Lifestyle",
+      "type": "term",
+      "word": "prevention",
+      "meaning": "预防",
+      "definition": "action taken to stop a problem or disease before it happens",
+      "cn": "用于公共健康、饮食、运动、医疗服务和心理健康类题目。",
+      "example": "IELTS answers about health can use prevention to describe a problem or solution.",
+      "translation": "健康类答案可以用“预防”描述问题或解决方案。",
+      "collocations": [
+        "disease prevention",
+        "prevention strategy"
+      ]
+    },
+    {
+      "id": "ielts-health-lifestyle-diagnosis",
+      "subject": "ielts",
+      "topic": "health-lifestyle",
+      "topicLabel": "Health & Lifestyle",
+      "type": "term",
+      "word": "diagnosis",
+      "meaning": "诊断",
+      "definition": "the process of identifying an illness or problem",
+      "cn": "用于公共健康、饮食、运动、医疗服务和心理健康类题目。",
+      "example": "IELTS answers about health can use diagnosis to describe a problem or solution.",
+      "translation": "健康类答案可以用“诊断”描述问题或解决方案。",
+      "collocations": [
+        "early diagnosis",
+        "accurate diagnosis"
+      ]
+    },
+    {
+      "id": "ielts-health-lifestyle-recovery",
+      "subject": "ielts",
+      "topic": "health-lifestyle",
+      "topicLabel": "Health & Lifestyle",
+      "type": "term",
+      "word": "recovery",
+      "meaning": "恢复，康复",
+      "definition": "the process of becoming healthy or normal again",
+      "cn": "用于公共健康、饮食、运动、医疗服务和心理健康类题目。",
+      "example": "IELTS answers about health can use recovery to describe a problem or solution.",
+      "translation": "健康类答案可以用“恢复，康复”描述问题或解决方案。",
+      "collocations": [
+        "full recovery",
+        "speedy recovery"
+      ]
+    },
+    {
+      "id": "ielts-health-lifestyle-symptom",
+      "subject": "ielts",
+      "topic": "health-lifestyle",
+      "topicLabel": "Health & Lifestyle",
+      "type": "term",
+      "word": "symptom",
+      "meaning": "症状",
+      "definition": "a sign that shows a person may have an illness",
+      "cn": "用于公共健康、饮食、运动、医疗服务和心理健康类题目。",
+      "example": "IELTS answers about health can use symptom to describe a problem or solution.",
+      "translation": "健康类答案可以用“症状”描述问题或解决方案。",
+      "collocations": [
+        "common symptom",
+        "severe symptoms"
+      ]
+    },
+    {
+      "id": "ielts-health-lifestyle-wellbeing",
+      "subject": "ielts",
+      "topic": "health-lifestyle",
+      "topicLabel": "Health & Lifestyle",
+      "type": "term",
+      "word": "wellbeing",
+      "meaning": "身心健康，幸福感",
+      "definition": "general health, comfort, and life satisfaction",
+      "cn": "用于公共健康、饮食、运动、医疗服务和心理健康类题目。",
+      "example": "IELTS answers about health can use wellbeing to describe a problem or solution.",
+      "translation": "健康类答案可以用“身心健康，幸福感”描述问题或解决方案。",
+      "collocations": [
+        "student wellbeing",
+        "mental wellbeing"
+      ]
+    },
+    {
+      "id": "ielts-work-careers-employer",
+      "subject": "ielts",
+      "topic": "work-careers",
+      "topicLabel": "Work & Careers",
+      "type": "term",
+      "word": "employer",
+      "meaning": "雇主",
+      "definition": "a person or organisation that hires workers",
+      "cn": "用于就业、远程办公、职业选择、工资、培训和退休类题目。",
+      "example": "In work-related IELTS topics, employer can help explain employment choices.",
+      "translation": "在工作类话题中，“雇主”可以帮助说明就业选择。",
+      "collocations": [
+        "large employer",
+        "employer responsibility"
+      ]
+    },
+    {
+      "id": "ielts-work-careers-employee",
+      "subject": "ielts",
+      "topic": "work-careers",
+      "topicLabel": "Work & Careers",
+      "type": "term",
+      "word": "employee",
+      "meaning": "员工",
+      "definition": "a person who works for a company or organisation",
+      "cn": "用于就业、远程办公、职业选择、工资、培训和退休类题目。",
+      "example": "In work-related IELTS topics, employee can help explain employment choices.",
+      "translation": "在工作类话题中，“员工”可以帮助说明就业选择。",
+      "collocations": [
+        "full-time employee",
+        "employee benefits"
+      ]
+    },
+    {
+      "id": "ielts-work-careers-recruitment",
+      "subject": "ielts",
+      "topic": "work-careers",
+      "topicLabel": "Work & Careers",
+      "type": "term",
+      "word": "recruitment",
+      "meaning": "招聘",
+      "definition": "the process of finding and hiring new workers",
+      "cn": "用于就业、远程办公、职业选择、工资、培训和退休类题目。",
+      "example": "In work-related IELTS topics, recruitment can help explain employment choices.",
+      "translation": "在工作类话题中，“招聘”可以帮助说明就业选择。",
+      "collocations": [
+        "recruitment process",
+        "online recruitment"
+      ]
+    },
+    {
+      "id": "ielts-work-careers-promotion",
+      "subject": "ielts",
+      "topic": "work-careers",
+      "topicLabel": "Work & Careers",
+      "type": "term",
+      "word": "promotion",
+      "meaning": "晋升，推广",
+      "definition": "movement to a higher job or support for a product",
+      "cn": "用于就业、远程办公、职业选择、工资、培训和退休类题目。",
+      "example": "In work-related IELTS topics, promotion can help explain employment choices.",
+      "translation": "在工作类话题中，“晋升，推广”可以帮助说明就业选择。",
+      "collocations": [
+        "job promotion",
+        "promotion opportunity"
+      ]
+    },
+    {
+      "id": "ielts-work-careers-profession",
+      "subject": "ielts",
+      "topic": "work-careers",
+      "topicLabel": "Work & Careers",
+      "type": "term",
+      "word": "profession",
+      "meaning": "职业，专业",
+      "definition": "a type of skilled work requiring training",
+      "cn": "用于就业、远程办公、职业选择、工资、培训和退休类题目。",
+      "example": "In work-related IELTS topics, profession can help explain employment choices.",
+      "translation": "在工作类话题中，“职业，专业”可以帮助说明就业选择。",
+      "collocations": [
+        "medical profession",
+        "teaching profession"
+      ]
+    },
+    {
+      "id": "ielts-work-careers-occupation",
+      "subject": "ielts",
+      "topic": "work-careers",
+      "topicLabel": "Work & Careers",
+      "type": "term",
+      "word": "occupation",
+      "meaning": "职业",
+      "definition": "a job or regular way of earning a living",
+      "cn": "用于就业、远程办公、职业选择、工资、培训和退休类题目。",
+      "example": "In work-related IELTS topics, occupation can help explain employment choices.",
+      "translation": "在工作类话题中，“职业”可以帮助说明就业选择。",
+      "collocations": [
+        "manual occupation",
+        "professional occupation"
+      ]
+    },
+    {
+      "id": "ielts-work-careers-workload",
+      "subject": "ielts",
+      "topic": "work-careers",
+      "topicLabel": "Work & Careers",
+      "type": "term",
+      "word": "workload",
+      "meaning": "工作量",
+      "definition": "the amount of work a person has to do",
+      "cn": "用于就业、远程办公、职业选择、工资、培训和退休类题目。",
+      "example": "In work-related IELTS topics, workload can help explain employment choices.",
+      "translation": "在工作类话题中，“工作量”可以帮助说明就业选择。",
+      "collocations": [
+        "heavy workload",
+        "manage workload"
+      ]
+    },
+    {
+      "id": "ielts-work-careers-productivity",
+      "subject": "ielts",
+      "topic": "work-careers",
+      "topicLabel": "Work & Careers",
+      "type": "term",
+      "word": "productivity",
+      "meaning": "生产率，效率",
+      "definition": "the rate at which work or goods are produced",
+      "cn": "用于就业、远程办公、职业选择、工资、培训和退休类题目。",
+      "example": "In work-related IELTS topics, productivity can help explain employment choices.",
+      "translation": "在工作类话题中，“生产率，效率”可以帮助说明就业选择。",
+      "collocations": [
+        "improve productivity",
+        "workplace productivity"
+      ]
+    },
+    {
+      "id": "ielts-work-careers-salary",
+      "subject": "ielts",
+      "topic": "work-careers",
+      "topicLabel": "Work & Careers",
+      "type": "term",
+      "word": "salary",
+      "meaning": "薪水",
+      "definition": "fixed regular payment for work",
+      "cn": "用于就业、远程办公、职业选择、工资、培训和退休类题目。",
+      "example": "In work-related IELTS topics, salary can help explain employment choices.",
+      "translation": "在工作类话题中，“薪水”可以帮助说明就业选择。",
+      "collocations": [
+        "high salary",
+        "annual salary"
+      ]
+    },
+    {
+      "id": "ielts-work-careers-contract",
+      "subject": "ielts",
+      "topic": "work-careers",
+      "topicLabel": "Work & Careers",
+      "type": "term",
+      "word": "contract",
+      "meaning": "合同，合约",
+      "definition": "a formal agreement between people or organisations",
+      "cn": "用于就业、远程办公、职业选择、工资、培训和退休类题目。",
+      "example": "In work-related IELTS topics, contract can help explain employment choices.",
+      "translation": "在工作类话题中，“合同，合约”可以帮助说明就业选择。",
+      "collocations": [
+        "employment contract",
+        "short-term contract"
+      ]
+    },
+    {
+      "id": "ielts-work-careers-retirement",
+      "subject": "ielts",
+      "topic": "work-careers",
+      "topicLabel": "Work & Careers",
+      "type": "term",
+      "word": "retirement",
+      "meaning": "退休",
+      "definition": "the period or act of leaving work permanently",
+      "cn": "用于就业、远程办公、职业选择、工资、培训和退休类题目。",
+      "example": "In work-related IELTS topics, retirement can help explain employment choices.",
+      "translation": "在工作类话题中，“退休”可以帮助说明就业选择。",
+      "collocations": [
+        "retirement age",
+        "early retirement"
+      ]
+    },
+    {
+      "id": "ielts-work-careers-freelance",
+      "subject": "ielts",
+      "topic": "work-careers",
+      "topicLabel": "Work & Careers",
+      "type": "term",
+      "word": "freelance",
+      "meaning": "自由职业的",
+      "definition": "working for different clients rather than one employer",
+      "cn": "用于就业、远程办公、职业选择、工资、培训和退休类题目。",
+      "example": "In work-related IELTS topics, freelance can help explain employment choices.",
+      "translation": "在工作类话题中，“自由职业的”可以帮助说明就业选择。",
+      "collocations": [
+        "freelance work",
+        "freelance designer"
+      ]
+    },
+    {
+      "id": "ielts-work-careers-teamwork",
+      "subject": "ielts",
+      "topic": "work-careers",
+      "topicLabel": "Work & Careers",
+      "type": "term",
+      "word": "teamwork",
+      "meaning": "团队合作",
+      "definition": "the ability of people to work together effectively",
+      "cn": "用于就业、远程办公、职业选择、工资、培训和退休类题目。",
+      "example": "In work-related IELTS topics, teamwork can help explain employment choices.",
+      "translation": "在工作类话题中，“团队合作”可以帮助说明就业选择。",
+      "collocations": [
+        "good teamwork",
+        "teamwork skills"
+      ]
+    },
+    {
+      "id": "ielts-work-careers-training",
+      "subject": "ielts",
+      "topic": "work-careers",
+      "topicLabel": "Work & Careers",
+      "type": "term",
+      "word": "training",
+      "meaning": "培训",
+      "definition": "the process of teaching practical skills or knowledge",
+      "cn": "用于就业、远程办公、职业选择、工资、培训和退休类题目。",
+      "example": "In work-related IELTS topics, training can help explain employment choices.",
+      "translation": "在工作类话题中，“培训”可以帮助说明就业选择。",
+      "collocations": [
+        "staff training",
+        "vocational training"
+      ]
+    },
+    {
+      "id": "ielts-work-careers-vacancy",
+      "subject": "ielts",
+      "topic": "work-careers",
+      "topicLabel": "Work & Careers",
+      "type": "term",
+      "word": "vacancy",
+      "meaning": "空缺职位",
+      "definition": "a job that is available for someone to take",
+      "cn": "用于就业、远程办公、职业选择、工资、培训和退休类题目。",
+      "example": "In work-related IELTS topics, vacancy can help explain employment choices.",
+      "translation": "在工作类话题中，“空缺职位”可以帮助说明就业选择。",
+      "collocations": [
+        "job vacancy",
+        "fill a vacancy"
+      ]
+    },
+    {
+      "id": "ielts-society-community-community",
+      "subject": "ielts",
+      "topic": "society-community",
+      "topicLabel": "Society & Community",
+      "type": "term",
+      "word": "community",
+      "meaning": "社区，群体",
+      "definition": "people living in the same area or sharing interests",
+      "cn": "用于社会公平、社区服务、贫富差距、公共安全和公民责任类题目。",
+      "example": "A social-issues paragraph can use community to explain how people live together.",
+      "translation": "社会类段落可以用“社区，群体”说明人们如何共同生活。",
+      "collocations": [
+        "local community",
+        "community support"
+      ]
+    },
+    {
+      "id": "ielts-society-community-inequality",
+      "subject": "ielts",
+      "topic": "society-community",
+      "topicLabel": "Society & Community",
+      "type": "term",
+      "word": "inequality",
+      "meaning": "不平等",
+      "definition": "an unfair difference in opportunity, wealth, or status",
+      "cn": "用于社会公平、社区服务、贫富差距、公共安全和公民责任类题目。",
+      "example": "A social-issues paragraph can use inequality to explain how people live together.",
+      "translation": "社会类段落可以用“不平等”说明人们如何共同生活。",
+      "collocations": [
+        "income inequality",
+        "social inequality"
+      ]
+    },
+    {
+      "id": "ielts-society-community-welfare",
+      "subject": "ielts",
+      "topic": "society-community",
+      "topicLabel": "Society & Community",
+      "type": "term",
+      "word": "welfare",
+      "meaning": "福利，福祉",
+      "definition": "support or wellbeing provided for people in need",
+      "cn": "用于社会公平、社区服务、贫富差距、公共安全和公民责任类题目。",
+      "example": "A social-issues paragraph can use welfare to explain how people live together.",
+      "translation": "社会类段落可以用“福利，福祉”说明人们如何共同生活。",
+      "collocations": [
+        "social welfare",
+        "welfare system"
+      ]
+    },
+    {
+      "id": "ielts-society-community-charity",
+      "subject": "ielts",
+      "topic": "society-community",
+      "topicLabel": "Society & Community",
+      "type": "term",
+      "word": "charity",
+      "meaning": "慈善机构，慈善",
+      "definition": "help given to people who need it",
+      "cn": "用于社会公平、社区服务、贫富差距、公共安全和公民责任类题目。",
+      "example": "A social-issues paragraph can use charity to explain how people live together.",
+      "translation": "社会类段落可以用“慈善机构，慈善”说明人们如何共同生活。",
+      "collocations": [
+        "charity work",
+        "donate to charity"
+      ]
+    },
+    {
+      "id": "ielts-society-community-volunteer",
+      "subject": "ielts",
+      "topic": "society-community",
+      "topicLabel": "Society & Community",
+      "type": "term",
+      "word": "volunteer",
+      "meaning": "志愿者",
+      "definition": "a person who works without being paid",
+      "cn": "用于社会公平、社区服务、贫富差距、公共安全和公民责任类题目。",
+      "example": "A social-issues paragraph can use volunteer to explain how people live together.",
+      "translation": "社会类段落可以用“志愿者”说明人们如何共同生活。",
+      "collocations": [
+        "community volunteer",
+        "volunteer programme"
+      ]
+    },
+    {
+      "id": "ielts-society-community-resident",
+      "subject": "ielts",
+      "topic": "society-community",
+      "topicLabel": "Society & Community",
+      "type": "term",
+      "word": "resident",
+      "meaning": "居民",
+      "definition": "a person who lives in a particular place",
+      "cn": "用于社会公平、社区服务、贫富差距、公共安全和公民责任类题目。",
+      "example": "A social-issues paragraph can use resident to explain how people live together.",
+      "translation": "社会类段落可以用“居民”说明人们如何共同生活。",
+      "collocations": [
+        "local resident",
+        "city residents"
+      ]
+    },
+    {
+      "id": "ielts-society-community-population",
+      "subject": "ielts",
+      "topic": "society-community",
+      "topicLabel": "Society & Community",
+      "type": "term",
+      "word": "population",
+      "meaning": "人口",
+      "definition": "the number of people living in a place",
+      "cn": "用于社会公平、社区服务、贫富差距、公共安全和公民责任类题目。",
+      "example": "A social-issues paragraph can use population to explain how people live together.",
+      "translation": "社会类段落可以用“人口”说明人们如何共同生活。",
+      "collocations": [
+        "ageing population",
+        "urban population"
+      ]
+    },
+    {
+      "id": "ielts-society-community-safety",
+      "subject": "ielts",
+      "topic": "society-community",
+      "topicLabel": "Society & Community",
+      "type": "term",
+      "word": "safety",
+      "meaning": "安全",
+      "definition": "protection from danger, harm, or risk",
+      "cn": "用于社会公平、社区服务、贫富差距、公共安全和公民责任类题目。",
+      "example": "A social-issues paragraph can use safety to explain how people live together.",
+      "translation": "社会类段落可以用“安全”说明人们如何共同生活。",
+      "collocations": [
+        "public safety",
+        "road safety"
+      ]
+    },
+    {
+      "id": "ielts-society-community-poverty",
+      "subject": "ielts",
+      "topic": "society-community",
+      "topicLabel": "Society & Community",
+      "type": "term",
+      "word": "poverty",
+      "meaning": "贫困",
+      "definition": "the condition of having too little money or resources",
+      "cn": "用于社会公平、社区服务、贫富差距、公共安全和公民责任类题目。",
+      "example": "A social-issues paragraph can use poverty to explain how people live together.",
+      "translation": "社会类段落可以用“贫困”说明人们如何共同生活。",
+      "collocations": [
+        "extreme poverty",
+        "poverty reduction"
+      ]
+    },
+    {
+      "id": "ielts-society-community-crime",
+      "subject": "ielts",
+      "topic": "society-community",
+      "topicLabel": "Society & Community",
+      "type": "term",
+      "word": "crime",
+      "meaning": "犯罪",
+      "definition": "illegal behaviour punishable by law",
+      "cn": "用于社会公平、社区服务、贫富差距、公共安全和公民责任类题目。",
+      "example": "A social-issues paragraph can use crime to explain how people live together.",
+      "translation": "社会类段落可以用“犯罪”说明人们如何共同生活。",
+      "collocations": [
+        "violent crime",
+        "crime prevention"
+      ]
+    },
+    {
+      "id": "ielts-society-community-responsibility",
+      "subject": "ielts",
+      "topic": "society-community",
+      "topicLabel": "Society & Community",
+      "type": "term",
+      "word": "responsibility",
+      "meaning": "责任",
+      "definition": "a duty to do something or be accountable",
+      "cn": "用于社会公平、社区服务、贫富差距、公共安全和公民责任类题目。",
+      "example": "A social-issues paragraph can use responsibility to explain how people live together.",
+      "translation": "社会类段落可以用“责任”说明人们如何共同生活。",
+      "collocations": [
+        "social responsibility",
+        "personal responsibility"
+      ]
+    },
+    {
+      "id": "ielts-society-community-cooperation",
+      "subject": "ielts",
+      "topic": "society-community",
+      "topicLabel": "Society & Community",
+      "type": "term",
+      "word": "cooperation",
+      "meaning": "合作",
+      "definition": "working together for a shared purpose",
+      "cn": "用于社会公平、社区服务、贫富差距、公共安全和公民责任类题目。",
+      "example": "A social-issues paragraph can use cooperation to explain how people live together.",
+      "translation": "社会类段落可以用“合作”说明人们如何共同生活。",
+      "collocations": [
+        "international cooperation",
+        "close cooperation"
+      ]
+    },
+    {
+      "id": "ielts-society-community-fairness",
+      "subject": "ielts",
+      "topic": "society-community",
+      "topicLabel": "Society & Community",
+      "type": "term",
+      "word": "fairness",
+      "meaning": "公平",
+      "definition": "the quality of treating people equally and reasonably",
+      "cn": "用于社会公平、社区服务、贫富差距、公共安全和公民责任类题目。",
+      "example": "A social-issues paragraph can use fairness to explain how people live together.",
+      "translation": "社会类段落可以用“公平”说明人们如何共同生活。",
+      "collocations": [
+        "basic fairness",
+        "fairness in society"
+      ]
+    },
+    {
+      "id": "ielts-society-community-inclusion",
+      "subject": "ielts",
+      "topic": "society-community",
+      "topicLabel": "Society & Community",
+      "type": "term",
+      "word": "inclusion",
+      "meaning": "包容，纳入",
+      "definition": "the practice of involving people equally",
+      "cn": "用于社会公平、社区服务、贫富差距、公共安全和公民责任类题目。",
+      "example": "A social-issues paragraph can use inclusion to explain how people live together.",
+      "translation": "社会类段落可以用“包容，纳入”说明人们如何共同生活。",
+      "collocations": [
+        "social inclusion",
+        "inclusive education"
+      ]
+    },
+    {
+      "id": "ielts-society-community-solidarity",
+      "subject": "ielts",
+      "topic": "society-community",
+      "topicLabel": "Society & Community",
+      "type": "term",
+      "word": "solidarity",
+      "meaning": "团结，互助",
+      "definition": "support among people with shared interests or problems",
+      "cn": "用于社会公平、社区服务、贫富差距、公共安全和公民责任类题目。",
+      "example": "A social-issues paragraph can use solidarity to explain how people live together.",
+      "translation": "社会类段落可以用“团结，互助”说明人们如何共同生活。",
+      "collocations": [
+        "public solidarity",
+        "community solidarity"
+      ]
+    },
+    {
+      "id": "ielts-government-law-policy",
+      "subject": "ielts",
+      "topic": "government-law",
+      "topicLabel": "Government & Law",
+      "type": "term",
+      "word": "policy",
+      "meaning": "政策",
+      "definition": "a plan of action used by a government or organisation",
+      "cn": "用于政府职责、法律法规、公共资金、权利义务和政策效果类题目。",
+      "example": "IELTS essays about policy can use policy to describe government action.",
+      "translation": "政策类作文可以用“政策”描述政府行为。",
+      "collocations": [
+        "public policy",
+        "education policy"
+      ]
+    },
+    {
+      "id": "ielts-government-law-legislation",
+      "subject": "ielts",
+      "topic": "government-law",
+      "topicLabel": "Government & Law",
+      "type": "term",
+      "word": "legislation",
+      "meaning": "立法，法律",
+      "definition": "laws made by a government or parliament",
+      "cn": "用于政府职责、法律法规、公共资金、权利义务和政策效果类题目。",
+      "example": "IELTS essays about policy can use legislation to describe government action.",
+      "translation": "政策类作文可以用“立法，法律”描述政府行为。",
+      "collocations": [
+        "new legislation",
+        "environmental legislation"
+      ]
+    },
+    {
+      "id": "ielts-government-law-regulation",
+      "subject": "ielts",
+      "topic": "government-law",
+      "topicLabel": "Government & Law",
+      "type": "term",
+      "word": "regulation",
+      "meaning": "规定，监管",
+      "definition": "an official rule that controls behaviour or activity",
+      "cn": "用于政府职责、法律法规、公共资金、权利义务和政策效果类题目。",
+      "example": "IELTS essays about policy can use regulation to describe government action.",
+      "translation": "政策类作文可以用“规定，监管”描述政府行为。",
+      "collocations": [
+        "strict regulation",
+        "government regulation"
+      ]
+    },
+    {
+      "id": "ielts-government-law-authority",
+      "subject": "ielts",
+      "topic": "government-law",
+      "topicLabel": "Government & Law",
+      "type": "term",
+      "word": "authority",
+      "meaning": "权威，主管部门",
+      "definition": "power or an official organisation with legal control",
+      "cn": "用于政府职责、法律法规、公共资金、权利义务和政策效果类题目。",
+      "example": "IELTS essays about policy can use authority to describe government action.",
+      "translation": "政策类作文可以用“权威，主管部门”描述政府行为。",
+      "collocations": [
+        "local authority",
+        "legal authority"
+      ]
+    },
+    {
+      "id": "ielts-government-law-governance",
+      "subject": "ielts",
+      "topic": "government-law",
+      "topicLabel": "Government & Law",
+      "type": "term",
+      "word": "governance",
+      "meaning": "治理",
+      "definition": "the way a country or organisation is managed",
+      "cn": "用于政府职责、法律法规、公共资金、权利义务和政策效果类题目。",
+      "example": "IELTS essays about policy can use governance to describe government action.",
+      "translation": "政策类作文可以用“治理”描述政府行为。",
+      "collocations": [
+        "good governance",
+        "corporate governance"
+      ]
+    },
+    {
+      "id": "ielts-government-law-parliament",
+      "subject": "ielts",
+      "topic": "government-law",
+      "topicLabel": "Government & Law",
+      "type": "term",
+      "word": "parliament",
+      "meaning": "议会",
+      "definition": "the group of elected people who make laws",
+      "cn": "用于政府职责、法律法规、公共资金、权利义务和政策效果类题目。",
+      "example": "IELTS essays about policy can use parliament to describe government action.",
+      "translation": "政策类作文可以用“议会”描述政府行为。",
+      "collocations": [
+        "national parliament",
+        "parliament debate"
+      ]
+    },
+    {
+      "id": "ielts-government-law-court",
+      "subject": "ielts",
+      "topic": "government-law",
+      "topicLabel": "Government & Law",
+      "type": "term",
+      "word": "court",
+      "meaning": "法院",
+      "definition": "a place or institution where legal cases are judged",
+      "cn": "用于政府职责、法律法规、公共资金、权利义务和政策效果类题目。",
+      "example": "IELTS essays about policy can use court to describe government action.",
+      "translation": "政策类作文可以用“法院”描述政府行为。",
+      "collocations": [
+        "criminal court",
+        "court decision"
+      ]
+    },
+    {
+      "id": "ielts-government-law-justice",
+      "subject": "ielts",
+      "topic": "government-law",
+      "topicLabel": "Government & Law",
+      "type": "term",
+      "word": "justice",
+      "meaning": "正义，司法",
+      "definition": "fair treatment under the law",
+      "cn": "用于政府职责、法律法规、公共资金、权利义务和政策效果类题目。",
+      "example": "IELTS essays about policy can use justice to describe government action.",
+      "translation": "政策类作文可以用“正义，司法”描述政府行为。",
+      "collocations": [
+        "social justice",
+        "justice system"
+      ]
+    },
+    {
+      "id": "ielts-government-law-penalty",
+      "subject": "ielts",
+      "topic": "government-law",
+      "topicLabel": "Government & Law",
+      "type": "term",
+      "word": "penalty",
+      "meaning": "处罚，罚金",
+      "definition": "a punishment for breaking a rule or law",
+      "cn": "用于政府职责、法律法规、公共资金、权利义务和政策效果类题目。",
+      "example": "IELTS essays about policy can use penalty to describe government action.",
+      "translation": "政策类作文可以用“处罚，罚金”描述政府行为。",
+      "collocations": [
+        "financial penalty",
+        "severe penalty"
+      ]
+    },
+    {
+      "id": "ielts-government-law-tax",
+      "subject": "ielts",
+      "topic": "government-law",
+      "topicLabel": "Government & Law",
+      "type": "term",
+      "word": "tax",
+      "meaning": "税",
+      "definition": "money people or businesses pay to the government",
+      "cn": "用于政府职责、法律法规、公共资金、权利义务和政策效果类题目。",
+      "example": "IELTS essays about policy can use tax to describe government action.",
+      "translation": "政策类作文可以用“税”描述政府行为。",
+      "collocations": [
+        "income tax",
+        "tax revenue"
+      ]
+    },
+    {
+      "id": "ielts-government-law-allocate",
+      "subject": "ielts",
+      "topic": "government-law",
+      "topicLabel": "Government & Law",
+      "type": "term",
+      "word": "allocate",
+      "meaning": "分配，拨出",
+      "definition": "to give resources or money for a particular purpose",
+      "cn": "用于政府职责、法律法规、公共资金、权利义务和政策效果类题目。",
+      "example": "IELTS essays about policy can use allocate to describe government action.",
+      "translation": "政策类作文可以用“分配，拨出”描述政府行为。",
+      "collocations": [
+        "allocate resources",
+        "allocate funding"
+      ]
+    },
+    {
+      "id": "ielts-government-law-subsidise",
+      "subject": "ielts",
+      "topic": "government-law",
+      "topicLabel": "Government & Law",
+      "type": "term",
+      "word": "subsidise",
+      "meaning": "补贴，资助",
+      "definition": "to support something financially, often by government money",
+      "cn": "用于政府职责、法律法规、公共资金、权利义务和政策效果类题目。",
+      "example": "IELTS essays about policy can use subsidise to describe government action.",
+      "translation": "政策类作文可以用“补贴，资助”描述政府行为。",
+      "collocations": [
+        "subsidise transport",
+        "subsidise healthcare"
+      ]
+    },
+    {
+      "id": "ielts-government-law-reform",
+      "subject": "ielts",
+      "topic": "government-law",
+      "topicLabel": "Government & Law",
+      "type": "term",
+      "word": "reform",
+      "meaning": "改革",
+      "definition": "a change made to improve a system or law",
+      "cn": "用于政府职责、法律法规、公共资金、权利义务和政策效果类题目。",
+      "example": "IELTS essays about policy can use reform to describe government action.",
+      "translation": "政策类作文可以用“改革”描述政府行为。",
+      "collocations": [
+        "legal reform",
+        "education reform"
+      ]
+    },
+    {
+      "id": "ielts-government-law-enforcement",
+      "subject": "ielts",
+      "topic": "government-law",
+      "topicLabel": "Government & Law",
+      "type": "term",
+      "word": "enforcement",
+      "meaning": "执行，执法",
+      "definition": "the process of making people obey rules or laws",
+      "cn": "用于政府职责、法律法规、公共资金、权利义务和政策效果类题目。",
+      "example": "IELTS essays about policy can use enforcement to describe government action.",
+      "translation": "政策类作文可以用“执行，执法”描述政府行为。",
+      "collocations": [
+        "law enforcement",
+        "strict enforcement"
+      ]
+    },
+    {
+      "id": "ielts-government-law-corruption",
+      "subject": "ielts",
+      "topic": "government-law",
+      "topicLabel": "Government & Law",
+      "type": "term",
+      "word": "corruption",
+      "meaning": "腐败",
+      "definition": "dishonest or illegal use of power for personal gain",
+      "cn": "用于政府职责、法律法规、公共资金、权利义务和政策效果类题目。",
+      "example": "IELTS essays about policy can use corruption to describe government action.",
+      "translation": "政策类作文可以用“腐败”描述政府行为。",
+      "collocations": [
+        "political corruption",
+        "fight corruption"
+      ]
+    },
+    {
+      "id": "ielts-culture-media-tradition",
+      "subject": "ielts",
+      "topic": "culture-media",
+      "topicLabel": "Culture & Media",
+      "type": "term",
+      "word": "tradition",
+      "meaning": "传统",
+      "definition": "a belief or practice passed down through generations",
+      "cn": "用于传统、媒体影响、广告、文化身份、语言和娱乐类题目。",
+      "example": "Culture and media answers can use tradition to explain values or influence.",
+      "translation": "文化和媒体类答案可以用“传统”解释价值观或影响。",
+      "collocations": [
+        "family tradition",
+        "cultural tradition"
+      ]
+    },
+    {
+      "id": "ielts-culture-media-heritage",
+      "subject": "ielts",
+      "topic": "culture-media",
+      "topicLabel": "Culture & Media",
+      "type": "term",
+      "word": "heritage",
+      "meaning": "遗产，传统文化",
+      "definition": "valuable history, culture, or buildings from the past",
+      "cn": "用于传统、媒体影响、广告、文化身份、语言和娱乐类题目。",
+      "example": "Culture and media answers can use heritage to explain values or influence.",
+      "translation": "文化和媒体类答案可以用“遗产，传统文化”解释价值观或影响。",
+      "collocations": [
+        "cultural heritage",
+        "world heritage"
+      ]
+    },
+    {
+      "id": "ielts-culture-media-festival",
+      "subject": "ielts",
+      "topic": "culture-media",
+      "topicLabel": "Culture & Media",
+      "type": "term",
+      "word": "festival",
+      "meaning": "节日",
+      "definition": "a special public event or celebration",
+      "cn": "用于传统、媒体影响、广告、文化身份、语言和娱乐类题目。",
+      "example": "Culture and media answers can use festival to explain values or influence.",
+      "translation": "文化和媒体类答案可以用“节日”解释价值观或影响。",
+      "collocations": [
+        "music festival",
+        "traditional festival"
+      ]
+    },
+    {
+      "id": "ielts-culture-media-identity",
+      "subject": "ielts",
+      "topic": "culture-media",
+      "topicLabel": "Culture & Media",
+      "type": "term",
+      "word": "identity",
+      "meaning": "身份认同",
+      "definition": "the qualities that make a person or group distinct",
+      "cn": "用于传统、媒体影响、广告、文化身份、语言和娱乐类题目。",
+      "example": "Culture and media answers can use identity to explain values or influence.",
+      "translation": "文化和媒体类答案可以用“身份认同”解释价值观或影响。",
+      "collocations": [
+        "national identity",
+        "cultural identity"
+      ]
+    },
+    {
+      "id": "ielts-culture-media-diversity",
+      "subject": "ielts",
+      "topic": "culture-media",
+      "topicLabel": "Culture & Media",
+      "type": "term",
+      "word": "diversity",
+      "meaning": "多样性",
+      "definition": "the presence of different types of people or things",
+      "cn": "用于传统、媒体影响、广告、文化身份、语言和娱乐类题目。",
+      "example": "Culture and media answers can use diversity to explain values or influence.",
+      "translation": "文化和媒体类答案可以用“多样性”解释价值观或影响。",
+      "collocations": [
+        "cultural diversity",
+        "social diversity"
+      ]
+    },
+    {
+      "id": "ielts-culture-media-entertainment",
+      "subject": "ielts",
+      "topic": "culture-media",
+      "topicLabel": "Culture & Media",
+      "type": "term",
+      "word": "entertainment",
+      "meaning": "娱乐",
+      "definition": "activities that amuse or interest people",
+      "cn": "用于传统、媒体影响、广告、文化身份、语言和娱乐类题目。",
+      "example": "Culture and media answers can use entertainment to explain values or influence.",
+      "translation": "文化和媒体类答案可以用“娱乐”解释价值观或影响。",
+      "collocations": [
+        "mass entertainment",
+        "entertainment industry"
+      ]
+    },
+    {
+      "id": "ielts-culture-media-literature",
+      "subject": "ielts",
+      "topic": "culture-media",
+      "topicLabel": "Culture & Media",
+      "type": "term",
+      "word": "literature",
+      "meaning": "文学",
+      "definition": "written artistic works such as novels, poems, and plays",
+      "cn": "用于传统、媒体影响、广告、文化身份、语言和娱乐类题目。",
+      "example": "Culture and media answers can use literature to explain values or influence.",
+      "translation": "文化和媒体类答案可以用“文学”解释价值观或影响。",
+      "collocations": [
+        "classic literature",
+        "children's literature"
+      ]
+    },
+    {
+      "id": "ielts-culture-media-journalism",
+      "subject": "ielts",
+      "topic": "culture-media",
+      "topicLabel": "Culture & Media",
+      "type": "term",
+      "word": "journalism",
+      "meaning": "新闻业",
+      "definition": "the work of collecting and reporting news",
+      "cn": "用于传统、媒体影响、广告、文化身份、语言和娱乐类题目。",
+      "example": "Culture and media answers can use journalism to explain values or influence.",
+      "translation": "文化和媒体类答案可以用“新闻业”解释价值观或影响。",
+      "collocations": [
+        "investigative journalism",
+        "online journalism"
+      ]
+    },
+    {
+      "id": "ielts-culture-media-broadcast",
+      "subject": "ielts",
+      "topic": "culture-media",
+      "topicLabel": "Culture & Media",
+      "type": "term",
+      "word": "broadcast",
+      "meaning": "广播，播出",
+      "definition": "to send audio or video programmes to the public",
+      "cn": "用于传统、媒体影响、广告、文化身份、语言和娱乐类题目。",
+      "example": "Culture and media answers can use broadcast to explain values or influence.",
+      "translation": "文化和媒体类答案可以用“广播，播出”解释价值观或影响。",
+      "collocations": [
+        "live broadcast",
+        "broadcast media"
+      ]
+    },
+    {
+      "id": "ielts-culture-media-advertising",
+      "subject": "ielts",
+      "topic": "culture-media",
+      "topicLabel": "Culture & Media",
+      "type": "term",
+      "word": "advertising",
+      "meaning": "广告",
+      "definition": "paid messages designed to promote products or ideas",
+      "cn": "用于传统、媒体影响、广告、文化身份、语言和娱乐类题目。",
+      "example": "Culture and media answers can use advertising to explain values or influence.",
+      "translation": "文化和媒体类答案可以用“广告”解释价值观或影响。",
+      "collocations": [
+        "online advertising",
+        "advertising campaign"
+      ]
+    },
+    {
+      "id": "ielts-culture-media-celebrity",
+      "subject": "ielts",
+      "topic": "culture-media",
+      "topicLabel": "Culture & Media",
+      "type": "term",
+      "word": "celebrity",
+      "meaning": "名人",
+      "definition": "a person who is widely known by the public",
+      "cn": "用于传统、媒体影响、广告、文化身份、语言和娱乐类题目。",
+      "example": "Culture and media answers can use celebrity to explain values or influence.",
+      "translation": "文化和媒体类答案可以用“名人”解释价值观或影响。",
+      "collocations": [
+        "celebrity culture",
+        "celebrity endorsement"
+      ]
+    },
+    {
+      "id": "ielts-culture-media-audience",
+      "subject": "ielts",
+      "topic": "culture-media",
+      "topicLabel": "Culture & Media",
+      "type": "term",
+      "word": "audience",
+      "meaning": "观众，受众",
+      "definition": "the people who watch, read, or listen to something",
+      "cn": "用于传统、媒体影响、广告、文化身份、语言和娱乐类题目。",
+      "example": "Culture and media answers can use audience to explain values or influence.",
+      "translation": "文化和媒体类答案可以用“观众，受众”解释价值观或影响。",
+      "collocations": [
+        "target audience",
+        "large audience"
+      ]
+    },
+    {
+      "id": "ielts-culture-media-documentary",
+      "subject": "ielts",
+      "topic": "culture-media",
+      "topicLabel": "Culture & Media",
+      "type": "term",
+      "word": "documentary",
+      "meaning": "纪录片",
+      "definition": "a film or programme giving factual information",
+      "cn": "用于传统、媒体影响、广告、文化身份、语言和娱乐类题目。",
+      "example": "Culture and media answers can use documentary to explain values or influence.",
+      "translation": "文化和媒体类答案可以用“纪录片”解释价值观或影响。",
+      "collocations": [
+        "nature documentary",
+        "documentary film"
+      ]
+    },
+    {
+      "id": "ielts-culture-media-censorship",
+      "subject": "ielts",
+      "topic": "culture-media",
+      "topicLabel": "Culture & Media",
+      "type": "term",
+      "word": "censorship",
+      "meaning": "审查制度",
+      "definition": "control or banning of information, media, or art",
+      "cn": "用于传统、媒体影响、广告、文化身份、语言和娱乐类题目。",
+      "example": "Culture and media answers can use censorship to explain values or influence.",
+      "translation": "文化和媒体类答案可以用“审查制度”解释价值观或影响。",
+      "collocations": [
+        "media censorship",
+        "internet censorship"
+      ]
+    },
+    {
+      "id": "ielts-culture-media-language",
+      "subject": "ielts",
+      "topic": "culture-media",
+      "topicLabel": "Culture & Media",
+      "type": "term",
+      "word": "language",
+      "meaning": "语言",
+      "definition": "a system of words used for communication",
+      "cn": "用于传统、媒体影响、广告、文化身份、语言和娱乐类题目。",
+      "example": "Culture and media answers can use language to explain values or influence.",
+      "translation": "文化和媒体类答案可以用“语言”解释价值观或影响。",
+      "collocations": [
+        "foreign language",
+        "language learning"
+      ]
+    },
+    {
+      "id": "ielts-economy-business-economy",
+      "subject": "ielts",
+      "topic": "economy-business",
+      "topicLabel": "Economy & Business",
+      "type": "term",
+      "word": "economy",
+      "meaning": "经济",
+      "definition": "the system of production, trade, and money in a country",
+      "cn": "用于消费、企业、贸易、投资、通货膨胀和经济变化类题目。",
+      "example": "Economic IELTS topics can use economy to describe costs, markets, or growth.",
+      "translation": "经济类话题可以用“经济”描述成本、市场或增长。",
+      "collocations": [
+        "national economy",
+        "global economy"
+      ]
+    },
+    {
+      "id": "ielts-economy-business-inflation",
+      "subject": "ielts",
+      "topic": "economy-business",
+      "topicLabel": "Economy & Business",
+      "type": "term",
+      "word": "inflation",
+      "meaning": "通货膨胀",
+      "definition": "a general rise in prices over time",
+      "cn": "用于消费、企业、贸易、投资、通货膨胀和经济变化类题目。",
+      "example": "Economic IELTS topics can use inflation to describe costs, markets, or growth.",
+      "translation": "经济类话题可以用“通货膨胀”描述成本、市场或增长。",
+      "collocations": [
+        "high inflation",
+        "inflation rate"
+      ]
+    },
+    {
+      "id": "ielts-economy-business-consumer",
+      "subject": "ielts",
+      "topic": "economy-business",
+      "topicLabel": "Economy & Business",
+      "type": "term",
+      "word": "consumer",
+      "meaning": "消费者",
+      "definition": "a person who buys goods or services",
+      "cn": "用于消费、企业、贸易、投资、通货膨胀和经济变化类题目。",
+      "example": "Economic IELTS topics can use consumer to describe costs, markets, or growth.",
+      "translation": "经济类话题可以用“消费者”描述成本、市场或增长。",
+      "collocations": [
+        "consumer behaviour",
+        "consumer demand"
+      ]
+    },
+    {
+      "id": "ielts-economy-business-market",
+      "subject": "ielts",
+      "topic": "economy-business",
+      "topicLabel": "Economy & Business",
+      "type": "term",
+      "word": "market",
+      "meaning": "市场",
+      "definition": "a system or place where goods and services are bought and sold",
+      "cn": "用于消费、企业、贸易、投资、通货膨胀和经济变化类题目。",
+      "example": "Economic IELTS topics can use market to describe costs, markets, or growth.",
+      "translation": "经济类话题可以用“市场”描述成本、市场或增长。",
+      "collocations": [
+        "global market",
+        "labour market"
+      ]
+    },
+    {
+      "id": "ielts-economy-business-investment",
+      "subject": "ielts",
+      "topic": "economy-business",
+      "topicLabel": "Economy & Business",
+      "type": "term",
+      "word": "investment",
+      "meaning": "投资",
+      "definition": "money or resources used to make future benefits",
+      "cn": "用于消费、企业、贸易、投资、通货膨胀和经济变化类题目。",
+      "example": "Economic IELTS topics can use investment to describe costs, markets, or growth.",
+      "translation": "经济类话题可以用“投资”描述成本、市场或增长。",
+      "collocations": [
+        "foreign investment",
+        "public investment"
+      ]
+    },
+    {
+      "id": "ielts-economy-business-profit",
+      "subject": "ielts",
+      "topic": "economy-business",
+      "topicLabel": "Economy & Business",
+      "type": "term",
+      "word": "profit",
+      "meaning": "利润",
+      "definition": "money gained after costs are removed",
+      "cn": "用于消费、企业、贸易、投资、通货膨胀和经济变化类题目。",
+      "example": "Economic IELTS topics can use profit to describe costs, markets, or growth.",
+      "translation": "经济类话题可以用“利润”描述成本、市场或增长。",
+      "collocations": [
+        "make a profit",
+        "profit margin"
+      ]
+    },
+    {
+      "id": "ielts-economy-business-revenue",
+      "subject": "ielts",
+      "topic": "economy-business",
+      "topicLabel": "Economy & Business",
+      "type": "term",
+      "word": "revenue",
+      "meaning": "收入，收益",
+      "definition": "money received by a business or government",
+      "cn": "用于消费、企业、贸易、投资、通货膨胀和经济变化类题目。",
+      "example": "Economic IELTS topics can use revenue to describe costs, markets, or growth.",
+      "translation": "经济类话题可以用“收入，收益”描述成本、市场或增长。",
+      "collocations": [
+        "tax revenue",
+        "annual revenue"
+      ]
+    },
+    {
+      "id": "ielts-economy-business-expenditure",
+      "subject": "ielts",
+      "topic": "economy-business",
+      "topicLabel": "Economy & Business",
+      "type": "term",
+      "word": "expenditure",
+      "meaning": "支出",
+      "definition": "money spent by a person, business, or government",
+      "cn": "用于消费、企业、贸易、投资、通货膨胀和经济变化类题目。",
+      "example": "Economic IELTS topics can use expenditure to describe costs, markets, or growth.",
+      "translation": "经济类话题可以用“支出”描述成本、市场或增长。",
+      "collocations": [
+        "public expenditure",
+        "household expenditure"
+      ]
+    },
+    {
+      "id": "ielts-economy-business-demand",
+      "subject": "ielts",
+      "topic": "economy-business",
+      "topicLabel": "Economy & Business",
+      "type": "term",
+      "word": "demand",
+      "meaning": "需求",
+      "definition": "the desire and ability to buy goods or services",
+      "cn": "用于消费、企业、贸易、投资、通货膨胀和经济变化类题目。",
+      "example": "Economic IELTS topics can use demand to describe costs, markets, or growth.",
+      "translation": "经济类话题可以用“需求”描述成本、市场或增长。",
+      "collocations": [
+        "consumer demand",
+        "strong demand"
+      ]
+    },
+    {
+      "id": "ielts-economy-business-supply",
+      "subject": "ielts",
+      "topic": "economy-business",
+      "topicLabel": "Economy & Business",
+      "type": "term",
+      "word": "supply",
+      "meaning": "供应",
+      "definition": "the amount of something available for use or sale",
+      "cn": "用于消费、企业、贸易、投资、通货膨胀和经济变化类题目。",
+      "example": "Economic IELTS topics can use supply to describe costs, markets, or growth.",
+      "translation": "经济类话题可以用“供应”描述成本、市场或增长。",
+      "collocations": [
+        "food supply",
+        "limited supply"
+      ]
+    },
+    {
+      "id": "ielts-economy-business-trade",
+      "subject": "ielts",
+      "topic": "economy-business",
+      "topicLabel": "Economy & Business",
+      "type": "term",
+      "word": "trade",
+      "meaning": "贸易",
+      "definition": "buying, selling, or exchanging goods and services",
+      "cn": "用于消费、企业、贸易、投资、通货膨胀和经济变化类题目。",
+      "example": "Economic IELTS topics can use trade to describe costs, markets, or growth.",
+      "translation": "经济类话题可以用“贸易”描述成本、市场或增长。",
+      "collocations": [
+        "international trade",
+        "free trade"
+      ]
+    },
+    {
+      "id": "ielts-economy-business-entrepreneur",
+      "subject": "ielts",
+      "topic": "economy-business",
+      "topicLabel": "Economy & Business",
+      "type": "term",
+      "word": "entrepreneur",
+      "meaning": "企业家，创业者",
+      "definition": "a person who starts and runs a business",
+      "cn": "用于消费、企业、贸易、投资、通货膨胀和经济变化类题目。",
+      "example": "Economic IELTS topics can use entrepreneur to describe costs, markets, or growth.",
+      "translation": "经济类话题可以用“企业家，创业者”描述成本、市场或增长。",
+      "collocations": [
+        "young entrepreneur",
+        "successful entrepreneur"
+      ]
+    },
+    {
+      "id": "ielts-economy-business-budget",
+      "subject": "ielts",
+      "topic": "economy-business",
+      "topicLabel": "Economy & Business",
+      "type": "term",
+      "word": "budget",
+      "meaning": "预算",
+      "definition": "a plan for how money will be spent",
+      "cn": "用于消费、企业、贸易、投资、通货膨胀和经济变化类题目。",
+      "example": "Economic IELTS topics can use budget to describe costs, markets, or growth.",
+      "translation": "经济类话题可以用“预算”描述成本、市场或增长。",
+      "collocations": [
+        "government budget",
+        "limited budget"
+      ]
+    },
+    {
+      "id": "ielts-economy-business-recession",
+      "subject": "ielts",
+      "topic": "economy-business",
+      "topicLabel": "Economy & Business",
+      "type": "term",
+      "word": "recession",
+      "meaning": "经济衰退",
+      "definition": "a period when economic activity decreases",
+      "cn": "用于消费、企业、贸易、投资、通货膨胀和经济变化类题目。",
+      "example": "Economic IELTS topics can use recession to describe costs, markets, or growth.",
+      "translation": "经济类话题可以用“经济衰退”描述成本、市场或增长。",
+      "collocations": [
+        "economic recession",
+        "deep recession"
+      ]
+    },
+    {
+      "id": "ielts-economy-business-wealth",
+      "subject": "ielts",
+      "topic": "economy-business",
+      "topicLabel": "Economy & Business",
+      "type": "term",
+      "word": "wealth",
+      "meaning": "财富",
+      "definition": "a large amount of money, property, or resources",
+      "cn": "用于消费、企业、贸易、投资、通货膨胀和经济变化类题目。",
+      "example": "Economic IELTS topics can use wealth to describe costs, markets, or growth.",
+      "translation": "经济类话题可以用“财富”描述成本、市场或增长。",
+      "collocations": [
+        "national wealth",
+        "wealth gap"
+      ]
+    },
+    {
+      "id": "ielts-travel-transport-commute",
+      "subject": "ielts",
+      "topic": "travel-transport",
+      "topicLabel": "Travel & Transport",
+      "type": "term",
+      "word": "commute",
+      "meaning": "通勤",
+      "definition": "to travel regularly between home and work or school",
+      "cn": "用于交通拥堵、公共交通、旅游、城市出行和基础设施类题目。",
+      "example": "Transport essays can use commute to explain movement, access, or tourism.",
+      "translation": "交通类作文可以用“通勤”解释出行、可达性或旅游。",
+      "collocations": [
+        "daily commute",
+        "long commute"
+      ]
+    },
+    {
+      "id": "ielts-travel-transport-vehicle",
+      "subject": "ielts",
+      "topic": "travel-transport",
+      "topicLabel": "Travel & Transport",
+      "type": "term",
+      "word": "vehicle",
+      "meaning": "车辆",
+      "definition": "a machine used to carry people or goods",
+      "cn": "用于交通拥堵、公共交通、旅游、城市出行和基础设施类题目。",
+      "example": "Transport essays can use vehicle to explain movement, access, or tourism.",
+      "translation": "交通类作文可以用“车辆”解释出行、可达性或旅游。",
+      "collocations": [
+        "private vehicle",
+        "electric vehicle"
+      ]
+    },
+    {
+      "id": "ielts-travel-transport-traffic",
+      "subject": "ielts",
+      "topic": "travel-transport",
+      "topicLabel": "Travel & Transport",
+      "type": "term",
+      "word": "traffic",
+      "meaning": "交通，车流",
+      "definition": "vehicles moving on roads or the movement itself",
+      "cn": "用于交通拥堵、公共交通、旅游、城市出行和基础设施类题目。",
+      "example": "Transport essays can use traffic to explain movement, access, or tourism.",
+      "translation": "交通类作文可以用“交通，车流”解释出行、可达性或旅游。",
+      "collocations": [
+        "heavy traffic",
+        "traffic flow"
+      ]
+    },
+    {
+      "id": "ielts-travel-transport-congestion",
+      "subject": "ielts",
+      "topic": "travel-transport",
+      "topicLabel": "Travel & Transport",
+      "type": "term",
+      "word": "congestion",
+      "meaning": "拥堵",
+      "definition": "too much traffic or crowding in one place",
+      "cn": "用于交通拥堵、公共交通、旅游、城市出行和基础设施类题目。",
+      "example": "Transport essays can use congestion to explain movement, access, or tourism.",
+      "translation": "交通类作文可以用“拥堵”解释出行、可达性或旅游。",
+      "collocations": [
+        "traffic congestion",
+        "urban congestion"
+      ]
+    },
+    {
+      "id": "ielts-travel-transport-transport",
+      "subject": "ielts",
+      "topic": "travel-transport",
+      "topicLabel": "Travel & Transport",
+      "type": "term",
+      "word": "transport",
+      "meaning": "交通运输",
+      "definition": "systems or vehicles used for moving people or goods",
+      "cn": "用于交通拥堵、公共交通、旅游、城市出行和基础设施类题目。",
+      "example": "Transport essays can use transport to explain movement, access, or tourism.",
+      "translation": "交通类作文可以用“交通运输”解释出行、可达性或旅游。",
+      "collocations": [
+        "public transport",
+        "transport system"
+      ]
+    },
+    {
+      "id": "ielts-travel-transport-airport",
+      "subject": "ielts",
+      "topic": "travel-transport",
+      "topicLabel": "Travel & Transport",
+      "type": "term",
+      "word": "airport",
+      "meaning": "机场",
+      "definition": "a place where aircraft take off and land",
+      "cn": "用于交通拥堵、公共交通、旅游、城市出行和基础设施类题目。",
+      "example": "Transport essays can use airport to explain movement, access, or tourism.",
+      "translation": "交通类作文可以用“机场”解释出行、可达性或旅游。",
+      "collocations": [
+        "international airport",
+        "airport security"
+      ]
+    },
+    {
+      "id": "ielts-travel-transport-route",
+      "subject": "ielts",
+      "topic": "travel-transport",
+      "topicLabel": "Travel & Transport",
+      "type": "term",
+      "word": "route",
+      "meaning": "路线",
+      "definition": "a way or path from one place to another",
+      "cn": "用于交通拥堵、公共交通、旅游、城市出行和基础设施类题目。",
+      "example": "Transport essays can use route to explain movement, access, or tourism.",
+      "translation": "交通类作文可以用“路线”解释出行、可达性或旅游。",
+      "collocations": [
+        "bus route",
+        "safe route"
+      ]
+    },
+    {
+      "id": "ielts-travel-transport-navigation",
+      "subject": "ielts",
+      "topic": "travel-transport",
+      "topicLabel": "Travel & Transport",
+      "type": "term",
+      "word": "navigation",
+      "meaning": "导航",
+      "definition": "finding or planning a route from one place to another",
+      "cn": "用于交通拥堵、公共交通、旅游、城市出行和基础设施类题目。",
+      "example": "Transport essays can use navigation to explain movement, access, or tourism.",
+      "translation": "交通类作文可以用“导航”解释出行、可达性或旅游。",
+      "collocations": [
+        "GPS navigation",
+        "navigation app"
+      ]
+    },
+    {
+      "id": "ielts-travel-transport-fare",
+      "subject": "ielts",
+      "topic": "travel-transport",
+      "topicLabel": "Travel & Transport",
+      "type": "term",
+      "word": "fare",
+      "meaning": "票价",
+      "definition": "the price paid to travel by bus, train, taxi, or plane",
+      "cn": "用于交通拥堵、公共交通、旅游、城市出行和基础设施类题目。",
+      "example": "Transport essays can use fare to explain movement, access, or tourism.",
+      "translation": "交通类作文可以用“票价”解释出行、可达性或旅游。",
+      "collocations": [
+        "bus fare",
+        "affordable fare"
+      ]
+    },
+    {
+      "id": "ielts-travel-transport-passenger",
+      "subject": "ielts",
+      "topic": "travel-transport",
+      "topicLabel": "Travel & Transport",
+      "type": "term",
+      "word": "passenger",
+      "meaning": "乘客",
+      "definition": "a person travelling in a vehicle but not driving it",
+      "cn": "用于交通拥堵、公共交通、旅游、城市出行和基础设施类题目。",
+      "example": "Transport essays can use passenger to explain movement, access, or tourism.",
+      "translation": "交通类作文可以用“乘客”解释出行、可达性或旅游。",
+      "collocations": [
+        "rail passengers",
+        "airline passenger"
+      ]
+    },
+    {
+      "id": "ielts-travel-transport-tourism",
+      "subject": "ielts",
+      "topic": "travel-transport",
+      "topicLabel": "Travel & Transport",
+      "type": "term",
+      "word": "tourism",
+      "meaning": "旅游业",
+      "definition": "travel for pleasure and the industry supporting it",
+      "cn": "用于交通拥堵、公共交通、旅游、城市出行和基础设施类题目。",
+      "example": "Transport essays can use tourism to explain movement, access, or tourism.",
+      "translation": "交通类作文可以用“旅游业”解释出行、可达性或旅游。",
+      "collocations": [
+        "mass tourism",
+        "tourism industry"
+      ]
+    },
+    {
+      "id": "ielts-travel-transport-destination",
+      "subject": "ielts",
+      "topic": "travel-transport",
+      "topicLabel": "Travel & Transport",
+      "type": "term",
+      "word": "destination",
+      "meaning": "目的地",
+      "definition": "the place someone is travelling to",
+      "cn": "用于交通拥堵、公共交通、旅游、城市出行和基础设施类题目。",
+      "example": "Transport essays can use destination to explain movement, access, or tourism.",
+      "translation": "交通类作文可以用“目的地”解释出行、可达性或旅游。",
+      "collocations": [
+        "tourist destination",
+        "popular destination"
+      ]
+    },
+    {
+      "id": "ielts-travel-transport-accommodation",
+      "subject": "ielts",
+      "topic": "travel-transport",
+      "topicLabel": "Travel & Transport",
+      "type": "term",
+      "word": "accommodation",
+      "meaning": "住宿",
+      "definition": "a place where travellers can stay",
+      "cn": "用于交通拥堵、公共交通、旅游、城市出行和基础设施类题目。",
+      "example": "Transport essays can use accommodation to explain movement, access, or tourism.",
+      "translation": "交通类作文可以用“住宿”解释出行、可达性或旅游。",
+      "collocations": [
+        "hotel accommodation",
+        "student accommodation"
+      ]
+    },
+    {
+      "id": "ielts-travel-transport-journey",
+      "subject": "ielts",
+      "topic": "travel-transport",
+      "topicLabel": "Travel & Transport",
+      "type": "term",
+      "word": "journey",
+      "meaning": "旅程",
+      "definition": "travel from one place to another",
+      "cn": "用于交通拥堵、公共交通、旅游、城市出行和基础设施类题目。",
+      "example": "Transport essays can use journey to explain movement, access, or tourism.",
+      "translation": "交通类作文可以用“旅程”解释出行、可达性或旅游。",
+      "collocations": [
+        "long journey",
+        "return journey"
+      ]
+    },
+    {
+      "id": "ielts-travel-transport-motorway",
+      "subject": "ielts",
+      "topic": "travel-transport",
+      "topicLabel": "Travel & Transport",
+      "type": "term",
+      "word": "motorway",
+      "meaning": "高速公路",
+      "definition": "a wide road designed for fast long-distance traffic",
+      "cn": "用于交通拥堵、公共交通、旅游、城市出行和基础设施类题目。",
+      "example": "Transport essays can use motorway to explain movement, access, or tourism.",
+      "translation": "交通类作文可以用“高速公路”解释出行、可达性或旅游。",
+      "collocations": [
+        "busy motorway",
+        "motorway network"
+      ]
+    },
+    {
+      "id": "ielts-science-research-experiment",
+      "subject": "ielts",
+      "topic": "science-research",
+      "topicLabel": "Science & Research",
+      "type": "term",
+      "word": "experiment",
+      "meaning": "实验",
+      "definition": "a test done to discover or prove something",
+      "cn": "用于阅读科技文章、实验研究、数据解释和学术证据类题目。",
+      "example": "Reading and writing tasks can use experiment when discussing research or evidence.",
+      "translation": "读写任务讨论研究或证据时，可以使用“实验”。",
+      "collocations": [
+        "scientific experiment",
+        "controlled experiment"
+      ]
+    },
+    {
+      "id": "ielts-science-research-theory",
+      "subject": "ielts",
+      "topic": "science-research",
+      "topicLabel": "Science & Research",
+      "type": "term",
+      "word": "theory",
+      "meaning": "理论",
+      "definition": "an explanation based on evidence and reasoning",
+      "cn": "用于阅读科技文章、实验研究、数据解释和学术证据类题目。",
+      "example": "Reading and writing tasks can use theory when discussing research or evidence.",
+      "translation": "读写任务讨论研究或证据时，可以使用“理论”。",
+      "collocations": [
+        "scientific theory",
+        "learning theory"
+      ]
+    },
+    {
+      "id": "ielts-science-research-hypothesis",
+      "subject": "ielts",
+      "topic": "science-research",
+      "topicLabel": "Science & Research",
+      "type": "term",
+      "word": "hypothesis",
+      "meaning": "假设",
+      "definition": "an idea tested through research or observation",
+      "cn": "用于阅读科技文章、实验研究、数据解释和学术证据类题目。",
+      "example": "Reading and writing tasks can use hypothesis when discussing research or evidence.",
+      "translation": "读写任务讨论研究或证据时，可以使用“假设”。",
+      "collocations": [
+        "test a hypothesis",
+        "research hypothesis"
+      ]
+    },
+    {
+      "id": "ielts-science-research-variable",
+      "subject": "ielts",
+      "topic": "science-research",
+      "topicLabel": "Science & Research",
+      "type": "term",
+      "word": "variable",
+      "meaning": "变量",
+      "definition": "a factor that can change in a study or situation",
+      "cn": "用于阅读科技文章、实验研究、数据解释和学术证据类题目。",
+      "example": "Reading and writing tasks can use variable when discussing research or evidence.",
+      "translation": "读写任务讨论研究或证据时，可以使用“变量”。",
+      "collocations": [
+        "independent variable",
+        "control variable"
+      ]
+    },
+    {
+      "id": "ielts-science-research-method",
+      "subject": "ielts",
+      "topic": "science-research",
+      "topicLabel": "Science & Research",
+      "type": "term",
+      "word": "method",
+      "meaning": "方法",
+      "definition": "a planned way of doing something",
+      "cn": "用于阅读科技文章、实验研究、数据解释和学术证据类题目。",
+      "example": "Reading and writing tasks can use method when discussing research or evidence.",
+      "translation": "读写任务讨论研究或证据时，可以使用“方法”。",
+      "collocations": [
+        "research method",
+        "teaching method"
+      ]
+    },
+    {
+      "id": "ielts-science-research-sample",
+      "subject": "ielts",
+      "topic": "science-research",
+      "topicLabel": "Science & Research",
+      "type": "term",
+      "word": "sample",
+      "meaning": "样本",
+      "definition": "a selected part of a larger group used for study",
+      "cn": "用于阅读科技文章、实验研究、数据解释和学术证据类题目。",
+      "example": "Reading and writing tasks can use sample when discussing research or evidence.",
+      "translation": "读写任务讨论研究或证据时，可以使用“样本”。",
+      "collocations": [
+        "small sample",
+        "representative sample"
+      ]
+    },
+    {
+      "id": "ielts-science-research-analysis",
+      "subject": "ielts",
+      "topic": "science-research",
+      "topicLabel": "Science & Research",
+      "type": "term",
+      "word": "analysis",
+      "meaning": "分析",
+      "definition": "careful study of information to understand meaning",
+      "cn": "用于阅读科技文章、实验研究、数据解释和学术证据类题目。",
+      "example": "Reading and writing tasks can use analysis when discussing research or evidence.",
+      "translation": "读写任务讨论研究或证据时，可以使用“分析”。",
+      "collocations": [
+        "data analysis",
+        "detailed analysis"
+      ]
+    },
+    {
+      "id": "ielts-science-research-result",
+      "subject": "ielts",
+      "topic": "science-research",
+      "topicLabel": "Science & Research",
+      "type": "term",
+      "word": "result",
+      "meaning": "结果",
+      "definition": "what happens or is produced by an action or study",
+      "cn": "用于阅读科技文章、实验研究、数据解释和学术证据类题目。",
+      "example": "Reading and writing tasks can use result when discussing research or evidence.",
+      "translation": "读写任务讨论研究或证据时，可以使用“结果”。",
+      "collocations": [
+        "research result",
+        "final result"
+      ]
+    },
+    {
+      "id": "ielts-science-research-conclusion",
+      "subject": "ielts",
+      "topic": "science-research",
+      "topicLabel": "Science & Research",
+      "type": "term",
+      "word": "conclusion",
+      "meaning": "结论",
+      "definition": "a judgement reached after considering evidence",
+      "cn": "用于阅读科技文章、实验研究、数据解释和学术证据类题目。",
+      "example": "Reading and writing tasks can use conclusion when discussing research or evidence.",
+      "translation": "读写任务讨论研究或证据时，可以使用“结论”。",
+      "collocations": [
+        "draw a conclusion",
+        "clear conclusion"
+      ]
+    },
+    {
+      "id": "ielts-science-research-observe",
+      "subject": "ielts",
+      "topic": "science-research",
+      "topicLabel": "Science & Research",
+      "type": "term",
+      "word": "observe",
+      "meaning": "观察",
+      "definition": "to notice or watch something carefully",
+      "cn": "用于阅读科技文章、实验研究、数据解释和学术证据类题目。",
+      "example": "Reading and writing tasks can use observe when discussing research or evidence.",
+      "translation": "读写任务讨论研究或证据时，可以使用“观察”。",
+      "collocations": [
+        "observe behaviour",
+        "observe changes"
+      ]
+    },
+    {
+      "id": "ielts-science-research-measure",
+      "subject": "ielts",
+      "topic": "science-research",
+      "topicLabel": "Science & Research",
+      "type": "term",
+      "word": "measure",
+      "meaning": "测量，衡量",
+      "definition": "to find the size, amount, or degree of something",
+      "cn": "用于阅读科技文章、实验研究、数据解释和学术证据类题目。",
+      "example": "Reading and writing tasks can use measure when discussing research or evidence.",
+      "translation": "读写任务讨论研究或证据时，可以使用“测量，衡量”。",
+      "collocations": [
+        "measure progress",
+        "measure accurately"
+      ]
+    },
+    {
+      "id": "ielts-science-research-research",
+      "subject": "ielts",
+      "topic": "science-research",
+      "topicLabel": "Science & Research",
+      "type": "term",
+      "word": "research",
+      "meaning": "研究",
+      "definition": "systematic investigation to discover new facts",
+      "cn": "用于阅读科技文章、实验研究、数据解释和学术证据类题目。",
+      "example": "Reading and writing tasks can use research when discussing research or evidence.",
+      "translation": "读写任务讨论研究或证据时，可以使用“研究”。",
+      "collocations": [
+        "academic research",
+        "market research"
+      ]
+    },
+    {
+      "id": "ielts-science-research-laboratory",
+      "subject": "ielts",
+      "topic": "science-research",
+      "topicLabel": "Science & Research",
+      "type": "term",
+      "word": "laboratory",
+      "meaning": "实验室",
+      "definition": "a room or place equipped for scientific work",
+      "cn": "用于阅读科技文章、实验研究、数据解释和学术证据类题目。",
+      "example": "Reading and writing tasks can use laboratory when discussing research or evidence.",
+      "translation": "读写任务讨论研究或证据时，可以使用“实验室”。",
+      "collocations": [
+        "school laboratory",
+        "laboratory test"
+      ]
+    },
+    {
+      "id": "ielts-science-research-accuracy",
+      "subject": "ielts",
+      "topic": "science-research",
+      "topicLabel": "Science & Research",
+      "type": "term",
+      "word": "accuracy",
+      "meaning": "准确性",
+      "definition": "the quality of being correct or exact",
+      "cn": "用于阅读科技文章、实验研究、数据解释和学术证据类题目。",
+      "example": "Reading and writing tasks can use accuracy when discussing research or evidence.",
+      "translation": "读写任务讨论研究或证据时，可以使用“准确性”。",
+      "collocations": [
+        "improve accuracy",
+        "high accuracy"
+      ]
+    },
+    {
+      "id": "ielts-science-research-reliable",
+      "subject": "ielts",
+      "topic": "science-research",
+      "topicLabel": "Science & Research",
+      "type": "term",
+      "word": "reliable",
+      "meaning": "可靠的",
+      "definition": "able to be trusted to be accurate or consistent",
+      "cn": "用于阅读科技文章、实验研究、数据解释和学术证据类题目。",
+      "example": "Reading and writing tasks can use reliable when discussing research or evidence.",
+      "translation": "读写任务讨论研究或证据时，可以使用“可靠的”。",
+      "collocations": [
+        "reliable data",
+        "reliable source"
+      ]
+    },
+    {
+      "id": "ielts-command-words-analyse",
+      "subject": "ielts",
+      "topic": "command-words",
+      "topicLabel": "Question Command Words",
+      "type": "command",
+      "word": "analyse",
+      "meaning": "分析",
+      "definition": "to examine something carefully by separating it into parts",
+      "cn": "用于理解雅思题干要求，尤其是写作、阅读解释和口语追问。",
+      "example": "In an IELTS question, analyse tells the candidate what kind of answer is expected.",
+      "translation": "在雅思题干中，“分析”提示考生应该怎样作答。",
+      "collocations": [
+        "analyse the chart",
+        "analyse the reasons"
+      ]
+    },
+    {
+      "id": "ielts-command-words-compare",
+      "subject": "ielts",
+      "topic": "command-words",
+      "topicLabel": "Question Command Words",
+      "type": "command",
+      "word": "compare",
+      "meaning": "比较",
+      "definition": "to show similarities and differences between things",
+      "cn": "用于理解雅思题干要求，尤其是写作、阅读解释和口语追问。",
+      "example": "In an IELTS question, compare tells the candidate what kind of answer is expected.",
+      "translation": "在雅思题干中，“比较”提示考生应该怎样作答。",
+      "collocations": [
+        "compare two views",
+        "compare figures"
+      ]
+    },
+    {
+      "id": "ielts-command-words-contrast",
+      "subject": "ielts",
+      "topic": "command-words",
+      "topicLabel": "Question Command Words",
+      "type": "command",
+      "word": "contrast",
+      "meaning": "对比",
+      "definition": "to emphasise differences between things",
+      "cn": "用于理解雅思题干要求，尤其是写作、阅读解释和口语追问。",
+      "example": "In an IELTS question, contrast tells the candidate what kind of answer is expected.",
+      "translation": "在雅思题干中，“对比”提示考生应该怎样作答。",
+      "collocations": [
+        "contrast the data",
+        "contrast opinions"
+      ]
+    },
+    {
+      "id": "ielts-command-words-discuss",
+      "subject": "ielts",
+      "topic": "command-words",
+      "topicLabel": "Question Command Words",
+      "type": "command",
+      "word": "discuss",
+      "meaning": "讨论",
+      "definition": "to consider different ideas before giving a view",
+      "cn": "用于理解雅思题干要求，尤其是写作、阅读解释和口语追问。",
+      "example": "In an IELTS question, discuss tells the candidate what kind of answer is expected.",
+      "translation": "在雅思题干中，“讨论”提示考生应该怎样作答。",
+      "collocations": [
+        "discuss both views",
+        "discuss the issue"
+      ]
+    },
+    {
+      "id": "ielts-command-words-evaluate",
+      "subject": "ielts",
+      "topic": "command-words",
+      "topicLabel": "Question Command Words",
+      "type": "command",
+      "word": "evaluate",
+      "meaning": "评估",
+      "definition": "to judge the value or importance of something",
+      "cn": "用于理解雅思题干要求，尤其是写作、阅读解释和口语追问。",
+      "example": "In an IELTS question, evaluate tells the candidate what kind of answer is expected.",
+      "translation": "在雅思题干中，“评估”提示考生应该怎样作答。",
+      "collocations": [
+        "evaluate the evidence",
+        "evaluate a policy"
+      ]
+    },
+    {
+      "id": "ielts-command-words-justify",
+      "subject": "ielts",
+      "topic": "command-words",
+      "topicLabel": "Question Command Words",
+      "type": "command",
+      "word": "justify",
+      "meaning": "证明合理，说明理由",
+      "definition": "to give reasons showing that something is right or reasonable",
+      "cn": "用于理解雅思题干要求，尤其是写作、阅读解释和口语追问。",
+      "example": "In an IELTS question, justify tells the candidate what kind of answer is expected.",
+      "translation": "在雅思题干中，“证明合理，说明理由”提示考生应该怎样作答。",
+      "collocations": [
+        "justify your answer",
+        "justify a decision"
+      ]
+    },
+    {
+      "id": "ielts-command-words-explain",
+      "subject": "ielts",
+      "topic": "command-words",
+      "topicLabel": "Question Command Words",
+      "type": "command",
+      "word": "explain",
+      "meaning": "解释",
+      "definition": "to make something clear by giving reasons or details",
+      "cn": "用于理解雅思题干要求，尤其是写作、阅读解释和口语追问。",
+      "example": "In an IELTS question, explain tells the candidate what kind of answer is expected.",
+      "translation": "在雅思题干中，“解释”提示考生应该怎样作答。",
+      "collocations": [
+        "explain why",
+        "explain the process"
+      ]
+    },
+    {
+      "id": "ielts-command-words-describe",
+      "subject": "ielts",
+      "topic": "command-words",
+      "topicLabel": "Question Command Words",
+      "type": "command",
+      "word": "describe",
+      "meaning": "描述",
+      "definition": "to say what something is like or what happened",
+      "cn": "用于理解雅思题干要求，尤其是写作、阅读解释和口语追问。",
+      "example": "In an IELTS question, describe tells the candidate what kind of answer is expected.",
+      "translation": "在雅思题干中，“描述”提示考生应该怎样作答。",
+      "collocations": [
+        "describe the trend",
+        "describe the diagram"
+      ]
+    },
+    {
+      "id": "ielts-command-words-summarise",
+      "subject": "ielts",
+      "topic": "command-words",
+      "topicLabel": "Question Command Words",
+      "type": "command",
+      "word": "summarise",
+      "meaning": "总结",
+      "definition": "to give the main points without unnecessary detail",
+      "cn": "用于理解雅思题干要求，尤其是写作、阅读解释和口语追问。",
+      "example": "In an IELTS question, summarise tells the candidate what kind of answer is expected.",
+      "translation": "在雅思题干中，“总结”提示考生应该怎样作答。",
+      "collocations": [
+        "summarise the information",
+        "summarise the passage"
+      ]
+    },
+    {
+      "id": "ielts-command-words-outline",
+      "subject": "ielts",
+      "topic": "command-words",
+      "topicLabel": "Question Command Words",
+      "type": "command",
+      "word": "outline",
+      "meaning": "概述",
+      "definition": "to give the main features or steps briefly",
+      "cn": "用于理解雅思题干要求，尤其是写作、阅读解释和口语追问。",
+      "example": "In an IELTS question, outline tells the candidate what kind of answer is expected.",
+      "translation": "在雅思题干中，“概述”提示考生应该怎样作答。",
+      "collocations": [
+        "outline the causes",
+        "outline a solution"
+      ]
+    },
+    {
+      "id": "ielts-command-words-identify",
+      "subject": "ielts",
+      "topic": "command-words",
+      "topicLabel": "Question Command Words",
+      "type": "command",
+      "word": "identify",
+      "meaning": "识别，指出",
+      "definition": "to find or name something clearly",
+      "cn": "用于理解雅思题干要求，尤其是写作、阅读解释和口语追问。",
+      "example": "In an IELTS question, identify tells the candidate what kind of answer is expected.",
+      "translation": "在雅思题干中，“识别，指出”提示考生应该怎样作答。",
+      "collocations": [
+        "identify the problem",
+        "identify key features"
+      ]
+    },
+    {
+      "id": "ielts-command-words-classify",
+      "subject": "ielts",
+      "topic": "command-words",
+      "topicLabel": "Question Command Words",
+      "type": "command",
+      "word": "classify",
+      "meaning": "分类",
+      "definition": "to put things into groups according to features",
+      "cn": "用于理解雅思题干要求，尤其是写作、阅读解释和口语追问。",
+      "example": "In an IELTS question, classify tells the candidate what kind of answer is expected.",
+      "translation": "在雅思题干中，“分类”提示考生应该怎样作答。",
+      "collocations": [
+        "classify examples",
+        "classify information"
+      ]
+    },
+    {
+      "id": "ielts-command-words-illustrate",
+      "subject": "ielts",
+      "topic": "command-words",
+      "topicLabel": "Question Command Words",
+      "type": "command",
+      "word": "illustrate",
+      "meaning": "说明，举例说明",
+      "definition": "to explain by giving examples or using a diagram",
+      "cn": "用于理解雅思题干要求，尤其是写作、阅读解释和口语追问。",
+      "example": "In an IELTS question, illustrate tells the candidate what kind of answer is expected.",
+      "translation": "在雅思题干中，“说明，举例说明”提示考生应该怎样作答。",
+      "collocations": [
+        "illustrate a point",
+        "illustrate the process"
+      ]
+    },
+    {
+      "id": "ielts-command-words-assess",
+      "subject": "ielts",
+      "topic": "command-words",
+      "topicLabel": "Question Command Words",
+      "type": "command",
+      "word": "assess",
+      "meaning": "评定，判断",
+      "definition": "to judge the quality, importance, or value of something",
+      "cn": "用于理解雅思题干要求，尤其是写作、阅读解释和口语追问。",
+      "example": "In an IELTS question, assess tells the candidate what kind of answer is expected.",
+      "translation": "在雅思题干中，“评定，判断”提示考生应该怎样作答。",
+      "collocations": [
+        "assess the impact",
+        "assess performance"
+      ]
+    },
+    {
+      "id": "ielts-command-words-define",
+      "subject": "ielts",
+      "topic": "command-words",
+      "topicLabel": "Question Command Words",
+      "type": "command",
+      "word": "define",
+      "meaning": "定义",
+      "definition": "to state the exact meaning of a word or idea",
+      "cn": "用于理解雅思题干要求，尤其是写作、阅读解释和口语追问。",
+      "example": "In an IELTS question, define tells the candidate what kind of answer is expected.",
+      "translation": "在雅思题干中，“定义”提示考生应该怎样作答。",
+      "collocations": [
+        "define a term",
+        "define the concept"
+      ]
+    },
+    {
+      "id": "ielts-linking-phrases-on-the-one-hand",
+      "subject": "ielts",
+      "topic": "linking-phrases",
+      "topicLabel": "Linking & Exam Phrases",
+      "type": "phrase",
+      "word": "on the one hand",
+      "meaning": "一方面",
+      "definition": "used to introduce one side of an argument",
+      "cn": "用于写作衔接、口语组织答案和阅读题干句式理解。",
+      "example": "A clear IELTS response can use \"on the one hand\" to connect ideas smoothly.",
+      "translation": "清晰的雅思答案可以用“一方面”顺畅连接观点。",
+      "collocations": [
+        "on the one hand it is useful"
+      ]
+    },
+    {
+      "id": "ielts-linking-phrases-on-the-other-hand",
+      "subject": "ielts",
+      "topic": "linking-phrases",
+      "topicLabel": "Linking & Exam Phrases",
+      "type": "phrase",
+      "word": "on the other hand",
+      "meaning": "另一方面",
+      "definition": "used to introduce the opposite side of an argument",
+      "cn": "用于写作衔接、口语组织答案和阅读题干句式理解。",
+      "example": "A clear IELTS response can use \"on the other hand\" to connect ideas smoothly.",
+      "translation": "清晰的雅思答案可以用“另一方面”顺畅连接观点。",
+      "collocations": [
+        "on the other hand it can be costly"
+      ]
+    },
+    {
+      "id": "ielts-linking-phrases-in-contrast",
+      "subject": "ielts",
+      "topic": "linking-phrases",
+      "topicLabel": "Linking & Exam Phrases",
+      "type": "phrase",
+      "word": "in contrast",
+      "meaning": "相比之下",
+      "definition": "used to show a clear difference",
+      "cn": "用于写作衔接、口语组织答案和阅读题干句式理解。",
+      "example": "A clear IELTS response can use \"in contrast\" to connect ideas smoothly.",
+      "translation": "清晰的雅思答案可以用“相比之下”顺畅连接观点。",
+      "collocations": [
+        "in contrast to",
+        "by contrast"
+      ]
+    },
+    {
+      "id": "ielts-linking-phrases-as-a-result",
+      "subject": "ielts",
+      "topic": "linking-phrases",
+      "topicLabel": "Linking & Exam Phrases",
+      "type": "phrase",
+      "word": "as a result",
+      "meaning": "结果，因此",
+      "definition": "used to show the consequence of something",
+      "cn": "用于写作衔接、口语组织答案和阅读题干句式理解。",
+      "example": "A clear IELTS response can use \"as a result\" to connect ideas smoothly.",
+      "translation": "清晰的雅思答案可以用“结果，因此”顺畅连接观点。",
+      "collocations": [
+        "as a result of",
+        "as a result many"
+      ]
+    },
+    {
+      "id": "ielts-linking-phrases-to-some-extent",
+      "subject": "ielts",
+      "topic": "linking-phrases",
+      "topicLabel": "Linking & Exam Phrases",
+      "type": "phrase",
+      "word": "to some extent",
+      "meaning": "在某种程度上",
+      "definition": "used to show partial agreement or limited truth",
+      "cn": "用于写作衔接、口语组织答案和阅读题干句式理解。",
+      "example": "A clear IELTS response can use \"to some extent\" to connect ideas smoothly.",
+      "translation": "清晰的雅思答案可以用“在某种程度上”顺畅连接观点。",
+      "collocations": [
+        "agree to some extent",
+        "true to some extent"
+      ]
+    },
+    {
+      "id": "ielts-linking-phrases-from-my-perspective",
+      "subject": "ielts",
+      "topic": "linking-phrases",
+      "topicLabel": "Linking & Exam Phrases",
+      "type": "phrase",
+      "word": "from my perspective",
+      "meaning": "在我看来",
+      "definition": "used to introduce a personal opinion",
+      "cn": "用于写作衔接、口语组织答案和阅读题干句式理解。",
+      "example": "A clear IELTS response can use \"from my perspective\" to connect ideas smoothly.",
+      "translation": "清晰的雅思答案可以用“在我看来”顺畅连接观点。",
+      "collocations": [
+        "from my perspective this is fair"
+      ]
+    },
+    {
+      "id": "ielts-linking-phrases-in-the-long-run",
+      "subject": "ielts",
+      "topic": "linking-phrases",
+      "topicLabel": "Linking & Exam Phrases",
+      "type": "phrase",
+      "word": "in the long run",
+      "meaning": "从长远来看",
+      "definition": "used to talk about future results",
+      "cn": "用于写作衔接、口语组织答案和阅读题干句式理解。",
+      "example": "A clear IELTS response can use \"in the long run\" to connect ideas smoothly.",
+      "translation": "清晰的雅思答案可以用“从长远来看”顺畅连接观点。",
+      "collocations": [
+        "in the long run",
+        "long-run benefits"
+      ]
+    },
+    {
+      "id": "ielts-linking-phrases-a-wide-range-of",
+      "subject": "ielts",
+      "topic": "linking-phrases",
+      "topicLabel": "Linking & Exam Phrases",
+      "type": "phrase",
+      "word": "a wide range of",
+      "meaning": "广泛的，多种多样的",
+      "definition": "used to describe many different types",
+      "cn": "用于写作衔接、口语组织答案和阅读题干句式理解。",
+      "example": "A clear IELTS response can use \"a wide range of\" to connect ideas smoothly.",
+      "translation": "清晰的雅思答案可以用“广泛的，多种多样的”顺畅连接观点。",
+      "collocations": [
+        "a wide range of services",
+        "a wide range of skills"
+      ]
+    },
+    {
+      "id": "ielts-linking-phrases-play-a-role-in",
+      "subject": "ielts",
+      "topic": "linking-phrases",
+      "topicLabel": "Linking & Exam Phrases",
+      "type": "phrase",
+      "word": "play a role in",
+      "meaning": "在……中起作用",
+      "definition": "to have an influence on a situation",
+      "cn": "用于写作衔接、口语组织答案和阅读题干句式理解。",
+      "example": "A clear IELTS response can use \"play a role in\" to connect ideas smoothly.",
+      "translation": "清晰的雅思答案可以用“在……中起作用”顺畅连接观点。",
+      "collocations": [
+        "play a role in education",
+        "play a key role"
+      ]
+    },
+    {
+      "id": "ielts-linking-phrases-be-responsible-for",
+      "subject": "ielts",
+      "topic": "linking-phrases",
+      "topicLabel": "Linking & Exam Phrases",
+      "type": "phrase",
+      "word": "be responsible for",
+      "meaning": "对……负责，是……的原因",
+      "definition": "to have a duty or be the cause of something",
+      "cn": "用于写作衔接、口语组织答案和阅读题干句式理解。",
+      "example": "A clear IELTS response can use \"be responsible for\" to connect ideas smoothly.",
+      "translation": "清晰的雅思答案可以用“对……负责，是……的原因”顺畅连接观点。",
+      "collocations": [
+        "be responsible for safety",
+        "be responsible for pollution"
+      ]
+    },
+    {
+      "id": "ielts-linking-phrases-be-likely-to",
+      "subject": "ielts",
+      "topic": "linking-phrases",
+      "topicLabel": "Linking & Exam Phrases",
+      "type": "phrase",
+      "word": "be likely to",
+      "meaning": "很可能",
+      "definition": "used to describe a probable future result",
+      "cn": "用于写作衔接、口语组织答案和阅读题干句式理解。",
+      "example": "A clear IELTS response can use \"be likely to\" to connect ideas smoothly.",
+      "translation": "清晰的雅思答案可以用“很可能”顺畅连接观点。",
+      "collocations": [
+        "be likely to increase",
+        "be likely to happen"
+      ]
+    },
+    {
+      "id": "ielts-linking-phrases-it-is-worth-noting-that",
+      "subject": "ielts",
+      "topic": "linking-phrases",
+      "topicLabel": "Linking & Exam Phrases",
+      "type": "phrase",
+      "word": "it is worth noting that",
+      "meaning": "值得注意的是",
+      "definition": "used to highlight an important point",
+      "cn": "用于写作衔接、口语组织答案和阅读题干句式理解。",
+      "example": "A clear IELTS response can use \"it is worth noting that\" to connect ideas smoothly.",
+      "translation": "清晰的雅思答案可以用“值得注意的是”顺畅连接观点。",
+      "collocations": [
+        "it is worth noting that this figure rose"
+      ]
+    },
+    {
+      "id": "ielts-linking-phrases-take-into-account",
+      "subject": "ielts",
+      "topic": "linking-phrases",
+      "topicLabel": "Linking & Exam Phrases",
+      "type": "phrase",
+      "word": "take into account",
+      "meaning": "考虑到",
+      "definition": "to consider something before deciding",
+      "cn": "用于写作衔接、口语组织答案和阅读题干句式理解。",
+      "example": "A clear IELTS response can use \"take into account\" to connect ideas smoothly.",
+      "translation": "清晰的雅思答案可以用“考虑到”顺畅连接观点。",
+      "collocations": [
+        "take costs into account",
+        "take evidence into account"
+      ]
+    },
+    {
+      "id": "ielts-linking-phrases-in-terms-of",
+      "subject": "ielts",
+      "topic": "linking-phrases",
+      "topicLabel": "Linking & Exam Phrases",
+      "type": "phrase",
+      "word": "in terms of",
+      "meaning": "就……而言",
+      "definition": "used to specify the aspect being discussed",
+      "cn": "用于写作衔接、口语组织答案和阅读题干句式理解。",
+      "example": "A clear IELTS response can use \"in terms of\" to connect ideas smoothly.",
+      "translation": "清晰的雅思答案可以用“就……而言”顺畅连接观点。",
+      "collocations": [
+        "in terms of cost",
+        "in terms of health"
+      ]
+    },
+    {
+      "id": "ielts-linking-phrases-lead-to",
+      "subject": "ielts",
+      "topic": "linking-phrases",
+      "topicLabel": "Linking & Exam Phrases",
+      "type": "phrase",
+      "word": "lead to",
+      "meaning": "导致",
+      "definition": "to cause something to happen or develop",
+      "cn": "用于写作衔接、口语组织答案和阅读题干句式理解。",
+      "example": "A clear IELTS response can use \"lead to\" to connect ideas smoothly.",
+      "translation": "清晰的雅思答案可以用“导致”顺畅连接观点。",
+      "collocations": [
+        "lead to problems",
+        "lead to improvement"
+      ]
+    }
+  ]
+}
