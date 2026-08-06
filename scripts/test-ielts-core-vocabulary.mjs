@@ -53,6 +53,6 @@ assert.match(app, /aria-controls="vocabMeaning"/);
 assert.match(app, /meaningFace\.hidden = !state\.vocabularyReview\.revealed/);
 assert.match(app, /item\.topic \|\| "ielts-core"/);
 assert.match(app, /item\.conceptExplanation/);
-assert.match(html, /20260807-vocabulary-knowledge-v6/);
+assert.match(html, /20260807-stem-bridge-v7/);
 
 console.log(`IELTS Core vocabulary checks passed: ${catalog.items.length} items.`);

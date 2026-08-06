@@ -5,6 +5,7 @@ const root = new URL("../", import.meta.url);
 const catalog = JSON.parse(await readFile(new URL("../public/data/alevel-stem-vocabulary.json", import.meta.url), "utf8"));
 const app = await readFile(new URL("../public/app.js", import.meta.url), "utf8");
 const html = await readFile(new URL("../public/index.html", import.meta.url), "utf8");
+const server = await readFile(new URL("../server.js", import.meta.url), "utf8");
 
 assert.equal(catalog.schemaVersion, "alevel-stem-vocabulary.v2");
 assert.equal(catalog.itemCount, catalog.items.length);
@@ -90,6 +91,12 @@ assert.match(app, /Understanding check \/ 理解检查/);
 assert.match(app, /Core idea \/ 核心理解/);
 assert.match(app, /Formula & conditions \/ 公式与条件/);
 assert.match(app, /Common mistake \/ 易错点/);
+assert.match(app, /https:\/\/stem\.ieltsist\.com\/\?from=ieltsist&focus=/);
+assert.match(app, /Continue in STEM Campus/);
+assert.match(app, /Need the subject knowledge behind the terms/);
+assert.match(html, /class="product-switch-link" href="https:\/\/stem\.ieltsist\.com\/\?from=ieltsist&amp;focus=syllabus"/);
+assert.match(server, /complementary but independent products/);
+assert.match(server, /Never claim that accounts, tokens, scores or progress sync/);
 assert.match(app, /vocabularyItemKey\(item\)/, "Known progress must use stable item keys");
 assert.match(html, /700\+ A-Level Mathematics, Physics, Chemistry, Economics and exam-language entries/);
 

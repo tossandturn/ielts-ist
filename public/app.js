@@ -3717,6 +3717,7 @@ function renderVocabularyImportPanel() {
 
 function renderVocabularyHub(allItems, subjectCounts) {
   const loadedLabel = alevelStemVocabulary.length ? `${alevelStemVocabulary.length} A-Level entries loaded` : "Loading vocabulary catalog...";
+  const fromStem = new URLSearchParams(window.location.search).get("from") === "stem";
   return `<section class="vocab-hub-shell">
     <header class="vocab-hub-head">
       <div>
@@ -3750,6 +3751,11 @@ function renderVocabularyHub(allItems, subjectCounts) {
       <span>Chemistry <strong>${subjectCounts.chemistry || 0}</strong></span>
       <span>Economics <strong>${subjectCounts.economics || 0}</strong></span>
     </div>
+    <aside class="product-bridge-band" aria-label="STEM Campus connection">
+      <span class="product-bridge-icon" aria-hidden="true">🧪</span>
+      <div><strong>${fromStem ? "Back from STEM Campus? Keep the language edge." : "Need the subject knowledge behind the terms?"}</strong><p>Open STEM Campus for A-Level Physics, Mathematics, Chemistry and Economics practice, then return here for IELTS question language and academic expression.</p></div>
+      <a class="secondary small-button" href="https://stem.ieltsist.com/?from=ieltsist&focus=syllabus" target="_blank" rel="noreferrer">Open STEM Campus ↗</a>
+    </aside>
   </section>`;
 }
 
@@ -3758,6 +3764,8 @@ function renderVocabularyMeaning(item) {
   const methodSteps = Array.isArray(item.methodSteps) ? item.methodSteps.filter(Boolean) : [];
   const workedExample = item.workedExample && typeof item.workedExample === "object" ? item.workedExample : null;
   const workedSteps = Array.isArray(workedExample?.steps) ? workedExample.steps.filter(Boolean) : [];
+  const stemSubject = ["physics", "mathematics", "chemistry", "economics"].includes(item?.subject) ? item.subject : "";
+  const stemHref = stemSubject ? `https://stem.ieltsist.com/?from=ieltsist&focus=${encodeURIComponent(stemSubject)}` : "";
   return `
     <strong class="vocab-meaning-title">${escapeHtml(item.meaning)}</strong>
     ${item.definition ? `<div class="vocab-field"><span class="vocab-field-label">Definition / 英文定义</span><p class="vocab-definition" lang="en">${escapeHtml(item.definition)}</p></div>` : ""}
@@ -3768,6 +3776,7 @@ function renderVocabularyMeaning(item) {
     ${item.commonMistake ? `<section class="vocab-learning-section vocab-mistake-section"><h4>Common mistake / 易错点</h4><p>${escapeHtml(item.commonMistake)}</p></section>` : ""}
     ${workedExample ? `<section class="vocab-learning-section vocab-worked-example"><h4>Worked example / 完整例题</h4>${workedExample.question ? `<p class="vocab-worked-question" lang="en">${escapeHtml(workedExample.question)}</p>` : ""}${workedSteps.length ? `<ol class="vocab-method-steps">${workedSteps.map((step) => `<li>${escapeHtml(step)}</li>`).join("")}</ol>` : ""}${workedExample.answer ? `<p class="vocab-worked-answer"><span>Answer / 答案</span>${escapeHtml(workedExample.answer)}</p>` : ""}</section>` : ""}
     ${item.example ? `<div class="vocab-example-pair"><span class="vocab-field-label">${escapeHtml(vocabularyExampleLabel(item))}</span><blockquote lang="en">${escapeHtml(item.example)}</blockquote>${item.translation ? `<p lang="zh-CN"><span class="vocab-field-label">中文理解</span>${escapeHtml(item.translation)}</p>` : ""}</div>` : ""}
+    ${stemHref ? `<a class="vocab-cross-link" href="${stemHref}" target="_blank" rel="noreferrer"><span aria-hidden="true">🧪</span><strong>Continue in STEM Campus</strong><em>More ${vocabularySubjectLabel(stemSubject)} practice and worked questions ↗</em></a>` : ""}
     ${(item.collocations || []).length ? `<div class="vocab-collocations" aria-label="Useful collocations">${item.collocations.map((phrase) => `<span>${escapeHtml(phrase)}</span>`).join("")}</div>` : ""}`;
 }
 
