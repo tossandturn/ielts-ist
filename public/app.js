@@ -143,6 +143,7 @@
   writingLibraryTaskNumber: 2,
   writingLibraryScope: "full",
   vocabularyReview: {
+    page: "hub",
     index: 0,
     revealed: false,
     known: new Set(),
@@ -3709,33 +3710,48 @@ function renderVocabularyImportPanel() {
   </section>`;
 }
 
-function renderVocabularyTrainer() {
-  const node = $("vocabularyContent");
-  if (!node) return;
-  const allItems = normalizedCoreVocabularyItems();
-  const deck = filteredCoreVocabulary();
-  const item = currentCoreVocabularyItem();
-  const knownCount = deck.filter((entry) => state.vocabularyReview.known.has(vocabularyItemKey(entry))).length;
-  const revealed = Boolean(state.vocabularyReview.revealed);
-  const deckPosition = item ? `${state.vocabularyReview.index + 1} / ${deck.length}` : `0 / ${deck.length}`;
-  const subjectCounts = allItems.reduce((counts, entry) => ({ ...counts, [entry.subject]: (counts[entry.subject] || 0) + 1 }), {});
-  const subjects = ["all", "ielts", "physics", "mathematics", "chemistry", "economics", "exam-language"];
-  const availableTopics = [...new Map(allItems
-    .filter((entry) => state.vocabularyReview.subject === "all" || entry.subject === state.vocabularyReview.subject)
-    .map((entry) => [entry.topic, entry.topicLabel || entry.topic]))]
-    .sort((a, b) => String(a[1]).localeCompare(String(b[1])));
-  if (state.vocabularyReview.topic !== "all" && !availableTopics.some(([topic]) => topic === state.vocabularyReview.topic)) {
-    state.vocabularyReview.topic = "all";
-  }
-  const miniStart = Math.max(0, Math.min(Math.max(0, deck.length - 120), state.vocabularyReview.index - 36));
-  const miniItems = deck.slice(miniStart, miniStart + 120);
-  const catalogStatus = state.vocabularyReview.loading
-    ? `<span class="vocab-catalog-status">Loading A-Level catalog...</span>`
-    : state.vocabularyReview.error
-      ? `<button class="vocab-catalog-status is-error" type="button" data-vocab-retry>${escapeHtml(state.vocabularyReview.error)} · Retry</button>`
-      : `<span class="vocab-catalog-status">${alevelStemVocabulary.length} A-Level entries loaded</span>`;
-  node.innerHTML = `<section class="vocab-trainer-shell">
+function renderVocabularyHub(allItems, subjectCounts) {
+  const loadedLabel = alevelStemVocabulary.length ? `${alevelStemVocabulary.length} A-Level entries loaded` : "Loading vocabulary catalog...";
+  return `<section class="vocab-hub-shell">
+    <header class="vocab-hub-head">
+      <div>
+        <span class="eyebrow">Vocabulary</span>
+        <h3>Choose a path</h3>
+        <p>Review the full deck, upload professional terms, or open your saved notebook.</p>
+      </div>
+      <span class="vocab-catalog-status">${escapeHtml(loadedLabel)}</span>
+    </header>
+    <div class="vocab-hub-grid">
+      <button class="vocab-hub-card" type="button" data-vocab-page="review">
+        <strong>Review deck</strong>
+        <span>IELTS Core + A-Level mathematics, physics, chemistry, economics and exam-language</span>
+        <em>${allItems.length} items · filters, search and spaced review</em>
+      </button>
+      <button class="vocab-hub-card" type="button" data-vocab-page="import">
+        <strong>Upload terms</strong>
+        <span>One entry for professional vocabulary import only</span>
+        <em>Definition, formula, knowledge point and exam sentence</em>
+      </button>
+      <button class="vocab-hub-card" type="button" data-vocab-mine>
+        <strong>Mine notebook</strong>
+        <span>Saved vocabulary, weak-area notes and imported term cards</span>
+        <em>${state.authToken ? "Signed in" : "Login required"} · ${state.vocabItems?.length || 0} notes</em>
+      </button>
+    </div>
+    <div class="vocab-hub-stats">
+      <span>IELTS Core <strong>${allItems.filter((item) => item.subject === "ielts").length}</strong></span>
+      <span>Physics <strong>${subjectCounts.physics || 0}</strong></span>
+      <span>Mathematics <strong>${subjectCounts.mathematics || 0}</strong></span>
+      <span>Chemistry <strong>${subjectCounts.chemistry || 0}</strong></span>
+      <span>Economics <strong>${subjectCounts.economics || 0}</strong></span>
+    </div>
+  </section>`;
+}
+
+function renderVocabularyReviewPage(allItems, subjectCounts, deck, item, knownCount, revealed, deckPosition, subjects, availableTopics, catalogStatus, miniItems, miniStart) {
+  return `<section class="vocab-trainer-shell">
     <div class="vocab-library-toolbar" aria-label="Vocabulary filters">
+      <button class="secondary small-button vocab-back-button" type="button" data-vocab-back>← Back to hub</button>
       <label><span>Subject</span><select id="vocabSubjectFilter">
         ${subjects.map((subject) => `<option value="${escapeHtml(subject)}" ${state.vocabularyReview.subject === subject ? "selected" : ""}>${escapeHtml(vocabularySubjectLabel(subject))}${subject === "all" ? ` (${allItems.length})` : ` (${subjectCounts[subject] || 0})`}</option>`).join("")}
       </select></label>
@@ -3749,7 +3765,6 @@ function renderVocabularyTrainer() {
       <label class="vocab-search-label"><span>Search</span><input id="vocabSearch" type="search" value="${escapeHtml(state.vocabularyReview.query)}" placeholder="Search term, 中文, example..." /></label>
       ${catalogStatus}
     </div>
-    ${renderVocabularyImportPanel()}
     ${item ? `<article class="vocab-review-card ${revealed ? "is-revealed" : ""}">
       <div class="vocab-review-top">
         <span class="eyebrow">${escapeHtml(vocabularySubjectLabel(item.subject))} · ${escapeHtml(item.topicLabel || item.topic || "Core")}</span>
@@ -3802,6 +3817,58 @@ function renderVocabularyTrainer() {
       </div>
     </aside>
   </section>`;
+}
+
+function renderVocabularyImportPage() {
+  return `<section class="vocab-secondary-page">
+    <header class="vocab-secondary-head">
+      <button class="secondary small-button vocab-back-button" type="button" data-vocab-back>← Back to hub</button>
+      <div>
+        <span class="eyebrow">Upload terms</span>
+        <h3>Professional vocabulary import</h3>
+        <p>Use one entry to import Chemistry, Economics, Physics or Mathematics terms.</p>
+      </div>
+    </header>
+    ${renderVocabularyImportPanel()}
+  </section>`;
+}
+
+function renderVocabularyTrainer() {
+  const node = $("vocabularyContent");
+  if (!node) return;
+  const allItems = normalizedCoreVocabularyItems();
+  const deck = filteredCoreVocabulary();
+  const item = currentCoreVocabularyItem();
+  const knownCount = deck.filter((entry) => state.vocabularyReview.known.has(vocabularyItemKey(entry))).length;
+  const revealed = Boolean(state.vocabularyReview.revealed);
+  const deckPosition = item ? `${state.vocabularyReview.index + 1} / ${deck.length}` : `0 / ${deck.length}`;
+  const subjectCounts = allItems.reduce((counts, entry) => ({ ...counts, [entry.subject]: (counts[entry.subject] || 0) + 1 }), {});
+  const subjects = ["all", "ielts", "physics", "mathematics", "chemistry", "economics", "exam-language"];
+  const availableTopics = [...new Map(allItems
+    .filter((entry) => state.vocabularyReview.subject === "all" || entry.subject === state.vocabularyReview.subject)
+    .map((entry) => [entry.topic, entry.topicLabel || entry.topic]))]
+    .sort((a, b) => String(a[1]).localeCompare(String(b[1])));
+  if (state.vocabularyReview.topic !== "all" && !availableTopics.some(([topic]) => topic === state.vocabularyReview.topic)) {
+    state.vocabularyReview.topic = "all";
+  }
+  const miniStart = Math.max(0, Math.min(Math.max(0, deck.length - 120), state.vocabularyReview.index - 36));
+  const miniItems = deck.slice(miniStart, miniStart + 120);
+  const catalogStatus = state.vocabularyReview.loading
+    ? `<span class="vocab-catalog-status">Loading A-Level catalog...</span>`
+    : state.vocabularyReview.error
+      ? `<button class="vocab-catalog-status is-error" type="button" data-vocab-retry>${escapeHtml(state.vocabularyReview.error)} · Retry</button>`
+      : `<span class="vocab-catalog-status">${alevelStemVocabulary.length} A-Level entries loaded</span>`;
+  if (state.vocabularyReview.page === "import") {
+    node.innerHTML = renderVocabularyImportPage();
+    bindVocabularyControls();
+    return;
+  }
+  if (state.vocabularyReview.page !== "review") {
+    node.innerHTML = renderVocabularyHub(allItems, subjectCounts);
+    bindVocabularyControls();
+    return;
+  }
+  node.innerHTML = renderVocabularyReviewPage(allItems, subjectCounts, deck, item, knownCount, revealed, deckPosition, subjects, availableTopics, catalogStatus, miniItems, miniStart);
   bindVocabularyControls();
 }
 
@@ -3813,7 +3880,27 @@ function setVocabularyIndex(index) {
   renderVocabularyTrainer();
 }
 
+function setVocabularyPage(page) {
+  state.vocabularyReview.page = page;
+  if (page === "hub") {
+    state.vocabularyReview.revealed = false;
+  }
+  renderVocabularyTrainer();
+}
+
 function bindVocabularyControls() {
+  document.querySelectorAll("[data-vocab-page]").forEach((button) => {
+    button.onclick = () => setVocabularyPage(button.dataset.vocabPage || "hub");
+  });
+  document.querySelectorAll("[data-vocab-back]").forEach((button) => {
+    button.onclick = () => setVocabularyPage("hub");
+  });
+  document.querySelectorAll("[data-vocab-mine]").forEach((button) => {
+    button.onclick = () => {
+      setVocabularyPage("hub");
+      activateView("mine", true);
+    };
+  });
   $("vocabReveal")?.addEventListener("click", () => {
     state.vocabularyReview.revealed = !state.vocabularyReview.revealed;
     renderVocabularyTrainer();
@@ -3860,13 +3947,14 @@ function bindVocabularyControls() {
     state.vocabularyReview.query = event.target.value || "";
     state.vocabularyReview.index = 0;
     state.vocabularyReview.revealed = false;
+    state.vocabularyReview.page = "review";
     renderVocabularyTrainer();
     const input = $("vocabSearch");
     input?.focus({ preventScroll: true });
     if (input) input.setSelectionRange(input.value.length, input.value.length);
   });
   document.querySelector("[data-vocab-clear]")?.addEventListener("click", () => {
-    Object.assign(state.vocabularyReview, { subject: "all", topic: "all", type: "all", query: "", index: 0, revealed: false });
+    Object.assign(state.vocabularyReview, { page: "review", subject: "all", topic: "all", type: "all", query: "", index: 0, revealed: false });
     renderVocabularyTrainer();
   });
   document.querySelector("[data-vocab-retry]")?.addEventListener("click", () => {
@@ -19642,6 +19730,7 @@ function activateView(viewId, updateHash = false, options = {}) {
   }
   if (viewId === "bank") renderBankList();
   if (viewId === "vocabulary") {
+    if (previousView !== "vocabulary") state.vocabularyReview.page = "hub";
     renderVocabularyTrainer();
     void ensureIeltsCoreVocabularyLoaded();
     void ensureAlevelVocabularyLoaded();
