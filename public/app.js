@@ -146,6 +146,13 @@
     index: 0,
     revealed: false,
     known: new Set(),
+    subject: "all",
+    topic: "all",
+    type: "all",
+    query: "",
+    loading: false,
+    loaded: false,
+    error: "",
   },
 };
 
@@ -195,6 +202,8 @@ const ieltsCoreVocabulary = [
   { word: "obstacle", phonetic: "/ˈɒbstəkl/", meaning: "障碍，阻碍", cn: "同义替换 problem / challenge。", example: "High cost is a major obstacle to university education.", collocations: ["major obstacle", "overcome obstacles"] },
   { word: "interpret", phonetic: "/ɪnˈtɜːprət/", meaning: "理解，解释", cn: "阅读和图表描述都常用。", example: "Students should learn how to interpret data accurately.", collocations: ["interpret data", "interpret the results"] },
 ];
+let alevelStemVocabulary = [];
+let alevelVocabularyLoadPromise = null;
 const builtInPublicWritingTopics = [
   {
     id: "public-writing-practical-education-task2",
@@ -3549,33 +3558,147 @@ function saveCoreVocabularyKnown() {
   localStorage.setItem(coreVocabularyStoreKey, JSON.stringify([...state.vocabularyReview.known]));
 }
 
+function normalizedCoreVocabularyItems() {
+  const ieltsItems = ieltsCoreVocabulary.map((item, index) => ({
+    ...item,
+    id: `ielts-core-${index + 1}`,
+    subject: "ielts",
+    topic: "ielts-core",
+    topicLabel: "IELTS Core",
+    type: "term",
+    definition: item.definition || "A high-frequency word used in IELTS questions, answers, or academic writing.",
+    translation: item.translation || "",
+  }));
+  return [...ieltsItems, ...alevelStemVocabulary];
+}
+
+function vocabularyItemKey(item) {
+  return item?.subject === "ielts" ? String(item.word || "") : String(item?.id || item?.word || "");
+}
+
+function vocabularySubjectLabel(subject) {
+  return {
+    all: "All subjects",
+    ielts: "IELTS Core",
+    physics: "A-Level Physics",
+    mathematics: "A-Level Mathematics",
+    "exam-language": "Exam Language",
+  }[subject] || "Core vocabulary";
+}
+
+function vocabularyTypeLabel(type) {
+  return { all: "All types", term: "Term", command: "Command word", phrase: "Question sentence" }[type] || "Term";
+}
+
+function filteredCoreVocabulary() {
+  const review = state.vocabularyReview;
+  const query = String(review.query || "").trim().toLowerCase();
+  return normalizedCoreVocabularyItems().filter((item) => {
+    if (review.subject !== "all" && item.subject !== review.subject) return false;
+    if (review.topic !== "all" && item.topic !== review.topic) return false;
+    if (review.type !== "all" && item.type !== review.type) return false;
+    if (!query) return true;
+    return [item.word, item.meaning, item.definition, item.cn, item.example, item.translation, ...(item.collocations || [])]
+      .join(" ")
+      .toLowerCase()
+      .includes(query);
+  });
+}
+
+async function ensureAlevelVocabularyLoaded() {
+  if (state.vocabularyReview.loaded) return alevelStemVocabulary;
+  if (alevelVocabularyLoadPromise) return alevelVocabularyLoadPromise;
+  state.vocabularyReview.loading = true;
+  state.vocabularyReview.error = "";
+  alevelVocabularyLoadPromise = fetch("/data/alevel-stem-vocabulary.json?v=20260806-1", { cache: "no-cache" })
+    .then(async (response) => {
+      if (!response.ok) throw new Error(`Vocabulary catalog returned ${response.status}`);
+      const payload = await response.json();
+      const items = Array.isArray(payload?.items) ? payload.items : [];
+      alevelStemVocabulary = items.filter((item) => item && item.id && item.word && item.meaning).map((item) => ({
+        ...item,
+        collocations: Array.isArray(item.collocations) ? item.collocations.slice(0, 8) : [],
+      }));
+      if (alevelStemVocabulary.length < 300) throw new Error("Vocabulary catalog is incomplete");
+      state.vocabularyReview.loaded = true;
+      return alevelStemVocabulary;
+    })
+    .catch((error) => {
+      state.vocabularyReview.error = error.message || "A-Level vocabulary could not load";
+      return [];
+    })
+    .finally(() => {
+      state.vocabularyReview.loading = false;
+      alevelVocabularyLoadPromise = null;
+      if (activeViewId() === "vocabulary") renderVocabularyTrainer();
+    });
+  return alevelVocabularyLoadPromise;
+}
+
 function currentCoreVocabularyItem() {
-  const index = Math.max(0, Math.min(ieltsCoreVocabulary.length - 1, state.vocabularyReview.index || 0));
+  const deck = filteredCoreVocabulary();
+  const index = Math.max(0, Math.min(deck.length - 1, state.vocabularyReview.index || 0));
   state.vocabularyReview.index = index;
-  return ieltsCoreVocabulary[index] || ieltsCoreVocabulary[0];
+  return deck[index] || null;
 }
 
 function renderVocabularyTrainer() {
   const node = $("vocabularyContent");
   if (!node) return;
+  const allItems = normalizedCoreVocabularyItems();
+  const deck = filteredCoreVocabulary();
   const item = currentCoreVocabularyItem();
-  const knownCount = state.vocabularyReview.known.size;
+  const knownCount = deck.filter((entry) => state.vocabularyReview.known.has(vocabularyItemKey(entry))).length;
   const revealed = Boolean(state.vocabularyReview.revealed);
-  const deckPosition = `${state.vocabularyReview.index + 1} / ${ieltsCoreVocabulary.length}`;
+  const deckPosition = item ? `${state.vocabularyReview.index + 1} / ${deck.length}` : `0 / ${deck.length}`;
+  const subjectCounts = allItems.reduce((counts, entry) => ({ ...counts, [entry.subject]: (counts[entry.subject] || 0) + 1 }), {});
+  const subjects = ["all", "ielts", "physics", "mathematics", "exam-language"];
+  const availableTopics = [...new Map(allItems
+    .filter((entry) => state.vocabularyReview.subject === "all" || entry.subject === state.vocabularyReview.subject)
+    .map((entry) => [entry.topic, entry.topicLabel || entry.topic]))]
+    .sort((a, b) => String(a[1]).localeCompare(String(b[1])));
+  if (state.vocabularyReview.topic !== "all" && !availableTopics.some(([topic]) => topic === state.vocabularyReview.topic)) {
+    state.vocabularyReview.topic = "all";
+  }
+  const miniStart = Math.max(0, Math.min(Math.max(0, deck.length - 120), state.vocabularyReview.index - 36));
+  const miniItems = deck.slice(miniStart, miniStart + 120);
+  const catalogStatus = state.vocabularyReview.loading
+    ? `<span class="vocab-catalog-status">Loading A-Level catalog...</span>`
+    : state.vocabularyReview.error
+      ? `<button class="vocab-catalog-status is-error" type="button" data-vocab-retry>${escapeHtml(state.vocabularyReview.error)} · Retry</button>`
+      : `<span class="vocab-catalog-status">${alevelStemVocabulary.length} A-Level entries loaded</span>`;
   node.innerHTML = `<section class="vocab-trainer-shell">
-    <article class="vocab-review-card ${revealed ? "is-revealed" : ""}">
+    <div class="vocab-library-toolbar" aria-label="Vocabulary filters">
+      <label><span>Subject</span><select id="vocabSubjectFilter">
+        ${subjects.map((subject) => `<option value="${escapeHtml(subject)}" ${state.vocabularyReview.subject === subject ? "selected" : ""}>${escapeHtml(vocabularySubjectLabel(subject))}${subject === "all" ? ` (${allItems.length})` : ` (${subjectCounts[subject] || 0})`}</option>`).join("")}
+      </select></label>
+      <label><span>Topic</span><select id="vocabTopicFilter">
+        <option value="all">All topics</option>
+        ${availableTopics.map(([topic, label]) => `<option value="${escapeHtml(topic)}" ${state.vocabularyReview.topic === topic ? "selected" : ""}>${escapeHtml(label)}</option>`).join("")}
+      </select></label>
+      <label><span>Type</span><select id="vocabTypeFilter">
+        ${["all", "term", "command", "phrase"].map((type) => `<option value="${type}" ${state.vocabularyReview.type === type ? "selected" : ""}>${escapeHtml(vocabularyTypeLabel(type))}</option>`).join("")}
+      </select></label>
+      <label class="vocab-search-label"><span>Search</span><input id="vocabSearch" type="search" value="${escapeHtml(state.vocabularyReview.query)}" placeholder="Search term, 中文, example..." /></label>
+      ${catalogStatus}
+    </div>
+    ${item ? `<article class="vocab-review-card ${revealed ? "is-revealed" : ""}">
       <div class="vocab-review-top">
-        <span class="eyebrow">IELTS core word</span>
+        <span class="eyebrow">${escapeHtml(vocabularySubjectLabel(item.subject))} · ${escapeHtml(item.topicLabel || item.topic || "Core")}</span>
         <strong>${escapeHtml(deckPosition)}</strong>
       </div>
-      <div class="vocab-word-face">
+      <div class="vocab-word-face ${item.type === "phrase" || String(item.word).length > 26 ? "is-phrase" : ""}">
         <h3>${escapeHtml(item.word)}</h3>
-        <p>${escapeHtml(item.phonetic)}</p>
+        <p>${escapeHtml(item.phonetic || vocabularyTypeLabel(item.type))}</p>
       </div>
       <div class="vocab-meaning-face" ${revealed ? "" : "hidden"}>
         <strong>${escapeHtml(item.meaning)}</strong>
+        ${item.definition ? `<p class="vocab-definition" lang="en">${escapeHtml(item.definition)}</p>` : ""}
         <p>${escapeHtml(item.cn)}</p>
-        <blockquote>${escapeHtml(item.example)}</blockquote>
+        <div class="vocab-example-pair">
+          <blockquote lang="en">${escapeHtml(item.example)}</blockquote>
+          ${item.translation ? `<p lang="zh-CN">${escapeHtml(item.translation)}</p>` : ""}
+        </div>
         <div class="vocab-collocations">
           ${(item.collocations || []).map((phrase) => `<span>${escapeHtml(phrase)}</span>`).join("")}
         </div>
@@ -3585,18 +3708,22 @@ function renderVocabularyTrainer() {
         <button id="vocabAgain" class="secondary" type="button">Again</button>
         <button id="vocabKnown" class="secondary" type="button">Know it</button>
       </div>
-    </article>
+    </article>` : `<article class="vocab-review-card vocab-empty-state"><strong>No vocabulary matches these filters.</strong><p>Try another subject, topic, type, or clear the search.</p><button class="secondary" type="button" data-vocab-clear>Clear filters</button></article>`}
     <aside class="vocab-review-side">
       <div class="vocab-study-meter">
-        <span>Mastered</span>
+        <span>Mastered in this deck</span>
         <strong>${knownCount}</strong>
-        <em>${ieltsCoreVocabulary.length - knownCount} left</em>
+        <em>${Math.max(0, deck.length - knownCount)} left · ${deck.length} shown</em>
       </div>
       <div class="vocab-mini-list">
-        ${ieltsCoreVocabulary.map((word, index) => `<button class="${index === state.vocabularyReview.index ? "active" : ""} ${state.vocabularyReview.known.has(word.word) ? "known" : ""}" type="button" data-vocab-index="${index}">
+        ${miniItems.map((word, offset) => {
+          const index = miniStart + offset;
+          const known = state.vocabularyReview.known.has(vocabularyItemKey(word));
+          return `<button class="${index === state.vocabularyReview.index ? "active" : ""} ${known ? "known" : ""}" type="button" data-vocab-index="${index}">
           <span>${escapeHtml(word.word)}</span>
-          <em>${state.vocabularyReview.known.has(word.word) ? "known" : "review"}</em>
-        </button>`).join("")}
+          <em>${known ? "known" : escapeHtml(word.type === "phrase" ? "sentence" : word.type || "review")}</em>
+        </button>`;
+        }).join("")}
       </div>
       <div class="vocab-nav-actions">
         <button id="vocabPrev" class="secondary" type="button">Previous</button>
@@ -3608,7 +3735,8 @@ function renderVocabularyTrainer() {
 }
 
 function setVocabularyIndex(index) {
-  const total = ieltsCoreVocabulary.length;
+  const total = filteredCoreVocabulary().length;
+  if (!total) return;
   state.vocabularyReview.index = ((Number(index) || 0) + total) % total;
   state.vocabularyReview.revealed = false;
   renderVocabularyTrainer();
@@ -3621,13 +3749,15 @@ function bindVocabularyControls() {
   });
   $("vocabAgain")?.addEventListener("click", () => {
     const item = currentCoreVocabularyItem();
-    state.vocabularyReview.known.delete(item.word);
+    if (!item) return;
+    state.vocabularyReview.known.delete(vocabularyItemKey(item));
     saveCoreVocabularyKnown();
     setVocabularyIndex(state.vocabularyReview.index + 1);
   });
   $("vocabKnown")?.addEventListener("click", () => {
     const item = currentCoreVocabularyItem();
-    state.vocabularyReview.known.add(item.word);
+    if (!item) return;
+    state.vocabularyReview.known.add(vocabularyItemKey(item));
     saveCoreVocabularyKnown();
     setVocabularyIndex(state.vocabularyReview.index + 1);
   });
@@ -3635,6 +3765,43 @@ function bindVocabularyControls() {
   $("vocabNext")?.addEventListener("click", () => setVocabularyIndex(state.vocabularyReview.index + 1));
   document.querySelectorAll("[data-vocab-index]").forEach((button) => {
     button.onclick = () => setVocabularyIndex(button.dataset.vocabIndex);
+  });
+  $("vocabSubjectFilter")?.addEventListener("change", (event) => {
+    state.vocabularyReview.subject = event.target.value || "all";
+    state.vocabularyReview.topic = "all";
+    state.vocabularyReview.index = 0;
+    state.vocabularyReview.revealed = false;
+    renderVocabularyTrainer();
+  });
+  $("vocabTopicFilter")?.addEventListener("change", (event) => {
+    state.vocabularyReview.topic = event.target.value || "all";
+    state.vocabularyReview.index = 0;
+    state.vocabularyReview.revealed = false;
+    renderVocabularyTrainer();
+  });
+  $("vocabTypeFilter")?.addEventListener("change", (event) => {
+    state.vocabularyReview.type = event.target.value || "all";
+    state.vocabularyReview.index = 0;
+    state.vocabularyReview.revealed = false;
+    renderVocabularyTrainer();
+  });
+  $("vocabSearch")?.addEventListener("input", (event) => {
+    state.vocabularyReview.query = event.target.value || "";
+    state.vocabularyReview.index = 0;
+    state.vocabularyReview.revealed = false;
+    renderVocabularyTrainer();
+    const input = $("vocabSearch");
+    input?.focus({ preventScroll: true });
+    if (input) input.setSelectionRange(input.value.length, input.value.length);
+  });
+  document.querySelector("[data-vocab-clear]")?.addEventListener("click", () => {
+    Object.assign(state.vocabularyReview, { subject: "all", topic: "all", type: "all", query: "", index: 0, revealed: false });
+    renderVocabularyTrainer();
+  });
+  document.querySelector("[data-vocab-retry]")?.addEventListener("click", () => {
+    state.vocabularyReview.error = "";
+    void ensureAlevelVocabularyLoaded();
+    renderVocabularyTrainer();
   });
 }
 
@@ -19237,6 +19404,10 @@ function activateView(viewId, updateHash = false, options = {}) {
     renderWritingUploadHub();
   }
   if (viewId === "bank") renderBankList();
+  if (viewId === "vocabulary") {
+    renderVocabularyTrainer();
+    void ensureAlevelVocabularyLoaded();
+  }
   updateAnnotationToolbarAvailability();
   refreshGlobalCoachPanelIfOpen();
   if (window.matchMedia("(min-width: 681px) and (max-width: 1024px)").matches) {
