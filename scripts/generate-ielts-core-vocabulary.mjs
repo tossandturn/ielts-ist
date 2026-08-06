@@ -34,6 +34,84 @@ function parseTerms(value) {
     });
 }
 
+const ieltsKnowledgeOverrides = {
+  "academic-core-significant": {
+    conceptExplanation: "significant 在 IELTS 中有两种常见含义：数据变化“明显/幅度较大”，或某因素“重要”。它不自动表示 statistically significant，除非题目真的涉及统计检验。",
+    methodSteps: ["先判断修饰的是数值变化还是影响/因素", "选择 significant increase/decline/difference/impact 等搭配", "用数据或原因证明为什么显著", "检查是否夸大了一个很小的变化"],
+    examFocus: "Task 1 常用于概括主要变化；Task 2 用于说明某因素的重要影响；Reading 中也常作为 important/notable 的同义替换。",
+    commonMistake: "任何变化都写 significant，或写 very significant 但没有数据和比较依据。",
+    example: "There was a significant increase in the proportion of commuters using public transport, from 28% to 46%.",
+    translation: "使用公共交通的通勤者比例显著上升，从 28% 增至 46%。",
+  },
+  "academic-core-approximately": {
+    conceptExplanation: "approximately 表示数值接近但并非精确值，语气比 about 更正式，通常直接放在数字、比例、时间或数量前。",
+    methodSteps: ["确认原图或原文数字是估算值", "把 approximately 放在数字前", "保留合适有效数字", "避免同时使用 exactly 等矛盾词"],
+    examFocus: "Task 1 描述图表近似读数时高频使用；Reading 中可对应 around、roughly、nearly 等改写。",
+    commonMistake: "写 approximately about 40%，或对题目给出的精确数字仍擅自改成近似值。",
+    example: "Approximately 40% of the respondents travelled to work by car.",
+    translation: "大约 40% 的受访者开车上班。",
+  },
+  "academic-core-fluctuate": {
+    conceptExplanation: "fluctuate 表示数值在一段时间内反复上升和下降，不是一次性的 rise 或 fall。常用结构是 fluctuate between A and B，或 fluctuate by an amount。",
+    methodSteps: ["先确认图线至少有两次方向变化", "找出波动区间或幅度", "选择 slightly/considerably 等程度副词", "说明最终趋势时再补充整体上升或下降"],
+    examFocus: "Task 1 折线图中用于压缩描述多次小幅涨跌；Reading 中常对应 vary、rise and fall。",
+    commonMistake: "图线只下降一次也写 fluctuated，或混淆 fluctuate between（区间）与 fluctuate by（幅度）。",
+    example: "The unemployment rate fluctuated between 5% and 7% before falling sharply in 2020.",
+    translation: "失业率先在 5% 至 7% 之间波动，随后在 2020 年大幅下降。",
+  },
+  "academic-core-proportion": {
+    conceptExplanation: "proportion 表示整体中的份额，常用于可数群体或分类数据。核心结构是 the proportion of + group + singular verb；它可以用百分比表达，但不是 percentage 的机械替换。",
+    methodSteps: ["确认描述的是整体中的份额", "写 the proportion of + 名词", "选择 accounted for/was/stood at 等结构", "与另一组比较时保持分母一致"],
+    examFocus: "Task 1 饼图、柱状图和人口分类中高频；Reading 中常与 share、percentage、fraction 互换。",
+    commonMistake: "写 the proportion of people were，或比较两个分母不同的比例却不说明基准。",
+    example: "The proportion of households with internet access rose to 82% in 2022.",
+    translation: "拥有互联网接入的家庭比例在 2022 年升至 82%。",
+  },
+  "academic-core-whereas": {
+    conceptExplanation: "whereas 是对比连词，用来连接两个语法完整的分句，并突出同一维度上的差异。它比 but 更正式，Task 1 中特别适合比较两组数据。",
+    methodSteps: ["确认两边比较的是同一指标", "分别写成完整主谓结构", "用逗号加 whereas 连接", "避免一句中塞入超过两组复杂数据"],
+    examFocus: "Task 1 用于横向比较；Task 2 用于对照两类观点或结果；Reading 中提示转折与对比关系。",
+    commonMistake: "whereas 后只接一个名词短语造成残句，或两边数据不在同一比较维度。",
+    example: "Car ownership increased among younger adults, whereas the figure for older people remained stable.",
+    translation: "年轻人的汽车拥有率上升，而老年人的相应数据保持稳定。",
+  },
+  "academic-core-evidence": {
+    conceptExplanation: "evidence 是不可数名词，表示支持结论的事实、数据或观察结果。写作中不能只说 there is evidence，必须说明证据支持什么观点以及证据是否可靠。",
+    methodSteps: ["明确需要支持的 claim", "提供数据、研究或具体例子", "解释证据与结论之间的逻辑", "必要时评价证据范围和局限"],
+    examFocus: "Task 2 用于构建论证；Reading 中常要求定位作者用来支持观点的事实或研究。",
+    commonMistake: "写 evidences，或堆出一个例子但没有解释它为什么支持论点。",
+    example: "There is strong evidence that early intervention can improve children's literacy outcomes.",
+    translation: "有充分证据表明，早期干预能够改善儿童的读写能力结果。",
+  },
+};
+
+function buildIeltsKnowledge(group, term) {
+  const override = ieltsKnowledgeOverrides[`${group.topic}-${slug(term.word)}`] || {};
+  const collocations = term.collocations.slice(0, 3).join(" / ");
+  const isPhrase = group.type === "phrase";
+  const isCommand = group.type === "command";
+  const conceptExplanation = override.conceptExplanation || (isPhrase
+    ? `这是一组可直接识别语篇功能的表达。它的作用是：${term.definition}。理解时要同时注意它连接的前后逻辑，而不是只背中文“${term.meaning}”。`
+    : isCommand
+      ? `${term.word} 是题目或学术任务中的动作要求，定义是：${term.definition}。看到它要先判断答案需要信息、过程、例证还是解释。`
+      : `“${term.meaning}（${term.word}）”的核心含义是：${term.definition}。常见自然搭配包括 ${collocations || "题目语境中的固定搭配"}；学习重点是搭配、语气和句法位置，而不是中文逐词替换。`);
+  const methodSteps = override.methodSteps || (isPhrase
+    ? ["判断该表达承担举例、转折、因果、让步还是总结功能", "检查前后两句逻辑是否真的匹配", "按表达需要补全从句和标点", "朗读检查是否自然且没有重复连接词"]
+    : isCommand
+      ? ["圈出题目动作词", "判断答案应给事实、分类、例子还是解释", "按分值组织信息", "检查每一句是否直接回应动作词"]
+      : ["确认准确含义和褒贬/正式语气", `优先记忆搭配：${collocations || term.word}`, `在 ${group.label} 话题中写一个具体完整句`, "检查词形、介词、单复数和是否比简单词更准确"]);
+  return {
+    conceptExplanation,
+    methodSteps,
+    examFocus: override.examFocus || (isPhrase
+      ? "Writing/Speaking 用它组织逻辑；Reading/Listening 用它识别作者关系和答案位置。"
+      : `Writing 和 Speaking 检查是否能在 ${group.label} 语境准确使用；Reading/Listening 检查是否能识别同义改写。`),
+    commonMistake: override.commonMistake || "只按中文直译、忽略固定搭配和词性，导致句子虽然能猜懂但不自然或意思过度泛化。",
+    example: override.example || fillTemplate(group.example, term),
+    translation: override.translation || fillTemplate(group.translation, term),
+  };
+}
+
 const groups = [
   {
     topic: "academic-core",
@@ -556,20 +634,28 @@ overall, the evidence suggests|总体上，证据表明|used to summarise a conc
 
 groups.push(...supplementalGroups);
 
-const items = groups.flatMap((group) => group.terms.map((term) => ({
-  id: `ielts-${group.topic}-${slug(term.word)}`,
-  subject: "ielts",
-  topic: group.topic,
-  topicLabel: group.label,
-  type: group.type,
-  word: term.word,
-  meaning: term.meaning,
-  definition: term.definition,
-  cn: group.note,
-  example: fillTemplate(group.example, term),
-  translation: fillTemplate(group.translation, term),
-  collocations: term.collocations,
-})));
+const items = groups.flatMap((group) => group.terms.map((term) => {
+  const knowledge = buildIeltsKnowledge(group, term);
+  return {
+    id: `ielts-${group.topic}-${slug(term.word)}`,
+    subject: "ielts",
+    topic: group.topic,
+    topicLabel: group.label,
+    type: group.type,
+    word: term.word,
+    meaning: term.meaning,
+    definition: term.definition,
+    cn: group.note,
+    conceptExplanation: knowledge.conceptExplanation,
+    methodSteps: knowledge.methodSteps,
+    examFocus: knowledge.examFocus,
+    commonMistake: knowledge.commonMistake,
+    workedExample: knowledge.workedExample || null,
+    example: knowledge.example,
+    translation: knowledge.translation,
+    collocations: term.collocations,
+  };
+}));
 
 const seen = new Set();
 for (const item of items) {
@@ -579,8 +665,8 @@ for (const item of items) {
 
 await mkdir(new URL("../public/data/", import.meta.url), { recursive: true });
 await writeFile(outputUrl, `${JSON.stringify({
-  schemaVersion: "ielts-core-vocabulary.v1",
-  catalogVersion: "2026-08-06",
+  schemaVersion: "ielts-core-vocabulary.v2",
+  catalogVersion: "2026-08-07-knowledge-v2",
   itemCount: items.length,
   items,
 }, null, 2)}\n`, "utf8");

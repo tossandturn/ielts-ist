@@ -3563,7 +3563,7 @@ function saveCoreVocabularyKnown() {
 
 async function ensureIeltsCoreVocabularyLoaded() {
   if (ieltsCoreVocabularyLoadPromise) return ieltsCoreVocabularyLoadPromise;
-  ieltsCoreVocabularyLoadPromise = fetch("/data/ielts-core-vocabulary.json?v=20260806-2", { cache: "no-cache" })
+  ieltsCoreVocabularyLoadPromise = fetch("/data/ielts-core-vocabulary.json?v=20260807-knowledge-v2", { cache: "no-cache" })
     .then(async (response) => {
       if (!response.ok) throw new Error(`Vocabulary catalog returned ${response.status}`);
       const payload = await response.json();
@@ -3591,11 +3591,11 @@ async function ensureIeltsCoreVocabularyLoaded() {
 function normalizedCoreVocabularyItems() {
   const ieltsItems = ieltsCoreVocabulary.map((item, index) => ({
     ...item,
-    id: `ielts-core-${index + 1}`,
-    subject: "ielts",
-    topic: "ielts-core",
-    topicLabel: "IELTS Core",
-    type: "term",
+    id: item.id || `ielts-core-${index + 1}`,
+    subject: item.subject || "ielts",
+    topic: item.topic || "ielts-core",
+    topicLabel: item.topicLabel || "IELTS Core",
+    type: item.type || "term",
     definition: item.definition || "A high-frequency word used in IELTS questions, answers, or academic writing.",
     translation: item.translation || "",
   }));
@@ -3624,7 +3624,8 @@ function vocabularyTypeLabel(type) {
 
 function vocabularyExampleLabel(item) {
   if (item?.type === "phrase") return "Question sentence / 题目句";
-  if (item?.subject && item.subject !== "ielts") return "Exam sentence / 题目句";
+  if (item?.type === "command") return "Exam instruction / 题目要求";
+  if (item?.subject && item.subject !== "ielts") return "Understanding check / 理解检查";
   return "Example sentence / 例句";
 }
 
@@ -3636,7 +3637,11 @@ function filteredCoreVocabulary() {
     if (review.topic !== "all" && item.topic !== review.topic) return false;
     if (review.type !== "all" && item.type !== review.type) return false;
     if (!query) return true;
-    return [item.word, item.meaning, item.definition, item.cn, item.formula, item.knowledgePoint, item.example, item.translation, ...(item.collocations || [])]
+    return [
+      item.word, item.meaning, item.definition, item.cn, item.formula, item.formulaExplanation,
+      item.knowledgePoint, item.conceptExplanation, ...(item.methodSteps || []), item.examFocus,
+      item.commonMistake, item.example, item.translation, ...(item.collocations || []),
+    ]
       .join(" ")
       .toLowerCase()
       .includes(query);
@@ -3648,7 +3653,7 @@ async function ensureAlevelVocabularyLoaded() {
   if (alevelVocabularyLoadPromise) return alevelVocabularyLoadPromise;
   state.vocabularyReview.loading = true;
   state.vocabularyReview.error = "";
-  alevelVocabularyLoadPromise = fetch("/data/alevel-stem-vocabulary.json?v=20260806-2", { cache: "no-cache" })
+  alevelVocabularyLoadPromise = fetch("/data/alevel-stem-vocabulary.json?v=20260807-knowledge-v2", { cache: "no-cache" })
     .then(async (response) => {
       if (!response.ok) throw new Error(`Vocabulary catalog returned ${response.status}`);
       const payload = await response.json();
@@ -3692,7 +3697,7 @@ function renderVocabularyImportPanel() {
       </div>
       <small>${state.authToken ? "Saved to Mine vocabulary notebook" : "Login required to save"}</small>
     </div>
-    <p class="vocab-import-intro">Each professional term is saved as a concept card: Chinese name, definition, optional formula, knowledge point, exam sentence and Chinese translation.</p>
+    <p class="vocab-import-intro">Each term can include the concept boundary, solution method, formula conditions, exam focus and common mistakes. The first eight columns remain compatible with existing files.</p>
     <div class="vocab-import-grid">
       <label><span>Subject</span><select id="vocabImportSubject">
         ${importSubjects.map((subject) => `<option value="${escapeHtml(subject)}" ${selectedSubject === subject ? "selected" : ""}>${escapeHtml(vocabularySubjectLabel(subject))}</option>`).join("")}
@@ -3701,7 +3706,7 @@ function renderVocabularyImportPanel() {
       <label><span>Upload file</span><input id="vocabImportFile" type="file" accept=".txt,.csv,.tsv,text/plain,text/csv" /></label>
       <label class="vocab-import-text"><span>Terms</span><textarea id="vocabImportInput" rows="5" placeholder="vector | 向量 | a quantity with magnitude and direction | | It has both size and direction; resolve into components when needed. | A velocity vector must include both speed and direction. | 速度向量必须同时包含大小和方向。 | column vector;resultant vector"></textarea></label>
     </div>
-    <div class="vocab-import-format"><strong>Format</strong><code>term | 中文名 | definition | formula(optional) | knowledge point | exam sentence | 中文翻译 | collocations</code><span>Use one line per term. TXT, TSV and CSV are supported.</span></div>
+    <div class="vocab-import-format"><strong>Format</strong><code>term | 中文名 | definition | formula(optional) | knowledge point | exam sentence | 中文翻译 | collocations | core idea(optional) | method steps(optional) | formula conditions(optional) | exam focus(optional) | common mistake(optional)</code><span>Separate method steps with semicolons. Use one line per term; TXT, TSV and CSV are supported.</span></div>
     <div class="vocab-import-actions">
       <button id="vocabImportSample" class="secondary small-button" type="button">Fill sample</button>
       <button id="vocabImportSubmit" class="primary small-button" type="button">Import terms</button>
@@ -3748,6 +3753,24 @@ function renderVocabularyHub(allItems, subjectCounts) {
   </section>`;
 }
 
+function renderVocabularyMeaning(item) {
+  const concept = item.conceptExplanation || item.cn || item.knowledgePoint || "";
+  const methodSteps = Array.isArray(item.methodSteps) ? item.methodSteps.filter(Boolean) : [];
+  const workedExample = item.workedExample && typeof item.workedExample === "object" ? item.workedExample : null;
+  const workedSteps = Array.isArray(workedExample?.steps) ? workedExample.steps.filter(Boolean) : [];
+  return `
+    <strong class="vocab-meaning-title">${escapeHtml(item.meaning)}</strong>
+    ${item.definition ? `<div class="vocab-field"><span class="vocab-field-label">Definition / 英文定义</span><p class="vocab-definition" lang="en">${escapeHtml(item.definition)}</p></div>` : ""}
+    ${concept ? `<section class="vocab-learning-section vocab-concept-section"><h4>Core idea / 核心理解</h4><p>${escapeHtml(concept)}</p></section>` : ""}
+    ${item.formula ? `<section class="vocab-learning-section vocab-formula-section"><h4>Formula & conditions / 公式与条件</h4><p class="vocab-formula" lang="en">${escapeHtml(item.formula)}</p>${item.formulaExplanation ? `<p>${escapeHtml(item.formulaExplanation)}</p>` : ""}</section>` : ""}
+    ${methodSteps.length ? `<section class="vocab-learning-section"><h4>How to use it / 解题步骤</h4><ol class="vocab-method-steps">${methodSteps.map((step) => `<li>${escapeHtml(step)}</li>`).join("")}</ol></section>` : ""}
+    ${item.examFocus ? `<section class="vocab-learning-section"><h4>Exam focus / 题目怎么考</h4><p>${escapeHtml(item.examFocus)}</p></section>` : ""}
+    ${item.commonMistake ? `<section class="vocab-learning-section vocab-mistake-section"><h4>Common mistake / 易错点</h4><p>${escapeHtml(item.commonMistake)}</p></section>` : ""}
+    ${workedExample ? `<section class="vocab-learning-section vocab-worked-example"><h4>Worked example / 完整例题</h4>${workedExample.question ? `<p class="vocab-worked-question" lang="en">${escapeHtml(workedExample.question)}</p>` : ""}${workedSteps.length ? `<ol class="vocab-method-steps">${workedSteps.map((step) => `<li>${escapeHtml(step)}</li>`).join("")}</ol>` : ""}${workedExample.answer ? `<p class="vocab-worked-answer"><span>Answer / 答案</span>${escapeHtml(workedExample.answer)}</p>` : ""}</section>` : ""}
+    ${item.example ? `<div class="vocab-example-pair"><span class="vocab-field-label">${escapeHtml(vocabularyExampleLabel(item))}</span><blockquote lang="en">${escapeHtml(item.example)}</blockquote>${item.translation ? `<p lang="zh-CN"><span class="vocab-field-label">中文理解</span>${escapeHtml(item.translation)}</p>` : ""}</div>` : ""}
+    ${(item.collocations || []).length ? `<div class="vocab-collocations" aria-label="Useful collocations">${item.collocations.map((phrase) => `<span>${escapeHtml(phrase)}</span>`).join("")}</div>` : ""}`;
+}
+
 function renderVocabularyReviewPage(allItems, subjectCounts, deck, item, knownCount, revealed, deckPosition, subjects, availableTopics, catalogStatus, miniItems, miniStart) {
   return `<section class="vocab-trainer-shell">
     <div class="vocab-library-toolbar" aria-label="Vocabulary filters">
@@ -3778,19 +3801,7 @@ function renderVocabularyReviewPage(allItems, subjectCounts, deck, item, knownCo
         <button id="vocabReveal" class="primary" type="button" aria-controls="vocabMeaning" aria-expanded="${revealed ? "true" : "false"}">${revealed ? "Hide meaning" : "Show meaning"}</button>
       </div>
       <div id="vocabMeaning" class="vocab-meaning-face" ${revealed ? "" : "hidden"}>
-        <strong>${escapeHtml(item.meaning)}</strong>
-        ${item.definition ? `<div class="vocab-field"><span class="vocab-field-label">Definition</span><p class="vocab-definition" lang="en">${escapeHtml(item.definition)}</p></div>` : ""}
-        ${item.formula ? `<div class="vocab-field vocab-formula-field"><span class="vocab-field-label">Formula / equation</span><p class="vocab-formula" lang="en">${escapeHtml(item.formula)}</p></div>` : ""}
-        ${item.knowledgePoint ? `<div class="vocab-field"><span class="vocab-field-label">Knowledge point</span><p>${escapeHtml(item.knowledgePoint)}</p></div>` : ""}
-        <div class="vocab-field"><span class="vocab-field-label">中文解释</span><p>${escapeHtml(item.cn)}</p></div>
-        <div class="vocab-example-pair">
-          <span class="vocab-field-label">${escapeHtml(vocabularyExampleLabel(item))}</span>
-          <blockquote lang="en">${escapeHtml(item.example)}</blockquote>
-          ${item.translation ? `<p lang="zh-CN"><span class="vocab-field-label">中文翻译</span>${escapeHtml(item.translation)}</p>` : ""}
-        </div>
-        <div class="vocab-collocations">
-          ${(item.collocations || []).map((phrase) => `<span>${escapeHtml(phrase)}</span>`).join("")}
-        </div>
+        ${renderVocabularyMeaning(item)}
       </div>
       <div class="vocab-review-actions">
         <button id="vocabAgain" class="secondary" type="button">Again</button>
@@ -4564,6 +4575,11 @@ function renderVocabularyItem(item, label) {
   const definition = cleanReviewText(structured?.definition || "");
   const formula = cleanReviewText(structured?.formula || "");
   const knowledgePoint = cleanReviewText(structured?.knowledgePoint || "");
+  const conceptExplanation = cleanReviewText(structured?.conceptExplanation || "");
+  const methodSteps = Array.isArray(structured?.methodSteps) ? structured.methodSteps.filter(Boolean) : [];
+  const formulaExplanation = cleanReviewText(structured?.formulaExplanation || "");
+  const examFocus = cleanReviewText(structured?.examFocus || "");
+  const commonMistake = cleanReviewText(structured?.commonMistake || "");
   const example = cleanReviewText(structured?.example || "");
   const translation = cleanReviewText(structured?.translation || "");
   const collocations = Array.isArray(structured?.collocations) ? structured.collocations : [];
@@ -4574,7 +4590,12 @@ function renderVocabularyItem(item, label) {
     meaning ? `<div><span>中文名</span><p>${escapeHtml(meaning)}</p></div>` : "",
     definition ? `<div><span>Definition / 定义</span><p>${escapeHtml(definition)}</p></div>` : "",
     formula ? `<div><span>Formula / 公式</span><p class="vocab-formula">${escapeHtml(formula)}</p></div>` : "",
+    formulaExplanation ? `<div><span>Formula conditions / 公式条件</span><p>${escapeHtml(formulaExplanation)}</p></div>` : "",
     knowledgePoint ? `<div><span>Knowledge point / 知识点</span><p>${escapeHtml(knowledgePoint)}</p></div>` : "",
+    conceptExplanation ? `<div><span>Core idea / 核心理解</span><p>${escapeHtml(conceptExplanation)}</p></div>` : "",
+    methodSteps.length ? `<div><span>How to use it / 解题步骤</span><ol>${methodSteps.map((step) => `<li>${escapeHtml(step)}</li>`).join("")}</ol></div>` : "",
+    examFocus ? `<div><span>Exam focus / 题目怎么考</span><p>${escapeHtml(examFocus)}</p></div>` : "",
+    commonMistake ? `<div><span>Common mistake / 易错点</span><p>${escapeHtml(commonMistake)}</p></div>` : "",
     example ? `<div><span>Exam sentence / 题目句</span><p>${escapeHtml(example)}</p></div>` : "",
     translation ? `<div><span>中文翻译</span><p>${escapeHtml(translation)}</p></div>` : "",
     collocations.length ? `<div><span>Related phrases</span><p>${collocations.map((phrase) => escapeHtml(phrase)).join(" · ")}</p></div>` : "",
@@ -15582,7 +15603,7 @@ function parseVocabularyImportLines(text, defaults = {}) {
     .filter((line) => line && !/^term\s*[\t|,]/i.test(line))
     .map((line) => {
       const parts = splitVocabularyImportLine(line);
-      const [term, meaning, definition, formula = "", knowledgePoint = "", example = "", translation = "", collocations = ""] = parts.map((part) => String(part || "").trim());
+      const [term, meaning, definition, formula = "", knowledgePoint = "", example = "", translation = "", collocations = "", conceptExplanation = "", methodSteps = "", formulaExplanation = "", examFocus = "", commonMistake = ""] = parts.map((part) => String(part || "").trim());
       if (!term || !meaning || !definition || !knowledgePoint || !example || !translation) {
         throw new Error("Each line must include term, 中文名, definition, knowledge point, exam sentence and 中文翻译. Formula can be blank.");
       }
@@ -15594,6 +15615,11 @@ function parseVocabularyImportLines(text, defaults = {}) {
         definition,
         formula,
         knowledgePoint,
+        conceptExplanation: conceptExplanation || knowledgePoint,
+        methodSteps: methodSteps.split(";").map((part) => part.trim()).filter(Boolean),
+        formulaExplanation,
+        examFocus,
+        commonMistake,
         example,
         translation,
         collocations: collocations.split(";").map((part) => part.trim()).filter(Boolean),

@@ -40,6 +40,200 @@ function slug(value) {
     .slice(0, 72);
 }
 
+const topicStudyGuides = {
+  "physics:measurement-and-practical": {
+    concept: "本专题的概念必须落到仪器读数、变量控制、图像处理、单位和不确定度，不能只背名词。",
+    steps: ["确认被测量量和所用仪器", "记录原始读数、单位和分度值", "选择重复测量、图像或不确定度方法", "用数量级、单位和误差范围检查结论"],
+    examFocus: "常见考法是解释实验设计、从图像求斜率或截距、计算不确定度，并评价结果是否支持模型。",
+    commonMistake: "把精密度当准确度，或只写改进措施却不说明它减少了哪一种误差。",
+  },
+  "physics:mechanics": {
+    concept: "力学词汇要和研究对象、矢量方向、受力图以及运动学、牛顿定律、能量或动量模型对应。",
+    steps: ["选定研究对象并画受力图", "规定正方向并写出已知量", "判断使用运动学、F = ma、能量还是动量", "检查方向、单位、边界条件和答案大小"],
+    examFocus: "常见考法是从图像或情境建立方程，解释力如何改变运动，并给出带方向和单位的结果。",
+    commonMistake: "把某一个力当成合力，忽略矢量方向，或在条件不满足时机械套用 SUVAT。",
+  },
+  "physics:materials": {
+    concept: "材料题要把宏观性质与微观结构、受力面积、形变量和应力-应变图联系起来。",
+    steps: ["识别几何量、载荷和材料状态", "统一长度、面积和力的单位", "选择密度、压力、应力、应变或模量关系", "从图像判断弹性区、塑性区和断裂"],
+    examFocus: "常见考法是计算应力、应变和 Young 模量，解释材料选择，并读取力-伸长或应力-应变图。",
+    commonMistake: "混淆 stress 与 force、strain 与 extension，或忘记截面积和原长必须用 SI 单位。",
+  },
+  "physics:waves-and-optics": {
+    concept: "波动概念要同时理解波形、相位、频率、波长、能量传播以及衍射、干涉和折射条件。",
+    steps: ["判断波型和传播介质", "标出频率、波长、相位或光程差", "选择 v = f lambda 或相位/路径差条件", "用波面、图像或强度分布解释结果"],
+    examFocus: "常见考法是从图像求波量、解释干涉与衍射条件，或比较改变频率、缝宽和介质后的图样。",
+    commonMistake: "把波的传播速度与质点振动速度混淆，或只说图样改变却不说明波长、相位或路径差。",
+  },
+  "physics:electricity": {
+    concept: "电学词汇必须落到电荷流动、能量转移、元件特性、回路连接和 Kirchhoff 定律。",
+    steps: ["标出电流方向、节点和回路", "判断串并联关系和元件特性", "选择 Q = It、V = W/Q、R = V/I 或功率关系", "用单位、极限情况和能量守恒检查"],
+    examFocus: "常见考法是分析 I-V 图、组合电阻、内阻和分压，并解释电流、电势差与功率变化。",
+    commonMistake: "把电流当成被元件消耗的量，混淆 emf 与 terminal p.d.，或在非欧姆元件上直接假设 R 不变。",
+  },
+  "physics:thermal-physics": {
+    concept: "热学词汇要连接粒子运动、内能、温度、状态变化、气体模型和能量传递。",
+    steps: ["确定系统、状态和能量传递方式", "区分温度、内能和热量", "选择 Q = mc deltaT、Q = mL 或气体关系", "检查状态条件、绝对温标和能量方向"],
+    examFocus: "常见考法是解释粒子层变化、计算加热或相变能量，并使用理想气体模型比较状态。",
+    commonMistake: "把温度说成物体含有的热量，使用摄氏温度代入气体公式，或忽略相变时温度保持不变。",
+  },
+  "physics:fields-and-electromagnetism": {
+    concept: "场的概念要区分场强与势、标量与矢量、源与试探物体，并明确公式的几何和近似条件。",
+    steps: ["识别场源、试探物体和参考零点", "判断需要场强、势、力还是能量", "选择点源、匀强场或电磁感应模型", "用方向、符号、单位和距离变化检查"],
+    examFocus: "常见考法是画场线、比较势和场强、计算带电粒子受力，或解释磁通量变化产生的感应效应。",
+    commonMistake: "混淆 electric potential 与 potential energy，忽略场强方向，或对非点源情形错误使用反平方公式。",
+  },
+  "physics:particle-and-nuclear": {
+    concept: "粒子与核物理词汇要联系核组成、守恒定律、质量亏损、衰变统计和探测证据。",
+    steps: ["写出粒子或核反应并守恒电荷与核子数", "识别能量、动量和静质量关系", "选择衰变、半衰期或结合能模型", "检查单位转换和概率意义"],
+    examFocus: "常见考法是补全核方程、解释稳定性、计算半衰期或结合能，并从轨迹和探测结果识别粒子。",
+    commonMistake: "把活度当剩余核数，忘记 u 与 MeV/c^2 的转换，或认为随机衰变意味着半衰期会改变。",
+  },
+  "physics:oscillations": {
+    concept: "振动题要同时掌握回复力、位移-速度-加速度相位关系、能量交换、阻尼和共振。",
+    steps: ["确认平衡位置、振幅和位移方向", "判断是否满足 a 与 -x 成正比", "使用角频率、周期或能量关系", "从图像检查相位、端点和平衡点特征"],
+    examFocus: "常见考法是证明简谐条件、读取振动图像、计算周期和能量，并解释阻尼或共振。",
+    commonMistake: "把速度最大点放在端点，忽略 a = -omega^2 x 的负号，或把任意周期运动都称为 SHM。",
+  },
+  "physics:astrophysics": {
+    concept: "天体物理词汇要结合观测量、光谱、亮度、距离尺度、恒星演化和模型假设。",
+    steps: ["确定观测量与需要推断的物理量", "选择亮度、通量、光谱或轨道关系", "统一天文单位并注明假设", "用数量级和恒星演化阶段检查"],
+    examFocus: "常见考法是用光谱或亮度数据推断温度、速度和距离，并解释恒星结构与演化。",
+    commonMistake: "混淆 luminosity 与 apparent brightness，忽略反平方关系，或把红移直接等同于天体颜色变红。",
+  },
+  "mathematics:algebra-and-functions": {
+    concept: "代数与函数词汇必须落到定义域、值域、映射、方程等价变形和图像特征。",
+    steps: ["写清变量范围和限制条件", "把文字条件翻译成函数或方程", "选择因式分解、代换、恒等变形或图像方法", "代回并检查增根、漏根和定义域"],
+    examFocus: "常见考法是证明恒等式、求根与参数范围、复合或反函数，以及解释图像变换。",
+    commonMistake: "只做形式变形却不检查定义域，混淆 f(g(x)) 与 g(f(x))，或除以可能为零的式子。",
+  },
+  "mathematics:calculus": {
+    concept: "微积分词汇要联系变化率、切线、面积、累积量、极值和微分方程，而不是只记公式。",
+    steps: ["确认要求的是变化率、极值、面积还是模型", "选择正确求导或积分规则", "完整写出链式、乘积、分部或代换步骤", "用边界、单位和导数符号解释答案"],
+    examFocus: "常见考法是求切线与驻点、判断单调和极值、计算定积分，并由微分方程解释变化过程。",
+    commonMistake: "漏掉链式法则因子、定积分不代上下限、把常数项丢失，或只给驻点不判断性质。",
+  },
+  "mathematics:trigonometry-and-vectors": {
+    concept: "三角与向量词汇要连接方向、分量、恒等式、周期性、几何关系和标量积。",
+    steps: ["画图并确定角度范围或向量方向", "写出分量、单位向量或三角关系", "选择恒等式、正余弦定理或点积", "检查象限、周期、精确值和向量方向"],
+    examFocus: "常见考法是解三角方程、证明恒等式、求向量模和夹角，以及判断平行或垂直。",
+    commonMistake: "忽略角度范围产生漏解，混淆向量与其模，或认为向量运算顺序可以随意交换。",
+  },
+  "mathematics:coordinate-geometry": {
+    concept: "解析几何词汇要把代数方程与点、直线、圆、切线和轨迹的几何意义对应。",
+    steps: ["从图形标出点、斜率和已知条件", "选择距离、中点、直线或圆方程", "联立并解释交点或切线条件", "检查坐标、象限和几何合理性"],
+    examFocus: "常见考法是求直线与圆的交点、切线、轨迹和参数条件，并证明几何关系。",
+    commonMistake: "只得到代数解却不解释几何意义，斜率垂直条件写错，或漏掉两组交点。",
+  },
+  "mathematics:statistics-and-probability": {
+    concept: "统计与概率词汇要明确随机变量、分布条件、样本空间、参数和结论的语境。",
+    steps: ["定义事件或随机变量并写清条件", "判断独立、条件概率或适用分布", "选择精确、累计或近似计算", "用题目语境解释概率、检验和结论"],
+    examFocus: "常见考法是条件概率、二项/正态分布、期望方差和假设检验，并要求用语境作结论。",
+    commonMistake: "把互斥当独立，at least 与 at most 方向读反，或说接受原假设而不是证据不足以拒绝。",
+  },
+  "mathematics:mechanics": {
+    concept: "数学力学词汇要把题干假设转成粒子模型、受力方程、运动约束和可解的标量关系。",
+    steps: ["翻译 light、smooth、inextensible 等模型假设", "画受力图并规定正方向", "为每个物体写运动或平衡方程", "联立、检查约束和判断答案是否物理可行"],
+    examFocus: "常见考法是连接粒子、斜面、摩擦、碰撞和变力模型，要求完整列式与解释。",
+    commonMistake: "忽略绳约束或摩擦方向，把内力重复计入整体系统，或得到负值后不解释方向。",
+  },
+  "chemistry:atomic-and-quantitative": {
+    concept: "定量化学要从粒子数、物质的量和配平方程建立比例，再连接质量、浓度和气体体积。",
+    steps: ["写出粒子类型和已知量", "换算为 mol 并统一体积单位", "使用配平方程的化学计量比", "换回目标量并检查有效数字"],
+    examFocus: "常见考法是经验式、滴定、限量试剂、产率和气体计算，得分点在清楚的 mole ratio。",
+    commonMistake: "直接比较质量而不先转 mol，忽略粒子类型，或把 cm^3 未换成 dm^3 就代入浓度公式。",
+  },
+  "chemistry:bonding-reactions": {
+    concept: "结构与反应题要把电子结构、键合、分子形状、极性、氧化数和宏观性质连接起来。",
+    steps: ["画出价电子或结构式", "判断键型、电子对和分子形状", "用作用力或电子转移解释性质与反应", "检查电荷、氧化数和方程配平"],
+    examFocus: "常见考法是比较熔沸点、导电性和溶解性，判断氧化还原，并解释催化剂和反应路径。",
+    commonMistake: "把分子内共价键与分子间作用力混淆，或用键极性直接断言整个分子一定极性。",
+  },
+  "chemistry:organic-chemistry": {
+    concept: "有机化学词汇要落实到官能团、试剂与条件、电子对移动、产物结构和异构关系。",
+    steps: ["识别官能团和反应中心", "写出试剂、条件和反应类型", "用弯箭表示电子对来源与去向", "画完整产物并检查区域/立体或结构异构"],
+    examFocus: "常见考法是反应路线、机理、结构鉴定、异构体和聚合物，答案必须包含正确结构与条件。",
+    commonMistake: "弯箭从电荷而非电子对出发，漏写条件，或只写产物名称却没有结构式。",
+  },
+  "chemistry:energetics-kinetics-equilibrium": {
+    concept: "能量、速率和平衡题要区分热力学与动力学，并用粒子碰撞、能量路径和动态平衡解释。",
+    steps: ["判断题目问焓变、速率还是平衡位置", "选择 Hess、速率方程或 Kc/Q 模型", "写出条件变化的作用链", "检查符号、单位、状态和催化剂是否改变平衡"],
+    examFocus: "常见考法是 Hess 循环、活化能图、速率数据和 Le Chatelier 分析，并评价温度压力条件。",
+    commonMistake: "认为催化剂改变 Kc 或平衡位置，反转方程时忘改焓变符号，或把速率快等同于产率高。",
+  },
+  "chemistry:analysis-and-practical": {
+    concept: "分析与实验词汇要连接可观察证据、仪器原理、校准、分离过程和数据可靠性。",
+    steps: ["明确待检物和可测信号", "选择定性检验或定量仪器", "写出关键操作、变量和安全要求", "用标准、重复结果或谱图判断结论"],
+    examFocus: "常见考法是滴定、色谱、质谱、红外和实验改进，答案要给出现象、计算或峰的证据。",
+    commonMistake: "只写仪器名称没有说明如何判断，色谱比较时忽略条件，或用单次异常读数得出结论。",
+  },
+  "economics:microeconomics": {
+    concept: "微观经济词汇要通过假设、曲线移动、价格数量变化、福利和市场失灵形成完整因果链。",
+    steps: ["定义市场、主体和其他条件不变假设", "判断沿曲线移动还是整条曲线移动", "画图并标出均衡、福利或弹性", "解释赢家、输家、效率和政策副作用"],
+    examFocus: "常见考法是供需、弹性、税补贴、外部性和市场结构，要求图像加因果解释与评价。",
+    commonMistake: "把需求量变化说成需求变化，只描述图线方向没有因果链，或不区分私人和社会成本。",
+  },
+  "economics:macroeconomics": {
+    concept: "宏观经济词汇要连接指标定义、AD/AS 传导、政策目标、短长期权衡和数据局限。",
+    steps: ["定义指标并判断名义或实际值", "写出消费投资政府和净出口的传导链", "用 AD/AS 或劳动力市场图解释", "评价时滞、乘数、预期和供给约束"],
+    examFocus: "常见考法是增长、通胀、失业和政策组合，答案要区分短期效果、长期效果和利益相关者。",
+    commonMistake: "把经济增长等同生活水平提高，混淆需求拉动与成本推动通胀，或只列政策不解释传导。",
+  },
+  "economics:market-structures-and-labour": {
+    concept: "企业与劳动力市场词汇要联系市场集中、进入壁垒、成本收益、定价行为和效率。",
+    steps: ["识别市场结构和关键假设", "分析企业目标、成本收益与竞争反应", "画出合适企业或劳动力市场图", "评价消费者、工人、企业和政府影响"],
+    examFocus: "常见考法是垄断、寡头、价格歧视、工资和工会，要求理论结合行业情境。",
+    commonMistake: "看到少数企业就直接断言串谋，忽略进入壁垒和相互依赖，或只谈价格不谈非价格竞争。",
+  },
+  "economics:macro-policy-and-trade": {
+    concept: "宏观政策与贸易词汇要写清政策工具、传导机制、汇率/贸易渠道以及短长期限制。",
+    steps: ["明确政策目标、工具和经济初始状态", "写出对 AD、SRAS 或 LRAS 的传导", "分析增长通胀就业和外部平衡", "评价时滞、债务、挤出、报复和全球环境"],
+    examFocus: "常见考法是财政货币供给政策、汇率和贸易保护，评价必须基于题目数据与经济周期。",
+    commonMistake: "只写扩张或紧缩结论，没有中间传导链，或认为关税一定改善所有本国主体福利。",
+  },
+  "chemistry:chemistry-question-sentences": {
+    concept: "化学题干句必须先拆出物质、条件、操作和目标量，再决定使用粒子模型、方程、机理还是实验方法。",
+    steps: ["圈出物质、状态符号和实验条件", "把题干动作词转成计算、结构、机理或评价任务", "写出配平方程或必要模型", "检查单位、有效数字、观察现象和化学用语"],
+    examFocus: "常见考法是把一整句实验或计算限制转化为方程、mole ratio、机理箭头或可观察证据。",
+    commonMistake: "只逐字翻译题干，没有识别 limiting reagent、excess、standard conditions 等条件对解法的限制。",
+  },
+  "economics:economics-question-sentences": {
+    concept: "经济题干句要先识别市场、时期、利益相关者和评价范围，再把数据材料转成一条可检验的因果链。",
+    steps: ["圈出经济主体、市场和时间范围", "识别题目要求的理论、图像或政策", "用材料数据建立因果链", "加入条件、利益相关者和短长期评价"],
+    examFocus: "常见考法是要求根据 extract、figure 或 case study 分析变化并评价结论是否在给定条件下成立。",
+    commonMistake: "背诵通用理论却不引用材料，或给出绝对结论而没有讨论前提、时滞和利益相关者。",
+  },
+  "economics:extra-market-terms": {
+    concept: "市场扩展术语要与企业行为、成本收益、竞争程度和资源配置结果相连，不能停留在名词定义。",
+    steps: ["定义术语并指出适用市场", "建立企业或消费者行为的因果链", "用图像或数据说明价格、数量和福利变化", "评价假设、时间范围和不同利益相关者"],
+    examFocus: "常见考法是把市场行为与效率、公平、创新、就业或监管效果联系起来，并结合行业材料评价。",
+    commonMistake: "只描述企业行为，没有解释它为何发生以及对消费者、竞争者和社会福利的影响。",
+  },
+};
+
+const subjectStudyGuides = {
+  physics: topicStudyGuides["physics:measurement-and-practical"],
+  mathematics: topicStudyGuides["mathematics:algebra-and-functions"],
+  chemistry: topicStudyGuides["chemistry:bonding-reactions"],
+  economics: topicStudyGuides["economics:microeconomics"],
+};
+
+function studyGuideFor(group) {
+  return topicStudyGuides[`${group.subject}:${group.topic}`] || subjectStudyGuides[group.subject] || {
+    concept: "把术语放回题目条件中，判断它控制的是定义、计算、证据还是解释。",
+    steps: ["翻译术语和限制条件", "选择对应定义或模型", "写出计算或解释链", "检查答案是否回应题目动词"],
+    examFocus: "题目会通过定义、应用、计算或解释检验对术语的真实理解。",
+    commonMistake: "只给中文翻译，没有把术语转化为可得分的步骤或证据。",
+  };
+}
+
+function fillStudyText(value, group, term) {
+  return String(value || "")
+    .replaceAll("{word}", term.word)
+    .replaceAll("{meaning}", term.meaning)
+    .replaceAll("{topic}", group.label);
+}
+
 const groups = [
   {
     subject: "physics", topic: "measurement-and-practical", label: "Measurement & Practical Skills",
@@ -1008,8 +1202,20 @@ const itemOverrides = {
   "physics-measurement-and-practical-vector": {
     meaning: "向量",
     definition: "a quantity with both magnitude and direction",
+    formula: "Rx = ΣFx, Ry = ΣFy; |R| = sqrt(Rx^2 + Ry^2)",
     example: "State the vector represented by the force diagram and explain its direction.",
+    translation: "写出力图所表示的向量，并解释它的方向。",
     knowledgePoint: "A vector has both magnitude and direction; draw or state the direction as well as the size.",
+    conceptExplanation: "向量不仅有数值大小，还必须带方向。力、位移、速度和加速度都是向量；质量、时间、温度和能量是标量。多个向量合成时要按方向分解为分量，不能只把大小直接相加。",
+    methodSteps: ["先规定正方向并画箭头或受力图", "把每个向量分解到相互垂直的轴上", "分别代数相加得到 Rx 和 Ry", "由分量求合向量大小，并用象限说明方向"],
+    formulaExplanation: "Σ 表示把同一方向的分量带正负号相加；模长永远非负，但分量可以为负。",
+    examFocus: "题目常要求判断某个量是否为向量、从图中求合力/合位移，或解释为什么答案必须包含方向。",
+    commonMistake: "只写 5 N 而不写方向；把 speed 当 velocity；或把相反方向的两个力大小直接相加。",
+    workedExample: {
+      question: "A force of 3 N acts east and a force of 4 N acts north. Find the resultant force.",
+      steps: ["取东为 x 正方向、北为 y 正方向", "Rx = 3 N，Ry = 4 N", "|R| = sqrt(3^2 + 4^2) = 5 N", "方向 theta = tan^-1(4/3) = 53.1 degrees north of east"],
+      answer: "合力为 5.0 N，方向为东偏北 53.1°。只有 5.0 N 没有方向是不完整答案。",
+    },
   },
   "mathematics-trigonometry-and-vectors-vector": {
     meaning: "向量",
@@ -1017,6 +1223,12 @@ const itemOverrides = {
     formula: "|v| = sqrt(x^2 + y^2) for a 2D vector (x, y)",
     knowledgePoint: "A vector is a quantity with magnitude and direction. In coordinate form, use components to calculate magnitude and direction.",
     example: "Find the magnitude of the vector and state how its components are used.",
+    translation: "求该向量的模，并说明各分量如何用于计算。",
+    conceptExplanation: "数学中的向量用有序分量表示大小和方向，例如列向量 (x, y)。向量可以相加、相减和数乘；平行向量互为数倍，垂直关系可以用点积为零判断。",
+    methodSteps: ["把几何位移写成列向量或位置向量", "按对应分量完成加减或数乘", "用模长公式求大小，或用分量比求方向", "需要判断垂直时计算点积，判断平行时比较分量比例"],
+    formulaExplanation: "|v| 给向量大小；a · b = 0（非零向量）表示垂直；a = kb 表示平行。",
+    examFocus: "常见考法包括由两点求方向向量、证明直线平行/垂直、求夹角，以及把几何条件转成向量方程。",
+    commonMistake: "把向量 (x, y) 与模长 sqrt(x^2 + y^2) 当成同一个量，或在相减时把起点和终点顺序写反。",
   },
   "mathematics-trigonometry-and-vectors-scalar-product": {
     formula: "a · b = |a||b|cos(theta)",
@@ -1027,12 +1239,14 @@ const itemOverrides = {
     formula: "remainder = f(a)",
     knowledgePoint: "Substitute x = a to find the remainder quickly, then use the factor theorem if the remainder is zero.",
     example: "Use the remainder theorem to find the remainder when f(x) is divided by x - 2.",
+    translation: "使用余数定理，求 f(x) 除以 x - 2 时的余数。",
   },
   "mathematics-algebra-and-functions-factor-theorem": {
     definition: "if f(a) = 0 then x - a is a factor of the polynomial",
     formula: "f(a) = 0",
     knowledgePoint: "The factor theorem links roots and factors; use it after testing a value.",
     example: "Use the factor theorem to show that x - 3 is a factor of the polynomial.",
+    translation: "使用因式定理证明 x - 3 是该多项式的因式。",
   },
   "mathematics-algebra-and-functions-quadratic-formula": {
     meaning: "二次公式",
@@ -1040,6 +1254,7 @@ const itemOverrides = {
     formula: "x = (-b ± sqrt(b^2 - 4ac)) / 2a",
     knowledgePoint: "Use the discriminant to judge the number of roots before calculating.",
     example: "Use the quadratic formula to find the exact roots of the equation.",
+    translation: "使用二次公式求该方程的精确根。",
   },
   "mathematics-algebra-and-functions-discriminant": {
     meaning: "判别式",
@@ -1047,6 +1262,7 @@ const itemOverrides = {
     formula: "Δ = b^2 - 4ac",
     knowledgePoint: "A positive discriminant gives two real roots; zero gives one repeated root; negative gives no real roots.",
     example: "Find the discriminant and determine how many real roots the equation has.",
+    translation: "求判别式，并判断该方程有多少个实根。",
   },
   "physics-mechanics-velocity": {
     formula: "v = displacement / time",
@@ -1064,6 +1280,146 @@ const itemOverrides = {
     formula: "p = F / A",
     knowledgePoint: "Pressure increases when the same force acts over a smaller area.",
   },
+  "physics-mechanics-newton-s-second-law": {
+    formula: "ΣF = dp/dt; for constant mass, ΣF = ma",
+    knowledgePoint: "The acceleration is caused by the resultant external force and points in the same direction as that resultant force.",
+    conceptExplanation: "牛顿第二定律连接合外力与动量变化率。质量不变时才可写成 ΣF = ma；这里的 ΣF 是所有外力的矢量和，不是某一个单独的力。",
+    methodSteps: ["选研究对象并画完整受力图", "规定正方向并把力分解到该方向", "写 ΣF = ma 或 ΣF = dp/dt", "联立运动关系并检查加速度方向"],
+    formulaExplanation: "ΣF 的单位是 N，质量用 kg，加速度用 m s^-2；变质量或冲量问题优先使用 dp/dt。",
+      examFocus: "题目常要求由受力图建立方程、解释速度为何改变，或比较合力为零与速度为零的区别。",
+      commonMistake: "把重力 mg 直接写成 ma 而忽略支持力/张力/阻力，或认为合力为零时物体一定静止。",
+      workedExample: { question: "A 2.0 kg trolley has a resultant force of 6.0 N east. Find its acceleration.", steps: ["选 trolley 为研究对象，合力已是 6.0 N east", "使用 ΣF = ma", "a = 6.0 / 2.0 = 3.0 m s^-2", "加速度方向与合力相同，即向东"], answer: "3.0 m s^-2 east" },
+  },
+  "physics-fields-and-electromagnetism-electric-potential": {
+    formula: "V = W / Q; U = qV; for a point charge, V = kQ / r",
+    knowledgePoint: "Electric potential is a scalar defined relative to a chosen zero; potential difference is energy transferred per unit charge between two points.",
+    conceptExplanation: "电势表示单位正电荷在某点具有的电势能。它是标量，可以为正、负或零；电势差描述两个点之间每库仑电荷的能量变化，与电场强度不是同一个量。",
+    methodSteps: ["确定源电荷、位置和电势零点", "判断求单点电势、两点电势差还是电势能", "代入 V = W/Q、U = qV 或点电荷公式", "根据源电荷和试探电荷符号检查正负"],
+    formulaExplanation: "1 V = 1 J C^-1。V = kQ/r 只适用于点电荷或球对称且外部区域；无穷远通常取零电势。",
+    examFocus: "常见考法是比较不同位置的电势、计算移动电荷的能量变化，并从 V-r 图判断场强。",
+    commonMistake: "把 electric potential（J C^-1）与 electric potential energy（J）混淆，或忽略试探电荷 q 的正负号。",
+  },
+  "physics-waves-and-optics-diffraction": {
+    conceptExplanation: "衍射是波通过狭缝或绕过障碍物时发生扩散。缝宽与波长相当时最明显；波长更长或缝更窄会使扩散角度更大。所有波都能衍射，不是光独有现象。",
+    methodSteps: ["比较缝宽 a 与波长 lambda", "判断波前通过缝后的扩散程度", "画出新的弧形波前或强度分布", "说明改变波长或缝宽后的因果关系"],
+    formula: "diffraction becomes pronounced when a is comparable to lambda",
+    formulaExplanation: "这里是数量级条件，不是必须严格相等；a >> lambda 时衍射很弱。",
+    examFocus: "题目常比较不同缝宽/波长的图样，要求解释无线电波绕建筑物而可见光不明显的原因。",
+    commonMistake: "把衍射说成波速改变，或与折射、两列波叠加形成的干涉混淆。",
+  },
+  "physics-oscillations-simple-harmonic-motion": {
+    formula: "a = -omega^2 x; F = -kx; T = 2pi / omega",
+    knowledgePoint: "SHM requires acceleration proportional to displacement and directed toward equilibrium.",
+    conceptExplanation: "简谐运动的判据是加速度大小与离开平衡位置的位移成正比，方向始终指向平衡位置。负号表示回复方向，不表示加速度数值一定为负。",
+    methodSteps: ["定义平衡位置并规定 x 的正方向", "从受力关系证明 F 或 a 与 -x 成正比", "识别 omega 并求周期或频率", "用端点和平衡点检查速度、加速度和能量"],
+    formulaExplanation: "平衡点 x = 0 时速度最大、加速度为零；端点 |x| = A 时速度为零、加速度大小最大。",
+      examFocus: "常见考法是证明某系统为 SHM、读取 x/v/a 图像、计算周期，并解释动能和势能交换。",
+      commonMistake: "把任何周期运动都当 SHM，漏掉负号，或认为端点处加速度为零。",
+      workedExample: { question: "For a mass in SHM, x = 0.040 m and omega = 5.0 rad s^-1. Find the acceleration.", steps: ["使用 a = -omega^2 x", "a = -(5.0)^2(0.040)", "a = -1.0 m s^-2", "负号表示加速度指向平衡位置"], answer: "1.0 m s^-2 toward equilibrium" },
+  },
+  "mathematics-algebra-and-functions-composite-function": {
+    formula: "(f o g)(x) = f(g(x))",
+    conceptExplanation: "复合函数表示先做内层函数再做外层函数。f(g(x)) 与 g(f(x)) 一般不相等；复合后的定义域还必须保证 x 能进入 g，且 g(x) 能进入 f。",
+    methodSteps: ["先确认题目要求 fg 还是 gf", "把内层函数完整代入外层自变量位置", "化简但保留定义域限制", "用一个简单数值检查运算顺序"],
+    formulaExplanation: "符号 f o g 表示先 g 后 f；运算顺序从括号最内层开始。",
+    examFocus: "常见考法是求 fg、gf、复合定义域，或用复合函数建立多阶段变化模型。",
+    commonMistake: "把 f(g(x)) 错写成 f(x)g(x)，或忽略根号、分母和对数带来的定义域限制。",
+  },
+  "mathematics-calculus-derivative": {
+    formula: "f'(x) = lim(h->0) [f(x+h)-f(x)] / h",
+    conceptExplanation: "导数同时表示函数的瞬时变化率和曲线在该点的切线斜率。dy/dx、f'(x) 是同一思想的不同记号；导数的单位是因变量单位除以自变量单位。",
+    methodSteps: ["确认对哪个变量求导", "选择幂、乘积、商或链式法则", "保留中间步骤并化简", "用导数符号解释增减、驻点或实际变化率"],
+    formulaExplanation: "极限定义解释导数来源；常规计算时使用求导法则，但链式法则的内函数导数不能遗漏。",
+      examFocus: "常见考法是求切线、驻点、单调区间、最优化，以及在运动或经济模型中解释变化率。",
+      commonMistake: "把导数当函数值，漏链式法则因子，或只令 f'(x)=0 却不判断驻点性质。",
+      workedExample: { question: "For y = x^3 - 3x, find the stationary points and classify them.", steps: ["dy/dx = 3x^2 - 3", "令 3x^2 - 3 = 0，得 x = +/-1", "代回得 points (-1, 2) and (1, -2)", "d^2y/dx^2 = 6x：x=-1 为 maximum，x=1 为 minimum"], answer: "Maximum at (-1, 2); minimum at (1, -2)." },
+  },
+  "mathematics-calculus-integration-by-parts": {
+    formula: "integral u dv = uv - integral v du",
+    conceptExplanation: "分部积分由乘积求导法则反推，适合被积式是两个不同类型函数的乘积。核心是选择 u 使求导后更简单，并把其余部分连同 dx 作为 dv。",
+    methodSteps: ["按 log/反三角/代数/三角/指数的优先思路选择 u", "求 du 并积分 dv 得 v", "代入 uv - integral v du", "定积分要对整个 uv 项和剩余积分同时代上下限"],
+    formulaExplanation: "负号最容易丢；必要时可以重复使用分部积分并把原积分移项求解。",
+    examFocus: "常见考法包括 x e^x、x sin x、ln x 和需要两次分部积分的表达式。",
+    commonMistake: "只写 u 和 v 不写 du/dv，dv 没包含 dx，或定积分只给一部分代入边界。",
+  },
+  "mathematics-statistics-and-probability-binomial-distribution": {
+    formula: "X ~ B(n,p); P(X=r) = C(n,r)p^r(1-p)^(n-r); E(X)=np; Var(X)=np(1-p)",
+    conceptExplanation: "二项分布描述固定次数、相互独立、每次只有成功/失败两种结果且成功概率恒定的试验中成功次数。四个条件缺一不可。",
+    methodSteps: ["确认固定 n、两种结果、独立、p 恒定", "定义 X 表示成功次数", "翻译 exactly/at least/at most 为对应概率", "选择单项概率、累计概率或补事件并检查范围"],
+    formulaExplanation: "at least r 常用 1 - P(X <= r-1)；计算器累计功能的上界是否包含端点必须确认。",
+      examFocus: "常见考法是识别二项模型、计算累计概率、求期望方差，或判断近似是否合理。",
+      commonMistake: "把抽样不放回仍当独立，at least 与 at most 读反，或在补事件中出现 off-by-one。",
+      workedExample: { question: "A fair coin is tossed 5 times. Find the probability of exactly 3 heads.", steps: ["X ~ B(5, 0.5)，因为每次独立且成功概率恒定", "P(X=3) = C(5,3)(0.5)^3(0.5)^2", "= 10 x 0.5^5", "= 0.3125"], answer: "P(X=3) = 0.3125" },
+  },
+  "chemistry-atomic-and-quantitative-mole": {
+    formula: "n = m / M; n = N / NA; c = n / V",
+    conceptExplanation: "摩尔是物质的量单位，1 mol 含 Avogadro 常数个指定粒子。它把微观粒子数与可测的质量、溶液体积和气体体积连接起来；必须说明粒子是原子、分子、离子还是电子。",
+    methodSteps: ["写出已知量并确定粒子类型", "用质量、浓度或粒子数换算成 mol", "按配平方程取 mole ratio", "换算成题目所求量并写单位"],
+    formulaExplanation: "M 用 g mol^-1 时质量用 g；c 用 mol dm^-3 时体积用 dm^3；NA = 6.02 x 10^23 mol^-1。",
+      examFocus: "常见考法是化学计量、滴定、经验式、气体和限量试剂计算，过程分通常来自清楚写出 mol。",
+      commonMistake: "直接用质量比代替方程系数比，忘记 cm^3 转 dm^3，或未说明 N 代表哪一种粒子。",
+      workedExample: { question: "Find the amount of substance in 5.85 g of NaCl (Mr = 58.5).", steps: ["使用 n = m / Mr", "n = 5.85 / 58.5 mol", "n = 0.100 mol", "NaCl 的粒子是 formula units，不要写成 Na 原子数"], answer: "0.100 mol NaCl" },
+  },
+  "chemistry-bonding-reactions-electronegativity": {
+    conceptExplanation: "电负性是成键原子吸引共享电子对的能力。周期表中通常向右、向上增大；电负性差产生键极性，但分子的整体极性还取决于形状和各键偶极是否抵消。",
+    methodSteps: ["比较成键原子的电负性", "标出 delta+ 和 delta-", "结合分子形状判断键偶极是否抵消", "用极性解释分子间作用力和性质"],
+    examFocus: "常见考法是判断极性键/分子、解释沸点或溶解性，并比较同周期或同族元素趋势。",
+    commonMistake: "把有极性键直接等同于极性分子，或用一个固定电负性差机械判定所有离子键。",
+  },
+  "chemistry-energetics-kinetics-equilibrium-hess-s-law": {
+    formula: "total enthalpy change is independent of route",
+    conceptExplanation: "Hess 定律来自焓是状态函数：只要起点和终点相同，总焓变与反应路径无关。构造循环时，反向方程要改变 deltaH 符号，倍乘方程也要倍乘 deltaH。",
+    methodSteps: ["写目标反应和已知反应", "调整方向与系数使物质抵消", "同步改变每个 deltaH 的符号和倍数", "相加并检查起点终点与状态符号"],
+    examFocus: "常见考法使用生成焓、燃烧焓或键能数据求未知焓变，必须展示循环或方程组合。",
+    commonMistake: "反向反应不改符号、方程乘 2 但 deltaH 不乘 2，或忽略不同物态。",
+  },
+  "chemistry-organic-chemistry-nucleophile": {
+    conceptExplanation: "亲核试剂是电子对供体，通常带负电或具有孤对电子，会攻击缺电子的正电或 delta+ 原子。在有机机理中弯箭必须从电子对或负键出发，指向新键形成的位置。",
+    methodSteps: ["找到亲核试剂的孤对电子或负电荷", "找到底物中的 delta+ 反应中心", "从电子对画弯箭到该原子", "同时画出离去键断裂并检查电荷守恒"],
+    examFocus: "常见考法是亲核取代和亲核加成机理，要求正确的弯箭、部分电荷、中间体和产物。",
+    commonMistake: "弯箭从原子或负号开始而不是电子对/键开始，或让亲核试剂攻击已经富电子的原子。",
+  },
+  "chemistry-analysis-and-practical-chromatography": {
+    formula: "Rf = distance travelled by solute / distance travelled by solvent front",
+    conceptExplanation: "色谱利用各组分在固定相与流动相之间作用不同而产生不同移动速度。Rf 只有在相同固定相、溶剂、温度等条件下才可与标准比较。",
+    methodSteps: ["用铅笔画基线并点样", "让溶剂前沿移动但不淹没样点", "及时标记溶剂前沿并测量距离", "计算 Rf、比较标准并结合点数判断组成"],
+    examFocus: "常见考法是计算 Rf、识别混合物组分、评价纯度和改进分离条件。",
+    commonMistake: "用墨水画基线、样点浸在溶剂中、忘记标记 solvent front，或跨不同实验条件直接比较 Rf。",
+  },
+  "economics-microeconomics-demand": {
+    conceptExplanation: "需求是在特定时期内、不同价格下，消费者愿意且有能力购买的数量。商品自身价格变化导致沿需求曲线移动；收入、偏好、相关商品价格等非价格因素变化才使整条需求曲线移动。",
+    methodSteps: ["确认变化的是自身价格还是非价格决定因素", "判断 contraction/extension 还是 demand shift", "在图上标出原均衡和新均衡", "解释价格、数量和利益相关者结果"],
+    examFocus: "常见考法是区分 demand 与 quantity demanded，并用情境解释需求曲线左移或右移。",
+    commonMistake: "看到购买量下降就一律说需求下降，忘记 willing and able 或其他条件不变。",
+  },
+  "economics-microeconomics-price-elasticity-of-demand": {
+    formula: "PED = percentage change in quantity demanded / percentage change in price",
+    conceptExplanation: "需求价格弹性衡量需求量对价格变化的敏感程度。计算值通常为负，分析时常用绝对值：大于 1 为 elastic，小于 1 为 inelastic，等于 1 为 unit elastic。",
+    methodSteps: ["计算价格和需求量的百分比变化", "代入 PED 并说明是否取绝对值", "按数值判断弹性类别", "结合总收益、时间、替代品和必需程度解释"],
+    formulaExplanation: "需求富有弹性时降价通常提高总收益；缺乏弹性时涨价通常提高总收益，前提是其他因素不变。",
+      examFocus: "常见考法是数值计算、解释决定因素、分析企业定价和间接税负担。",
+      commonMistake: "用数量变化除以价格变化而不是百分比，忽略负号约定，或把斜率与弹性当成同一个概念。",
+      workedExample: { question: "Price rises by 10% and quantity demanded falls by 25%. Calculate PED and classify demand.", steps: ["PED = %ΔQd / %ΔP", "PED = -25% / 10% = -2.5", "分析弹性时通常取绝对值 2.5", "|PED| > 1，所以 demand is elastic"], answer: "PED = -2.5; demand is price elastic." },
+  },
+  "economics-microeconomics-externality": {
+    conceptExplanation: "外部性是生产或消费对未参与交易的第三方造成的成本或收益。负外部性下 MSC > MPC 或 MSB < MPB，市场数量偏高；正外部性通常导致市场数量偏低。",
+    methodSteps: ["判断是生产/消费及正/负外部性", "区分私人和外部成本或收益", "在图上标出市场与社会最优数量", "分析福利损失及税收、补贴、监管或信息政策"],
+    examFocus: "常见考法是用边际社会/私人曲线解释市场失灵，并评价政策能否内部化外部性。",
+    commonMistake: "只说污染是坏事，没有第三方和边际分析；或把政府干预自动视为零成本且一定有效。",
+  },
+  "economics-market-structures-and-labour-oligopoly": {
+    conceptExplanation: "寡头市场由少数大型企业占据较高市场份额，企业决策相互依赖并存在较高进入壁垒。企业可能串谋，也可能通过广告、品牌和创新进行非价格竞争。",
+    methodSteps: ["用集中度和进入壁垒识别市场结构", "分析企业对竞争者反应的预期", "区分串谋、价格竞争和非价格竞争", "评价价格、选择、创新和效率"],
+    examFocus: "常见考法是结合真实行业解释相互依赖、串谋稳定性、价格刚性和监管。",
+    commonMistake: "认为所有寡头都会串谋，或只凭企业数量判断而不讨论市场份额和进入壁垒。",
+  },
+  "economics-macroeconomics-fiscal-policy": {
+    formula: "budget balance = government revenue - government spending",
+    conceptExplanation: "财政政策是政府通过税收和政府支出影响总需求、资源配置和长期供给。扩张性政策通常提高 AD，紧缩性政策降低 AD；效果取决于乘数、经济闲置程度、时滞、债务和挤出。",
+    methodSteps: ["识别税收/支出工具和政策方向", "写出可支配收入、消费或政府购买到 AD 的传导", "用 AD/AS 分析产出、价格和就业", "评价乘数、时滞、债务、挤出和供给约束"],
+    examFocus: "常见考法是比较扩张与紧缩财政政策，结合经济周期评价对增长、通胀、失业和债务的影响。",
+    commonMistake: "只说政府支出增加经济增长，没有 AD 传导链，或忽略接近充分就业时更强的通胀压力。",
+  },
 };
 
 function resolveTermField(term, override, field) {
@@ -1078,25 +1434,85 @@ function resolveTermField(term, override, field) {
 
 function buildTermExample(group, term, override) {
   if (override?.example) return override.example;
-  if (group.subject === "physics") return `Use ${term.word} to explain or calculate the quantity asked for in the question.`;
-  if (group.subject === "chemistry") return `Use ${term.word} to explain the reaction, test, or calculation in the question.`;
-  if (group.subject === "economics") return `Use ${term.word} to analyse the market outcome or policy effect in the question.`;
+  const formula = resolveTermField(term, override, "formula");
+  if (group.subject === "chemistry") return formula
+    ? `A ${group.label} question requires ${term.word}. Which quantities and conditions must be checked before using ${formula}?`
+    : `A question describes ${term.definition}. Identify ${term.word}, then state the chemical evidence or condition that would confirm it.`;
+  if (group.subject === "economics") return `A case study may involve ${term.word}, meaning ${term.definition}. Which evidence would establish it, and what causal effect should be analysed?`;
+  if (group.subject === "mathematics") return formula
+    ? `A ${group.label} problem requires ${term.word}. State when ${formula} can be used and identify the values needed.`
+    : `A problem involves ${term.word}, meaning ${term.definition}. Which mathematical condition or operation must be checked before using it?`;
+  if (group.subject === "physics") return formula
+    ? `A ${group.label} problem requires ${term.word}. Which measured quantities, directions, and conditions must be identified before using ${formula}?`
+    : `A problem describes ${term.definition}. Identify ${term.word}, then state the physical evidence or condition needed to apply it.`;
   return `Use ${term.word} in the context of the question and state the result clearly.`;
 }
 
 function buildTermTranslation(group, term, override) {
   if (override?.translation) return override.translation;
+  const formula = resolveTermField(term, override, "formula");
+  if (group.subject === "chemistry") return formula
+    ? `${group.label} 题要求使用“${term.meaning}”。在使用 ${formula} 前，必须检查哪些量和条件？`
+    : `题目描述了“${term.definition}”。识别“${term.meaning}”，再写出能够确认它的化学证据或条件。`;
+  if (group.subject === "economics") return `材料可能涉及“${term.meaning}”，其含义是“${term.definition}”。需要什么证据确认它，又应分析哪条因果影响？`;
+  if (group.subject === "mathematics") return formula
+    ? `${group.label} 题要求使用“${term.meaning}”。说明何时可使用 ${formula}，并找出所需数值。`
+    : `题目涉及“${term.meaning}”，其含义是“${term.definition}”。应用前必须检查哪个数学条件或运算？`;
+  if (group.subject === "physics") return formula
+    ? `${group.label} 题要求使用“${term.meaning}”。在使用 ${formula} 前，必须识别哪些测量量、方向和条件？`
+    : `题目描述了“${term.definition}”。识别“${term.meaning}”，再写出应用它所需的物理证据或条件。`;
+  if (group.translation) return fillStudyText(group.translation, group, term);
   return `根据题目语境理解 ${term.meaning}，并把它和 ${group.label} 的计算或解释要求对应起来。`;
 }
 
 function buildTermNote(group, term, override) {
   if (override?.cn) return override.cn;
+  const guide = studyGuideFor(group);
   const detail = [
     `把 ${term.word} 理解为「${term.meaning}」`,
-    term.definition ? `定义是：${term.definition}` : "",
-    override?.knowledgePoint || term.knowledgePoint ? `关键点：${override?.knowledgePoint || term.knowledgePoint}` : "",
+    term.definition ? `定义判据是：${term.definition}` : "",
+    override?.knowledgePoint || term.knowledgePoint ? `关键关系：${override?.knowledgePoint || term.knowledgePoint}` : "",
+    guide.concept,
   ].filter(Boolean).join("；");
-  return `${detail}。`;
+  return `${detail.replace(/[。；]+$/, "")}。`;
+}
+
+function buildConceptExplanation(group, term, override) {
+  if (override?.conceptExplanation) return override.conceptExplanation;
+  const guide = studyGuideFor(group);
+  const specific = override?.knowledgePoint || term.knowledgePoint;
+  const collocations = Array.isArray(term.collocations) ? term.collocations.slice(0, 3).join("、") : "";
+  return [
+    `${term.word}（${term.meaning}）指：${override?.definition || term.definition}。`,
+    specific ? `本词的关键关系是：${specific}` : "",
+    collocations ? `题目中常见搭配：${collocations}。` : "",
+    guide.concept,
+  ].filter(Boolean).join(" ");
+}
+
+function buildMethodSteps(group, term, override) {
+  const steps = Array.isArray(override?.methodSteps) && override.methodSteps.length
+    ? override.methodSteps
+    : studyGuideFor(group).steps;
+  return steps.map((step) => fillStudyText(step, group, term));
+}
+
+function buildExamFocus(group, term, override) {
+  return fillStudyText(override?.examFocus || studyGuideFor(group).examFocus, group, term);
+}
+
+function buildCommonMistake(group, term, override) {
+  return fillStudyText(override?.commonMistake || studyGuideFor(group).commonMistake, group, term);
+}
+
+function buildFormulaExplanation(group, term, override, formula) {
+  if (!formula) return "";
+  if (override?.formulaExplanation) return override.formulaExplanation;
+  return `${formula} 是 ${term.word} 在本专题中的定量关系。使用前先按“${term.definition}”确认模型成立，再写清每个符号、统一单位并检查结果是否符合题目条件。`;
+}
+
+function buildWorkedExample(group, term, override) {
+  return override?.workedExample || null;
 }
 
 const items = [];
@@ -1104,6 +1520,11 @@ for (const group of groups) {
   for (const term of group.terms) {
     const id = `${group.subject}-${group.topic}-${slug(term.word)}`;
     const override = itemOverrides[id] || {};
+    const contentTerm = {
+      ...term,
+      meaning: resolveTermField(term, override, "meaning") || term.meaning,
+      definition: resolveTermField(term, override, "definition") || term.definition,
+    };
     items.push({
       id,
       subject: group.subject,
@@ -1112,13 +1533,19 @@ for (const group of groups) {
       type: group.type || "term",
       word: term.word,
       phonetic: "",
-      meaning: resolveTermField(term, override, "meaning") || term.meaning,
-      definition: resolveTermField(term, override, "definition") || term.definition,
-      cn: buildTermNote(group, term, override),
-      example: buildTermExample(group, term, override),
-      translation: buildTermTranslation(group, term, override),
+      meaning: contentTerm.meaning,
+      definition: contentTerm.definition,
+      cn: buildTermNote(group, contentTerm, override),
+      example: buildTermExample(group, contentTerm, override),
+      translation: buildTermTranslation(group, contentTerm, override),
       formula: resolveTermField(term, override, "formula") || "",
-      knowledgePoint: resolveTermField(term, override, "knowledgePoint") || "",
+      formulaExplanation: buildFormulaExplanation(group, term, override, resolveTermField(term, override, "formula") || ""),
+      knowledgePoint: resolveTermField(term, override, "knowledgePoint") || `${contentTerm.word} 的判定条件是：${contentTerm.definition}。答题时要把定义与 ${group.label} 的模型、证据、图像或计算对应起来。`,
+      conceptExplanation: buildConceptExplanation(group, contentTerm, override),
+      methodSteps: buildMethodSteps(group, contentTerm, override),
+      examFocus: buildExamFocus(group, contentTerm, override),
+      commonMistake: buildCommonMistake(group, contentTerm, override),
+      workedExample: buildWorkedExample(group, contentTerm, override),
       collocations: term.collocations,
     });
   }
@@ -1135,7 +1562,15 @@ for (const [word, meaning, definition, example, translation] of commandRows) {
     phonetic: "",
     meaning,
     definition,
+    formula: "",
+    formulaExplanation: "",
+    knowledgePoint: `${word} 决定答案需要执行的动作和可计分证据。`,
     cn: "先识别题目动词，再决定答案需要写数值、步骤、证据还是完整解释。",
+    conceptExplanation: `${word} 是评分要求，不是装饰词。先按定义判断答案需要提供结果、过程、证据、因果链还是评价，再决定作答长度。`,
+    methodSteps: ["圈出 command word", "标出分值和题目对象", "把定义转成可计分的答案结构", "提交前逐项检查是否回应了命令词"],
+    examFocus: `考官会按 ${word} 要求寻找对应证据；内容正确但答题动作不匹配仍会丢分。`,
+    commonMistake: "把 state、describe、explain、calculate 和 evaluate 当成相同要求，导致答案过短或写了无关内容。",
+    workedExample: null,
     example,
     translation,
     collocations: [`${word} the answer`, `${word} clearly`],
@@ -1153,7 +1588,15 @@ for (const [word, meaning, definition, example, translation] of phraseRows) {
     phonetic: "",
     meaning,
     definition,
+    formula: "",
+    formulaExplanation: "",
+    knowledgePoint: `${word} 是题干条件；必须把它转化为后续模型、方程或结论限制。`,
     cn: "A-Level 数学/物理题干理解：先翻译限制条件，再把它转换成方程、模型或答题要求。",
+    conceptExplanation: `这不是需要死背的单词，而是一段模型条件或答题限制。${definition}`,
+    methodSteps: ["逐词翻译条件", "判断它允许忽略什么或固定什么", "把条件写成方程、不等式或模型", "检查答案是否满足全部限制"],
+    examFocus: "题目句经常决定可用公式、样本空间、方向、近似条件或结论措辞。",
+    commonMistake: "只翻译字面意思，没有把条件转化成数学/物理约束，或在后续计算中忘记该条件。",
+    workedExample: null,
     example,
     translation,
     collocations: [],
@@ -1161,8 +1604,8 @@ for (const [word, meaning, definition, example, translation] of phraseRows) {
 }
 
 const payload = {
-  schemaVersion: "alevel-stem-vocabulary.v1",
-  catalogVersion: "2026-08-06",
+  schemaVersion: "alevel-stem-vocabulary.v2",
+  catalogVersion: "2026-08-07-knowledge-v2",
   itemCount: items.length,
   items,
 };
