@@ -1,7 +1,7 @@
 {
   "schemaVersion": "ielts-core-vocabulary.v1",
   "catalogVersion": "2026-08-06",
-  "itemCount": 210,
+  "itemCount": 304,
   "items": [
     {
       "id": "ielts-academic-core-significant",
@@ -3567,6 +3567,1579 @@
       "collocations": [
         "lead to problems",
         "lead to improvement"
+      ]
+    },
+    {
+      "id": "ielts-society-work-community",
+      "subject": "ielts",
+      "topic": "society-work",
+      "topicLabel": "Society & Work",
+      "type": "term",
+      "word": "community",
+      "meaning": "社区",
+      "definition": "a group of people living in the same area or having shared interests",
+      "cn": "用于社会、工作、职业、家庭和社区类写作与阅读。",
+      "example": "IELTS writers can use community when discussing work, society, or public services.",
+      "translation": "在谈论工作、社会或公共服务时，可以用 社区。",
+      "collocations": [
+        "community support",
+        "local community"
+      ]
+    },
+    {
+      "id": "ielts-society-work-employment",
+      "subject": "ielts",
+      "topic": "society-work",
+      "topicLabel": "Society & Work",
+      "type": "term",
+      "word": "employment",
+      "meaning": "就业",
+      "definition": "the state of having paid work",
+      "cn": "用于社会、工作、职业、家庭和社区类写作与阅读。",
+      "example": "IELTS writers can use employment when discussing work, society, or public services.",
+      "translation": "在谈论工作、社会或公共服务时，可以用 就业。",
+      "collocations": [
+        "full-time employment",
+        "employment rate"
+      ]
+    },
+    {
+      "id": "ielts-society-work-unemployment",
+      "subject": "ielts",
+      "topic": "society-work",
+      "topicLabel": "Society & Work",
+      "type": "term",
+      "word": "unemployment",
+      "meaning": "失业",
+      "definition": "the state of wanting work but being unable to find it",
+      "cn": "用于社会、工作、职业、家庭和社区类写作与阅读。",
+      "example": "IELTS writers can use unemployment when discussing work, society, or public services.",
+      "translation": "在谈论工作、社会或公共服务时，可以用 失业。",
+      "collocations": [
+        "youth unemployment",
+        "unemployment benefit"
+      ]
+    },
+    {
+      "id": "ielts-society-work-productivity",
+      "subject": "ielts",
+      "topic": "society-work",
+      "topicLabel": "Society & Work",
+      "type": "term",
+      "word": "productivity",
+      "meaning": "生产率",
+      "definition": "output produced per unit of input, often per worker or per hour",
+      "cn": "用于社会、工作、职业、家庭和社区类写作与阅读。",
+      "example": "IELTS writers can use productivity when discussing work, society, or public services.",
+      "translation": "在谈论工作、社会或公共服务时，可以用 生产率。",
+      "collocations": [
+        "labour productivity",
+        "productivity growth"
+      ]
+    },
+    {
+      "id": "ielts-society-work-workforce",
+      "subject": "ielts",
+      "topic": "society-work",
+      "topicLabel": "Society & Work",
+      "type": "term",
+      "word": "workforce",
+      "meaning": "劳动力",
+      "definition": "all the people who are available for work in a country or company",
+      "cn": "用于社会、工作、职业、家庭和社区类写作与阅读。",
+      "example": "IELTS writers can use workforce when discussing work, society, or public services.",
+      "translation": "在谈论工作、社会或公共服务时，可以用 劳动力。",
+      "collocations": [
+        "skilled workforce",
+        "workforce development"
+      ]
+    },
+    {
+      "id": "ielts-society-work-occupation",
+      "subject": "ielts",
+      "topic": "society-work",
+      "topicLabel": "Society & Work",
+      "type": "term",
+      "word": "occupation",
+      "meaning": "职业",
+      "definition": "a person's job or profession",
+      "cn": "用于社会、工作、职业、家庭和社区类写作与阅读。",
+      "example": "IELTS writers can use occupation when discussing work, society, or public services.",
+      "translation": "在谈论工作、社会或公共服务时，可以用 职业。",
+      "collocations": [
+        "future occupation",
+        "choose an occupation"
+      ]
+    },
+    {
+      "id": "ielts-society-work-residents",
+      "subject": "ielts",
+      "topic": "society-work",
+      "topicLabel": "Society & Work",
+      "type": "term",
+      "word": "residents",
+      "meaning": "居民",
+      "definition": "people who live in a particular place",
+      "cn": "用于社会、工作、职业、家庭和社区类写作与阅读。",
+      "example": "IELTS writers can use residents when discussing work, society, or public services.",
+      "translation": "在谈论工作、社会或公共服务时，可以用 居民。",
+      "collocations": [
+        "local residents",
+        "city residents"
+      ]
+    },
+    {
+      "id": "ielts-society-work-household",
+      "subject": "ielts",
+      "topic": "society-work",
+      "topicLabel": "Society & Work",
+      "type": "term",
+      "word": "household",
+      "meaning": "家庭",
+      "definition": "people living together and sharing a home",
+      "cn": "用于社会、工作、职业、家庭和社区类写作与阅读。",
+      "example": "IELTS writers can use household when discussing work, society, or public services.",
+      "translation": "在谈论工作、社会或公共服务时，可以用 家庭。",
+      "collocations": [
+        "household income",
+        "single household"
+      ]
+    },
+    {
+      "id": "ielts-society-work-inequality",
+      "subject": "ielts",
+      "topic": "society-work",
+      "topicLabel": "Society & Work",
+      "type": "term",
+      "word": "inequality",
+      "meaning": "不平等",
+      "definition": "an unfair difference in wealth opportunities or treatment",
+      "cn": "用于社会、工作、职业、家庭和社区类写作与阅读。",
+      "example": "IELTS writers can use inequality when discussing work, society, or public services.",
+      "translation": "在谈论工作、社会或公共服务时，可以用 不平等。",
+      "collocations": [
+        "income inequality",
+        "social inequality"
+      ]
+    },
+    {
+      "id": "ielts-society-work-fairness",
+      "subject": "ielts",
+      "topic": "society-work",
+      "topicLabel": "Society & Work",
+      "type": "term",
+      "word": "fairness",
+      "meaning": "公平",
+      "definition": "the quality of treating people in an equal and reasonable way",
+      "cn": "用于社会、工作、职业、家庭和社区类写作与阅读。",
+      "example": "IELTS writers can use fairness when discussing work, society, or public services.",
+      "translation": "在谈论工作、社会或公共服务时，可以用 公平。",
+      "collocations": [
+        "fairness in education",
+        "fairness debate"
+      ]
+    },
+    {
+      "id": "ielts-society-work-citizenship",
+      "subject": "ielts",
+      "topic": "society-work",
+      "topicLabel": "Society & Work",
+      "type": "term",
+      "word": "citizenship",
+      "meaning": "公民身份",
+      "definition": "the legal status and responsibilities of being a citizen",
+      "cn": "用于社会、工作、职业、家庭和社区类写作与阅读。",
+      "example": "IELTS writers can use citizenship when discussing work, society, or public services.",
+      "translation": "在谈论工作、社会或公共服务时，可以用 公民身份。",
+      "collocations": [
+        "active citizenship",
+        "citizenship education"
+      ]
+    },
+    {
+      "id": "ielts-society-work-responsibility",
+      "subject": "ielts",
+      "topic": "society-work",
+      "topicLabel": "Society & Work",
+      "type": "term",
+      "word": "responsibility",
+      "meaning": "责任",
+      "definition": "a duty to do something or be accountable for it",
+      "cn": "用于社会、工作、职业、家庭和社区类写作与阅读。",
+      "example": "IELTS writers can use responsibility when discussing work, society, or public services.",
+      "translation": "在谈论工作、社会或公共服务时，可以用 责任。",
+      "collocations": [
+        "social responsibility",
+        "personal responsibility"
+      ]
+    },
+    {
+      "id": "ielts-society-work-volunteer",
+      "subject": "ielts",
+      "topic": "society-work",
+      "topicLabel": "Society & Work",
+      "type": "term",
+      "word": "volunteer",
+      "meaning": "志愿者",
+      "definition": "a person who does work willingly without being paid",
+      "cn": "用于社会、工作、职业、家庭和社区类写作与阅读。",
+      "example": "IELTS writers can use volunteer when discussing work, society, or public services.",
+      "translation": "在谈论工作、社会或公共服务时，可以用 志愿者。",
+      "collocations": [
+        "volunteer work",
+        "volunteer service"
+      ]
+    },
+    {
+      "id": "ielts-society-work-charity",
+      "subject": "ielts",
+      "topic": "society-work",
+      "topicLabel": "Society & Work",
+      "type": "term",
+      "word": "charity",
+      "meaning": "慈善机构",
+      "definition": "an organisation that helps people in need",
+      "cn": "用于社会、工作、职业、家庭和社区类写作与阅读。",
+      "example": "IELTS writers can use charity when discussing work, society, or public services.",
+      "translation": "在谈论工作、社会或公共服务时，可以用 慈善机构。",
+      "collocations": [
+        "charity donation",
+        "charity sector"
+      ]
+    },
+    {
+      "id": "ielts-society-work-government-service",
+      "subject": "ielts",
+      "topic": "society-work",
+      "topicLabel": "Society & Work",
+      "type": "term",
+      "word": "government service",
+      "meaning": "政府服务",
+      "definition": "a public service provided by the state",
+      "cn": "用于社会、工作、职业、家庭和社区类写作与阅读。",
+      "example": "IELTS writers can use government service when discussing work, society, or public services.",
+      "translation": "在谈论工作、社会或公共服务时，可以用 政府服务。",
+      "collocations": [
+        "government service",
+        "public service"
+      ]
+    },
+    {
+      "id": "ielts-city-environment-urbanisation",
+      "subject": "ielts",
+      "topic": "city-environment",
+      "topicLabel": "Cities & Environment",
+      "type": "term",
+      "word": "urbanisation",
+      "meaning": "城市化",
+      "definition": "the increase in the proportion of people living in towns and cities",
+      "cn": "用于城市化、交通、住房、环境和可持续发展话题。",
+      "example": "A strong IELTS answer can use urbanisation to explain city problems or environmental change.",
+      "translation": "优秀雅思答案可以用 城市化 来解释城市问题或环境变化。",
+      "collocations": [
+        "rapid urbanisation",
+        "urban population"
+      ]
+    },
+    {
+      "id": "ielts-city-environment-traffic-congestion",
+      "subject": "ielts",
+      "topic": "city-environment",
+      "topicLabel": "Cities & Environment",
+      "type": "term",
+      "word": "traffic congestion",
+      "meaning": "交通拥堵",
+      "definition": "a situation where vehicles move slowly because too many are on the road",
+      "cn": "用于城市化、交通、住房、环境和可持续发展话题。",
+      "example": "A strong IELTS answer can use traffic congestion to explain city problems or environmental change.",
+      "translation": "优秀雅思答案可以用 交通拥堵 来解释城市问题或环境变化。",
+      "collocations": [
+        "congestion charge",
+        "traffic problem"
+      ]
+    },
+    {
+      "id": "ielts-city-environment-public-transport",
+      "subject": "ielts",
+      "topic": "city-environment",
+      "topicLabel": "Cities & Environment",
+      "type": "term",
+      "word": "public transport",
+      "meaning": "公共交通",
+      "definition": "buses trains and other transport available for everyone to use",
+      "cn": "用于城市化、交通、住房、环境和可持续发展话题。",
+      "example": "A strong IELTS answer can use public transport to explain city problems or environmental change.",
+      "translation": "优秀雅思答案可以用 公共交通 来解释城市问题或环境变化。",
+      "collocations": [
+        "public transport network",
+        "improve public transport"
+      ]
+    },
+    {
+      "id": "ielts-city-environment-housing",
+      "subject": "ielts",
+      "topic": "city-environment",
+      "topicLabel": "Cities & Environment",
+      "type": "term",
+      "word": "housing",
+      "meaning": "住房",
+      "definition": "homes or accommodation for people to live in",
+      "cn": "用于城市化、交通、住房、环境和可持续发展话题。",
+      "example": "A strong IELTS answer can use housing to explain city problems or environmental change.",
+      "translation": "优秀雅思答案可以用 住房 来解释城市问题或环境变化。",
+      "collocations": [
+        "affordable housing",
+        "housing shortage"
+      ]
+    },
+    {
+      "id": "ielts-city-environment-affordable",
+      "subject": "ielts",
+      "topic": "city-environment",
+      "topicLabel": "Cities & Environment",
+      "type": "term",
+      "word": "affordable",
+      "meaning": "负担得起的",
+      "definition": "cheap enough for people to pay for without serious difficulty",
+      "cn": "用于城市化、交通、住房、环境和可持续发展话题。",
+      "example": "A strong IELTS answer can use affordable to explain city problems or environmental change.",
+      "translation": "优秀雅思答案可以用 负担得起的 来解释城市问题或环境变化。",
+      "collocations": [
+        "affordable rent",
+        "affordable housing"
+      ]
+    },
+    {
+      "id": "ielts-city-environment-infrastructure",
+      "subject": "ielts",
+      "topic": "city-environment",
+      "topicLabel": "Cities & Environment",
+      "type": "term",
+      "word": "infrastructure",
+      "meaning": "基础设施",
+      "definition": "basic systems and facilities such as roads power and water",
+      "cn": "用于城市化、交通、住房、环境和可持续发展话题。",
+      "example": "A strong IELTS answer can use infrastructure to explain city problems or environmental change.",
+      "translation": "优秀雅思答案可以用 基础设施 来解释城市问题或环境变化。",
+      "collocations": [
+        "transport infrastructure",
+        "digital infrastructure"
+      ]
+    },
+    {
+      "id": "ielts-city-environment-emissions",
+      "subject": "ielts",
+      "topic": "city-environment",
+      "topicLabel": "Cities & Environment",
+      "type": "term",
+      "word": "emissions",
+      "meaning": "排放",
+      "definition": "gas or other substances released into the air",
+      "cn": "用于城市化、交通、住房、环境和可持续发展话题。",
+      "example": "A strong IELTS answer can use emissions to explain city problems or environmental change.",
+      "translation": "优秀雅思答案可以用 排放 来解释城市问题或环境变化。",
+      "collocations": [
+        "carbon emissions",
+        "reduce emissions"
+      ]
+    },
+    {
+      "id": "ielts-city-environment-renewable-energy",
+      "subject": "ielts",
+      "topic": "city-environment",
+      "topicLabel": "Cities & Environment",
+      "type": "term",
+      "word": "renewable energy",
+      "meaning": "可再生能源",
+      "definition": "energy from sources that are naturally replenished",
+      "cn": "用于城市化、交通、住房、环境和可持续发展话题。",
+      "example": "A strong IELTS answer can use renewable energy to explain city problems or environmental change.",
+      "translation": "优秀雅思答案可以用 可再生能源 来解释城市问题或环境变化。",
+      "collocations": [
+        "renewable-energy project",
+        "renewable power"
+      ]
+    },
+    {
+      "id": "ielts-city-environment-waste-management",
+      "subject": "ielts",
+      "topic": "city-environment",
+      "topicLabel": "Cities & Environment",
+      "type": "term",
+      "word": "waste management",
+      "meaning": "废弃物管理",
+      "definition": "the collection treatment and disposal of waste",
+      "cn": "用于城市化、交通、住房、环境和可持续发展话题。",
+      "example": "A strong IELTS answer can use waste management to explain city problems or environmental change.",
+      "translation": "优秀雅思答案可以用 废弃物管理 来解释城市问题或环境变化。",
+      "collocations": [
+        "waste-management policy",
+        "waste sorting"
+      ]
+    },
+    {
+      "id": "ielts-city-environment-recycling",
+      "subject": "ielts",
+      "topic": "city-environment",
+      "topicLabel": "Cities & Environment",
+      "type": "term",
+      "word": "recycling",
+      "meaning": "回收利用",
+      "definition": "processing waste so materials can be used again",
+      "cn": "用于城市化、交通、住房、环境和可持续发展话题。",
+      "example": "A strong IELTS answer can use recycling to explain city problems or environmental change.",
+      "translation": "优秀雅思答案可以用 回收利用 来解释城市问题或环境变化。",
+      "collocations": [
+        "recycling rate",
+        "recycling system"
+      ]
+    },
+    {
+      "id": "ielts-city-environment-conservation",
+      "subject": "ielts",
+      "topic": "city-environment",
+      "topicLabel": "Cities & Environment",
+      "type": "term",
+      "word": "conservation",
+      "meaning": "保护",
+      "definition": "the protection of nature resources or buildings",
+      "cn": "用于城市化、交通、住房、环境和可持续发展话题。",
+      "example": "A strong IELTS answer can use conservation to explain city problems or environmental change.",
+      "translation": "优秀雅思答案可以用 保护 来解释城市问题或环境变化。",
+      "collocations": [
+        "conservation area",
+        "wildlife conservation"
+      ]
+    },
+    {
+      "id": "ielts-city-environment-pollution",
+      "subject": "ielts",
+      "topic": "city-environment",
+      "topicLabel": "Cities & Environment",
+      "type": "term",
+      "word": "pollution",
+      "meaning": "污染",
+      "definition": "harmful substances or noise added to the environment",
+      "cn": "用于城市化、交通、住房、环境和可持续发展话题。",
+      "example": "A strong IELTS answer can use pollution to explain city problems or environmental change.",
+      "translation": "优秀雅思答案可以用 污染 来解释城市问题或环境变化。",
+      "collocations": [
+        "air pollution",
+        "water pollution"
+      ]
+    },
+    {
+      "id": "ielts-city-environment-climate-change",
+      "subject": "ielts",
+      "topic": "city-environment",
+      "topicLabel": "Cities & Environment",
+      "type": "term",
+      "word": "climate change",
+      "meaning": "气候变化",
+      "definition": "long-term change in temperature and weather patterns",
+      "cn": "用于城市化、交通、住房、环境和可持续发展话题。",
+      "example": "A strong IELTS answer can use climate change to explain city problems or environmental change.",
+      "translation": "优秀雅思答案可以用 气候变化 来解释城市问题或环境变化。",
+      "collocations": [
+        "climate-change policy",
+        "climate action"
+      ]
+    },
+    {
+      "id": "ielts-city-environment-sustainable",
+      "subject": "ielts",
+      "topic": "city-environment",
+      "topicLabel": "Cities & Environment",
+      "type": "term",
+      "word": "sustainable",
+      "meaning": "可持续的",
+      "definition": "able to continue without causing long-term damage",
+      "cn": "用于城市化、交通、住房、环境和可持续发展话题。",
+      "example": "A strong IELTS answer can use sustainable to explain city problems or environmental change.",
+      "translation": "优秀雅思答案可以用 可持续的 来解释城市问题或环境变化。",
+      "collocations": [
+        "sustainable development",
+        "sustainable city"
+      ]
+    },
+    {
+      "id": "ielts-city-environment-green-space",
+      "subject": "ielts",
+      "topic": "city-environment",
+      "topicLabel": "Cities & Environment",
+      "type": "term",
+      "word": "green space",
+      "meaning": "绿色空间",
+      "definition": "an area of grass trees or gardens in a town or city",
+      "cn": "用于城市化、交通、住房、环境和可持续发展话题。",
+      "example": "A strong IELTS answer can use green space to explain city problems or environmental change.",
+      "translation": "优秀雅思答案可以用 绿色空间 来解释城市问题或环境变化。",
+      "collocations": [
+        "urban green space",
+        "public green space"
+      ]
+    },
+    {
+      "id": "ielts-education-research-curriculum",
+      "subject": "ielts",
+      "topic": "education-research",
+      "topicLabel": "Education & Research",
+      "type": "term",
+      "word": "curriculum",
+      "meaning": "课程设置",
+      "definition": "the subjects and content taught in a school or course",
+      "cn": "用于学校、大学、研究、技能和学习方法话题。",
+      "example": "IELTS students should use curriculum when writing about learning, universities, or research.",
+      "translation": "雅思写作中谈到学习、大学或研究时可用 课程设置。",
+      "collocations": [
+        "national curriculum",
+        "school curriculum"
+      ]
+    },
+    {
+      "id": "ielts-education-research-qualification",
+      "subject": "ielts",
+      "topic": "education-research",
+      "topicLabel": "Education & Research",
+      "type": "term",
+      "word": "qualification",
+      "meaning": "资格证书",
+      "definition": "an official record showing training or ability",
+      "cn": "用于学校、大学、研究、技能和学习方法话题。",
+      "example": "IELTS students should use qualification when writing about learning, universities, or research.",
+      "translation": "雅思写作中谈到学习、大学或研究时可用 资格证书。",
+      "collocations": [
+        "academic qualification",
+        "professional qualification"
+      ]
+    },
+    {
+      "id": "ielts-education-research-assessment",
+      "subject": "ielts",
+      "topic": "education-research",
+      "topicLabel": "Education & Research",
+      "type": "term",
+      "word": "assessment",
+      "meaning": "评估",
+      "definition": "a way of judging knowledge progress or performance",
+      "cn": "用于学校、大学、研究、技能和学习方法话题。",
+      "example": "IELTS students should use assessment when writing about learning, universities, or research.",
+      "translation": "雅思写作中谈到学习、大学或研究时可用 评估。",
+      "collocations": [
+        "continuous assessment",
+        "formal assessment"
+      ]
+    },
+    {
+      "id": "ielts-education-research-literacy",
+      "subject": "ielts",
+      "topic": "education-research",
+      "topicLabel": "Education & Research",
+      "type": "term",
+      "word": "literacy",
+      "meaning": "读写能力",
+      "definition": "the ability to read and write effectively",
+      "cn": "用于学校、大学、研究、技能和学习方法话题。",
+      "example": "IELTS students should use literacy when writing about learning, universities, or research.",
+      "translation": "雅思写作中谈到学习、大学或研究时可用 读写能力。",
+      "collocations": [
+        "digital literacy",
+        "basic literacy"
+      ]
+    },
+    {
+      "id": "ielts-education-research-numeracy",
+      "subject": "ielts",
+      "topic": "education-research",
+      "topicLabel": "Education & Research",
+      "type": "term",
+      "word": "numeracy",
+      "meaning": "数理能力",
+      "definition": "the ability to understand and use numbers",
+      "cn": "用于学校、大学、研究、技能和学习方法话题。",
+      "example": "IELTS students should use numeracy when writing about learning, universities, or research.",
+      "translation": "雅思写作中谈到学习、大学或研究时可用 数理能力。",
+      "collocations": [
+        "basic numeracy",
+        "numeracy skills"
+      ]
+    },
+    {
+      "id": "ielts-education-research-scholarship",
+      "subject": "ielts",
+      "topic": "education-research",
+      "topicLabel": "Education & Research",
+      "type": "term",
+      "word": "scholarship",
+      "meaning": "奖学金",
+      "definition": "money given to support a student's education",
+      "cn": "用于学校、大学、研究、技能和学习方法话题。",
+      "example": "IELTS students should use scholarship when writing about learning, universities, or research.",
+      "translation": "雅思写作中谈到学习、大学或研究时可用 奖学金。",
+      "collocations": [
+        "full scholarship",
+        "scholarship scheme"
+      ]
+    },
+    {
+      "id": "ielts-education-research-research",
+      "subject": "ielts",
+      "topic": "education-research",
+      "topicLabel": "Education & Research",
+      "type": "term",
+      "word": "research",
+      "meaning": "研究",
+      "definition": "a careful study to discover new information",
+      "cn": "用于学校、大学、研究、技能和学习方法话题。",
+      "example": "IELTS students should use research when writing about learning, universities, or research.",
+      "translation": "雅思写作中谈到学习、大学或研究时可用 研究。",
+      "collocations": [
+        "academic research",
+        "research findings"
+      ]
+    },
+    {
+      "id": "ielts-education-research-experiment",
+      "subject": "ielts",
+      "topic": "education-research",
+      "topicLabel": "Education & Research",
+      "type": "term",
+      "word": "experiment",
+      "meaning": "实验",
+      "definition": "a scientific test used to investigate something",
+      "cn": "用于学校、大学、研究、技能和学习方法话题。",
+      "example": "IELTS students should use experiment when writing about learning, universities, or research.",
+      "translation": "雅思写作中谈到学习、大学或研究时可用 实验。",
+      "collocations": [
+        "controlled experiment",
+        "experiment design"
+      ]
+    },
+    {
+      "id": "ielts-education-research-data",
+      "subject": "ielts",
+      "topic": "education-research",
+      "topicLabel": "Education & Research",
+      "type": "term",
+      "word": "data",
+      "meaning": "数据",
+      "definition": "facts or figures used as evidence or for analysis",
+      "cn": "用于学校、大学、研究、技能和学习方法话题。",
+      "example": "IELTS students should use data when writing about learning, universities, or research.",
+      "translation": "雅思写作中谈到学习、大学或研究时可用 数据。",
+      "collocations": [
+        "data analysis",
+        "raw data"
+      ]
+    },
+    {
+      "id": "ielts-education-research-evidence",
+      "subject": "ielts",
+      "topic": "education-research",
+      "topicLabel": "Education & Research",
+      "type": "term",
+      "word": "evidence",
+      "meaning": "证据",
+      "definition": "information or facts that support a claim",
+      "cn": "用于学校、大学、研究、技能和学习方法话题。",
+      "example": "IELTS students should use evidence when writing about learning, universities, or research.",
+      "translation": "雅思写作中谈到学习、大学或研究时可用 证据。",
+      "collocations": [
+        "strong evidence",
+        "supporting evidence"
+      ]
+    },
+    {
+      "id": "ielts-education-research-analyse",
+      "subject": "ielts",
+      "topic": "education-research",
+      "topicLabel": "Education & Research",
+      "type": "term",
+      "word": "analyse",
+      "meaning": "分析",
+      "definition": "to examine something carefully in order to understand it",
+      "cn": "用于学校、大学、研究、技能和学习方法话题。",
+      "example": "IELTS students should use analyse when writing about learning, universities, or research.",
+      "translation": "雅思写作中谈到学习、大学或研究时可用 分析。",
+      "collocations": [
+        "analyse trends",
+        "analyse results"
+      ]
+    },
+    {
+      "id": "ielts-education-research-evaluate",
+      "subject": "ielts",
+      "topic": "education-research",
+      "topicLabel": "Education & Research",
+      "type": "term",
+      "word": "evaluate",
+      "meaning": "评价",
+      "definition": "to judge the value or quality of something",
+      "cn": "用于学校、大学、研究、技能和学习方法话题。",
+      "example": "IELTS students should use evaluate when writing about learning, universities, or research.",
+      "translation": "雅思写作中谈到学习、大学或研究时可用 评价。",
+      "collocations": [
+        "evaluate options",
+        "critical evaluation"
+      ]
+    },
+    {
+      "id": "ielts-education-research-compare",
+      "subject": "ielts",
+      "topic": "education-research",
+      "topicLabel": "Education & Research",
+      "type": "term",
+      "word": "compare",
+      "meaning": "比较",
+      "definition": "to look at similarities and differences between things",
+      "cn": "用于学校、大学、研究、技能和学习方法话题。",
+      "example": "IELTS students should use compare when writing about learning, universities, or research.",
+      "translation": "雅思写作中谈到学习、大学或研究时可用 比较。",
+      "collocations": [
+        "compare methods",
+        "compare outcomes"
+      ]
+    },
+    {
+      "id": "ielts-education-research-develop",
+      "subject": "ielts",
+      "topic": "education-research",
+      "topicLabel": "Education & Research",
+      "type": "term",
+      "word": "develop",
+      "meaning": "发展",
+      "definition": "to grow or improve over time",
+      "cn": "用于学校、大学、研究、技能和学习方法话题。",
+      "example": "IELTS students should use develop when writing about learning, universities, or research.",
+      "translation": "雅思写作中谈到学习、大学或研究时可用 发展。",
+      "collocations": [
+        "develop skills",
+        "develop knowledge"
+      ]
+    },
+    {
+      "id": "ielts-education-research-improve",
+      "subject": "ielts",
+      "topic": "education-research",
+      "topicLabel": "Education & Research",
+      "type": "term",
+      "word": "improve",
+      "meaning": "改善",
+      "definition": "to make something better",
+      "cn": "用于学校、大学、研究、技能和学习方法话题。",
+      "example": "IELTS students should use improve when writing about learning, universities, or research.",
+      "translation": "雅思写作中谈到学习、大学或研究时可用 改善。",
+      "collocations": [
+        "improve performance",
+        "improve access"
+      ]
+    },
+    {
+      "id": "ielts-health-media-culture-health",
+      "subject": "ielts",
+      "topic": "health-media-culture",
+      "topicLabel": "Health, Media & Culture",
+      "type": "term",
+      "word": "health",
+      "meaning": "健康",
+      "definition": "the state of being physically and mentally well",
+      "cn": "用于健康、生活方式、媒体、文化和社会影响话题。",
+      "example": "A band 7+ answer often uses health to explain social change, health, or media influence.",
+      "translation": "高分答案常用 健康 来解释社会变化、健康或媒体影响。",
+      "collocations": [
+        "public health",
+        "health care"
+      ]
+    },
+    {
+      "id": "ielts-health-media-culture-lifestyle",
+      "subject": "ielts",
+      "topic": "health-media-culture",
+      "topicLabel": "Health, Media & Culture",
+      "type": "term",
+      "word": "lifestyle",
+      "meaning": "生活方式",
+      "definition": "the way a person lives including habits and activities",
+      "cn": "用于健康、生活方式、媒体、文化和社会影响话题。",
+      "example": "A band 7+ answer often uses lifestyle to explain social change, health, or media influence.",
+      "translation": "高分答案常用 生活方式 来解释社会变化、健康或媒体影响。",
+      "collocations": [
+        "healthy lifestyle",
+        "modern lifestyle"
+      ]
+    },
+    {
+      "id": "ielts-health-media-culture-exercise",
+      "subject": "ielts",
+      "topic": "health-media-culture",
+      "topicLabel": "Health, Media & Culture",
+      "type": "term",
+      "word": "exercise",
+      "meaning": "锻炼",
+      "definition": "physical activity done to improve fitness or health",
+      "cn": "用于健康、生活方式、媒体、文化和社会影响话题。",
+      "example": "A band 7+ answer often uses exercise to explain social change, health, or media influence.",
+      "translation": "高分答案常用 锻炼 来解释社会变化、健康或媒体影响。",
+      "collocations": [
+        "regular exercise",
+        "exercise routine"
+      ]
+    },
+    {
+      "id": "ielts-health-media-culture-nutrition",
+      "subject": "ielts",
+      "topic": "health-media-culture",
+      "topicLabel": "Health, Media & Culture",
+      "type": "term",
+      "word": "nutrition",
+      "meaning": "营养",
+      "definition": "the process of getting the food needed for health and growth",
+      "cn": "用于健康、生活方式、媒体、文化和社会影响话题。",
+      "example": "A band 7+ answer often uses nutrition to explain social change, health, or media influence.",
+      "translation": "高分答案常用 营养 来解释社会变化、健康或媒体影响。",
+      "collocations": [
+        "balanced nutrition",
+        "nutrition advice"
+      ]
+    },
+    {
+      "id": "ielts-health-media-culture-stress",
+      "subject": "ielts",
+      "topic": "health-media-culture",
+      "topicLabel": "Health, Media & Culture",
+      "type": "term",
+      "word": "stress",
+      "meaning": "压力",
+      "definition": "mental tension caused by difficult or demanding situations",
+      "cn": "用于健康、生活方式、媒体、文化和社会影响话题。",
+      "example": "A band 7+ answer often uses stress to explain social change, health, or media influence.",
+      "translation": "高分答案常用 压力 来解释社会变化、健康或媒体影响。",
+      "collocations": [
+        "stress management",
+        "stress levels"
+      ]
+    },
+    {
+      "id": "ielts-health-media-culture-well-being",
+      "subject": "ielts",
+      "topic": "health-media-culture",
+      "topicLabel": "Health, Media & Culture",
+      "type": "term",
+      "word": "well-being",
+      "meaning": "幸福感",
+      "definition": "the state of feeling comfortable healthy and happy",
+      "cn": "用于健康、生活方式、媒体、文化和社会影响话题。",
+      "example": "A band 7+ answer often uses well-being to explain social change, health, or media influence.",
+      "translation": "高分答案常用 幸福感 来解释社会变化、健康或媒体影响。",
+      "collocations": [
+        "mental well-being",
+        "student well-being"
+      ]
+    },
+    {
+      "id": "ielts-health-media-culture-media",
+      "subject": "ielts",
+      "topic": "health-media-culture",
+      "topicLabel": "Health, Media & Culture",
+      "type": "term",
+      "word": "media",
+      "meaning": "媒体",
+      "definition": "the main ways that information news or entertainment are shared",
+      "cn": "用于健康、生活方式、媒体、文化和社会影响话题。",
+      "example": "A band 7+ answer often uses media to explain social change, health, or media influence.",
+      "translation": "高分答案常用 媒体 来解释社会变化、健康或媒体影响。",
+      "collocations": [
+        "mass media",
+        "social media"
+      ]
+    },
+    {
+      "id": "ielts-health-media-culture-influence",
+      "subject": "ielts",
+      "topic": "health-media-culture",
+      "topicLabel": "Health, Media & Culture",
+      "type": "term",
+      "word": "influence",
+      "meaning": "影响",
+      "definition": "the power to affect a person or situation",
+      "cn": "用于健康、生活方式、媒体、文化和社会影响话题。",
+      "example": "A band 7+ answer often uses influence to explain social change, health, or media influence.",
+      "translation": "高分答案常用 影响 来解释社会变化、健康或媒体影响。",
+      "collocations": [
+        "influence behaviour",
+        "media influence"
+      ]
+    },
+    {
+      "id": "ielts-health-media-culture-tradition",
+      "subject": "ielts",
+      "topic": "health-media-culture",
+      "topicLabel": "Health, Media & Culture",
+      "type": "term",
+      "word": "tradition",
+      "meaning": "传统",
+      "definition": "a belief custom or way of doing something passed down over time",
+      "cn": "用于健康、生活方式、媒体、文化和社会影响话题。",
+      "example": "A band 7+ answer often uses tradition to explain social change, health, or media influence.",
+      "translation": "高分答案常用 传统 来解释社会变化、健康或媒体影响。",
+      "collocations": [
+        "local tradition",
+        "traditional values"
+      ]
+    },
+    {
+      "id": "ielts-health-media-culture-globalisation",
+      "subject": "ielts",
+      "topic": "health-media-culture",
+      "topicLabel": "Health, Media & Culture",
+      "type": "term",
+      "word": "globalisation",
+      "meaning": "全球化",
+      "definition": "the process by which the world becomes more connected",
+      "cn": "用于健康、生活方式、媒体、文化和社会影响话题。",
+      "example": "A band 7+ answer often uses globalisation to explain social change, health, or media influence.",
+      "translation": "高分答案常用 全球化 来解释社会变化、健康或媒体影响。",
+      "collocations": [
+        "globalisation effect",
+        "global economy"
+      ]
+    },
+    {
+      "id": "ielts-health-media-culture-culture",
+      "subject": "ielts",
+      "topic": "health-media-culture",
+      "topicLabel": "Health, Media & Culture",
+      "type": "term",
+      "word": "culture",
+      "meaning": "文化",
+      "definition": "the beliefs customs arts and ways of life of a group",
+      "cn": "用于健康、生活方式、媒体、文化和社会影响话题。",
+      "example": "A band 7+ answer often uses culture to explain social change, health, or media influence.",
+      "translation": "高分答案常用 文化 来解释社会变化、健康或媒体影响。",
+      "collocations": [
+        "cultural identity",
+        "local culture"
+      ]
+    },
+    {
+      "id": "ielts-health-media-culture-identity",
+      "subject": "ielts",
+      "topic": "health-media-culture",
+      "topicLabel": "Health, Media & Culture",
+      "type": "term",
+      "word": "identity",
+      "meaning": "身份认同",
+      "definition": "the qualities beliefs or characteristics that make a person or group distinct",
+      "cn": "用于健康、生活方式、媒体、文化和社会影响话题。",
+      "example": "A band 7+ answer often uses identity to explain social change, health, or media influence.",
+      "translation": "高分答案常用 身份认同 来解释社会变化、健康或媒体影响。",
+      "collocations": [
+        "cultural identity",
+        "national identity"
+      ]
+    },
+    {
+      "id": "ielts-health-media-culture-attitude",
+      "subject": "ielts",
+      "topic": "health-media-culture",
+      "topicLabel": "Health, Media & Culture",
+      "type": "term",
+      "word": "attitude",
+      "meaning": "态度",
+      "definition": "the way a person thinks feels or behaves toward something",
+      "cn": "用于健康、生活方式、媒体、文化和社会影响话题。",
+      "example": "A band 7+ answer often uses attitude to explain social change, health, or media influence.",
+      "translation": "高分答案常用 态度 来解释社会变化、健康或媒体影响。",
+      "collocations": [
+        "positive attitude",
+        "public attitude"
+      ]
+    },
+    {
+      "id": "ielts-health-media-culture-perspective",
+      "subject": "ielts",
+      "topic": "health-media-culture",
+      "topicLabel": "Health, Media & Culture",
+      "type": "term",
+      "word": "perspective",
+      "meaning": "观点",
+      "definition": "a particular way of thinking about something",
+      "cn": "用于健康、生活方式、媒体、文化和社会影响话题。",
+      "example": "A band 7+ answer often uses perspective to explain social change, health, or media influence.",
+      "translation": "高分答案常用 观点 来解释社会变化、健康或媒体影响。",
+      "collocations": [
+        "global perspective",
+        "personal perspective"
+      ]
+    },
+    {
+      "id": "ielts-academic-phrasing-in-recent-years",
+      "subject": "ielts",
+      "topic": "academic-phrasing",
+      "topicLabel": "Academic Phrases",
+      "type": "phrase",
+      "word": "in recent years",
+      "meaning": "近年来",
+      "definition": "used to refer to the period close to the present",
+      "cn": "用于写作和阅读中的高频学术句式。",
+      "example": "in recent years",
+      "translation": "近年来",
+      "collocations": [
+        "in recent years, many cities"
+      ]
+    },
+    {
+      "id": "ielts-academic-phrasing-as-a-whole",
+      "subject": "ielts",
+      "topic": "academic-phrasing",
+      "topicLabel": "Academic Phrases",
+      "type": "phrase",
+      "word": "as a whole",
+      "meaning": "总体上",
+      "definition": "used to refer to the entire group or system",
+      "cn": "用于写作和阅读中的高频学术句式。",
+      "example": "as a whole",
+      "translation": "总体上",
+      "collocations": [
+        "the country as a whole"
+      ]
+    },
+    {
+      "id": "ielts-academic-phrasing-it-is-widely-believed-that",
+      "subject": "ielts",
+      "topic": "academic-phrasing",
+      "topicLabel": "Academic Phrases",
+      "type": "phrase",
+      "word": "it is widely believed that",
+      "meaning": "人们普遍认为",
+      "definition": "used to introduce a common view",
+      "cn": "用于写作和阅读中的高频学术句式。",
+      "example": "it is widely believed that",
+      "translation": "人们普遍认为",
+      "collocations": [
+        "it is widely believed that education matters"
+      ]
+    },
+    {
+      "id": "ielts-academic-phrasing-to-a-large-extent",
+      "subject": "ielts",
+      "topic": "academic-phrasing",
+      "topicLabel": "Academic Phrases",
+      "type": "phrase",
+      "word": "to a large extent",
+      "meaning": "在很大程度上",
+      "definition": "used to show a strong degree",
+      "cn": "用于写作和阅读中的高频学术句式。",
+      "example": "to a large extent",
+      "translation": "在很大程度上",
+      "collocations": [
+        "to a large extent, success depends on"
+      ]
+    },
+    {
+      "id": "ielts-academic-phrasing-from-this-perspective",
+      "subject": "ielts",
+      "topic": "academic-phrasing",
+      "topicLabel": "Academic Phrases",
+      "type": "phrase",
+      "word": "from this perspective",
+      "meaning": "从这个角度看",
+      "definition": "used to present one way of viewing an issue",
+      "cn": "用于写作和阅读中的高频学术句式。",
+      "example": "from this perspective",
+      "translation": "从这个角度看",
+      "collocations": [
+        "from this perspective, the policy works"
+      ]
+    },
+    {
+      "id": "ielts-academic-phrasing-in-comparison-with",
+      "subject": "ielts",
+      "topic": "academic-phrasing",
+      "topicLabel": "Academic Phrases",
+      "type": "phrase",
+      "word": "in comparison with",
+      "meaning": "与……相比",
+      "definition": "used to compare one thing with another",
+      "cn": "用于写作和阅读中的高频学术句式。",
+      "example": "in comparison with",
+      "translation": "与……相比",
+      "collocations": [
+        "in comparison with previous years"
+      ]
+    },
+    {
+      "id": "ielts-academic-phrasing-as-a-consequence",
+      "subject": "ielts",
+      "topic": "academic-phrasing",
+      "topicLabel": "Academic Phrases",
+      "type": "phrase",
+      "word": "as a consequence",
+      "meaning": "因此",
+      "definition": "used to show a result or effect",
+      "cn": "用于写作和阅读中的高频学术句式。",
+      "example": "as a consequence",
+      "translation": "因此",
+      "collocations": [
+        "as a consequence, costs rise"
+      ]
+    },
+    {
+      "id": "ielts-academic-phrasing-in-addition-to",
+      "subject": "ielts",
+      "topic": "academic-phrasing",
+      "topicLabel": "Academic Phrases",
+      "type": "phrase",
+      "word": "in addition to",
+      "meaning": "除……之外",
+      "definition": "used to add another point",
+      "cn": "用于写作和阅读中的高频学术句式。",
+      "example": "in addition to",
+      "translation": "除……之外",
+      "collocations": [
+        "in addition to cost, time matters"
+      ]
+    },
+    {
+      "id": "ielts-academic-phrasing-for-instance",
+      "subject": "ielts",
+      "topic": "academic-phrasing",
+      "topicLabel": "Academic Phrases",
+      "type": "phrase",
+      "word": "for instance",
+      "meaning": "例如",
+      "definition": "used to give an example",
+      "cn": "用于写作和阅读中的高频学术句式。",
+      "example": "for instance",
+      "translation": "例如",
+      "collocations": [
+        "for instance, public transport can reduce traffic"
+      ]
+    },
+    {
+      "id": "ielts-academic-phrasing-in-the-short-term",
+      "subject": "ielts",
+      "topic": "academic-phrasing",
+      "topicLabel": "Academic Phrases",
+      "type": "phrase",
+      "word": "in the short term",
+      "meaning": "在短期内",
+      "definition": "used to refer to an immediate period",
+      "cn": "用于写作和阅读中的高频学术句式。",
+      "example": "in the short term",
+      "translation": "在短期内",
+      "collocations": [
+        "in the short term, prices may rise"
+      ]
+    },
+    {
+      "id": "ielts-academic-phrasing-in-the-long-term",
+      "subject": "ielts",
+      "topic": "academic-phrasing",
+      "topicLabel": "Academic Phrases",
+      "type": "phrase",
+      "word": "in the long term",
+      "meaning": "从长远看",
+      "definition": "used to refer to a later or extended period",
+      "cn": "用于写作和阅读中的高频学术句式。",
+      "example": "in the long term",
+      "translation": "从长远看",
+      "collocations": [
+        "in the long term, benefits are greater"
+      ]
+    },
+    {
+      "id": "ielts-academic-phrasing-it-follows-that",
+      "subject": "ielts",
+      "topic": "academic-phrasing",
+      "topicLabel": "Academic Phrases",
+      "type": "phrase",
+      "word": "it follows that",
+      "meaning": "由此可见",
+      "definition": "used to introduce a logical conclusion",
+      "cn": "用于写作和阅读中的高频学术句式。",
+      "example": "it follows that",
+      "translation": "由此可见",
+      "collocations": [
+        "it follows that the policy needs revision"
+      ]
+    },
+    {
+      "id": "ielts-academic-phrasing-therefore",
+      "subject": "ielts",
+      "topic": "academic-phrasing",
+      "topicLabel": "Academic Phrases",
+      "type": "phrase",
+      "word": "therefore",
+      "meaning": "因此",
+      "definition": "used to show a logical result",
+      "cn": "用于写作和阅读中的高频学术句式。",
+      "example": "therefore",
+      "translation": "因此",
+      "collocations": [
+        "therefore, the effect is limited"
+      ]
+    },
+    {
+      "id": "ielts-academic-phrasing-moreover",
+      "subject": "ielts",
+      "topic": "academic-phrasing",
+      "topicLabel": "Academic Phrases",
+      "type": "phrase",
+      "word": "moreover",
+      "meaning": "此外",
+      "definition": "used to add an extra point",
+      "cn": "用于写作和阅读中的高频学术句式。",
+      "example": "moreover",
+      "translation": "此外",
+      "collocations": [
+        "moreover, the evidence is strong"
+      ]
+    },
+    {
+      "id": "ielts-academic-phrasing-however",
+      "subject": "ielts",
+      "topic": "academic-phrasing",
+      "topicLabel": "Academic Phrases",
+      "type": "phrase",
+      "word": "however",
+      "meaning": "然而",
+      "definition": "used to introduce a contrast",
+      "cn": "用于写作和阅读中的高频学术句式。",
+      "example": "however",
+      "translation": "然而",
+      "collocations": [
+        "however, the costs are high"
+      ]
+    },
+    {
+      "id": "ielts-academic-verbs-indicate",
+      "subject": "ielts",
+      "topic": "academic-verbs",
+      "topicLabel": "Academic Verbs",
+      "type": "term",
+      "word": "indicate",
+      "meaning": "表明",
+      "definition": "to show or suggest something",
+      "cn": "用于学术写作和阅读中的高频动词表达。",
+      "example": "Students should use indicate precisely when discussing data, arguments, or trends.",
+      "translation": "在讨论数据、论点或趋势时，要准确使用 表明。",
+      "collocations": [
+        "indicate a trend",
+        "indicate that"
+      ]
+    },
+    {
+      "id": "ielts-academic-verbs-demonstrate",
+      "subject": "ielts",
+      "topic": "academic-verbs",
+      "topicLabel": "Academic Verbs",
+      "type": "term",
+      "word": "demonstrate",
+      "meaning": "证明；展示",
+      "definition": "to show clearly by explanation or evidence",
+      "cn": "用于学术写作和阅读中的高频动词表达。",
+      "example": "Students should use demonstrate precisely when discussing data, arguments, or trends.",
+      "translation": "在讨论数据、论点或趋势时，要准确使用 证明；展示。",
+      "collocations": [
+        "demonstrate a link",
+        "demonstrate ability"
+      ]
+    },
+    {
+      "id": "ielts-academic-verbs-reveal",
+      "subject": "ielts",
+      "topic": "academic-verbs",
+      "topicLabel": "Academic Verbs",
+      "type": "term",
+      "word": "reveal",
+      "meaning": "揭示",
+      "definition": "to make something known or visible",
+      "cn": "用于学术写作和阅读中的高频动词表达。",
+      "example": "Students should use reveal precisely when discussing data, arguments, or trends.",
+      "translation": "在讨论数据、论点或趋势时，要准确使用 揭示。",
+      "collocations": [
+        "reveal a pattern",
+        "reveal differences"
+      ]
+    },
+    {
+      "id": "ielts-academic-verbs-suggest",
+      "subject": "ielts",
+      "topic": "academic-verbs",
+      "topicLabel": "Academic Verbs",
+      "type": "term",
+      "word": "suggest",
+      "meaning": "暗示；表明",
+      "definition": "to show that something is likely without proving it fully",
+      "cn": "用于学术写作和阅读中的高频动词表达。",
+      "example": "Students should use suggest precisely when discussing data, arguments, or trends.",
+      "translation": "在讨论数据、论点或趋势时，要准确使用 暗示；表明。",
+      "collocations": [
+        "suggest a connection",
+        "suggest that"
+      ]
+    },
+    {
+      "id": "ielts-academic-verbs-support",
+      "subject": "ielts",
+      "topic": "academic-verbs",
+      "topicLabel": "Academic Verbs",
+      "type": "term",
+      "word": "support",
+      "meaning": "支持",
+      "definition": "to give evidence for or help something",
+      "cn": "用于学术写作和阅读中的高频动词表达。",
+      "example": "Students should use support precisely when discussing data, arguments, or trends.",
+      "translation": "在讨论数据、论点或趋势时，要准确使用 支持。",
+      "collocations": [
+        "support an argument",
+        "support the claim"
+      ]
+    },
+    {
+      "id": "ielts-academic-verbs-oppose",
+      "subject": "ielts",
+      "topic": "academic-verbs",
+      "topicLabel": "Academic Verbs",
+      "type": "term",
+      "word": "oppose",
+      "meaning": "反对",
+      "definition": "to disagree with or act against something",
+      "cn": "用于学术写作和阅读中的高频动词表达。",
+      "example": "Students should use oppose precisely when discussing data, arguments, or trends.",
+      "translation": "在讨论数据、论点或趋势时，要准确使用 反对。",
+      "collocations": [
+        "oppose a policy",
+        "oppose the proposal"
+      ]
+    },
+    {
+      "id": "ielts-academic-verbs-illustrate",
+      "subject": "ielts",
+      "topic": "academic-verbs",
+      "topicLabel": "Academic Verbs",
+      "type": "term",
+      "word": "illustrate",
+      "meaning": "举例说明",
+      "definition": "to explain or show using an example or picture",
+      "cn": "用于学术写作和阅读中的高频动词表达。",
+      "example": "Students should use illustrate precisely when discussing data, arguments, or trends.",
+      "translation": "在讨论数据、论点或趋势时，要准确使用 举例说明。",
+      "collocations": [
+        "illustrate the point",
+        "illustrate the process"
+      ]
+    },
+    {
+      "id": "ielts-academic-verbs-compare",
+      "subject": "ielts",
+      "topic": "academic-verbs",
+      "topicLabel": "Academic Verbs",
+      "type": "term",
+      "word": "compare",
+      "meaning": "比较",
+      "definition": "to examine similarities and differences",
+      "cn": "用于学术写作和阅读中的高频动词表达。",
+      "example": "Students should use compare precisely when discussing data, arguments, or trends.",
+      "translation": "在讨论数据、论点或趋势时，要准确使用 比较。",
+      "collocations": [
+        "compare results",
+        "compare two studies"
+      ]
+    },
+    {
+      "id": "ielts-academic-verbs-evaluate",
+      "subject": "ielts",
+      "topic": "academic-verbs",
+      "topicLabel": "Academic Verbs",
+      "type": "term",
+      "word": "evaluate",
+      "meaning": "评价",
+      "definition": "to assess the value or quality of something",
+      "cn": "用于学术写作和阅读中的高频动词表达。",
+      "example": "Students should use evaluate precisely when discussing data, arguments, or trends.",
+      "translation": "在讨论数据、论点或趋势时，要准确使用 评价。",
+      "collocations": [
+        "evaluate the evidence",
+        "evaluate the options"
+      ]
+    },
+    {
+      "id": "ielts-academic-verbs-emphasise",
+      "subject": "ielts",
+      "topic": "academic-verbs",
+      "topicLabel": "Academic Verbs",
+      "type": "term",
+      "word": "emphasise",
+      "meaning": "强调",
+      "definition": "to give special importance to something",
+      "cn": "用于学术写作和阅读中的高频动词表达。",
+      "example": "Students should use emphasise precisely when discussing data, arguments, or trends.",
+      "translation": "在讨论数据、论点或趋势时，要准确使用 强调。",
+      "collocations": [
+        "emphasise a point",
+        "emphasise the need"
+      ]
+    },
+    {
+      "id": "ielts-evaluation-language-it-can-be-argued-that",
+      "subject": "ielts",
+      "topic": "evaluation-language",
+      "topicLabel": "Evaluation Language",
+      "type": "phrase",
+      "word": "it can be argued that",
+      "meaning": "可以认为",
+      "definition": "used to introduce a reasoned view",
+      "cn": "用于 Task 2 / Reading 讨论与评价类表达。",
+      "example": "it can be argued that",
+      "translation": "可以认为",
+      "collocations": [
+        "it can be argued that this helps"
+      ]
+    },
+    {
+      "id": "ielts-evaluation-language-to-a-certain-extent",
+      "subject": "ielts",
+      "topic": "evaluation-language",
+      "topicLabel": "Evaluation Language",
+      "type": "phrase",
+      "word": "to a certain extent",
+      "meaning": "在一定程度上",
+      "definition": "used to show a limited degree of truth",
+      "cn": "用于 Task 2 / Reading 讨论与评价类表达。",
+      "example": "to a certain extent",
+      "translation": "在一定程度上",
+      "collocations": [
+        "to a certain extent it is effective"
+      ]
+    },
+    {
+      "id": "ielts-evaluation-language-this-is-partly-because",
+      "subject": "ielts",
+      "topic": "evaluation-language",
+      "topicLabel": "Evaluation Language",
+      "type": "phrase",
+      "word": "this is partly because",
+      "meaning": "部分原因是",
+      "definition": "used to explain a result without claiming it is the only cause",
+      "cn": "用于 Task 2 / Reading 讨论与评价类表达。",
+      "example": "this is partly because",
+      "translation": "部分原因是",
+      "collocations": [
+        "this is partly because of cost"
+      ]
+    },
+    {
+      "id": "ielts-evaluation-language-one-possible-explanation-is-that",
+      "subject": "ielts",
+      "topic": "evaluation-language",
+      "topicLabel": "Evaluation Language",
+      "type": "phrase",
+      "word": "one possible explanation is that",
+      "meaning": "一种可能的解释是",
+      "definition": "used to introduce a tentative explanation",
+      "cn": "用于 Task 2 / Reading 讨论与评价类表达。",
+      "example": "one possible explanation is that",
+      "translation": "一种可能的解释是",
+      "collocations": [
+        "one possible explanation is that demand rose"
+      ]
+    },
+    {
+      "id": "ielts-evaluation-language-the-main-advantage-is-that",
+      "subject": "ielts",
+      "topic": "evaluation-language",
+      "topicLabel": "Evaluation Language",
+      "type": "phrase",
+      "word": "the main advantage is that",
+      "meaning": "主要优点是",
+      "definition": "used to highlight the strongest positive point",
+      "cn": "用于 Task 2 / Reading 讨论与评价类表达。",
+      "example": "the main advantage is that",
+      "translation": "主要优点是",
+      "collocations": [
+        "the main advantage is that it saves time"
+      ]
+    },
+    {
+      "id": "ielts-evaluation-language-the-main-drawback-is-that",
+      "subject": "ielts",
+      "topic": "evaluation-language",
+      "topicLabel": "Evaluation Language",
+      "type": "phrase",
+      "word": "the main drawback is that",
+      "meaning": "主要缺点是",
+      "definition": "used to highlight the strongest negative point",
+      "cn": "用于 Task 2 / Reading 讨论与评价类表达。",
+      "example": "the main drawback is that",
+      "translation": "主要缺点是",
+      "collocations": [
+        "the main drawback is that it is expensive"
+      ]
+    },
+    {
+      "id": "ielts-evaluation-language-in-spite-of-this",
+      "subject": "ielts",
+      "topic": "evaluation-language",
+      "topicLabel": "Evaluation Language",
+      "type": "phrase",
+      "word": "in spite of this",
+      "meaning": "尽管如此",
+      "definition": "used to introduce a contrast after a negative point",
+      "cn": "用于 Task 2 / Reading 讨论与评价类表达。",
+      "example": "in spite of this",
+      "translation": "尽管如此",
+      "collocations": [
+        "in spite of this, the policy succeeds"
+      ]
+    },
+    {
+      "id": "ielts-evaluation-language-as-far-as-i-am-concerned",
+      "subject": "ielts",
+      "topic": "evaluation-language",
+      "topicLabel": "Evaluation Language",
+      "type": "phrase",
+      "word": "as far as I am concerned",
+      "meaning": "就我而言",
+      "definition": "used to present a personal judgement",
+      "cn": "用于 Task 2 / Reading 讨论与评价类表达。",
+      "example": "as far as I am concerned",
+      "translation": "就我而言",
+      "collocations": [
+        "as far as I am concerned, the plan is fair"
+      ]
+    },
+    {
+      "id": "ielts-evaluation-language-this-trend-is-likely-to-continue",
+      "subject": "ielts",
+      "topic": "evaluation-language",
+      "topicLabel": "Evaluation Language",
+      "type": "phrase",
+      "word": "this trend is likely to continue",
+      "meaning": "这一趋势可能会继续",
+      "definition": "used to make a forecast from evidence",
+      "cn": "用于 Task 2 / Reading 讨论与评价类表达。",
+      "example": "this trend is likely to continue",
+      "translation": "这一趋势可能会继续",
+      "collocations": [
+        "this trend is likely to continue for several years"
+      ]
+    },
+    {
+      "id": "ielts-evaluation-language-overall-the-evidence-suggests",
+      "subject": "ielts",
+      "topic": "evaluation-language",
+      "topicLabel": "Evaluation Language",
+      "type": "phrase",
+      "word": "overall, the evidence suggests",
+      "meaning": "总体上，证据表明",
+      "definition": "used to summarise a conclusion",
+      "cn": "用于 Task 2 / Reading 讨论与评价类表达。",
+      "example": "overall, the evidence suggests",
+      "translation": "总体上，证据表明",
+      "collocations": [
+        "overall, the evidence suggests a mixed outcome"
       ]
     }
   ]

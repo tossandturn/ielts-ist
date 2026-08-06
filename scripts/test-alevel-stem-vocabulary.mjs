@@ -8,7 +8,7 @@ const html = await readFile(new URL("../public/index.html", import.meta.url), "u
 
 assert.equal(catalog.schemaVersion, "alevel-stem-vocabulary.v1");
 assert.equal(catalog.itemCount, catalog.items.length);
-assert.ok(catalog.items.length >= 500, "The A-Level STEM catalog must remain a large 500+ item deck");
+assert.ok(catalog.items.length >= 650, "The A-Level STEM catalog must remain a large 650+ item deck");
 
 const counts = catalog.items.reduce((result, item) => {
   result[item.subject] = (result[item.subject] || 0) + 1;
@@ -16,8 +16,8 @@ const counts = catalog.items.reduce((result, item) => {
 }, {});
 assert.ok(counts.physics >= 250, "Physics must retain at least 250 entries");
 assert.ok(counts.mathematics >= 180, "Mathematics must retain at least 180 entries");
-assert.ok(counts.chemistry >= 25, "Chemistry must include a useful A-Level term deck");
-assert.ok(counts.economics >= 20, "Economics must include a useful A-Level term deck");
+assert.ok(counts.chemistry >= 70, "Chemistry must include a useful A-Level term deck");
+assert.ok(counts.economics >= 70, "Economics must include a useful A-Level term deck");
 assert.ok(counts["exam-language"] >= 70, "Exam language must retain at least 70 entries");
 
 const ids = new Set();
@@ -61,6 +61,6 @@ assert.match(app, /Each line must include term, 中文名, definition, knowledge
 assert.match(app, /vector \| 向量 \| a quantity with magnitude and direction/);
 assert.match(app, /Exam sentence \/ 题目句/);
 assert.match(app, /vocabularyItemKey\(item\)/, "Known progress must use stable item keys");
-assert.match(html, /600\+ A-Level Mathematics, Physics, Chemistry, Economics and exam-language entries/);
+assert.match(html, /700\+ A-Level Mathematics, Physics, Chemistry, Economics and exam-language entries/);
 
 console.log(`A-Level STEM vocabulary checks passed: ${catalog.items.length} items (${counts.physics} Physics, ${counts.mathematics} Mathematics, ${counts.chemistry} Chemistry, ${counts.economics} Economics, ${counts["exam-language"]} exam-language).`);

@@ -731,6 +731,198 @@ modelling assumption|建模假设|a simplification used to make a physical situa
   },
 ];
 
+const supplementalGroups = [
+  {
+    subject: "chemistry", topic: "organic-chemistry", label: "Chemistry: Organic Chemistry",
+    note: "用于有机官能团、反应类型、同分异构、机理和合成路线题。",
+    example: "Identify the {word} in the molecule and predict the reaction or product.",
+    translation: "识别分子中的{meaning}，并预测反应或产物。",
+    terms: parseTerms(`
+alkane|烷烃|a saturated hydrocarbon containing only single carbon-carbon bonds|alkane series;saturated hydrocarbon|CnH2n+2|Alkanes are relatively unreactive and mainly undergo combustion or substitution.
+alkene|烯烃|an unsaturated hydrocarbon containing at least one carbon-carbon double bond|alkene addition;unsaturated hydrocarbon|CnH2n|The C=C bond can open during addition reactions.
+alcohol|醇|an organic compound containing the hydroxyl functional group|primary alcohol;ethanol|-OH|Alcohols can be oxidised or dehydrated depending on conditions.
+carboxylic acid|羧酸|an organic acid containing the carboxyl functional group|carboxylic acid;ethanoic acid|-COOH|Carboxylic acids react with carbonates and can form esters.
+ester|酯|an organic compound formed from a carboxylic acid and an alcohol|esterification;ester link|-COO-|Esters often have pleasant smells and are made by condensation.
+aldehyde|醛|an organic compound containing a terminal carbonyl group|aldehyde oxidation;ethanal|-CHO|Aldehydes can be oxidised to carboxylic acids.
+ketone|酮|an organic compound containing a carbonyl group within the carbon chain|ketone;propanone|C=O|Ketones are not easily oxidised by mild oxidising agents.
+functional group|官能团|the atom or group of atoms responsible for characteristic reactions|functional-group test;identify functional group||The functional group determines the typical reactions of an organic molecule.
+homologous series|同系物系列|a family of organic compounds with the same functional group and a common formula pattern|homologous series;successive members||Members differ by CH2 and show similar chemical reactions.
+structural isomer|结构异构体|compounds with the same molecular formula but different structural formulae|structural isomerism;draw isomers||Different structures can give different physical or chemical properties.
+stereoisomer|立体异构体|compounds with the same structural formula but different spatial arrangement|E-Z isomerism;optical isomerism||Restricted rotation or chiral centres can create stereoisomers.
+E-Z isomerism|E-Z 异构|stereoisomerism caused by restricted rotation around a C=C bond|E isomer;Z isomer||Each carbon in the double bond must have two different groups.
+optical isomerism|光学异构|stereoisomerism where non-superimposable mirror images rotate plane-polarised light|chiral molecule;enantiomer||A chiral carbon is attached to four different groups.
+nucleophile|亲核试剂|an electron-pair donor attracted to an electron-deficient centre|nucleophilic substitution;nucleophile attack||Nucleophiles attack positive or partially positive atoms.
+electrophile|亲电试剂|an electron-pair acceptor attracted to electron-rich regions|electrophilic addition;electrophile attack||Electrophiles are attracted to high electron density such as C=C.
+free radical|自由基|a species with an unpaired electron|free-radical substitution;radical chain||Radicals are highly reactive and occur in initiation propagation and termination.
+substitution reaction|取代反应|a reaction in which one atom or group is replaced by another|nucleophilic substitution;halogenoalkane substitution||The carbon skeleton is retained while a group changes.
+addition reaction|加成反应|a reaction in which atoms add across a multiple bond|electrophilic addition;addition polymerisation||Addition turns an unsaturated bond into a saturated product.
+elimination reaction|消去反应|a reaction that removes atoms from a molecule to form a double bond|elimination of HBr;alkene formation||Elimination competes with substitution under some conditions.
+oxidation of alcohols|醇的氧化|conversion of alcohols to aldehydes ketones or carboxylic acids|reflux oxidation;distillation oxidation|[O]|Primary alcohols can form aldehydes then acids; secondary alcohols form ketones.
+reflux|回流|heating a reaction mixture while vapour condenses back into the flask|heat under reflux;reflux condenser||Reflux allows prolonged heating without losing volatile reactants.
+distillation|蒸馏|separating or collecting a volatile product by boiling and condensation|simple distillation;collect distillate||Distillation can remove an aldehyde before further oxidation.
+addition polymerisation|加成聚合|polymer formation by repeated addition of alkene monomers|addition polymer;repeat unit||The repeat unit comes from opening the C=C bond.
+condensation polymerisation|缩聚|polymer formation with elimination of a small molecule such as water or HCl|condensation polymer;polyester||Each link forms while a small molecule is removed.
+repeat unit|重复单元|the smallest section of a polymer chain that repeats|draw repeat unit;polymer chain||Bracket the repeat unit and show continuation bonds.
+monomer|单体|a small molecule that can join with others to form a polymer|alkene monomer;monomer unit||Identify the reactive functional group when finding a monomer.
+hydrolysis|水解|breaking a bond by reaction with water or hydroxide ions|ester hydrolysis;alkaline hydrolysis||Hydrolysis reverses condensation for many organic compounds.
+infrared spectroscopy|红外光谱|analysis using absorption of infrared radiation by bonds|IR spectrum;absorption peak||Bond vibrations absorb characteristic wavenumbers.
+mass spectrometry|质谱|analysis using mass-to-charge ratios of ions|molecular ion peak;fragment ion|m/z|The molecular ion peak helps identify relative molecular mass.
+    `),
+  },
+  {
+    subject: "chemistry", topic: "energetics-kinetics-equilibrium", label: "Chemistry: Energetics, Kinetics & Equilibrium",
+    note: "用于焓变、速率、平衡、酸碱和电化学计算题。",
+    example: "Use {word} to explain the energy change, rate, or equilibrium position.",
+    translation: "用{meaning}解释能量变化、反应速率或平衡位置。",
+    terms: parseTerms(`
+exothermic reaction|放热反应|a reaction that transfers heat energy to the surroundings|exothermic change;negative enthalpy|ΔH < 0|Products have lower enthalpy than reactants.
+endothermic reaction|吸热反应|a reaction that absorbs heat energy from the surroundings|endothermic change;positive enthalpy|ΔH > 0|Products have higher enthalpy than reactants.
+enthalpy profile|焓变曲线|a diagram showing energy changes during a reaction|enthalpy profile diagram;activation energy||Use the vertical difference to identify ΔH.
+bond enthalpy|键焓|energy required to break one mole of a specified bond in gaseous molecules|mean bond enthalpy;bond breaking|ΔH = Σ bonds broken - Σ bonds formed|Breaking bonds is endothermic; forming bonds is exothermic.
+Hess's law|赫斯定律|the total enthalpy change is independent of the route taken|Hess cycle;enthalpy cycle|ΣΔH route 1 = ΣΔH route 2|Reverse arrows change signs and multiply values when equations are scaled.
+standard enthalpy change|标准焓变|enthalpy change measured under standard conditions with substances in standard states|standard conditions;standard state|298 K, 100 kPa|State symbols and standard states matter in definitions.
+rate of reaction|反应速率|change in concentration of reactant or product per unit time|reaction rate;initial rate|rate = Δconcentration / Δtime|The gradient of a concentration-time graph gives rate.
+rate constant|速率常数|the proportionality constant in a rate equation|rate constant k;units of k|rate = k[A]^m[B]^n|Units of k depend on the overall order.
+order of reaction|反应级数|the power of a concentration term in the rate equation|first order;overall order||Orders are found experimentally, not from the balanced equation.
+half-life|半衰期|the time taken for a quantity or concentration to fall to half its value|constant half-life;first-order half-life|t1/2|A constant half-life indicates first-order behaviour.
+dynamic equilibrium|动态平衡|a closed-system state where forward and reverse reaction rates are equal|dynamic equilibrium;closed system||Concentrations remain constant because rates are equal.
+Le Chatelier's principle|勒夏特列原理|a system at equilibrium shifts to oppose an imposed change|apply Le Chatelier;equilibrium shift||Consider temperature pressure and concentration separately.
+equilibrium constant|平衡常数|a value showing the ratio of product and reactant concentrations at equilibrium|Kc expression;equilibrium constant|Kc = products / reactants|Only species in the equilibrium expression are included.
+acid dissociation constant|酸解离常数|the equilibrium constant for dissociation of a weak acid|Ka expression;weak acid|Ka = [H+][A-] / [HA]|A larger Ka means a stronger weak acid.
+pH|酸碱度|a logarithmic measure of hydrogen ion concentration|calculate pH;pH scale|pH = -log10[H+]|A decrease by one pH unit means [H+] increases tenfold.
+buffer solution|缓冲溶液|a solution that resists pH change when small amounts of acid or base are added|acid buffer;buffer capacity||A buffer contains a weak acid/base and its conjugate partner.
+electrode potential|电极电势|the tendency of a half-cell to gain electrons compared with a standard reference|standard electrode potential;E cell|Ecell = Eright - Eleft|More positive potentials favour reduction.
+redox reaction|氧化还原反应|a reaction involving electron transfer and changes in oxidation number|redox equation;redox titration||Oxidation and reduction occur together.
+oxidising agent|氧化剂|a species that causes oxidation by accepting electrons|strong oxidising agent;electron acceptor||The oxidising agent is reduced.
+reducing agent|还原剂|a species that causes reduction by donating electrons|strong reducing agent;electron donor||The reducing agent is oxidised.
+    `),
+  },
+  {
+    subject: "chemistry", topic: "analysis-and-practical", label: "Chemistry: Analysis & Practical",
+    note: "用于实验设计、定性分析、误差、色谱和谱图解释题。",
+    example: "Explain how {word} would be used to identify or measure the substance.",
+    translation: "解释如何用{meaning}识别或测量该物质。",
+    terms: parseTerms(`
+qualitative analysis|定性分析|tests used to identify substances rather than measure amounts|ion test;qualitative observation||Record colour changes precipitates and gases precisely.
+quantitative analysis|定量分析|methods used to measure the amount or concentration of a substance|quantitative result;concentration analysis||Calculations depend on reliable measurements and stoichiometry.
+precipitate|沉淀|an insoluble solid formed when solutions react|white precipitate;coloured precipitate||A precipitate can identify ions in solution.
+filtration|过滤|separating an insoluble solid from a liquid using a filter|filter paper;filtrate||Wash and dry the residue when a pure solid is needed.
+recrystallisation|重结晶|purifying a solid by dissolving it hot and crystallising it on cooling|recrystallise product;pure crystals||Impurities remain in solution while crystals form.
+chromatography|色谱|a separation technique based on different affinities for stationary and mobile phases|paper chromatography;TLC||Components move different distances because of different solubilities or attractions.
+retention factor|保留因子|ratio of distance moved by a spot to distance moved by the solvent front|Rf value;chromatogram|Rf = distance spot / distance solvent front|Rf values help identify substances under the same conditions.
+standard solution|标准溶液|a solution with an accurately known concentration|prepare standard solution;volumetric flask||Use a volumetric flask and known mass to prepare it accurately.
+concordant titre|一致滴定读数|titre values close enough to be averaged in titration|concordant results;mean titre||Use concordant titres rather than all rough readings.
+indicator|指示剂|a substance that changes colour over a narrow pH range|acid-base indicator;endpoint||Choose an indicator whose colour change matches the equivalence region.
+endpoint|滴定终点|the point in a titration where the indicator changes colour|titration endpoint;sharp endpoint||The endpoint estimates the equivalence point.
+systematic error|系统误差|a consistent measurement error that shifts results in one direction|calibration error;zero error||Systematic errors affect accuracy and are not reduced by repeats.
+random error|随机误差|unpredictable variation between repeated measurements|scatter in readings;repeat measurements||Repeats and averaging reduce random error.
+percentage error|百分误差|measurement uncertainty expressed as a percentage of a measured value|percentage uncertainty;percentage error|percentage error = uncertainty / value × 100|Small measured values can produce large percentage errors.
+anhydrous|无水的|containing no water|anhydrous salt;dry solid||Heating hydrated salts can produce anhydrous salts.
+hydrated salt|水合盐|a crystalline salt containing water of crystallisation|hydrated copper sulfate;water of crystallisation||Mass loss on heating can determine the water of crystallisation.
+    `),
+  },
+  {
+    subject: "economics", topic: "market-structures-and-labour", label: "Economics: Markets, Firms & Labour",
+    note: "用于企业目标、市场结构、成本收益、劳动市场和政府干预题。",
+    example: "Use {word} to analyse the behaviour of firms, workers, or consumers.",
+    translation: "用{meaning}分析企业、劳动者或消费者行为。",
+    terms: parseTerms(`
+perfect competition|完全竞争|a market structure with many firms homogeneous products and no barriers to entry|perfectly competitive market;price taker||Firms are price takers and earn normal profit in the long run.
+monopolistic competition|垄断竞争|a market structure with many firms differentiated products and low barriers to entry|product differentiation;brand loyalty||Firms have some price-setting power because products are differentiated.
+oligopoly|寡头垄断|a market dominated by a few interdependent firms|oligopoly market;interdependence||Firms must consider rivals' reactions.
+collusion|串谋|agreement between firms to restrict competition or raise prices|tacit collusion;cartel||Collusion may increase producer surplus but reduce consumer welfare.
+price discrimination|价格歧视|charging different prices to different consumers for the same product|third-degree price discrimination;consumer groups||Firms need market power and ability to separate markets.
+barrier to entry|进入壁垒|a factor that makes it difficult for new firms to enter a market|high barriers to entry;legal barrier||Barriers protect incumbent firms' market power.
+economies of scale|规模经济|falling average cost as output increases|internal economies of scale;bulk buying||Economies of scale can create lower prices or higher profit margins.
+diseconomies of scale|规模不经济|rising average cost when a firm becomes too large|coordination problems;communication issues||Large firms may become inefficient beyond an optimal scale.
+average cost|平均成本|total cost per unit of output|average cost curve;unit cost|AC = TC / Q|Compare AC with price to judge profit per unit.
+marginal cost|边际成本|the extra cost of producing one more unit|marginal cost curve;MC|MC = ΔTC / ΔQ|Profit maximisation often occurs where MC equals MR.
+marginal revenue|边际收益|the extra revenue from selling one more unit|MR curve;marginal revenue|MR = ΔTR / ΔQ|MR can be below price when firms lower price to sell more.
+normal profit|正常利润|the minimum profit needed to keep resources in their current use|normal profit;opportunity cost||Normal profit is included in economic cost.
+supernormal profit|超额利润|profit above normal profit|abnormal profit;supernormal profit||Persistent supernormal profit often needs barriers to entry.
+derived demand|派生需求|demand for a factor of production caused by demand for the final product|derived labour demand;factor demand||Demand for labour depends on demand for the goods produced.
+minimum wage|最低工资|a legal wage floor below which workers cannot be paid|national minimum wage;wage floor||A minimum wage can raise incomes but may create unemployment if above equilibrium.
+labour productivity|劳动生产率|output per worker or per hour worked|productivity growth;worker productivity|labour productivity = output / labour input|Higher productivity lowers unit labour cost.
+trade union|工会|an organisation representing workers in wage and working-condition negotiations|trade union power;collective bargaining||Trade unions can increase worker bargaining power.
+income inequality|收入不平等|uneven distribution of income among households or individuals|income distribution;Gini coefficient||Inequality can affect incentives fairness and consumption.
+poverty trap|贫困陷阱|a situation where low income makes it difficult to escape poverty|welfare dependency;low-income trap||High withdrawal of benefits can reduce incentives to work.
+    `),
+  },
+  {
+    subject: "economics", topic: "macro-policy-and-trade", label: "Economics: Macro Policy & Trade",
+    note: "用于宏观目标、政策工具、国际贸易、汇率和发展经济题。",
+    example: "Explain how {word} affects inflation, growth, employment, or trade.",
+    translation: "解释{meaning}如何影响通胀、增长、就业或贸易。",
+    terms: parseTerms(`
+aggregate supply|总供给|total output firms are willing and able to produce at different price levels|SRAS curve;LRAS curve||Short-run and long-run aggregate supply respond to different factors.
+output gap|产出缺口|the difference between actual output and potential output|positive output gap;negative output gap||A positive output gap can create inflationary pressure.
+multiplier effect|乘数效应|a larger final change in national income caused by an initial injection|fiscal multiplier;multiplier process|k = 1 / (1 - MPC)|The multiplier depends on leakages from the circular flow.
+marginal propensity to consume|边际消费倾向|the proportion of extra income spent on consumption|MPC value;consumption function|MPC = ΔC / ΔY|A higher MPC makes the multiplier larger.
+current account|经常账户|the balance of trade in goods services income and transfers|current account deficit;current account surplus||A deficit may be financed by financial inflows.
+protectionism|贸易保护主义|government policies that restrict imports to protect domestic producers|tariff;quota;protectionist policy||Protectionism protects jobs but can raise consumer prices.
+tariff|关税|a tax on imported goods|import tariff;tariff revenue||A tariff raises import prices and may reduce import quantity.
+quota|配额|a physical limit on the quantity of imports allowed|import quota;quota restriction||A quota restricts supply and can raise domestic prices.
+exchange-rate depreciation|汇率贬值|a fall in the value of a currency in a floating exchange-rate system|currency depreciation;weaker currency||Depreciation can improve export competitiveness but raise import costs.
+exchange-rate appreciation|汇率升值|a rise in the value of a currency in a floating exchange-rate system|currency appreciation;stronger currency||Appreciation can reduce import prices but make exports less competitive.
+terms of trade|贸易条件|the ratio of export prices to import prices|terms-of-trade index;export prices|terms of trade = export price index / import price index × 100|An improvement means exports buy more imports.
+balance of payments|国际收支|a record of transactions between residents of one country and the rest of the world|balance of payments;external balance||It includes current financial and capital accounts.
+automatic stabiliser|自动稳定器|fiscal mechanisms that reduce economic fluctuations without new policy decisions|progressive tax;welfare payments||Tax receipts and welfare spending change automatically with income.
+budget surplus|预算盈余|government revenue greater than government spending|fiscal surplus;government budget||A surplus can reduce public debt but may lower aggregate demand.
+public debt|公共债务|the accumulated stock of government borrowing|national debt;debt interest||Debt sustainability depends on interest rates growth and fiscal balance.
+supply-side policy|供给侧政策|policy designed to increase productive capacity and improve market efficiency|training policy;deregulation||Supply-side policy shifts LRAS or improves productivity.
+crowding out|挤出效应|reduced private-sector spending caused by higher government borrowing or interest rates|crowding-out effect;private investment||It can weaken the impact of expansionary fiscal policy.
+Phillips curve|菲利普斯曲线|a model showing a possible short-run trade-off between inflation and unemployment|short-run Phillips curve;trade-off||Expectations can shift the Phillips curve.
+human development index|人类发展指数|a composite measure of development using income education and health indicators|HDI ranking;development indicator||HDI is broader than GDP per capita.
+    `),
+  },
+  {
+    subject: "chemistry", topic: "chemistry-question-sentences", label: "Chemistry: Question Sentences",
+    type: "phrase",
+    note: "用于化学题干句子理解：先翻译任务动词，再判断计算、解释、实验或评价要求。",
+    example: "{word}",
+    translation: "{meaning}",
+    terms: parseTerms(`
+Calculate the percentage yield of the reaction.|计算该反应的百分产率。|Use actual yield divided by theoretical yield then multiply by 100.|percentage yield question|percentage yield = actual / theoretical × 100|Do not use the mass of a limiting reagent as the actual yield.
+Use the balanced equation to find the amount of product formed.|利用配平方程式求生成物的物质的量。|Convert given quantities to moles and use the stoichiometric ratio.|mole-ratio question||The coefficients in the balanced equation give the mole ratio.
+Explain why the rate increases when temperature is raised.|解释为什么升高温度会使反应速率增加。|Link higher kinetic energy to more frequent successful collisions.|rate explanation||Mention activation energy and successful collisions.
+Predict the effect of increasing pressure on the equilibrium position.|预测增大压强对平衡位置的影响。|Apply Le Chatelier's principle and compare gas mole numbers.|equilibrium shift||The system shifts toward fewer gas molecules.
+Identify the functional group responsible for the reaction.|识别导致该反应的官能团。|Use the structure or test result to name the functional group.|functional-group question||Functional groups control characteristic reactions.
+Suggest how the purity of the product could be improved.|提出如何提高产物纯度。|Name a purification method and link it to the impurity.|practical improvement||Use recrystallisation distillation or washing only when appropriate.
+    `),
+  },
+  {
+    subject: "economics", topic: "economics-question-sentences", label: "Economics: Question Sentences",
+    type: "phrase",
+    note: "用于经济题干句子理解：区分 define、explain、analyse、evaluate，并把图形变化和文字结论连接起来。",
+    example: "{word}",
+    translation: "{meaning}",
+    terms: parseTerms(`
+Evaluate whether a subsidy would improve market outcomes.|评价补贴是否会改善市场结果。|Consider lower prices higher output government cost and possible inefficiency.|subsidy evaluation||Evaluation needs both benefit and limitation.
+Explain how a fall in interest rates may affect aggregate demand.|解释利率下降如何影响总需求。|Link lower borrowing cost to consumption investment and AD.|monetary-policy chain|AD = C + I + G + (X - M)|Use a cause-and-effect chain.
+Analyse the impact of a tariff on consumers and producers.|分析关税对消费者和生产者的影响。|Use price quantity consumer surplus producer surplus and government revenue.|tariff diagram||Separate domestic producers from consumers.
+Discuss whether economic growth always increases living standards.|讨论经济增长是否总会提高生活水平。|Balance higher income and jobs against inequality environment and inflation.|growth evaluation||Use real GDP plus non-income indicators.
+Using a diagram, show the effect of an increase in demand.|用图像表示需求增加的影响。|Shift the demand curve right and explain new equilibrium price and quantity.|demand diagram||Do not move along the curve when demand itself changes.
+Explain why price elasticity matters for total revenue.|解释为什么价格弹性会影响总收益。|Connect percentage quantity response to price change and revenue.|elasticity revenue|TR = P × Q|Elastic demand and inelastic demand have different revenue effects.
+    `),
+  },
+];
+
+groups.push(...supplementalGroups);
+
+groups.push({
+  subject: "economics", topic: "extra-market-terms", label: "Economics: Extra Market Terms",
+  note: "用于供给弹性、价格管制、效率和消费者选择题。",
+  example: "Use {word} to explain the market mechanism or policy outcome.",
+  translation: "用{meaning}解释市场机制或政策结果。",
+  terms: parseTerms(`
+elasticity of supply|供给弹性|the responsiveness of quantity supplied to a change in price|PES;price elasticity of supply|PES = %ΔQs / %ΔP|A more elastic supply responds more strongly to price changes.
+price floor|价格下限|a minimum legal price set above the market equilibrium price|minimum price;support price||A price floor can create excess supply if it is set too high.
+price ceiling|价格上限|a maximum legal price set below the market equilibrium price|rent ceiling;maximum price||A price ceiling can create shortages if it is set too low.
+minimum efficient scale|最低效率规模|the output level at which a firm first achieves minimum average cost|MES;efficient scale||A lower MES can increase competition in the market.
+consumer sovereignty|消费者主权|the idea that consumers determine what goods and services are produced|consumer choice;consumer power||When consumer sovereignty is strong, firms respond to demand signals.
+  `),
+});
+
 const commandRows = [
   ["state", "陈述；写出", "give a concise fact or result without explanation", "State the value of the current.", "写出电流的数值。"],
   ["define", "定义", "give the precise meaning of a term", "Define electric potential at a point.", "定义某一点的电势。"],
@@ -814,15 +1006,47 @@ const phraseRows = [
 
 const itemOverrides = {
   "physics-measurement-and-practical-vector": {
+    meaning: "向量",
+    definition: "a quantity with both magnitude and direction",
+    example: "State the vector represented by the force diagram and explain its direction.",
     knowledgePoint: "A vector has both magnitude and direction; draw or state the direction as well as the size.",
   },
   "mathematics-trigonometry-and-vectors-vector": {
+    meaning: "向量",
+    definition: "a quantity with magnitude and direction that can be resolved into components",
     formula: "|v| = sqrt(x^2 + y^2) for a 2D vector (x, y)",
     knowledgePoint: "A vector is a quantity with magnitude and direction. In coordinate form, use components to calculate magnitude and direction.",
+    example: "Find the magnitude of the vector and state how its components are used.",
   },
   "mathematics-trigonometry-and-vectors-scalar-product": {
     formula: "a · b = |a||b|cos(theta)",
     knowledgePoint: "Use the scalar product to find angles or prove vectors are perpendicular.",
+  },
+  "mathematics-algebra-and-functions-remainder-theorem": {
+    definition: "for a polynomial f(x), the remainder on division by x - a is f(a)",
+    formula: "remainder = f(a)",
+    knowledgePoint: "Substitute x = a to find the remainder quickly, then use the factor theorem if the remainder is zero.",
+    example: "Use the remainder theorem to find the remainder when f(x) is divided by x - 2.",
+  },
+  "mathematics-algebra-and-functions-factor-theorem": {
+    definition: "if f(a) = 0 then x - a is a factor of the polynomial",
+    formula: "f(a) = 0",
+    knowledgePoint: "The factor theorem links roots and factors; use it after testing a value.",
+    example: "Use the factor theorem to show that x - 3 is a factor of the polynomial.",
+  },
+  "mathematics-algebra-and-functions-quadratic-formula": {
+    meaning: "二次公式",
+    definition: "a formula used to solve quadratic equations",
+    formula: "x = (-b ± sqrt(b^2 - 4ac)) / 2a",
+    knowledgePoint: "Use the discriminant to judge the number of roots before calculating.",
+    example: "Use the quadratic formula to find the exact roots of the equation.",
+  },
+  "mathematics-algebra-and-functions-discriminant": {
+    meaning: "判别式",
+    definition: "the expression b^2 - 4ac used to determine the nature of quadratic roots",
+    formula: "Δ = b^2 - 4ac",
+    knowledgePoint: "A positive discriminant gives two real roots; zero gives one repeated root; negative gives no real roots.",
+    example: "Find the discriminant and determine how many real roots the equation has.",
   },
   "physics-mechanics-velocity": {
     formula: "v = displacement / time",
@@ -842,6 +1066,39 @@ const itemOverrides = {
   },
 };
 
+function resolveTermField(term, override, field) {
+  if (override && Object.prototype.hasOwnProperty.call(override, field) && override[field] !== undefined && override[field] !== "") {
+    return override[field];
+  }
+  if (term && Object.prototype.hasOwnProperty.call(term, field) && term[field] !== undefined && term[field] !== "") {
+    return term[field];
+  }
+  return "";
+}
+
+function buildTermExample(group, term, override) {
+  if (override?.example) return override.example;
+  if (group.subject === "physics") return `Use ${term.word} to explain or calculate the quantity asked for in the question.`;
+  if (group.subject === "chemistry") return `Use ${term.word} to explain the reaction, test, or calculation in the question.`;
+  if (group.subject === "economics") return `Use ${term.word} to analyse the market outcome or policy effect in the question.`;
+  return `Use ${term.word} in the context of the question and state the result clearly.`;
+}
+
+function buildTermTranslation(group, term, override) {
+  if (override?.translation) return override.translation;
+  return `根据题目语境理解 ${term.meaning}，并把它和 ${group.label} 的计算或解释要求对应起来。`;
+}
+
+function buildTermNote(group, term, override) {
+  if (override?.cn) return override.cn;
+  const detail = [
+    `把 ${term.word} 理解为「${term.meaning}」`,
+    term.definition ? `定义是：${term.definition}` : "",
+    override?.knowledgePoint || term.knowledgePoint ? `关键点：${override?.knowledgePoint || term.knowledgePoint}` : "",
+  ].filter(Boolean).join("；");
+  return `${detail}。`;
+}
+
 const items = [];
 for (const group of groups) {
   for (const term of group.terms) {
@@ -852,16 +1109,16 @@ for (const group of groups) {
       subject: group.subject,
       topic: group.topic,
       topicLabel: group.label,
-      type: "term",
+      type: group.type || "term",
       word: term.word,
       phonetic: "",
-      meaning: term.meaning,
-      definition: term.definition,
-      cn: group.note,
-      example: group.example.replaceAll("{word}", term.word).replaceAll("{meaning}", term.meaning),
-      translation: group.translation.replaceAll("{word}", term.word).replaceAll("{meaning}", term.meaning),
-      formula: term.formula || override.formula || "",
-      knowledgePoint: term.knowledgePoint || override.knowledgePoint || "",
+      meaning: resolveTermField(term, override, "meaning") || term.meaning,
+      definition: resolveTermField(term, override, "definition") || term.definition,
+      cn: buildTermNote(group, term, override),
+      example: buildTermExample(group, term, override),
+      translation: buildTermTranslation(group, term, override),
+      formula: resolveTermField(term, override, "formula") || "",
+      knowledgePoint: resolveTermField(term, override, "knowledgePoint") || "",
       collocations: term.collocations,
     });
   }

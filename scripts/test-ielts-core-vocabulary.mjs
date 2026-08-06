@@ -7,7 +7,7 @@ const html = await readFile(new URL("../public/index.html", import.meta.url), "u
 
 assert.equal(catalog.schemaVersion, "ielts-core-vocabulary.v1");
 assert.equal(catalog.itemCount, catalog.items.length);
-assert.ok(catalog.items.length >= 180, "The IELTS Core catalog must be a large 180+ item deck");
+assert.ok(catalog.items.length >= 300, "The IELTS Core catalog must be a large 300+ item deck");
 
 const ids = new Set();
 const typeCounts = {};
@@ -22,9 +22,9 @@ for (const item of catalog.items) {
   typeCounts[item.type] = (typeCounts[item.type] || 0) + 1;
 }
 
-assert.ok(typeCounts.term >= 120, "IELTS Core should still be mostly term-based");
+assert.ok(typeCounts.term >= 220, "IELTS Core should still be mostly term-based");
 assert.ok(typeCounts.command >= 15, "IELTS Core should include command words");
-assert.ok(typeCounts.phrase >= 15, "IELTS Core should include exam phrases");
+assert.ok(typeCounts.phrase >= 40, "IELTS Core should include exam phrases");
 
 for (const expected of [
   "significant",
@@ -37,12 +37,16 @@ for (const expected of [
   "interpret",
   "analyse",
   "on the other hand",
+  "community",
+  "traffic congestion",
+  "curriculum",
+  "indicate",
 ]) {
   assert.ok(catalog.items.some((item) => item.word === expected), `Missing representative entry: ${expected}`);
 }
 
 assert.match(app, /ensureIeltsCoreVocabularyLoaded/);
 assert.match(app, /\/data\/ielts-core-vocabulary\.json/);
-assert.match(html, /20260806-vocabulary-term-import-v2/);
+assert.match(html, /20260806-vocabulary-structure-v3/);
 
 console.log(`IELTS Core vocabulary checks passed: ${catalog.items.length} items.`);

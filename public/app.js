@@ -3562,7 +3562,7 @@ function saveCoreVocabularyKnown() {
 
 async function ensureIeltsCoreVocabularyLoaded() {
   if (ieltsCoreVocabularyLoadPromise) return ieltsCoreVocabularyLoadPromise;
-  ieltsCoreVocabularyLoadPromise = fetch("/data/ielts-core-vocabulary.json?v=20260806-1", { cache: "no-cache" })
+  ieltsCoreVocabularyLoadPromise = fetch("/data/ielts-core-vocabulary.json?v=20260806-2", { cache: "no-cache" })
     .then(async (response) => {
       if (!response.ok) throw new Error(`Vocabulary catalog returned ${response.status}`);
       const payload = await response.json();
@@ -3622,9 +3622,9 @@ function vocabularyTypeLabel(type) {
 }
 
 function vocabularyExampleLabel(item) {
-  if (item?.type === "phrase") return "Question sentence";
-  if (item?.subject && item.subject !== "ielts") return "Exam sentence";
-  return "Example sentence";
+  if (item?.type === "phrase") return "Question sentence / 题目句";
+  if (item?.subject && item.subject !== "ielts") return "Exam sentence / 题目句";
+  return "Example sentence / 例句";
 }
 
 function filteredCoreVocabulary() {
@@ -3647,7 +3647,7 @@ async function ensureAlevelVocabularyLoaded() {
   if (alevelVocabularyLoadPromise) return alevelVocabularyLoadPromise;
   state.vocabularyReview.loading = true;
   state.vocabularyReview.error = "";
-  alevelVocabularyLoadPromise = fetch("/data/alevel-stem-vocabulary.json?v=20260806-1", { cache: "no-cache" })
+  alevelVocabularyLoadPromise = fetch("/data/alevel-stem-vocabulary.json?v=20260806-2", { cache: "no-cache" })
     .then(async (response) => {
       if (!response.ok) throw new Error(`Vocabulary catalog returned ${response.status}`);
       const payload = await response.json();

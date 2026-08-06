@@ -387,6 +387,175 @@ lead to|导致|to cause something to happen or develop|lead to problems;lead to 
   },
 ];
 
+const supplementalGroups = [
+  {
+    topic: "society-work",
+    label: "Society & Work",
+    type: "term",
+    note: "用于社会、工作、职业、家庭和社区类写作与阅读。",
+    example: "IELTS writers can use {word} when discussing work, society, or public services.",
+    translation: "在谈论工作、社会或公共服务时，可以用 {meaning}。",
+    terms: parseTerms(`
+community|社区|a group of people living in the same area or having shared interests|community support;local community
+employment|就业|the state of having paid work|full-time employment;employment rate
+unemployment|失业|the state of wanting work but being unable to find it|youth unemployment;unemployment benefit
+productivity|生产率|output produced per unit of input, often per worker or per hour|labour productivity;productivity growth
+workforce|劳动力|all the people who are available for work in a country or company|skilled workforce;workforce development
+occupation|职业|a person's job or profession|future occupation;choose an occupation
+residents|居民|people who live in a particular place|local residents;city residents
+household|家庭|people living together and sharing a home|household income;single household
+inequality|不平等|an unfair difference in wealth opportunities or treatment|income inequality;social inequality
+fairness|公平|the quality of treating people in an equal and reasonable way|fairness in education;fairness debate
+citizenship|公民身份|the legal status and responsibilities of being a citizen|active citizenship;citizenship education
+responsibility|责任|a duty to do something or be accountable for it|social responsibility;personal responsibility
+volunteer|志愿者|a person who does work willingly without being paid|volunteer work;volunteer service
+charity|慈善机构|an organisation that helps people in need|charity donation;charity sector
+government service|政府服务|a public service provided by the state|government service;public service
+    `),
+  },
+  {
+    topic: "city-environment",
+    label: "Cities & Environment",
+    type: "term",
+    note: "用于城市化、交通、住房、环境和可持续发展话题。",
+    example: "A strong IELTS answer can use {word} to explain city problems or environmental change.",
+    translation: "优秀雅思答案可以用 {meaning} 来解释城市问题或环境变化。",
+    terms: parseTerms(`
+urbanisation|城市化|the increase in the proportion of people living in towns and cities|rapid urbanisation;urban population
+traffic congestion|交通拥堵|a situation where vehicles move slowly because too many are on the road|congestion charge;traffic problem
+public transport|公共交通|buses trains and other transport available for everyone to use|public transport network;improve public transport
+housing|住房|homes or accommodation for people to live in|affordable housing;housing shortage
+affordable|负担得起的|cheap enough for people to pay for without serious difficulty|affordable rent;affordable housing
+infrastructure|基础设施|basic systems and facilities such as roads power and water|transport infrastructure;digital infrastructure
+emissions|排放|gas or other substances released into the air|carbon emissions;reduce emissions
+renewable energy|可再生能源|energy from sources that are naturally replenished|renewable-energy project;renewable power
+waste management|废弃物管理|the collection treatment and disposal of waste|waste-management policy;waste sorting
+recycling|回收利用|processing waste so materials can be used again|recycling rate;recycling system
+conservation|保护|the protection of nature resources or buildings|conservation area;wildlife conservation
+pollution|污染|harmful substances or noise added to the environment|air pollution;water pollution
+climate change|气候变化|long-term change in temperature and weather patterns|climate-change policy;climate action
+sustainable|可持续的|able to continue without causing long-term damage|sustainable development;sustainable city
+green space|绿色空间|an area of grass trees or gardens in a town or city|urban green space;public green space
+    `),
+  },
+  {
+    topic: "education-research",
+    label: "Education & Research",
+    type: "term",
+    note: "用于学校、大学、研究、技能和学习方法话题。",
+    example: "IELTS students should use {word} when writing about learning, universities, or research.",
+    translation: "雅思写作中谈到学习、大学或研究时可用 {meaning}。",
+    terms: parseTerms(`
+curriculum|课程设置|the subjects and content taught in a school or course|national curriculum;school curriculum
+qualification|资格证书|an official record showing training or ability|academic qualification;professional qualification
+assessment|评估|a way of judging knowledge progress or performance|continuous assessment;formal assessment
+literacy|读写能力|the ability to read and write effectively|digital literacy;basic literacy
+numeracy|数理能力|the ability to understand and use numbers|basic numeracy;numeracy skills
+scholarship|奖学金|money given to support a student's education|full scholarship;scholarship scheme
+research|研究|a careful study to discover new information|academic research;research findings
+experiment|实验|a scientific test used to investigate something|controlled experiment;experiment design
+data|数据|facts or figures used as evidence or for analysis|data analysis;raw data
+evidence|证据|information or facts that support a claim|strong evidence;supporting evidence
+analyse|分析|to examine something carefully in order to understand it|analyse trends;analyse results
+evaluate|评价|to judge the value or quality of something|evaluate options;critical evaluation
+compare|比较|to look at similarities and differences between things|compare methods;compare outcomes
+develop|发展|to grow or improve over time|develop skills;develop knowledge
+improve|改善|to make something better|improve performance;improve access
+    `),
+  },
+  {
+    topic: "health-media-culture",
+    label: "Health, Media & Culture",
+    type: "term",
+    note: "用于健康、生活方式、媒体、文化和社会影响话题。",
+    example: "A band 7+ answer often uses {word} to explain social change, health, or media influence.",
+    translation: "高分答案常用 {meaning} 来解释社会变化、健康或媒体影响。",
+    terms: parseTerms(`
+health|健康|the state of being physically and mentally well|public health;health care
+lifestyle|生活方式|the way a person lives including habits and activities|healthy lifestyle;modern lifestyle
+exercise|锻炼|physical activity done to improve fitness or health|regular exercise;exercise routine
+nutrition|营养|the process of getting the food needed for health and growth|balanced nutrition;nutrition advice
+stress|压力|mental tension caused by difficult or demanding situations|stress management;stress levels
+well-being|幸福感|the state of feeling comfortable healthy and happy|mental well-being;student well-being
+media|媒体|the main ways that information news or entertainment are shared|mass media;social media
+influence|影响|the power to affect a person or situation|influence behaviour;media influence
+tradition|传统|a belief custom or way of doing something passed down over time|local tradition;traditional values
+globalisation|全球化|the process by which the world becomes more connected|globalisation effect;global economy
+culture|文化|the beliefs customs arts and ways of life of a group|cultural identity;local culture
+identity|身份认同|the qualities beliefs or characteristics that make a person or group distinct|cultural identity;national identity
+attitude|态度|the way a person thinks feels or behaves toward something|positive attitude;public attitude
+perspective|观点|a particular way of thinking about something|global perspective;personal perspective
+    `),
+  },
+  {
+    topic: "academic-phrasing",
+    label: "Academic Phrases",
+    type: "phrase",
+    note: "用于写作和阅读中的高频学术句式。",
+    example: "{word}",
+    translation: "{meaning}",
+    terms: parseTerms(`
+in recent years|近年来|used to refer to the period close to the present|in recent years, many cities
+as a whole|总体上|used to refer to the entire group or system|the country as a whole
+it is widely believed that|人们普遍认为|used to introduce a common view|it is widely believed that education matters
+to a large extent|在很大程度上|used to show a strong degree|to a large extent, success depends on
+from this perspective|从这个角度看|used to present one way of viewing an issue|from this perspective, the policy works
+in comparison with|与……相比|used to compare one thing with another|in comparison with previous years
+as a consequence|因此|used to show a result or effect|as a consequence, costs rise
+in addition to|除……之外|used to add another point|in addition to cost, time matters
+for instance|例如|used to give an example|for instance, public transport can reduce traffic
+in the short term|在短期内|used to refer to an immediate period|in the short term, prices may rise
+in the long term|从长远看|used to refer to a later or extended period|in the long term, benefits are greater
+it follows that|由此可见|used to introduce a logical conclusion|it follows that the policy needs revision
+therefore|因此|used to show a logical result|therefore, the effect is limited
+moreover|此外|used to add an extra point|moreover, the evidence is strong
+however|然而|used to introduce a contrast|however, the costs are high
+    `),
+  },
+  {
+    topic: "academic-verbs",
+    label: "Academic Verbs",
+    type: "term",
+    note: "用于学术写作和阅读中的高频动词表达。",
+    example: "Students should use {word} precisely when discussing data, arguments, or trends.",
+    translation: "在讨论数据、论点或趋势时，要准确使用 {meaning}。",
+    terms: parseTerms(`
+indicate|表明|to show or suggest something|indicate a trend;indicate that
+demonstrate|证明；展示|to show clearly by explanation or evidence|demonstrate a link;demonstrate ability
+reveal|揭示|to make something known or visible|reveal a pattern;reveal differences
+suggest|暗示；表明|to show that something is likely without proving it fully|suggest a connection;suggest that
+support|支持|to give evidence for or help something|support an argument;support the claim
+oppose|反对|to disagree with or act against something|oppose a policy;oppose the proposal
+illustrate|举例说明|to explain or show using an example or picture|illustrate the point;illustrate the process
+compare|比较|to examine similarities and differences|compare results;compare two studies
+evaluate|评价|to assess the value or quality of something|evaluate the evidence;evaluate the options
+emphasise|强调|to give special importance to something|emphasise a point;emphasise the need
+    `),
+  },
+  {
+    topic: "evaluation-language",
+    label: "Evaluation Language",
+    type: "phrase",
+    note: "用于 Task 2 / Reading 讨论与评价类表达。",
+    example: "{word}",
+    translation: "{meaning}",
+    terms: parseTerms(`
+it can be argued that|可以认为|used to introduce a reasoned view|it can be argued that this helps
+to a certain extent|在一定程度上|used to show a limited degree of truth|to a certain extent it is effective
+this is partly because|部分原因是|used to explain a result without claiming it is the only cause|this is partly because of cost
+one possible explanation is that|一种可能的解释是|used to introduce a tentative explanation|one possible explanation is that demand rose
+the main advantage is that|主要优点是|used to highlight the strongest positive point|the main advantage is that it saves time
+the main drawback is that|主要缺点是|used to highlight the strongest negative point|the main drawback is that it is expensive
+in spite of this|尽管如此|used to introduce a contrast after a negative point|in spite of this, the policy succeeds
+as far as I am concerned|就我而言|used to present a personal judgement|as far as I am concerned, the plan is fair
+this trend is likely to continue|这一趋势可能会继续|used to make a forecast from evidence|this trend is likely to continue for several years
+overall, the evidence suggests|总体上，证据表明|used to summarise a conclusion|overall, the evidence suggests a mixed outcome
+    `),
+  },
+];
+
+groups.push(...supplementalGroups);
+
 const items = groups.flatMap((group) => group.terms.map((term) => ({
   id: `ielts-${group.topic}-${slug(term.word)}`,
   subject: "ielts",
