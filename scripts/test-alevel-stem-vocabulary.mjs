@@ -19,6 +19,7 @@ assert.ok(counts.physics >= 250, "Physics must retain at least 250 entries");
 assert.ok(counts.mathematics >= 180, "Mathematics must retain at least 180 entries");
 assert.ok(counts.chemistry >= 70, "Chemistry must include a useful A-Level term deck");
 assert.ok(counts.economics >= 70, "Economics must include a useful A-Level term deck");
+assert.ok(counts.biology >= 120, "Biology must include at least 120 A-Level terms");
 assert.ok(counts["exam-language"] >= 70, "Exam language must retain at least 70 entries");
 
 const ids = new Set();
@@ -46,7 +47,7 @@ for (const item of catalog.items) {
   assert.ok(Array.isArray(item.commonMistakes) && item.commonMistakes.length, `${item.id} needs structured common mistakes`);
 }
 
-const professionalItems = catalog.items.filter((item) => ["physics", "mathematics", "chemistry", "economics"].includes(item.subject));
+const professionalItems = catalog.items.filter((item) => ["physics", "mathematics", "chemistry", "economics", "biology"].includes(item.subject));
 assert.ok(professionalItems.some((item) => item.knowledgePoint), "Professional terms should include knowledge-point support");
 assert.ok(professionalItems.some((item) => item.formula), "Professional terms should include formula/equation support");
 assert.ok(professionalItems.every((item) => !/^Connect /.test(item.knowledgePoint)), "Professional knowledge points must not use the old filler template");
@@ -59,9 +60,12 @@ assert.ok(commandWords.length >= 25);
 assert.ok(questionSentences.length >= 50);
 assert.ok(questionSentences.every((item) => /[\u3400-\u9fff]/.test(item.translation)), "Question sentences need Chinese translations");
 
-for (const expected of ["displacement", "Young modulus", "Kirchhoff's second law", "binding energy per nucleon", "derivative", "conditional probability", "mole", "price elasticity of demand", "show that", "not drawn to scale"]) {
+for (const expected of ["displacement", "Young modulus", "Kirchhoff's second law", "binding energy per nucleon", "derivative", "conditional probability", "mole", "price elasticity of demand", "photosynthesis", "DNA", "homeostasis", "natural selection", "show that", "not drawn to scale"]) {
   assert.ok(catalog.items.some((item) => item.word === expected), `Missing representative entry: ${expected}`);
 }
+
+const biologyTopics = new Set(catalog.items.filter((item) => item.subject === "biology").map((item) => item.topic));
+assert.ok(biologyTopics.size >= 6, "Biology terms must remain separated into real A-Level topics");
 
 const mathVector = catalog.items.find((item) => item.id === "mathematics-trigonometry-and-vectors-vector");
 assert.ok(mathVector?.knowledgePoint?.includes("magnitude and direction"), "Vector must explain magnitude and direction");
@@ -112,4 +116,4 @@ assert.match(server, /Never claim that accounts, tokens, scores or progress sync
 assert.match(app, /vocabularyItemKey\(item\)/, "Known progress must use stable item keys");
 assert.match(html, /700\+ A-Level Mathematics, Physics, Chemistry, Economics and exam-language entries/);
 
-console.log(`A-Level STEM vocabulary checks passed: ${catalog.items.length} items (${counts.physics} Physics, ${counts.mathematics} Mathematics, ${counts.chemistry} Chemistry, ${counts.economics} Economics, ${counts["exam-language"]} exam-language).`);
+console.log(`A-Level STEM vocabulary checks passed: ${catalog.items.length} items (${counts.physics} Physics, ${counts.mathematics} Mathematics, ${counts.chemistry} Chemistry, ${counts.economics} Economics, ${counts.biology} Biology, ${counts["exam-language"]} exam-language).`);

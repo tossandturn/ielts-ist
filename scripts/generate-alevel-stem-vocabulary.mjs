@@ -209,6 +209,42 @@ const topicStudyGuides = {
     examFocus: "常见考法是把市场行为与效率、公平、创新、就业或监管效果联系起来，并结合行业材料评价。",
     commonMistake: "只描述企业行为，没有解释它为何发生以及对消费者、竞争者和社会福利的影响。",
   },
+  "biology:cell-biology": {
+    concept: "细胞生物学要把结构、膜运输、细胞周期和显微证据联系起来；解释结构时必须说明它如何支持功能。",
+    steps: ["先确定结构或过程发生在细胞的哪一部分", "写出跨膜运输或细胞周期的方向、能量和条件", "把显微图、实验变量或数据与机制对应", "检查专有名词、比例尺、单位和结论范围"],
+    examFocus: "常见考法是比较细胞结构、解释膜运输、计算放大率或分析有丝分裂图像。",
+    commonMistake: "只背结构名称，不解释结构与功能的因果关系，或把 diffusion、osmosis 和 active transport 混为一谈。",
+  },
+  "biology:biological-molecules-and-enzymes": {
+    concept: "生物分子题要从单体、键、结构和性质出发，连接到酶的特异性、反应速率和实验数据。",
+    steps: ["识别分子单体、键型和可检验的官能团", "判断题目问的是结构、反应还是生物学功能", "用锁钥/诱导契合和碰撞解释酶速率", "用对照、重复、异常值和限制因素评价数据"],
+    examFocus: "常见考法是食物测试、缩合/水解、酶活性曲线和温度或 pH 对速率的影响。",
+    commonMistake: "把 enzyme denaturation 说成只是暂时失活，或只描述曲线形状而不解释 active site 和碰撞频率。",
+  },
+  "biology:exchange-and-transport": {
+    concept: "交换与运输题的核心是浓度梯度、表面积、距离、流速和专门化结构之间的关系。",
+    steps: ["圈出交换物质、方向、梯度和组织位置", "比较表面积、扩散距离、供血或通气条件", "选择 diffusion、facilitated diffusion、osmosis 或 active transport", "用数据和结构证据说明交换速率是否足够"],
+    examFocus: "常见考法是肺泡、鱼鳃、根毛、木质部/韧皮部和心血管系统的结构功能解释。",
+    commonMistake: "把水势梯度写成溶质浓度梯度，或忘记 active transport 需要 ATP 和载体蛋白。",
+  },
+  "biology:genetics-and-evolution": {
+    concept: "遗传与进化必须区分 DNA、gene、allele、genotype 和 phenotype，并把分离、变异、选择与群体频率变化串成证据链。",
+    steps: ["定义等位基因、基因型、表型和显隐性关系", "画遗传图或写概率，明确亲本和配子", "区分 mutation 产生变异与 natural selection 改变频率", "用样本、统计检验和环境条件评价进化结论"],
+    examFocus: "常见考法是遗传图、卡方检验、DNA 复制/表达、突变和抗药性进化。",
+    commonMistake: "把个体在一生中获得的特征当成遗传进化，或把 dominant 误写成常见/更强。",
+  },
+  "biology:energy-and-ecosystems": {
+    concept: "能量与生态题要追踪光能、化学能、营养级、生产量和物质循环，说明能量为何沿食物链逐级减少。",
+    steps: ["确定营养级、能量输入和研究时间/面积", "区分 biomass、productivity、energy transfer 和 nutrient pool", "用食物网、金字塔或循环图写出传递路径", "评价采样方法、可持续性和人类干预的限制"],
+    examFocus: "常见考法是光合作用、生产量计算、食物链能量损失、碳循环和种群调查。",
+    commonMistake: "把能量循环和元素循环混为一谈，或认为金字塔每一级的所有能量都传给下一级。",
+  },
+  "biology:homeostasis-and-immunity": {
+    concept: "稳态与免疫题要写清刺激、受体、协调中心、效应器和负反馈，免疫题还要区分抗原、抗体和记忆细胞。",
+    steps: ["找出变量、正常范围和偏离方向", "按 stimulus-receptor-coordinator-effector 写反馈链", "区分 hormonal 与 nervous coordination 的速度和持续时间", "解释抗体特异性、克隆选择、疫苗和二次免疫反应"],
+    examFocus: "常见考法是血糖、体温、水势、神经传导、激素和疫苗免疫曲线。",
+    commonMistake: "把 negative feedback 写成不断放大偏差，或把 vaccine 的抗体直接当作长期免疫记忆。",
+  },
 };
 
 const subjectStudyGuides = {
@@ -216,6 +252,7 @@ const subjectStudyGuides = {
   mathematics: topicStudyGuides["mathematics:algebra-and-functions"],
   chemistry: topicStudyGuides["chemistry:bonding-reactions"],
   economics: topicStudyGuides["economics:microeconomics"],
+  biology: topicStudyGuides["biology:cell-biology"],
 };
 
 function studyGuideFor(group) {
@@ -1117,6 +1154,193 @@ consumer sovereignty|消费者主权|the idea that consumers determine what good
   `),
 });
 
+const biologyGroups = [
+  {
+    subject: "biology", topic: "cell-biology", label: "Biology: Cell Biology",
+    note: "用于细胞结构、膜运输、细胞周期、显微技术和细胞分化题。",
+    example: "Explain how the structure of {word} allows it to carry out its function.",
+    translation: "解释{meaning}的结构如何支持其功能。",
+    terms: parseTerms(`
+cell theory|细胞学说|the theory that cells are the basic units of living organisms|cell theory;cell biology||All living organisms are made of one or more cells.
+prokaryotic cell|原核细胞|a cell without a membrane-bound nucleus or membrane-bound organelles|prokaryotic organism;bacterial cell||Prokaryotes contain a circular DNA molecule and 70S ribosomes.
+eukaryotic cell|真核细胞|a cell containing a membrane-bound nucleus and membrane-bound organelles|eukaryotic organism;eukaryotic cell||Eukaryotic cells compartmentalise reactions in organelles.
+nucleus|细胞核|an organelle containing chromosomes and controlling gene expression|nuclear envelope;nucleolus||The nucleus contains DNA associated with histone proteins.
+mitochondrion|线粒体|an organelle where aerobic respiration produces ATP|mitochondrial matrix;cristae||Cristae provide a large surface area for aerobic respiration.
+chloroplast|叶绿体|an organelle where photosynthesis converts light energy into chemical energy|chloroplast envelope;thylakoid||Thylakoid membranes contain chlorophyll and electron carriers.
+ribosome|核糖体|a site where amino acids are assembled into a polypeptide|80S ribosome;70S ribosome||Ribosomes translate mRNA codons into an amino-acid sequence.
+rough endoplasmic reticulum|粗面内质网|a membrane network covered with ribosomes that synthesises and transports proteins|rough ER;protein synthesis||Rough ER is continuous with the nuclear envelope.
+Golgi apparatus|高尔基体|an organelle that modifies sorts and packages proteins into vesicles|Golgi vesicle;protein secretion||The Golgi apparatus modifies proteins before secretion.
+lysosome|溶酶体|a vesicle containing hydrolytic enzymes for intracellular digestion|lysosomal enzyme;phagolysosome||Lysosomes digest pathogens and worn-out organelles.
+cell surface membrane|细胞表面膜|a selectively permeable phospholipid bilayer controlling exchange with the surroundings|plasma membrane;cell membrane||Membrane proteins enable transport and cell signalling.
+phospholipid bilayer|磷脂双分子层|two layers of phospholipids forming the basic structure of a cell membrane|hydrophilic head;hydrophobic tail||The hydrophobic core restricts passage of charged particles.
+fluid mosaic model|流动镶嵌模型|a model describing a flexible bilayer with proteins moving within it|membrane protein;fluid mosaic||The membrane is fluid because phospholipids and some proteins can move laterally.
+diffusion|扩散|net movement of particles from higher to lower concentration due to random motion|concentration gradient;simple diffusion||Diffusion is passive and does not require ATP.
+facilitated diffusion|协助扩散|passive movement down a concentration gradient through channel or carrier proteins|channel protein;carrier protein||Facilitated diffusion is limited by the number of membrane proteins.
+osmosis|渗透|net movement of water through a partially permeable membrane from higher to lower water potential|water potential;partially permeable membrane||Water enters a plant cell when the cell solution has lower water potential.
+active transport|主动运输|movement of a substance against its concentration gradient using ATP and a membrane protein|carrier protein;ATP-driven transport||Active transport can maintain a concentration gradient.
+cell cycle|细胞周期|the sequence of growth DNA replication and division in a cell|cell-cycle checkpoint;cell division||The cell cycle includes interphase and mitosis followed by cytokinesis.
+mitosis|有丝分裂|nuclear division producing two genetically identical daughter nuclei|mitotic division;daughter cell||Mitosis preserves chromosome number for growth and repair.
+meiosis|减数分裂|two divisions producing four genetically different haploid cells|meiotic division;haploid gamete||Meiosis halves chromosome number and creates genetic variation.
+stem cell|干细胞|an undifferentiated cell capable of self-renewal and differentiation|embryonic stem cell;adult stem cell||Stem cells can replace specialised cells under suitable conditions.
+cell differentiation|细胞分化|the process by which a cell develops specialised structures and functions|specialised cell;gene expression||Differentiation results from selective gene expression rather than loss of genes.
+    `),
+  },
+  {
+    subject: "biology", topic: "biological-molecules-and-enzymes", label: "Biology: Molecules & Enzymes",
+    note: "用于碳水化合物、脂质、蛋白质、核酸和酶实验题。",
+    example: "Use the properties of {word} to explain the result of the biological test or reaction.",
+    translation: "利用{meaning}的性质解释生物测试或反应结果。",
+    terms: parseTerms(`
+monomer|单体|a small molecule that can join with others to form a polymer|monomer unit;polymer||Monomers are linked by condensation reactions.
+polymer|聚合物|a large molecule made from many repeating monomer units|polymer chain;biopolymer||Polymers can be hydrolysed into their monomers.
+carbohydrate|碳水化合物|an organic molecule containing carbon hydrogen and oxygen used for energy or structure|simple carbohydrate;complex carbohydrate||Carbohydrates include sugars starch and cellulose.
+monosaccharide|单糖|a single sugar molecule that cannot be hydrolysed into a smaller carbohydrate|glucose;monosaccharide||Glucose is a soluble respiratory substrate.
+disaccharide|二糖|a sugar formed when two monosaccharides join by condensation|maltose;sucrose||A glycosidic bond forms when water is removed.
+polysaccharide|多糖|a carbohydrate polymer made from many monosaccharides|starch;glycogen;cellulose||Starch is compact and insoluble, making it suitable for storage.
+glycosidic bond|糖苷键|a covalent bond linking monosaccharides in a carbohydrate|condensation reaction;hydrolysis||Hydrolysis breaks a glycosidic bond by adding water.
+starch|淀粉|a plant storage polysaccharide made from alpha-glucose|amylose;amylopectin||Starch is detected by iodine solution turning blue-black.
+glycogen|糖原|a highly branched storage polysaccharide made from alpha-glucose in animals|glycogen granule;animal storage||Branching allows rapid hydrolysis of glycogen.
+cellulose|纤维素|an unbranched polymer of beta-glucose forming plant cell walls|cellulose microfibril;plant cell wall||Hydrogen bonds between chains give cellulose high tensile strength.
+lipid|脂质|a hydrophobic biological molecule including triglycerides and phospholipids|lipid bilayer;triglyceride||Lipids are insoluble in water and useful for energy storage.
+triglyceride|甘油三酯|a molecule formed from glycerol and three fatty acids|ester bond;fatty acid||Ester bonds form during condensation between glycerol and fatty acids.
+phospholipid|磷脂|a lipid with a hydrophilic phosphate head and hydrophobic fatty-acid tails|phospholipid bilayer;amphipathic||Phospholipids self-assemble into bilayers in water.
+protein|蛋白质|a biological polymer of amino acids folded into a functional three-dimensional structure|globular protein;fibrous protein||Protein function depends on its specific three-dimensional shape.
+amino acid|氨基酸|an organic molecule containing an amino group and a carboxyl group|amino-acid sequence;R group||Different R groups give amino acids different chemical properties.
+peptide bond|肽键|a covalent bond joining adjacent amino acids in a polypeptide|condensation reaction;polypeptide||A peptide bond forms between the amino and carboxyl groups.
+primary structure|一级结构|the sequence of amino acids in a polypeptide|primary protein structure;amino-acid sequence||The primary sequence determines later folding interactions.
+tertiary structure|三级结构|the overall three-dimensional shape of one polypeptide chain|tertiary protein structure;disulfide bond||Tertiary structure is maintained by ionic hydrogen and disulfide bonds.
+enzyme|酶|a biological catalyst that lowers activation energy without being used up|active site;enzyme-substrate complex||Enzymes increase reaction rate but do not change the equilibrium position.
+active site|活性位点|the region of an enzyme with a complementary shape and chemistry to its substrate|active-site specificity;substrate||Substrate binding creates an enzyme-substrate complex.
+denaturation|变性|a permanent change in protein shape caused by disruption of bonds|denatured enzyme;high temperature||Extreme temperature or pH can alter the active site.
+competitive inhibitor|竞争性抑制剂|a molecule that competes with substrate for the active site|competitive inhibition;inhibitor||Increasing substrate concentration can reduce competitive inhibition.
+non-competitive inhibitor|非竞争性抑制剂|an inhibitor binding away from the active site and changing enzyme shape|non-competitive inhibition;allosteric site||More substrate does not fully overcome non-competitive inhibition.
+activation energy|活化能|the minimum energy required for a reaction to begin|activation-energy barrier;catalyst||Enzymes lower activation energy by providing an alternative pathway.
+    `),
+  },
+  {
+    subject: "biology", topic: "exchange-and-transport", label: "Biology: Exchange & Transport",
+    note: "用于气体交换、植物运输、心血管系统和交换表面积题。",
+    example: "Explain how {word} affects the rate of exchange or transport in the organism.",
+    translation: "解释{meaning}如何影响生物体内的交换或运输速率。",
+    terms: parseTerms(`
+exchange surface|交换表面|a specialised surface across which substances move between an organism and its environment|exchange surface;gas-exchange surface||An efficient exchange surface is large thin and supplied with transport medium.
+surface area to volume ratio|表面积体积比|the surface area available for exchange relative to an object's volume|SA:V ratio;surface-area-to-volume||Small organisms have a larger surface-area-to-volume ratio.
+concentration gradient|浓度梯度|a difference in concentration between two regions|steep concentration gradient;diffusion gradient||A steeper gradient usually increases diffusion rate.
+water potential|水势|the tendency of water to move from a region through osmosis|water-potential gradient;solute potential||Water moves from higher to lower water potential.
+solute potential|溶质势|the component of water potential caused by dissolved solutes|solute concentration;water potential||Adding solute lowers the water potential of a solution.
+root hair cell|根毛细胞|a specialised plant cell with a long projection for absorbing water and mineral ions|root hair;mineral-ion uptake||The projection increases surface area for absorption.
+xylem vessel|木质部导管|a dead hollow vessel transporting water and mineral ions upwards in a plant|xylem tissue;transpiration stream||Lignin strengthens xylem and prevents collapse.
+phloem sieve tube|韧皮部筛管|a living tube transporting assimilates through a plant|sieve tube element;phloem transport||Sieve plates allow mass flow between sieve-tube elements.
+companion cell|伴胞|a phloem cell supplying ATP and controlling translocation|companion cell;phloem loading||Companion cells actively load sucrose into sieve tubes.
+transpiration|蒸腾作用|loss of water vapour from a plant mainly through stomata|transpiration stream;transpiration rate||Transpiration creates a tension that pulls water up the xylem.
+transpiration pull|蒸腾拉力|the tension generated by evaporation that draws water through xylem|cohesion-tension;water column||Cohesion between water molecules transmits the pull down the vessel.
+stoma|气孔|a pore in the epidermis controlled by guard cells for gas exchange|stomatal pore;stoma opening||Stomata open for carbon dioxide uptake but increase water loss.
+guard cell|保卫细胞|a specialised epidermal cell controlling the opening of a stoma|guard-cell turgor;stomatal control||Ion uptake changes guard-cell water potential and turgor.
+alveolus|肺泡|a microscopic air sac where oxygen and carbon dioxide are exchanged|alveolar wall;alveolar gas exchange||Many alveoli provide a large surface area and short diffusion path.
+ventilation|通气|movement of air into and out of an exchange surface|pulmonary ventilation;ventilation rate||Ventilation maintains a steep oxygen concentration gradient.
+haemoglobin|血红蛋白|a globular protein in red blood cells that reversibly binds oxygen|oxyhaemoglobin;oxygen dissociation||Haemoglobin loads oxygen where oxygen partial pressure is high.
+oxygen dissociation curve|氧解离曲线|a graph showing haemoglobin saturation against oxygen partial pressure|oxygen saturation;Bohr effect||The sigmoid shape reflects cooperative binding of oxygen.
+Bohr effect|波尔效应|the decrease in haemoglobin oxygen affinity caused by increased carbon dioxide or acidity|carbon dioxide transport;haemoglobin affinity||The Bohr effect helps unload oxygen in active tissues.
+cardiac output|心输出量|the volume of blood pumped by one ventricle per minute|cardiac output;stroke volume|cardiac output = heart rate × stroke volume|Exercise raises cardiac output to meet muscle oxygen demand.
+mass flow|质量流|bulk movement of substances caused by a pressure gradient|mass flow hypothesis;phloem translocation||Mass flow transports solutes faster than random diffusion over long distances.
+    `),
+  },
+  {
+    subject: "biology", topic: "genetics-and-evolution", label: "Biology: Genetics & Evolution",
+    note: "用于 DNA、基因表达、遗传图、突变、选择和进化证据题。",
+    example: "Use the evidence to explain how {word} contributes to inheritance or evolutionary change.",
+    translation: "利用证据解释{meaning}如何参与遗传或进化变化。",
+    terms: parseTerms(`
+chromosome|染色体|a DNA molecule associated with proteins and carrying genes|homologous chromosome;chromosome number||A chromosome carries a linear sequence of genes.
+DNA|脱氧核糖核酸|a double-stranded nucleic acid that stores genetic information in base sequences|DNA molecule;DNA sequence||Complementary base pairing allows DNA to store and copy genetic information.
+DNA replication|DNA复制|the semi-conservative copying of DNA before cell division|semi-conservative replication;DNA polymerase||Each new DNA molecule contains one original strand and one newly synthesised strand.
+transcription|转录|the synthesis of an RNA molecule using a DNA template|messenger RNA;RNA polymerase||Transcription produces a complementary RNA base sequence from one DNA strand.
+translation|翻译|the synthesis of a polypeptide at a ribosome using an mRNA base sequence|genetic code;polypeptide synthesis||Translation uses tRNA anticodons to match amino acids to mRNA codons.
+gene|基因|a sequence of DNA coding for a functional polypeptide or RNA|gene locus;gene expression||Different alleles of a gene may produce different phenotypes.
+allele|等位基因|an alternative version of a gene at a particular locus|dominant allele;recessive allele||Alleles arise from changes in the DNA base sequence.
+locus|基因座|the position of a gene on a chromosome|gene locus;chromosomal locus||A gene's locus is fixed on a particular chromosome.
+genome|基因组|the complete set of genetic material in an organism or cell|human genome;genome sequencing||The genome includes coding and non-coding DNA.
+genotype|基因型|the combination of alleles possessed by an organism|homozygous genotype;heterozygous genotype||Genotype describes alleles rather than the visible trait.
+phenotype|表型|the observable features of an organism produced by genotype and environment|phenotypic variation;phenotype||Phenotype is influenced by both genes and environmental conditions.
+homozygous|纯合|having two identical alleles at a gene locus|homozygous dominant;homozygous recessive||A homozygous individual produces one allele type in its gametes for that locus.
+heterozygous|杂合|having two different alleles at a gene locus|heterozygous genotype;carrier||A heterozygous recessive carrier may show the dominant phenotype.
+dominant allele|显性等位基因|an allele expressed in the phenotype when one or two copies are present|dominant phenotype;dominant inheritance||Dominance describes expression, not superiority or frequency.
+recessive allele|隐性等位基因|an allele expressed only when no dominant allele is present|recessive phenotype;recessive inheritance||A recessive phenotype usually requires two recessive alleles.
+codominance|共显性|inheritance in which both alleles are fully expressed in a heterozygote|codominant allele;AB blood group||Codominant alleles produce a phenotype showing both products.
+multiple alleles|复等位基因|more than two alleles of a gene existing in a population|ABO blood group;multiple-allele system||An individual still inherits only two alleles at a diploid locus.
+sex linkage|伴性遗传|inheritance of a gene located on a sex chromosome|X-linked inheritance;sex-linked||X-linked recessive traits are more common in males with one X chromosome.
+genetic cross|遗传杂交|a planned mating used to predict or investigate inheritance|monohybrid cross;dihybrid cross||A genetic cross uses gametes and probability to predict offspring.
+monohybrid inheritance|单因子遗传|inheritance involving one gene locus|monohybrid cross;single-gene inheritance||A monohybrid cross can reveal a 3:1 phenotype ratio under simple dominance.
+test cross|测交|crossing an individual of unknown dominant genotype with a homozygous recessive individual|test-cross ratio;unknown genotype||A test cross distinguishes homozygous dominant from heterozygous offspring.
+genetic diagram|遗传图|a diagram showing parental genotypes gametes and predicted offspring|genetic cross;Punnett square||A diagram must label alleles and show how gametes combine.
+mutation|突变|a change in the DNA base sequence or chromosome structure|gene mutation;mutation rate||A mutation may be neutral harmful or beneficial depending on context.
+base substitution|碱基替换|a mutation in which one DNA base is replaced by another|point mutation;base substitution||A substitution can be silent missense or nonsense.
+deletion mutation|缺失突变|a mutation caused by loss of one or more DNA bases|DNA deletion;frameshift||Deleting a base can cause a frameshift and alter many codons.
+natural selection|自然选择|the differential survival and reproduction of organisms with heritable variation|selection pressure;adaptive advantage||Natural selection changes allele frequency across generations.
+adaptation|适应性特征|an inherited feature that increases survival or reproductive success in a particular environment|adaptive feature;adaptation||An adaptation is advantageous only under particular selection pressures.
+speciation|物种形成|the evolution of new species when populations become reproductively isolated|reproductive isolation;speciation||Speciation requires divergence and prevents gene flow between populations.
+    `),
+  },
+  {
+    subject: "biology", topic: "energy-and-ecosystems", label: "Biology: Energy & Ecosystems",
+    note: "用于光合作用、呼吸作用、种群、食物链、生产量和生态循环题。",
+    example: "Analyse how {word} affects energy transfer, population size, or ecosystem stability.",
+    translation: "分析{meaning}如何影响能量传递、种群数量或生态系统稳定性。",
+    terms: parseTerms(`
+photosynthesis|光合作用|the process by which plants use light energy to make organic molecules from carbon dioxide and water|light-dependent reaction;carbon fixation|6CO2 + 6H2O → C6H12O6 + 6O2|Photosynthesis transfers light energy into chemical energy in glucose.
+chlorophyll|叶绿素|a pigment that absorbs light energy for photosynthesis|chlorophyll a;photosynthetic pigment||Chlorophyll absorbs mainly red and blue wavelengths.
+light-dependent reaction|光依赖反应|the photosynthetic stage using light energy to make ATP and reduced NADP|photolysis;electron transport||Photolysis of water supplies electrons and releases oxygen.
+light-independent reaction|光非依赖反应|the photosynthetic stage using ATP and reduced NADP to reduce carbon dioxide|Calvin cycle;carbon fixation||The light-independent reaction occurs in the chloroplast stroma.
+carbon fixation|碳固定|the incorporation of inorganic carbon dioxide into an organic molecule|Calvin cycle;Rubisco||Rubisco catalyses the fixation of carbon dioxide to RuBP.
+aerobic respiration|有氧呼吸|the controlled release of energy from glucose using oxygen|aerobic ATP production;oxidative phosphorylation|C6H12O6 + 6O2 → 6CO2 + 6H2O|Aerobic respiration produces ATP through glycolysis the link reaction and Krebs cycle.
+anaerobic respiration|无氧呼吸|energy release from glucose without oxygen|anaerobic glycolysis;lactate fermentation||Anaerobic respiration produces less ATP and may form lactate in animals.
+ATP|三磷酸腺苷|a phosphorylated nucleotide that transfers usable energy in cells|ATP hydrolysis;ATP synthase|ATP + H2O → ADP + Pi|ATP hydrolysis provides energy for active transport and biosynthesis.
+energy transfer|能量传递|movement of energy between organisms or processes rather than cycling of energy|energy flow;energy transfer||Energy transfer between trophic levels is inefficient.
+trophic level|营养级|the position of an organism in a food chain or food web|primary consumer;secondary consumer||Only a fraction of energy passes from one trophic level to the next.
+food chain|食物链|a sequence showing the transfer of energy through feeding relationships|food web;feeding relationship||Arrows point in the direction of energy transfer.
+food web|食物网|a network of interconnected food chains in an ecosystem|food-web stability;feeding relationship||Food webs show alternative prey and predator pathways.
+biomass|生物量|the mass of living biological material in an organism or trophic level|biomass pyramid;dry biomass||Dry biomass avoids variation caused by water content.
+gross primary productivity|总初级生产力|the rate at which producers convert light energy into chemical energy|GPP;primary productivity|GPP = NPP + R|Gross productivity includes energy used in producer respiration.
+net primary productivity|净初级生产力|the chemical energy stored by producers after respiratory losses|NPP;plant productivity|NPP = GPP - R|NPP represents energy available to herbivores and growth.
+population|种群|all organisms of one species living in an area at the same time|population size;population density||Population size changes through births deaths immigration and emigration.
+carrying capacity|环境容纳量|the maximum population size an environment can sustainably support|carrying capacity;limiting factor||Carrying capacity depends on resources and environmental conditions.
+intraspecific competition|种内竞争|competition between members of the same species for limited resources|intraspecific competition;resource||Intraspecific competition can reduce growth and reproductive success.
+biodiversity|生物多样性|the variety of living organisms and ecosystems in an area|species diversity;genetic diversity||High biodiversity can improve ecosystem resilience.
+carbon cycle|碳循环|the movement of carbon between atmosphere organisms oceans and rocks|carbon sink;carbon sequestration||Combustion transfers stored carbon to atmospheric carbon dioxide.
+    `),
+  },
+  {
+    subject: "biology", topic: "homeostasis-and-immunity", label: "Biology: Homeostasis & Immunity",
+    note: "用于神经、激素、血糖、体温、水势、免疫和疫苗题。",
+    example: "Explain how {word} contributes to regulation, coordination, or defence against disease.",
+    translation: "解释{meaning}如何参与调节、协调或疾病防御。",
+    terms: parseTerms(`
+homeostasis|稳态|maintenance of a relatively constant internal environment despite external change|homeostatic control;internal environment||Homeostasis keeps variables within a narrow suitable range.
+negative feedback|负反馈|a control mechanism in which a change triggers responses that reverse the change|negative-feedback loop;homeostasis||Negative feedback restores a variable towards its set point.
+receptor|受体|a cell or structure that detects a stimulus or change in a variable|sensory receptor;receptor cell||Receptors convert a stimulus into an electrical or chemical signal.
+coordinator|协调中心|a structure that processes information and coordinates a response|central coordinator;coordination centre||The coordinator compares information with the required set point.
+effector|效应器|a muscle or gland that carries out a response to a stimulus|effector organ;response||Effectors change the internal condition or behaviour of the organism.
+neurone|神经元|a specialised cell that transmits electrical impulses|sensory neurone;motor neurone||Neurones transmit impulses along axons and across synapses.
+synapse|突触|a junction where a signal passes between neurones using neurotransmitter|synaptic cleft;synaptic transmission||One-way transmission at a synapse helps establish pathways.
+reflex arc|反射弧|the neural pathway producing a rapid automatic response|reflex action;reflex arc||A reflex arc can bypass conscious processing for speed.
+endocrine system|内分泌系统|a system of glands releasing hormones into the blood|endocrine gland;hormone||Hormones travel in blood and often act more slowly than nerve impulses.
+hormone|激素|a chemical messenger secreted by an endocrine gland and carried in blood|peptide hormone;steroid hormone||A hormone affects only target cells with complementary receptors.
+insulin|胰岛素|a hormone that lowers blood glucose concentration by promoting uptake and storage|insulin receptor;glycogenesis||Insulin promotes conversion of glucose to glycogen in liver and muscle.
+glucagon|胰高血糖素|a hormone that raises blood glucose concentration by stimulating glycogen breakdown|glucagon;glycogenolysis||Glucagon acts when blood glucose concentration falls.
+thermoregulation|体温调节|control of body temperature within a suitable range|thermoregulation;vasodilation||Negative feedback coordinates heat production and heat loss.
+antigen|抗原|a molecule recognised as foreign by receptors on immune cells or antibodies|pathogen antigen;antigen recognition||Specific antigens stimulate a specific immune response.
+antibody|抗体|a soluble immunoglobulin produced by plasma cells that binds a specific antigen|antibody-antigen complex;immunoglobulin||The variable region of an antibody is complementary to its antigen.
+phagocytosis|吞噬作用|the engulfing and digestion of pathogens or cell debris by a phagocyte|phagocyte;lysosome||Phagocytes form a vesicle around a pathogen before lysosomal digestion.
+clonal selection|克隆选择|activation and rapid division of lymphocytes with receptors complementary to an antigen|clonal expansion;lymphocyte||Only lymphocytes with the matching receptor are selected.
+memory cell|记忆细胞|a long-lived lymphocyte that remains after an immune response|memory lymphocyte;secondary response||Memory cells produce a faster stronger secondary response.
+vaccination|疫苗接种|exposure to harmless antigen material to generate immune memory|vaccine;immunisation||Vaccination protects a population when enough people become immune.
+antibiotic resistance|抗生素耐药性|the ability of bacteria to survive an antibiotic that previously killed them|drug resistance;resistant strain||Overuse of antibiotics selects resistant bacterial variants.
+    `),
+  },
+];
+
+groups.push(...biologyGroups);
+
 const commandRows = [
   ["state", "陈述；写出", "give a concise fact or result without explanation", "State the value of the current.", "写出电流的数值。"],
   ["define", "定义", "give the precise meaning of a term", "Define electric potential at a point.", "定义某一点的电势。"],
@@ -1441,6 +1665,9 @@ function buildTermExample(group, term, override) {
   if (group.subject === "chemistry") return formula
     ? `A ${group.label} question requires ${term.word}. Which quantities and conditions must be checked before using ${formula}?`
     : `A question describes ${term.definition}. Identify ${term.word}, then state the chemical evidence or condition that would confirm it.`;
+  if (group.subject === "biology") return formula
+    ? `An A-Level Biology question uses ${term.word}. State the biological process and conditions, substitute the measured values into ${formula}, and interpret the result.`
+    : `A question describes ${term.definition}. Identify ${term.word}, then explain the biological mechanism, evidence, or consequence that applies.`;
   if (group.subject === "economics") return `A case study may involve ${term.word}, meaning ${term.definition}. Which evidence would establish it, and what causal effect should be analysed?`;
   if (group.subject === "mathematics") return formula
     ? `A ${group.label} problem requires ${term.word}. State when ${formula} can be used and identify the values needed.`
@@ -1454,7 +1681,7 @@ function buildTermExample(group, term, override) {
 function stageForTerm(subject, topic) {
   if (subject === "exam-language") return "AS";
   const normalizedTopic = String(topic || "").toLowerCase();
-  return /fields|thermal|quantum|nuclear|astronomy|cosmology|capacitance|alternating|medical|organic|macroeconomics|international|further/.test(normalizedTopic)
+  return /fields|thermal|quantum|nuclear|astronomy|cosmology|capacitance|alternating|medical|organic|macroeconomics|international|further|genetics|evolution|homeostasis|immunity|biotechnology/.test(normalizedTopic)
     ? "A2"
     : "AS";
 }
@@ -1493,6 +1720,9 @@ function buildTermTranslation(group, term, override) {
   if (group.subject === "physics") return formula
     ? `${group.label} 题要求使用“${term.meaning}”。在使用 ${formula} 前，必须识别哪些测量量、方向和条件？`
     : `题目描述了“${term.definition}”。识别“${term.meaning}”，再写出应用它所需的物理证据或条件。`;
+  if (group.subject === "biology") return formula
+    ? `生物学题要求使用“${term.meaning}”。先确认过程和条件，再代入 ${formula}，最后解释结果对细胞、个体或生态系统的意义。`
+    : `题目涉及“${term.meaning}”，其定义是“${term.definition}”。回答时要写出生物机制，并用题目给出的结构、数据或实验现象支持结论。`;
   if (group.translation) return fillStudyText(group.translation, group, term);
   return `根据题目语境理解 ${term.meaning}，并把它和 ${group.label} 的计算或解释要求对应起来。`;
 }

@@ -48,8 +48,9 @@ try {
   assert.equal(saved.length, 1, "Saving a vocabulary card must create one local Notebook item");
   assert.equal(saved[0].term, word, "Notebook must preserve the saved term identity");
 
-  await page.locator("[data-vocab-open-notebook]").click();
-  await page.waitForFunction(() => document.getElementById("mine")?.classList.contains("active"));
+  const notebookMode = page.locator('[data-vocab-mode="notebook"]');
+  await notebookMode.click();
+  await page.locator('.vocab-notebook-status').waitFor();
   const reviewButton = page.locator("[data-vocab-review-key]");
   await reviewButton.waitFor();
   await reviewButton.click();

@@ -144,6 +144,7 @@
   writingLibraryScope: "full",
   vocabularyReview: {
     page: "hub",
+    mode: "all",
     index: 0,
     revealed: false,
     known: new Set(),
@@ -3930,6 +3931,61 @@ function vocabularyItemKey(item) {
   return item?.subject === "ielts" ? String(item.word || "") : String(item?.id || item?.word || "");
 }
 
+function vocabularyNotebookItems() {
+  const items = [...(state.vocabItems || []), ...readLocalVocabularyNotebook()];
+  const seen = new Set();
+  return items.filter((item) => {
+    const key = notebookIdentity(item);
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function vocabularyIsSaved(item) {
+  const key = notebookIdentity(item);
+  return vocabularyNotebookItems().some((saved) => notebookIdentity(saved) === key);
+}
+
+function vocabularyIsDue(item) {
+  return !state.vocabularyReview.known.has(vocabularyItemKey(item));
+}
+
+function vocabularyModeLabel(mode) {
+  return { all: "All words", notebook: "Notebook", due: "Review queue" }[mode] || "All words";
+}
+
+function renderVocabularyNotebookStatus(allItems) {
+  const saved = allItems.filter(vocabularyIsSaved);
+  const due = saved.filter(vocabularyIsDue);
+  const mastered = saved.length - due.length;
+  const local = readLocalVocabularyNotebook();
+  const privateNotes = local.filter((item) => String(item.privateNote || item.note || "").trim()).length;
+  const sourceQuestions = saved.filter((item) => item.relatedQuestionPartIds?.length || (item.questionPartId && !String(item.questionPartId).startsWith("vocabulary:"))).length;
+  const nextAction = due.length
+    ? `Next: review ${Math.min(due.length, 5)} due term${due.length === 1 ? "" : "s"}, then mark the ones you can explain.`
+    : saved.length
+      ? "Next: add a private note to one saved term, then use it in a speaking or writing answer."
+      : "Next: save a term from the deck. It will appear here with its definition, topic and source.";
+  const rows = saved.slice(0, 6).map((item) => {
+    const key = notebookIdentity(item);
+    const source = item.relatedQuestionPartIds?.[0] || item.questionPartId || item.source || `${vocabularySubjectLabel(item.subject || "ielts")} topic`;
+    const title = item.term || item.word || item.structured?.term || "Saved term";
+    const stateLabel = state.vocabularyReview.known.has(vocabularyItemKey(item)) ? "Mastered" : "Due";
+    return `<li><button type="button" data-vocab-review-key="${escapeHtml(key)}"><strong>${escapeHtml(title)}</strong><span>${escapeHtml(stateLabel)} · ${escapeHtml(compactText(source, 64))}</span></button></li>`;
+  }).join("");
+  return `<section class="vocab-notebook-status" aria-label="Notebook learning status">
+    <div class="vocab-notebook-status-head"><div><span class="eyebrow">Notebook</span><h3>Your learning queue</h3><p>${escapeHtml(nextAction)}</p></div><strong>${saved.length} saved</strong></div>
+    <div class="vocab-notebook-stats">
+      <div><span>Due to review</span><strong>${due.length}</strong></div>
+      <div><span>Mastered</span><strong>${mastered}</strong></div>
+      <div><span>Private notes</span><strong>${privateNotes}</strong></div>
+      <div><span>Source questions</span><strong>${sourceQuestions}</strong></div>
+    </div>
+    ${rows ? `<ul class="vocab-notebook-recent" aria-label="Saved vocabulary">${rows}</ul>` : `<div class="vocab-notebook-empty"><strong>No saved terms yet.</strong><p>Save a term after opening its meaning. Your review queue starts here.</p><button class="primary small-button" type="button" data-vocab-mode="all">Browse all words</button></div>`}
+  </section>`;
+}
+
 function vocabularySubjectLabel(subject) {
   return {
     all: "All subjects",
@@ -3938,6 +3994,7 @@ function vocabularySubjectLabel(subject) {
     mathematics: "A-Level Mathematics",
     chemistry: "A-Level Chemistry",
     economics: "A-Level Economics",
+    biology: "A-Level Biology",
     "exam-language": "Exam Language",
   }[subject] || "Core vocabulary";
 }
@@ -3962,6 +4019,8 @@ function filteredCoreVocabulary() {
     if (review.stage !== "all" && item.stage !== review.stage) return false;
     if (review.topic !== "all" && item.topic !== review.topic) return false;
     if (review.type !== "all" && item.type !== review.type) return false;
+    if (review.mode === "notebook" && !vocabularyIsSaved(item)) return false;
+    if (review.mode === "due" && (!vocabularyIsSaved(item) || !vocabularyIsDue(item))) return false;
     if (routeTermIds.size && !routeTermIds.has(item.termId)) return false;
     if (!query) return true;
     return [
@@ -4102,7 +4161,7 @@ function renderVocabularyMeaning(item) {
   const methodSteps = Array.isArray(item.methodSteps) ? item.methodSteps.filter(Boolean) : [];
   const workedExample = item.workedExample && typeof item.workedExample === "object" ? item.workedExample : null;
   const workedSteps = Array.isArray(workedExample?.steps) ? workedExample.steps.filter(Boolean) : [];
-  const stemSubject = ["physics", "mathematics", "chemistry", "economics"].includes(item?.subject) ? item.subject : "";
+  const stemSubject = ["physics", "mathematics", "chemistry", "economics", "biology"].includes(item?.subject) ? item.subject : "";
   const stemHref = stemSubject ? buildVocabularyStemUrl(item) : "";
   return `
     <strong class="vocab-meaning-title">${escapeHtml(item.meaning)}</strong>
@@ -4124,23 +4183,21 @@ function renderVocabularyReviewPage(allItems, subjectCounts, deck, item, knownCo
   const routeContext = state.vocabularyRouteContext;
   const routeWarning = vocabularyRouteContextWarning(routeContext, allItems);
   return `<section class="vocab-trainer-shell${deck.length <= 1 ? " single-term-pack" : ""}">
-    <div class="vocab-library-toolbar" aria-label="Vocabulary filters">
+    ${state.vocabularyReview.mode === "notebook" ? renderVocabularyNotebookStatus(allItems) : ""}
+    <div class="vocab-library-toolbar" aria-label="Vocabulary learning controls">
       <button class="secondary small-button vocab-back-button" type="button" data-vocab-back>← Library</button>
-      <button class="secondary small-button" type="button" data-vocab-open-notebook>Notebook${state.vocabItems?.length ? ` (${state.vocabItems.length})` : ""}</button>
-      <label><span>Subject</span><select id="vocabSubjectFilter">
+      <div class="vocab-mode-tabs" role="tablist" aria-label="Learning mode">
+        ${["all", "notebook", "due"].map((mode) => `<button type="button" role="tab" class="vocab-mode-tab ${state.vocabularyReview.mode === mode ? "active" : ""}" data-vocab-mode="${mode}" aria-selected="${state.vocabularyReview.mode === mode}">${vocabularyModeLabel(mode)}<span>${mode === "all" ? allItems.length : mode === "notebook" ? allItems.filter(vocabularyIsSaved).length : allItems.filter((entry) => vocabularyIsSaved(entry) && vocabularyIsDue(entry)).length}</span></button>`).join("")}
+      </div>
+      <label class="vocab-course-filter"><span>Course / subject</span><select id="vocabSubjectFilter">
         ${subjects.map((subject) => `<option value="${escapeHtml(subject)}" ${state.vocabularyReview.subject === subject ? "selected" : ""}>${escapeHtml(vocabularySubjectLabel(subject))}${subject === "all" ? ` (${allItems.length})` : ` (${subjectCounts[subject] || 0})`}</option>`).join("")}
       </select></label>
-      <label><span>Topic</span><select id="vocabTopicFilter">
-        <option value="all">All topics</option>
-        ${availableTopics.map(([topic, label]) => `<option value="${escapeHtml(topic)}" ${state.vocabularyReview.topic === topic ? "selected" : ""}>${escapeHtml(label)}</option>`).join("")}
-      </select></label>
-      <label><span>Stage</span><select id="vocabStageFilter">
-        ${["all", "IELTS", "IGCSE", "AS", "A2"].map((stage) => `<option value="${stage}" ${state.vocabularyReview.stage === stage ? "selected" : ""}>${stage === "all" ? "All stages" : stage}</option>`).join("")}
-      </select></label>
-      <label><span>Type</span><select id="vocabTypeFilter">
-        ${["all", "term", "command", "phrase"].map((type) => `<option value="${type}" ${state.vocabularyReview.type === type ? "selected" : ""}>${escapeHtml(vocabularyTypeLabel(type))}</option>`).join("")}
-      </select></label>
-      <label class="vocab-search-label"><span>Search</span><input id="vocabSearch" type="search" value="${escapeHtml(state.vocabularyReview.query)}" placeholder="Search term, 中文, example..." /></label>
+      <label class="vocab-topic-search"><span>Topic / search</span><input id="vocabSearch" type="search" value="${escapeHtml(state.vocabularyReview.query)}" placeholder="Search topic, term or question language..." /></label>
+      <details class="vocab-more-filters"><summary>More filters</summary><div>
+        <label><span>Topic</span><select id="vocabTopicFilter"><option value="all">All topics</option>${availableTopics.map(([topic, label]) => `<option value="${escapeHtml(topic)}" ${state.vocabularyReview.topic === topic ? "selected" : ""}>${escapeHtml(label)}</option>`).join("")}</select></label>
+        <label><span>Stage</span><select id="vocabStageFilter">${["all", "IELTS", "IGCSE", "AS", "A2"].map((stage) => `<option value="${stage}" ${state.vocabularyReview.stage === stage ? "selected" : ""}>${stage === "all" ? "All stages" : stage}</option>`).join("")}</select></label>
+        <label><span>Type</span><select id="vocabTypeFilter">${["all", "term", "command", "phrase"].map((type) => `<option value="${type}" ${state.vocabularyReview.type === type ? "selected" : ""}>${escapeHtml(vocabularyTypeLabel(type))}</option>`).join("")}</select></label>
+      </div></details>
       ${catalogStatus}
     </div>
     ${routeContext.from === "stem" ? `<aside class="vocab-route-context" aria-label="STEM learning context"><div><strong>STEM term pack</strong><span>${escapeHtml(vocabularySubjectLabel(state.vocabularyReview.subject))}${routeContext.topicId ? ` · ${escapeHtml(routeContext.topicId)}` : ""}${routeContext.attemptId ? ` · attempt ${escapeHtml(routeContext.attemptId)}` : ""} · Vocabulary support only; progress stays on each site.</span>${routeWarning ? `<em role="alert">${escapeHtml(routeWarning)}</em>` : ""}</div>${returnToStem ? `<a class="secondary small-button" href="${escapeHtml(returnToStem)}">Return to STEM attempt</a>` : ""}</aside>` : ""}
@@ -4216,7 +4273,7 @@ function renderVocabularyTrainer() {
   const revealed = Boolean(state.vocabularyReview.revealed);
   const deckPosition = item ? `${state.vocabularyReview.index + 1} / ${deck.length}` : `0 / ${deck.length}`;
   const subjectCounts = allItems.reduce((counts, entry) => ({ ...counts, [entry.subject]: (counts[entry.subject] || 0) + 1 }), {});
-  const subjects = ["all", "ielts", "physics", "mathematics", "chemistry", "economics", "exam-language"];
+  const subjects = ["all", "ielts", "physics", "mathematics", "chemistry", "economics", "biology", "exam-language"];
   const availableTopics = [...new Map(allItems
     .filter((entry) => (state.vocabularyReview.subject === "all" || entry.subject === state.vocabularyReview.subject)
       && (state.vocabularyReview.stage === "all" || entry.stage === state.vocabularyReview.stage))
@@ -4264,6 +4321,15 @@ function setVocabularyPage(page) {
   renderVocabularyTrainer();
 }
 
+function setVocabularyMode(mode) {
+  state.vocabularyReview.mode = ["all", "notebook", "due"].includes(mode) ? mode : "all";
+  state.vocabularyReview.page = "review";
+  state.vocabularyReview.index = 0;
+  state.vocabularyReview.revealed = false;
+  state.vocabularyReview.notice = "";
+  renderVocabularyTrainer();
+}
+
 function openVocabularyNotebookEntry(key) {
   const item = normalizedCoreVocabularyItems().find((entry) => notebookIdentity(entry) === key);
   if (!item) {
@@ -4292,20 +4358,20 @@ function bindVocabularyControls() {
   document.querySelectorAll("[data-vocab-page]").forEach((button) => {
     button.onclick = () => setVocabularyPage(button.dataset.vocabPage || "hub");
   });
+  document.querySelectorAll("[data-vocab-mode]").forEach((button) => {
+    button.onclick = () => setVocabularyMode(button.dataset.vocabMode || "all");
+  });
   document.querySelectorAll("[data-vocab-back]").forEach((button) => {
     button.onclick = () => setVocabularyPage("hub");
   });
   document.querySelectorAll("[data-vocab-mine]").forEach((button) => {
     button.onclick = () => {
-      setVocabularyPage("hub");
-      activateView("mine", true);
+      setVocabularyMode("notebook");
     };
   });
   document.querySelectorAll("[data-vocab-open-notebook]").forEach((button) => {
     button.onclick = () => {
-      state.vocabularyReview.notice = "";
-      activateView("mine", true);
-      renderMine();
+      setVocabularyMode("notebook");
     };
   });
   $("vocabNotebook")?.addEventListener("click", async () => {
