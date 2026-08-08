@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>IELTS-ist</title>
-    <link rel="stylesheet" href="/styles.css?v=20260807-stem-bridge-v7" />
+    <link rel="stylesheet" href="/styles.css?v=20260808-stem-bridge-v9" />
   </head>
   <body class="focus-camp-system">
     <div class="app-shell">
@@ -95,8 +95,8 @@
             </div>
           </div>
           <div class="single-filters">
-            <select id="sequenceBookFilter"></select>
-            <select id="sequenceTestFilter"></select>
+            <select id="sequenceBookFilter" aria-label="Same Test Cambridge book"></select>
+            <select id="sequenceTestFilter" aria-label="Same Test number"></select>
           </div>
           <div class="actions">
             <button id="buildSequence" class="primary">Generate same-test paper</button>
@@ -133,7 +133,7 @@
           <section class="panel">
             <div class="panel-head">
               <h3 id="singleTitle">Listening with AI</h3>
-              <select id="singleSelect"></select>
+              <select id="singleSelect" aria-label="Practice paper"></select>
             </div>
             <div class="single-filters">
               <select id="singleBookFilter" aria-label="Cambridge book"></select>
@@ -261,7 +261,7 @@
                 </article>
                 <article class="writing-system-option">
                   <span>Choose yourself</span>
-                  <select id="writingSystemSelect" class="text-input"></select>
+                  <select id="writingSystemSelect" class="text-input" aria-label="Writing task"></select>
                   <button id="startSelectedWriting" class="secondary" type="button">Start selected task</button>
                 </article>
               </div>
@@ -322,7 +322,7 @@
           <section class="panel">
             <div class="topic-toolbar">
               <input id="bankTopicSearch" class="text-input" placeholder="Search topics, Cambridge book, or Part 2 cue cards..." />
-              <select id="bankTopicBook"></select>
+              <select id="bankTopicBook" aria-label="Filter Speaking topics by Cambridge book"></select>
               <select id="bankCompletionFilter" aria-label="Filter Speaking by completion">
                 <option value="all">All</option>
                 <option value="not-completed">Not completed</option>
@@ -428,6 +428,6 @@
       <button id="clearAnnotation" class="icon-btn" type="button">Clear paper</button>
     </div>
   <script src="/vendor/lucide.min.js?v=20260730-1"></script>
-  <script src="/app.js?v=20260807-stem-bridge-v7"></script>
+  <script src="/app.js?v=20260808-stem-bridge-v9"></script>
   </body>
 </html>

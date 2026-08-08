@@ -32,6 +32,18 @@ for (const item of catalog.items) {
   assert.ok(Array.isArray(item.collocations), `${item.id} collocations must be an array`);
   assert.ok(Array.isArray(item.methodSteps) && item.methodSteps.length >= 3, `${item.id} needs actionable study steps`);
   if (item.formula) assert.ok(String(item.formulaExplanation || "").trim().length >= 30, `${item.id} needs formula conditions`);
+  assert.equal(item.termId, item.id, `${item.id} must preserve its canonical stable term id`);
+  assert.equal(item.topicId, `${item.subject}:${item.topic}`, `${item.id} has an unstable topic id`);
+  assert.equal(item.routeId, `alevel-${item.subject}-${item.topic}`, `${item.id} has an unstable route id`);
+  assert.equal(item.specificationVersion, "A-Level STEM 2026", `${item.id} needs a specification version`);
+  assert.ok(["AS", "A2"].includes(item.stage), `${item.id} needs a valid course stage`);
+  assert.equal(item.reviewState, "new", `${item.id} needs an initial review state`);
+  assert.ok(Array.isArray(item.relatedQuestionPartIds), `${item.id} question links must be an array`);
+  assert.ok(Array.isArray(item.aliases), `${item.id} aliases must be an array`);
+  assert.ok(item.examUsage && typeof item.examUsage === "object", `${item.id} needs structured exam usage`);
+  assert.ok(String(item.examUsage.focus || "").trim(), `${item.id} needs an exam-usage focus`);
+  assert.ok(String(item.examUsage.example || "").trim(), `${item.id} needs an exam-usage example`);
+  assert.ok(Array.isArray(item.commonMistakes) && item.commonMistakes.length, `${item.id} needs structured common mistakes`);
 }
 
 const professionalItems = catalog.items.filter((item) => ["physics", "mathematics", "chemistry", "economics"].includes(item.subject));

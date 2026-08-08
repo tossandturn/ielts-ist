@@ -148,6 +148,7 @@
     revealed: false,
     known: new Set(),
     subject: "all",
+    stage: "all",
     topic: "all",
     type: "all",
     query: "",
@@ -157,6 +158,21 @@
     notice: "",
     searchTimer: null,
   },
+  vocabularyRouteContext: {
+    applied: false,
+    key: "",
+    from: "",
+    routeId: "",
+    specificationVersion: "",
+    topicId: "",
+    questionPartId: "",
+    termIds: [],
+    attemptId: "",
+    returnTo: "",
+    focus: "",
+    stage: "",
+  },
+  examSubmitted: false,
 };
 
 const $ = (id) => document.getElementById(id);
@@ -3584,12 +3600,21 @@ function readLocalVocabularyNotebook() {
 }
 
 function writeLocalVocabularyNotebook(items) {
-  localStorage.setItem(localVocabularyNotebookStoreKey, JSON.stringify(items.slice(0, 300)));
+  const seen = new Set();
+  const unique = items.filter((item) => {
+    const key = item?.localKey || notebookIdentity(item);
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  localStorage.setItem(localVocabularyNotebookStoreKey, JSON.stringify(unique.slice(0, 300)));
 }
 
 function notebookIdentity(item) {
   const structured = parseImportedVocabularyPayload(item);
   const subject = structured?.subject || item?.subject || "ielts";
+  const termId = structured?.termId || item?.termId || "";
+  if (termId) return `${subject}:${String(termId).toLowerCase()}`;
   const term = cleanReviewText(structured?.term || item?.term || item?.word || "").toLowerCase();
   return `${subject}:${term}`;
 }
@@ -3665,6 +3690,7 @@ async function syncLocalVocabularyNotebook() {
     try {
       await postJson("/api/vocabulary", { term: item.term, context: item.context, explanation: item.structured ? encodeVocabularyImportPayload(item.structured) : item.explanation, source: item.source });
       uploaded += 1;
+      existing.add(item.localKey || notebookIdentity(item));
     } catch { return; }
   }
   if (uploaded) {
@@ -3700,6 +3726,192 @@ async function ensureIeltsCoreVocabularyLoaded() {
   return ieltsCoreVocabularyLoadPromise;
 }
 
+function vocabularySlug(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function vocabularyStage(item) {
+  if (item?.stage) return String(item.stage).toUpperCase();
+  if (item?.subject === "ielts") return "IELTS";
+  const topic = String(item?.topic || "").toLowerCase();
+  const a2Topics = /fields|thermal|quantum|nuclear|astronomy|cosmology|capacitance|alternating|medical|organic|macroeconomics|international|further/.test(topic);
+  return a2Topics ? "A2" : "AS";
+}
+
+function vocabularySpecificationVersion(item) {
+  if (item?.specificationVersion) return String(item.specificationVersion);
+  if (item?.subject === "ielts") return "IELTS-core-v2";
+  return `Cambridge-${String(item?.subject || "stem").toLowerCase()}-2026-knowledge-v2`;
+}
+
+function normalizeVocabularyMetadata(item, index = 0) {
+  const subject = item.subject || "ielts";
+  const topic = item.topic || "ielts-core";
+  const specificationVersion = vocabularySpecificationVersion(item);
+  const stage = vocabularyStage(item);
+  const topicId = item.topicId || `topic:${subject}:${vocabularySlug(topic)}`;
+  const termId = String(item.termId || item.id || `${subject}-${vocabularySlug(item.word)}-${index + 1}`);
+  const routeId = item.routeId || `vocabulary:${subject}:${specificationVersion}:${stage}:${vocabularySlug(topic)}`;
+  const aliases = Array.isArray(item.aliases) ? item.aliases : [item.word, ...(item.collocations || [])].filter(Boolean);
+  const commonMistakes = Array.isArray(item.commonMistakes)
+    ? item.commonMistakes
+    : [item.commonMistake].filter(Boolean);
+  const knownKey = subject === "ielts" ? String(item.word || "") : String(item.id || termId);
+  return {
+    ...item,
+    id: item.id || termId,
+    termId,
+    routeId,
+    specificationVersion,
+    stage,
+    topicId,
+    questionPartId: String(item.questionPartId || item.relatedQuestionPartIds?.[0] || `vocabulary:${termId}`),
+    attemptId: String(item.attemptId || ""),
+    returnTo: String(item.returnTo || ""),
+    relatedQuestionPartIds: Array.isArray(item.relatedQuestionPartIds) ? item.relatedQuestionPartIds : [],
+    aliases: [...new Set(aliases.map((value) => String(value).trim()).filter(Boolean))],
+    formula: String(item.formula || ""),
+    examUsage: item.examUsage || item.examFocus || item.example || "",
+    commonMistakes,
+    reviewState: state.vocabularyReview.known.has(knownKey) ? "known" : (item.reviewState || "new"),
+  };
+}
+
+function vocabularyRouteContextFromLocation() {
+  const params = new URLSearchParams(window.location.search);
+  const termIds = [...params.getAll("termId"), params.get("termIds") || ""]
+    .flatMap((value) => String(value).split(","))
+    .map((value) => value.trim())
+    .filter(Boolean);
+  return {
+    from: String(params.get("from") || "").trim().toLowerCase(),
+    routeId: String(params.get("routeId") || "").trim(),
+    specificationVersion: String(params.get("specificationVersion") || "").trim(),
+    topicId: String(params.get("topicId") || "").trim(),
+    questionPartId: String(params.get("questionPartId") || "").trim(),
+    termIds: [...new Set(termIds)],
+    attemptId: String(params.get("attemptId") || "").trim(),
+    returnTo: String(params.get("returnTo") || "").trim(),
+    focus: String(params.get("focus") || "").trim().toLowerCase(),
+    stage: String(params.get("stage") || "").trim().toUpperCase(),
+  };
+}
+
+function vocabularyRouteContextKey(context) {
+  return JSON.stringify([
+    context.from, context.routeId, context.specificationVersion, context.topicId,
+    context.questionPartId, context.termIds, context.attemptId, context.returnTo,
+    context.focus, context.stage,
+  ]);
+}
+
+function routeContextSubject(context, items) {
+  const focusMap = { physics: "physics", mathematics: "mathematics", chemistry: "chemistry", economics: "economics" };
+  if (focusMap[context.focus]) return focusMap[context.focus];
+  const termMatch = items.find((item) => context.termIds.includes(item.termId));
+  if (termMatch) return termMatch.subject;
+  const routeText = `${context.routeId} ${context.topicId}`.toLowerCase();
+  return Object.keys(focusMap).find((subject) => routeText.includes(subject)) || "all";
+}
+
+function applyVocabularyRouteContext(allItems) {
+  const context = vocabularyRouteContextFromLocation();
+  if (context.from !== "stem") {
+    if (state.vocabularyRouteContext.from === "stem") {
+      state.vocabularyRouteContext = { ...state.vocabularyRouteContext, applied: false, key: "", from: "", termIds: [] };
+    }
+    return;
+  }
+  const contextKey = vocabularyRouteContextKey(context);
+  const contextChanged = state.vocabularyRouteContext.key !== contextKey;
+  const alreadyApplied = state.vocabularyRouteContext.applied && !contextChanged;
+  state.vocabularyRouteContext = { ...state.vocabularyRouteContext, ...context, key: contextKey, applied: true };
+  if (contextChanged) {
+    Object.assign(state.vocabularyReview, { subject: "all", stage: "all", topic: "all", type: "all", query: "", index: 0, revealed: false });
+  }
+  const subject = routeContextSubject(context, allItems);
+  if (subject !== "all" && (!alreadyApplied || state.vocabularyReview.subject === "all")) state.vocabularyReview.subject = subject;
+  const subjectItems = allItems.filter((item) => subject === "all" || item.subject === subject);
+  const topicMatch = subjectItems.find((item) => item.topicId === context.topicId || item.topic === context.topicId || item.topicId.endsWith(`:${context.topicId}`));
+  if (topicMatch && (!alreadyApplied || state.vocabularyReview.topic === "all")) state.vocabularyReview.topic = topicMatch.topic;
+  if (context.stage && ["IGCSE", "AS", "A2"].includes(context.stage.toUpperCase())) {
+    if (!alreadyApplied || state.vocabularyReview.stage === "all") state.vocabularyReview.stage = context.stage.toUpperCase();
+  }
+  if (!alreadyApplied) {
+    state.vocabularyReview.page = "review";
+    state.vocabularyReview.index = 0;
+    state.vocabularyReview.revealed = false;
+  }
+}
+
+function buildVocabularyStemUrl(item) {
+  const questionPartId = item.relatedQuestionPartIds?.[0] || `vocabulary:${item.termId}`;
+  const returnTo = vocabularyReturnToStemUrl() || window.location.href;
+  const params = new URLSearchParams({
+    from: "ieltsist",
+    routeId: item.routeId,
+    specificationVersion: item.specificationVersion,
+    topicId: item.topicId,
+    questionPartId,
+    termId: item.termId,
+    attemptId: state.vocabularyRouteContext.attemptId || "",
+    returnTo,
+  });
+  if (item.stage) params.set("stage", item.stage);
+  return `https://stem.ieltsist.com/?${params.toString()}`;
+}
+
+function ensureAccessibleSelectLabels(root = document) {
+  root.querySelectorAll?.("select").forEach((select) => {
+    if (select.getAttribute("aria-label") || select.getAttribute("aria-labelledby")) return;
+    const wrappingLabel = select.closest("label");
+    const visibleLabel = wrappingLabel?.querySelector("span")?.textContent?.trim();
+    if (visibleLabel) {
+      const labelId = `${select.id || "select"}-${vocabularySlug(visibleLabel)}-label`;
+      let labelNode = document.getElementById(labelId);
+      if (!labelNode && wrappingLabel) {
+        labelNode = document.createElement("span");
+        labelNode.id = labelId;
+        labelNode.className = "sr-only";
+        labelNode.textContent = visibleLabel;
+        wrappingLabel.insertBefore(labelNode, select);
+      }
+      if (labelNode) select.setAttribute("aria-labelledby", labelId);
+      else select.setAttribute("aria-label", visibleLabel);
+      return;
+    }
+    const fallback = select.id ? select.id.replace(/Filter$/, "").replace(/([A-Z])/g, " $1").trim() : "Choose an option";
+    select.setAttribute("aria-label", fallback);
+  });
+}
+
+function vocabularyReturnToStemUrl() {
+  const value = String(state.vocabularyRouteContext.returnTo || "").trim();
+  if (!value) return "";
+  try {
+    const url = new URL(value, "https://stem.ieltsist.com/");
+    return url.origin === "https://stem.ieltsist.com" ? url.toString() : "";
+  } catch {
+    return "";
+  }
+}
+
+function vocabularyRouteContextWarning(context, allItems) {
+  if (!state.vocabularyReview.loaded || context.from !== "stem" || !context.termIds.length) return "";
+  const termItems = allItems.filter((item) => context.termIds.includes(item.termId));
+  if (!termItems.length) return "";
+  const mismatched = termItems.some((item) =>
+    (context.routeId && item.routeId !== context.routeId)
+    || (context.specificationVersion && item.specificationVersion !== context.specificationVersion)
+    || (context.topicId && item.topicId !== context.topicId)
+    || (context.questionPartId.startsWith("vocabulary:") && item.questionPartId !== context.questionPartId));
+  return mismatched ? "This STEM link uses older route metadata. The requested term is shown, but check its subject and topic before continuing." : "";
+}
+
 function normalizedCoreVocabularyItems() {
   const ieltsItems = ieltsCoreVocabulary.map((item, index) => ({
     ...item,
@@ -3711,7 +3923,7 @@ function normalizedCoreVocabularyItems() {
     definition: item.definition || "A high-frequency word used in IELTS questions, answers, or academic writing.",
     translation: item.translation || "",
   }));
-  return [...ieltsItems, ...alevelStemVocabulary];
+  return [...ieltsItems, ...alevelStemVocabulary].map((item, index) => normalizeVocabularyMetadata(item, index));
 }
 
 function vocabularyItemKey(item) {
@@ -3744,15 +3956,18 @@ function vocabularyExampleLabel(item) {
 function filteredCoreVocabulary() {
   const review = state.vocabularyReview;
   const query = String(review.query || "").trim().toLowerCase();
+  const routeTermIds = new Set(state.vocabularyRouteContext.termIds || []);
   return normalizedCoreVocabularyItems().filter((item) => {
     if (review.subject !== "all" && item.subject !== review.subject) return false;
+    if (review.stage !== "all" && item.stage !== review.stage) return false;
     if (review.topic !== "all" && item.topic !== review.topic) return false;
     if (review.type !== "all" && item.type !== review.type) return false;
+    if (routeTermIds.size && !routeTermIds.has(item.termId)) return false;
     if (!query) return true;
     return [
       item.word, item.meaning, item.definition, item.cn, item.formula, item.formulaExplanation,
       item.knowledgePoint, item.conceptExplanation, ...(item.methodSteps || []), item.examFocus,
-      item.commonMistake, item.example, item.translation, ...(item.collocations || []),
+      item.commonMistake, ...(item.commonMistakes || []), item.example, item.translation, item.termId, item.topicId, ...(item.aliases || []), ...(item.collocations || []),
     ]
       .join(" ")
       .toLowerCase()
@@ -3760,12 +3975,23 @@ function filteredCoreVocabulary() {
   });
 }
 
+function clearVocabularyRouteTermScope() {
+  if (state.vocabularyRouteContext.from === "stem" && state.vocabularyRouteContext.termIds.length) {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("termId");
+    url.searchParams.delete("termIds");
+    history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+    state.vocabularyRouteContext = { ...state.vocabularyRouteContext, termIds: [], key: "" };
+    state.vocabularyReview.notice = "Showing the selected STEM subject and topic instead of the requested term pack.";
+  }
+}
+
 async function ensureAlevelVocabularyLoaded() {
   if (state.vocabularyReview.loaded) return alevelStemVocabulary;
   if (alevelVocabularyLoadPromise) return alevelVocabularyLoadPromise;
   state.vocabularyReview.loading = true;
   state.vocabularyReview.error = "";
-  alevelVocabularyLoadPromise = fetch("/data/alevel-stem-vocabulary.json?v=20260807-knowledge-v2", { cache: "no-cache" })
+  alevelVocabularyLoadPromise = fetch("/data/alevel-stem-vocabulary.json?v=20260808-knowledge-v3", { cache: "no-cache" })
     .then(async (response) => {
       if (!response.ok) throw new Error(`Vocabulary catalog returned ${response.status}`);
       const payload = await response.json();
@@ -3864,7 +4090,7 @@ function renderVocabularyHub(allItems, subjectCounts) {
       <span>Economics <strong>${subjectCounts.economics || 0}</strong></span>
     </div>
     <aside class="product-bridge-band" aria-label="STEM Campus connection">
-      <span class="product-bridge-icon" aria-hidden="true">🧪</span>
+      <span class="product-bridge-icon" aria-hidden="true">STEM</span>
       <div><strong>${fromStem ? "Back from STEM Campus? Keep the language edge." : "Need the subject knowledge behind the terms?"}</strong><p>Open STEM Campus for A-Level Physics, Mathematics, Chemistry and Economics practice, then return here for IELTS question language and academic expression.</p></div>
       <a class="secondary small-button" href="https://stem.ieltsist.com/?from=ieltsist&focus=syllabus" target="_blank" rel="noreferrer">Open STEM Campus ↗</a>
     </aside>
@@ -3877,7 +4103,7 @@ function renderVocabularyMeaning(item) {
   const workedExample = item.workedExample && typeof item.workedExample === "object" ? item.workedExample : null;
   const workedSteps = Array.isArray(workedExample?.steps) ? workedExample.steps.filter(Boolean) : [];
   const stemSubject = ["physics", "mathematics", "chemistry", "economics"].includes(item?.subject) ? item.subject : "";
-  const stemHref = stemSubject ? `https://stem.ieltsist.com/?from=ieltsist&focus=${encodeURIComponent(stemSubject)}` : "";
+  const stemHref = stemSubject ? buildVocabularyStemUrl(item) : "";
   return `
     <strong class="vocab-meaning-title">${escapeHtml(item.meaning)}</strong>
     ${item.definition ? `<div class="vocab-field"><span class="vocab-field-label">Definition / 英文定义</span><p class="vocab-definition" lang="en">${escapeHtml(item.definition)}</p></div>` : ""}
@@ -3888,13 +4114,16 @@ function renderVocabularyMeaning(item) {
     ${item.commonMistake ? `<section class="vocab-learning-section vocab-mistake-section"><h4>Common mistake / 易错点</h4><p>${escapeHtml(item.commonMistake)}</p></section>` : ""}
     ${workedExample ? `<section class="vocab-learning-section vocab-worked-example"><h4>Worked example / 完整例题</h4>${workedExample.question ? `<p class="vocab-worked-question" lang="en">${escapeHtml(workedExample.question)}</p>` : ""}${workedSteps.length ? `<ol class="vocab-method-steps">${workedSteps.map((step) => `<li>${escapeHtml(step)}</li>`).join("")}</ol>` : ""}${workedExample.answer ? `<p class="vocab-worked-answer"><span>Answer / 答案</span>${escapeHtml(workedExample.answer)}</p>` : ""}</section>` : ""}
     ${item.example ? `<div class="vocab-example-pair"><span class="vocab-field-label">${escapeHtml(vocabularyExampleLabel(item))}</span><blockquote lang="en">${escapeHtml(item.example)}</blockquote>${item.translation ? `<p lang="zh-CN"><span class="vocab-field-label">中文理解</span>${escapeHtml(item.translation)}</p>` : ""}</div>` : ""}
-    ${stemHref ? `<a class="vocab-cross-link" href="${stemHref}" target="_blank" rel="noreferrer"><span aria-hidden="true">🧪</span><strong>Continue in STEM Campus</strong><em>More ${vocabularySubjectLabel(stemSubject)} practice and worked questions ↗</em></a>` : ""}
+    ${stemHref ? `<a class="vocab-cross-link" href="${escapeHtml(stemHref)}"><span aria-hidden="true">↗</span><strong>Continue in STEM Campus</strong><em>Use this term in ${vocabularySubjectLabel(stemSubject)} practice</em></a>` : ""}
     ${(item.collocations || []).length ? `<div class="vocab-collocations" aria-label="Useful collocations">${item.collocations.map((phrase) => `<span>${escapeHtml(phrase)}</span>`).join("")}</div>` : ""}`;
 }
 
 function renderVocabularyReviewPage(allItems, subjectCounts, deck, item, knownCount, revealed, deckPosition, subjects, availableTopics, catalogStatus, miniItems, miniStart) {
   const notebookSaved = item ? localNotebookHas(item) || (state.vocabItems || []).some((saved) => notebookIdentity(saved) === notebookIdentity(item)) : false;
-  return `<section class="vocab-trainer-shell">
+  const returnToStem = vocabularyReturnToStemUrl();
+  const routeContext = state.vocabularyRouteContext;
+  const routeWarning = vocabularyRouteContextWarning(routeContext, allItems);
+  return `<section class="vocab-trainer-shell${deck.length <= 1 ? " single-term-pack" : ""}">
     <div class="vocab-library-toolbar" aria-label="Vocabulary filters">
       <button class="secondary small-button vocab-back-button" type="button" data-vocab-back>← Library</button>
       <button class="secondary small-button" type="button" data-vocab-open-notebook>Notebook${state.vocabItems?.length ? ` (${state.vocabItems.length})` : ""}</button>
@@ -3905,15 +4134,19 @@ function renderVocabularyReviewPage(allItems, subjectCounts, deck, item, knownCo
         <option value="all">All topics</option>
         ${availableTopics.map(([topic, label]) => `<option value="${escapeHtml(topic)}" ${state.vocabularyReview.topic === topic ? "selected" : ""}>${escapeHtml(label)}</option>`).join("")}
       </select></label>
+      <label><span>Stage</span><select id="vocabStageFilter">
+        ${["all", "IELTS", "IGCSE", "AS", "A2"].map((stage) => `<option value="${stage}" ${state.vocabularyReview.stage === stage ? "selected" : ""}>${stage === "all" ? "All stages" : stage}</option>`).join("")}
+      </select></label>
       <label><span>Type</span><select id="vocabTypeFilter">
         ${["all", "term", "command", "phrase"].map((type) => `<option value="${type}" ${state.vocabularyReview.type === type ? "selected" : ""}>${escapeHtml(vocabularyTypeLabel(type))}</option>`).join("")}
       </select></label>
       <label class="vocab-search-label"><span>Search</span><input id="vocabSearch" type="search" value="${escapeHtml(state.vocabularyReview.query)}" placeholder="Search term, 中文, example..." /></label>
       ${catalogStatus}
     </div>
+    ${routeContext.from === "stem" ? `<aside class="vocab-route-context" aria-label="STEM learning context"><div><strong>STEM term pack</strong><span>${escapeHtml(vocabularySubjectLabel(state.vocabularyReview.subject))}${routeContext.topicId ? ` · ${escapeHtml(routeContext.topicId)}` : ""}${routeContext.attemptId ? ` · attempt ${escapeHtml(routeContext.attemptId)}` : ""} · Vocabulary support only; progress stays on each site.</span>${routeWarning ? `<em role="alert">${escapeHtml(routeWarning)}</em>` : ""}</div>${returnToStem ? `<a class="secondary small-button" href="${escapeHtml(returnToStem)}">Return to STEM attempt</a>` : ""}</aside>` : ""}
     ${item ? `<article class="vocab-review-card ${revealed ? "is-revealed" : ""}">
       <div class="vocab-review-top">
-        <span class="eyebrow">${escapeHtml(vocabularySubjectLabel(item.subject))} · ${escapeHtml(item.topicLabel || item.topic || "Core")}</span>
+        <span class="eyebrow">${escapeHtml(vocabularySubjectLabel(item.subject))} · ${escapeHtml(item.stage)} · ${escapeHtml(item.topicLabel || item.topic || "Core")}</span>
         <strong>${escapeHtml(deckPosition)}</strong>
       </div>
       <div class="vocab-word-face ${item.type === "phrase" || String(item.word).length > 26 ? "is-phrase" : ""}">
@@ -3931,9 +4164,9 @@ function renderVocabularyReviewPage(allItems, subjectCounts, deck, item, knownCo
         <button id="vocabKnown" class="secondary" type="button">Know it</button>
         <button id="vocabNotebook" class="${notebookSaved ? "secondary is-saved" : "primary"}" type="button">${notebookSaved ? "Saved to Notebook" : "Save to Notebook"}</button>
       </div>
-    </article>` : `<article class="vocab-review-card vocab-empty-state"><strong>No vocabulary matches these filters.</strong><p>Try another subject, topic, type, or clear the search.</p><button class="secondary" type="button" data-vocab-clear>Clear filters</button></article>`}
+    </article>` : `<article class="vocab-review-card vocab-empty-state"><strong>No vocabulary matches these filters.</strong><p>${routeContext.from === "stem" && routeContext.termIds.length ? "This STEM term pack may have changed. Browse the selected subject to keep learning." : "Try another subject, topic, type, or clear the search."}</p><button class="secondary" type="button" data-vocab-clear>${routeContext.from === "stem" && routeContext.termIds.length ? "Browse selected subject" : "Clear filters"}</button></article>`}
     ${state.vocabularyReview.notice ? `<div class="vocab-notice" role="status">${escapeHtml(state.vocabularyReview.notice)}</div>` : ""}
-    <aside class="vocab-review-side">
+    ${deck.length > 1 ? `<aside class="vocab-review-side">
       <div class="vocab-study-meter">
         <span>Mastered in this deck</span>
         <strong>${knownCount}</strong>
@@ -3943,17 +4176,18 @@ function renderVocabularyReviewPage(allItems, subjectCounts, deck, item, knownCo
         ${miniItems.map((word, offset) => {
           const index = miniStart + offset;
           const known = state.vocabularyReview.known.has(vocabularyItemKey(word));
-          return `<button class="${index === state.vocabularyReview.index ? "active" : ""} ${known ? "known" : ""}" type="button" data-vocab-index="${index}">
+          return `<button class="${index === state.vocabularyReview.index ? "active" : ""} ${known ? "known" : ""}" type="button" data-vocab-index="${index}" aria-label="Open ${escapeHtml(word.word)}, ${index + 1} of ${deck.length}">
           <span>${escapeHtml(word.word)}</span>
           <em>${known ? "known" : escapeHtml(word.type === "phrase" ? "sentence" : word.type || "review")}</em>
         </button>`;
         }).join("")}
       </div>
+      <div class="vocab-mini-window-status" aria-live="polite">Showing ${miniStart + 1}-${Math.min(miniStart + miniItems.length, deck.length)} of ${deck.length}</div>
       <div class="vocab-nav-actions">
         <button id="vocabPrev" class="secondary" type="button">Previous</button>
         <button id="vocabNext" class="primary" type="button">Next word</button>
       </div>
-    </aside>
+    </aside>` : ""}
   </section>`;
 }
 
@@ -3975,6 +4209,7 @@ function renderVocabularyTrainer() {
   const node = $("vocabularyContent");
   if (!node) return;
   const allItems = normalizedCoreVocabularyItems();
+  applyVocabularyRouteContext(allItems);
   const deck = filteredCoreVocabulary();
   const item = currentCoreVocabularyItem();
   const knownCount = deck.filter((entry) => state.vocabularyReview.known.has(vocabularyItemKey(entry))).length;
@@ -3983,14 +4218,16 @@ function renderVocabularyTrainer() {
   const subjectCounts = allItems.reduce((counts, entry) => ({ ...counts, [entry.subject]: (counts[entry.subject] || 0) + 1 }), {});
   const subjects = ["all", "ielts", "physics", "mathematics", "chemistry", "economics", "exam-language"];
   const availableTopics = [...new Map(allItems
-    .filter((entry) => state.vocabularyReview.subject === "all" || entry.subject === state.vocabularyReview.subject)
+    .filter((entry) => (state.vocabularyReview.subject === "all" || entry.subject === state.vocabularyReview.subject)
+      && (state.vocabularyReview.stage === "all" || entry.stage === state.vocabularyReview.stage))
     .map((entry) => [entry.topic, entry.topicLabel || entry.topic]))]
     .sort((a, b) => String(a[1]).localeCompare(String(b[1])));
   if (state.vocabularyReview.topic !== "all" && !availableTopics.some(([topic]) => topic === state.vocabularyReview.topic)) {
     state.vocabularyReview.topic = "all";
   }
-  const miniStart = Math.max(0, Math.min(Math.max(0, deck.length - 120), state.vocabularyReview.index - 36));
-  const miniItems = deck.slice(miniStart, miniStart + 120);
+  const miniWindowSize = 36;
+  const miniStart = Math.max(0, Math.min(Math.max(0, deck.length - miniWindowSize), state.vocabularyReview.index - Math.floor(miniWindowSize / 2)));
+  const miniItems = deck.slice(miniStart, miniStart + miniWindowSize);
   const catalogStatus = state.vocabularyReview.loading
     ? `<span class="vocab-catalog-status">Loading A-Level catalog...</span>`
     : state.vocabularyReview.error
@@ -4037,6 +4274,7 @@ function openVocabularyNotebookEntry(key) {
     return;
   }
   state.vocabularyReview.subject = item.subject || "all";
+  state.vocabularyReview.stage = item.stage || "all";
   state.vocabularyReview.topic = item.topic || "all";
   state.vocabularyReview.type = "all";
   state.vocabularyReview.query = "";
@@ -4050,6 +4288,7 @@ function openVocabularyNotebookEntry(key) {
 }
 
 function bindVocabularyControls() {
+  ensureAccessibleSelectLabels($("vocabularyContent") || document);
   document.querySelectorAll("[data-vocab-page]").forEach((button) => {
     button.onclick = () => setVocabularyPage(button.dataset.vocabPage || "hub");
   });
@@ -4121,6 +4360,13 @@ function bindVocabularyControls() {
     state.vocabularyReview.revealed = false;
     renderVocabularyTrainer();
   });
+  $("vocabStageFilter")?.addEventListener("change", (event) => {
+    state.vocabularyReview.stage = event.target.value || "all";
+    state.vocabularyReview.topic = "all";
+    state.vocabularyReview.index = 0;
+    state.vocabularyReview.revealed = false;
+    renderVocabularyTrainer();
+  });
   $("vocabTopicFilter")?.addEventListener("change", (event) => {
     state.vocabularyReview.topic = event.target.value || "all";
     state.vocabularyReview.index = 0;
@@ -4148,7 +4394,8 @@ function bindVocabularyControls() {
     }, 180);
   });
   document.querySelector("[data-vocab-clear]")?.addEventListener("click", () => {
-    Object.assign(state.vocabularyReview, { page: "review", subject: "all", topic: "all", type: "all", query: "", index: 0, revealed: false });
+    clearVocabularyRouteTermScope();
+    Object.assign(state.vocabularyReview, { page: "review", subject: "all", stage: "all", topic: "all", type: "all", query: "", index: 0, revealed: false });
     renderVocabularyTrainer();
   });
   document.querySelector("[data-vocab-retry]")?.addEventListener("click", () => {
@@ -4553,10 +4800,10 @@ function openGlobalCoachPanel(surfaceOverride = null) {
   document.body.classList.add("coach-dock-open");
   const view = activeViewId();
   const resultVisible = Boolean(document.querySelector(".view.active .unified-result-shell"));
-  const examLocked = !resultVisible && (
+  const examLocked = (view === "exam" && !state.examSubmitted) || (!resultVisible && (
     (view === "writing-upload" && state.writingWorkspaceMode !== "entry" && state.writingSetupMode === "exam")
     || (view === "bank" && state.speakingSetupMode === "exam" && Boolean(document.querySelector("#bankPracticePanel .speaking-practice-layout")))
-  );
+  ));
   const form = $("helpChatForm");
   const input = $("helpChatInput");
   const actions = $("helpCoachActions");
@@ -8692,6 +8939,7 @@ function pageAnswerGroups(assignments, entries) {
 
 function renderAnswerGroup(group, prefix, options = {}) {
   const isReading = options.isReading === true;
+  const examLocked = options.examLocked === true;
   const passagePageByQuestion = options.passagePageByQuestion instanceof Map
     ? options.passagePageByQuestion
     : new Map();
@@ -8716,8 +8964,8 @@ function renderAnswerGroup(group, prefix, options = {}) {
           </label>
           ${isReading ? `<div class="reading-question-actions">
             <span class="reading-answer-state">Unanswered</span>
-            <button class="reading-mark-review${marked ? " active" : ""}" type="button" data-reading-mark="${escapeHtml(question.id)}" aria-pressed="${marked ? "true" : "false"}">${marked ? "Marked" : "Mark"}</button>
-            <button class="reading-hint-step" type="button" data-reading-hint="${escapeHtml(question.id)}" data-hint-step="1">Hint 1</button>
+            <button class="reading-mark-review${marked ? " active" : ""}" type="button" data-reading-mark="${escapeHtml(question.id)}" aria-pressed="${marked ? "true" : "false"}"${examLocked ? " disabled aria-label=\"Mark review is available after submission\"" : ""}>${marked ? "Marked" : "Mark"}</button>
+            <button class="reading-hint-step" type="button" data-reading-hint="${escapeHtml(question.id)}" data-hint-step="1"${examLocked ? " disabled aria-label=\"Hints are available after submission\"" : ""}>Hint 1</button>
           </div>` : ""}
         </div>`;
       })
@@ -8741,6 +8989,7 @@ function renderPaperAnswerPanel(prefix, questions, assignments, label, audioUrls
       ${groups.length ? groups.map((group) => renderAnswerGroup(group, prefix, {
         isReading,
         passagePageByQuestion: options.passagePageByQuestion,
+        examLocked: options.examLocked,
       })).join("") : `<div class="page-card-empty">This paper has no answerable questions.</div>`}
     </div>
   </aside>`;
@@ -9512,7 +9761,7 @@ function renderPageImagesWithAnswers(images, label, prefix, questions, paper, op
   if (!orderedImages.length) return "";
   const assignments = assignQuestionsToPages(orderedImages, questions, paper);
   const audioUrls = options.audioUrls || [];
-  const answerPanel = renderPaperAnswerPanel(prefix, questions, assignments, label, audioUrls);
+  const answerPanel = renderPaperAnswerPanel(prefix, questions, assignments, label, audioUrls, options);
   return `<div class="pdf-pages">
     <div class="pdf-study-layout">
       <section class="pdf-scroll-box" aria-label="${escapeHtml(label)}">
@@ -9903,6 +10152,7 @@ function renderReadingSplitPages(images, prefix, questions, paper, provided = {}
   const answerPanelHtml = renderPaperAnswerPanel(prefix, questions, questionAssignments, "Reading question PDF", [], {
     scrollKey: "answers",
     passagePageByQuestion,
+    examLocked: provided.examLocked === true,
   });
   return `<div class="reading-mobile-workspace" data-reading-pane="${escapeHtml(activePane)}" data-focused-question="${escapeHtml(focusedQuestion || "")}">
     <nav class="reading-pane-tabs" aria-label="Reading workspace">
@@ -11117,8 +11367,9 @@ function renderReading(test, prefix = "single", options = {}) {
             passageImages: readingPassagePageImages,
             questionImages: readingQuestionPageImages,
             passageStartPages: item.readingPassageStartPages || {},
+            examLocked: options.examLocked === true,
           })
-        : renderPageImagesWithAnswers(readingQuestionPageImages.length ? readingQuestionPageImages : readingPageImages, "Reading question PDF", prefix, item.questions, item.readingPaper))
+        : renderPageImagesWithAnswers(readingQuestionPageImages.length ? readingQuestionPageImages : readingPageImages, "Reading question PDF", prefix, item.questions, item.readingPaper, { examLocked: options.examLocked === true }))
     : item.readingPaper
       ? `<details class="question-paper" open><summary>Reading OCR text</summary><pre>${escapeHtml(item.readingPaper)}</pre></details>`
       : `<article class="passage">${escapeHtml(item.passage || item.prompt || "")}</article>`;
@@ -16366,7 +16617,7 @@ function renderFullExamPaper(bundle, prefixRoot, scoreButtonId) {
       </div>
     </nav>
     <section id="${prefixRoot}-listening-section" class="panel exam-section" data-module="listening"><h2>Listening</h2>${renderListening(bundle.listening, `${prefixRoot}-listening`)}</section>
-    <section id="${prefixRoot}-reading-section" class="panel exam-section" data-module="reading"><h2>Reading</h2>${renderReading(bundle.reading, `${prefixRoot}-reading`)}</section>
+    <section id="${prefixRoot}-reading-section" class="panel exam-section" data-module="reading"><h2>Reading</h2>${renderReading(bundle.reading, `${prefixRoot}-reading`, { examLocked: prefixRoot === "exam" && !state.examSubmitted })}</section>
     <section id="${prefixRoot}-writing-section" class="panel exam-section" data-module="writing"><h2>Writing</h2>${renderWritingExamTwoColumn(bundle.writingTasks, prefixRoot)}</section>
     <section id="${prefixRoot}-speaking-section" class="panel exam-section" data-module="speaking">${speakingSectionTitle()}${renderSpeakingExamTwoColumn(bundle.speaking, prefixRoot)}</section>
     <div class="exam-submit-row">
@@ -16426,6 +16677,7 @@ function buildExam(savedBundle = null) {
     return;
   }
   state.exam = bundle;
+  state.examSubmitted = false;
   $("examPaper").innerHTML = renderFullExamPaper(state.exam, "exam", "scoreExamBottom");
   $("scoreExamBottom").addEventListener("click", () => scoreFullExam(state.exam, "exam", "examFeedback", "examMode"));
   bindDynamicControls();
@@ -16736,6 +16988,14 @@ async function scoreFullExam(bundle, prefixRoot, feedbackId, modeId) {
     };
     const json = await postJson("/api/exam/report", payload);
     setFeedbackHtml(feedbackId, feedbackWithPdfHtml(json.feedback, json, "ielts-full-exam-report.pdf"), modeId, json.mode);
+    if (prefixRoot === "exam") {
+      state.examSubmitted = true;
+      document.querySelectorAll('#examPaper [data-reading-mark], #examPaper [data-reading-hint]').forEach((button) => {
+        button.disabled = false;
+        button.removeAttribute("aria-label");
+      });
+      refreshGlobalCoachPanelIfOpen();
+    }
   } catch (error) {
     setFeedback(feedbackId, `Generation failed: ${error.message}`, modeId, "error");
   }
@@ -18882,6 +19142,7 @@ function bindReadingWorkspaceControls() {
   });
   document.querySelectorAll("[data-reading-mark]").forEach((button) => {
     button.onclick = () => {
+      if (button.disabled) return;
       const qid = button.dataset.readingMark || "";
       const next = !state.readingReviewMarks?.[qid];
       state.readingReviewMarks[qid] = next;
@@ -18895,7 +19156,9 @@ function bindReadingWorkspaceControls() {
     };
   });
   document.querySelectorAll("[data-reading-hint]").forEach((button) => {
-    button.onclick = () => runReadingHint(button);
+    button.onclick = () => {
+      if (!button.disabled) runReadingHint(button);
+    };
   });
   document.querySelectorAll('.answer-input[data-prefix="single"]').forEach((input) => {
     updateReadingAnswerState(input);
@@ -18953,6 +19216,7 @@ function bindDynamicControls() {
   bindListeningCaptionPlayers();
   bindListeningPlaybackControls();
   bindReadingWorkspaceControls();
+  ensureAccessibleSelectLabels();
   bindWritingTaskTabs();
   document.querySelectorAll(".back-submit-button").forEach((button) => {
     button.onclick = () => backAndScrollToSubmit(button.dataset.submitTarget || "");
@@ -19680,7 +19944,7 @@ function renderBankList() {
         const origin = `${group.items.length} ${group.items.length === 1 ? "set" : "sets"} · ${sourceLabel}`;
         const completion = practiceCompletionGroupSummary("speaking", group.items, completionIndex);
         return `
-      <div class="bank-item speaking-topic-card topic-accent-${escapeHtml(group.accent)}" data-group-id="${escapeHtml(group.id)}" data-speaking-completed-count="${completion.completedCount}" role="button" tabindex="0">
+      <article class="bank-item speaking-topic-card topic-accent-${escapeHtml(group.accent)}" data-group-id="${escapeHtml(group.id)}" data-speaking-completed-count="${completion.completedCount}">
         <div class="topic-card-head">
           <span class="objective-topic-icon" aria-hidden="true">${escapeHtml(group.emoji || "✨")}</span>
           <span class="practice-status-badge ${completion.completedCount === completion.totalCount && completion.totalCount ? "completed" : "not-completed"}">${escapeHtml(completion.label)}</span>
@@ -19694,22 +19958,11 @@ function renderBankList() {
           <div class="topic-origin">${escapeHtml(origin || "Speaking")}</div>
           <button class="primary small-button practice-speaking-topic" type="button" data-group-id="${escapeHtml(group.id)}">Choose →</button>
         </div>
-      </div>`;
+      </article>`;
       },
     )
     .join("");
   renderBankPagination(groups.length, state.bankTopicPage, state.bankTopicPageSize);
-  document.querySelectorAll(".speaking-topic-card[data-group-id]").forEach((card) => {
-    card.onclick = (event) => {
-      if (event.target.closest("button")) return;
-      activateSpeakingTopicGroupFromBank(card.dataset.groupId);
-    };
-    card.onkeydown = (event) => {
-      if (event.key !== "Enter" && event.key !== " ") return;
-      event.preventDefault();
-      activateSpeakingTopicGroupFromBank(card.dataset.groupId);
-    };
-  });
   document.querySelectorAll(".practice-speaking-topic").forEach((button) => {
     button.onclick = () => activateSpeakingTopicGroupFromBank(button.dataset.groupId);
   });
@@ -19952,7 +20205,7 @@ function activateView(viewId, updateHash = false, options = {}) {
   }
   if (viewId === "bank") renderBankList();
   if (viewId === "vocabulary") {
-    if (previousView !== "vocabulary") state.vocabularyReview.page = "hub";
+    if (previousView !== "vocabulary" && vocabularyRouteContextFromLocation().from !== "stem") state.vocabularyReview.page = "hub";
     renderVocabularyTrainer();
     void ensureIeltsCoreVocabularyLoaded();
     void ensureAlevelVocabularyLoaded();
@@ -19969,6 +20222,10 @@ function activateView(viewId, updateHash = false, options = {}) {
 function applyInitialHash() {
   const hash = location.hash.replace("#", "");
   if (!hash) {
+    if (vocabularyRouteContextFromLocation().from === "stem") {
+      activateView("vocabulary", true);
+      return;
+    }
     activateView("home", false);
     return;
   }
@@ -20294,6 +20551,7 @@ async function init() {
   renderCoach();
   refreshMineData();
   renderSingle();
+  ensureAccessibleSelectLabels();
   document.querySelectorAll(".module-btn").forEach((item) => item.classList.toggle("active", item.dataset.module === state.activeModule));
   bindHomeControls(document);
   $("examPaper").innerHTML = `<section class="panel notice">Click Generate random exam to load a full paper.</section>`;

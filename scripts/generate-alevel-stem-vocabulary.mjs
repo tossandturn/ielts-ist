@@ -1282,6 +1282,7 @@ const itemOverrides = {
   },
   "physics-mechanics-newton-s-second-law": {
     formula: "ΣF = dp/dt; for constant mass, ΣF = ma",
+    example: "A trolley is acted on by several forces. Draw a complete force diagram, find the resultant force and use Newton's second law to determine the acceleration and its direction.",
     knowledgePoint: "The acceleration is caused by the resultant external force and points in the same direction as that resultant force.",
     conceptExplanation: "牛顿第二定律连接合外力与动量变化率。质量不变时才可写成 ΣF = ma；这里的 ΣF 是所有外力的矢量和，不是某一个单独的力。",
     methodSteps: ["选研究对象并画完整受力图", "规定正方向并把力分解到该方向", "写 ΣF = ma 或 ΣF = dp/dt", "联立运动关系并检查加速度方向"],
@@ -1309,6 +1310,7 @@ const itemOverrides = {
   },
   "physics-oscillations-simple-harmonic-motion": {
     formula: "a = -omega^2 x; F = -kx; T = 2pi / omega",
+    example: "Show that the acceleration of the mass is proportional to its displacement from equilibrium and is directed towards equilibrium; hence demonstrate that the motion is simple harmonic.",
     knowledgePoint: "SHM requires acceleration proportional to displacement and directed toward equilibrium.",
     conceptExplanation: "简谐运动的判据是加速度大小与离开平衡位置的位移成正比，方向始终指向平衡位置。负号表示回复方向，不表示加速度数值一定为负。",
     methodSteps: ["定义平衡位置并规定 x 的正方向", "从受力关系证明 F 或 a 与 -x 成正比", "识别 omega 并求周期或频率", "用端点和平衡点检查速度、加速度和能量"],
@@ -1344,6 +1346,7 @@ const itemOverrides = {
   },
   "mathematics-statistics-and-probability-binomial-distribution": {
     formula: "X ~ B(n,p); P(X=r) = C(n,r)p^r(1-p)^(n-r); E(X)=np; Var(X)=np(1-p)",
+    example: "A machine produces a defective item with probability 0.04. Model the number of defective items in 20 independent products using a binomial distribution and find the probability of at least two defects.",
     conceptExplanation: "二项分布描述固定次数、相互独立、每次只有成功/失败两种结果且成功概率恒定的试验中成功次数。四个条件缺一不可。",
     methodSteps: ["确认固定 n、两种结果、独立、p 恒定", "定义 X 表示成功次数", "翻译 exactly/at least/at most 为对应概率", "选择单项概率、累计概率或补事件并检查范围"],
     formulaExplanation: "at least r 常用 1 - P(X <= r-1)；计算器累计功能的上界是否包含端点必须确认。",
@@ -1448,6 +1451,35 @@ function buildTermExample(group, term, override) {
   return `Use ${term.word} in the context of the question and state the result clearly.`;
 }
 
+function stageForTerm(subject, topic) {
+  if (subject === "exam-language") return "AS";
+  const normalizedTopic = String(topic || "").toLowerCase();
+  return /fields|thermal|quantum|nuclear|astronomy|cosmology|capacitance|alternating|medical|organic|macroeconomics|international|further/.test(normalizedTopic)
+    ? "A2"
+    : "AS";
+}
+
+function buildStableMetadata(id, subject, topic, examFocus, example, translation, commonMistake) {
+  const topicId = `${subject}:${topic}`;
+  return {
+    termId: id,
+    routeId: `alevel-${slug(subject)}-${slug(topic)}`,
+    specificationVersion: "A-Level STEM 2026",
+    stage: stageForTerm(subject, topic),
+    topicId,
+    relatedQuestionPartIds: [],
+    aliases: [],
+    examUsage: {
+      command: "identify | calculate | explain | evaluate",
+      focus: examFocus,
+      example,
+      translation,
+    },
+    commonMistakes: commonMistake ? [commonMistake] : [],
+    reviewState: "new",
+  };
+}
+
 function buildTermTranslation(group, term, override) {
   if (override?.translation) return override.translation;
   const formula = resolveTermField(term, override, "formula");
@@ -1547,6 +1579,15 @@ for (const group of groups) {
       commonMistake: buildCommonMistake(group, contentTerm, override),
       workedExample: buildWorkedExample(group, contentTerm, override),
       collocations: term.collocations,
+      ...buildStableMetadata(
+        id,
+        group.subject,
+        group.topic,
+        buildExamFocus(group, contentTerm, override),
+        buildTermExample(group, contentTerm, override),
+        buildTermTranslation(group, contentTerm, override),
+        buildCommonMistake(group, contentTerm, override),
+      ),
     });
   }
 }
@@ -1574,6 +1615,15 @@ for (const [word, meaning, definition, example, translation] of commandRows) {
     example,
     translation,
     collocations: [`${word} the answer`, `${word} clearly`],
+    ...buildStableMetadata(
+      `exam-language-command-${slug(word)}`,
+      "exam-language",
+      "command-words",
+      `Use ${word} to select the evidence and response structure the mark scheme requires.`,
+      example,
+      translation,
+      "Treating every command word as if it required the same kind of answer.",
+    ),
   });
 }
 
@@ -1600,12 +1650,21 @@ for (const [word, meaning, definition, example, translation] of phraseRows) {
     example,
     translation,
     collocations: [],
+    ...buildStableMetadata(
+      `exam-language-question-stem-${slug(word)}`,
+      "exam-language",
+      "question-stems",
+      "Translate the sentence into its quantities, conditions, model and requested conclusion before calculating.",
+      example,
+      translation,
+      "Translating the words but missing the mathematical, physical, chemical or economic constraint.",
+    ),
   });
 }
 
 const payload = {
   schemaVersion: "alevel-stem-vocabulary.v2",
-  catalogVersion: "2026-08-07-knowledge-v2",
+  catalogVersion: "2026-08-08-knowledge-v3",
   itemCount: items.length,
   items,
 };

@@ -63,6 +63,9 @@ assert.match(app, /data-vocab-open-notebook/);
 assert.match(app, /data-vocab-review-key/);
 assert.match(app, /Opened from Notebook/);
 assert.match(app, /searchTimer/);
-assert.match(html, /20260807-stem-bridge-v7/);
+const stylesVersion = html.match(/styles\.css\?v=([^"']+)/)?.[1] || "";
+const appVersion = html.match(/app\.js\?v=([^"']+)/)?.[1] || "";
+assert.match(appVersion, /^\d{8}-stem-bridge-v\d+$/, "Frontend assets need a dated STEM bridge cache version");
+assert.equal(stylesVersion, appVersion, "CSS and JavaScript must use the same cache version");
 
 console.log(`IELTS Core vocabulary checks passed: ${catalog.items.length} items.`);
