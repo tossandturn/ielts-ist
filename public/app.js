@@ -154,6 +154,8 @@
     loading: false,
     loaded: false,
     error: "",
+    notice: "",
+    searchTimer: null,
   },
 };
 
@@ -166,6 +168,7 @@ const likedTopicStoreKey = "ieltsistLikedSpeakingTopics";
 const annotationStoreKey = "ieltsistPdfAnnotations";
 const weakAreaStoreKey = "ieltsistWeakAreas";
 const coreVocabularyStoreKey = "ieltsistCoreVocabularyKnown";
+const localVocabularyNotebookStoreKey = "ieltsistLocalVocabularyNotebookV1";
 const learningHistoryStoreKey = "ieltsistLearningLoopHistory";
 const coachHistoryStoreKey = "ieltsistCoachHistoryV1";
 const practiceSessionStoreKey = "ieltsistPracticeSessionV1";
@@ -1209,6 +1212,7 @@ async function refreshMineData() {
     state.serverDrafts = drafts.drafts || [];
     state.vocabItems = vocab.items || [];
     state.learningState = learning ? { ...learning, completionIdentity: ownerIdentity } : null;
+    await syncLocalVocabularyNotebook();
     if (!readPendingPracticeCompletion()) importRemotePracticeSession(learning.activeSession);
   } catch (error) {
     if (state.authToken === authToken && /log in|expired|401/i.test(error.message)) {
@@ -3433,7 +3437,12 @@ function renderMine() {
   if (!node) return;
   const localDrafts = readLocalDrafts();
   const allDrafts = uniqueDrafts([...state.serverDrafts, ...localDrafts]);
-  const vocabItems = state.vocabItems || [];
+  const vocabItems = [...(state.vocabItems || [])];
+  const localNotebookItems = readLocalVocabularyNotebook();
+  const notebookKeys = new Set(vocabItems.map((item) => notebookIdentity(item)));
+  localNotebookItems.forEach((item) => {
+    if (!notebookKeys.has(item.localKey)) vocabItems.push({ ...item, id: `local:${item.localKey}`, updatedAt: item.savedAt });
+  });
   const likedTopics = likedSpeakingTopicGroups();
   if (!state.currentUser) {
     node.innerHTML = `
@@ -3457,6 +3466,10 @@ function renderMine() {
       <section class="panel mine-card mine-draft-card">
         <div class="mine-section-head"><h3>Device Draft Box</h3><span>${localDrafts.length} items</span></div>
         ${renderDraftList(localDrafts, "local")}
+      </section>
+      <section class="panel mine-card mine-vocab-card">
+        <div class="mine-section-head"><div><h3>Vocabulary Notebook</h3><small>Saved on this device · syncs after login</small></div><span>${vocabItems.length} items</span></div>
+        ${renderVocabularyList(vocabItems)}
       </section>`;
     bindMineControls();
     return;
@@ -3491,7 +3504,7 @@ function renderMine() {
         <div id="redeemMessage" class="compact-notice"></div>
       </section>
       <section class="panel mine-card mine-vocab-card">
-        <div class="mine-section-head"><h3>Vocabulary Notebook</h3><span>${vocabItems.length} items</span></div>
+        <div class="mine-section-head"><div><h3>Vocabulary Notebook</h3><small>Vocabulary → Notebook → retest</small></div><span>${vocabItems.length} items</span></div>
         ${renderVocabularyList(vocabItems)}
       </section>
       <section class="panel mine-card mine-like-card">
@@ -3559,6 +3572,105 @@ function loadCoreVocabularyKnown() {
 
 function saveCoreVocabularyKnown() {
   localStorage.setItem(coreVocabularyStoreKey, JSON.stringify([...state.vocabularyReview.known]));
+}
+
+function readLocalVocabularyNotebook() {
+  try {
+    const value = JSON.parse(localStorage.getItem(localVocabularyNotebookStoreKey) || "[]");
+    return Array.isArray(value) ? value : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeLocalVocabularyNotebook(items) {
+  localStorage.setItem(localVocabularyNotebookStoreKey, JSON.stringify(items.slice(0, 300)));
+}
+
+function notebookIdentity(item) {
+  const structured = parseImportedVocabularyPayload(item);
+  const subject = structured?.subject || item?.subject || "ielts";
+  const term = cleanReviewText(structured?.term || item?.term || item?.word || "").toLowerCase();
+  return `${subject}:${term}`;
+}
+
+function vocabularyNotebookEntry(item) {
+  const structured = parseImportedVocabularyPayload(item);
+  const term = cleanReviewText(structured?.term || item?.word || item?.term || "");
+  const subject = structured?.subject || item?.subject || "ielts";
+  const topic = structured?.topic || item?.topic || "ielts-core";
+  return {
+    localKey: notebookIdentity(item),
+    term,
+    context: cleanReviewText(item?.example || item?.context || ""),
+    explanation: cleanReviewText(item?.meaning || structured?.meaning || item?.explanation || item?.definition || ""),
+    source: `Vocabulary:${subject}`,
+    subject,
+    topic,
+    topicLabel: structured?.topicLabel || item?.topicLabel || topic,
+    structured: structured || (item?.definition ? { ...item, term } : null),
+  };
+}
+
+function localNotebookHas(item) {
+  const key = notebookIdentity(item);
+  return readLocalVocabularyNotebook().some((entry) => entry.localKey === key);
+}
+
+async function saveVocabularyToNotebook(item) {
+  const entry = vocabularyNotebookEntry(item);
+  if (!entry.term) return;
+  const local = readLocalVocabularyNotebook().filter((saved) => saved.localKey !== entry.localKey);
+  local.unshift({ ...entry, savedAt: new Date().toISOString() });
+  writeLocalVocabularyNotebook(local);
+  state.vocabularyReview.notice = `${entry.term} saved to Notebook`;
+  if (state.authToken) {
+    try {
+      await postJson("/api/vocabulary", {
+        term: entry.term,
+        context: entry.context,
+        explanation: entry.structured ? encodeVocabularyImportPayload(entry.structured) : entry.explanation,
+        source: entry.source,
+      });
+      await refreshMineData();
+    } catch {
+      state.vocabularyReview.notice = `${entry.term} saved on this device; server sync will retry after login`;
+    }
+  }
+  renderVocabularyTrainer();
+}
+
+async function removeVocabularyFromNotebook(item) {
+  const key = notebookIdentity(item);
+  writeLocalVocabularyNotebook(readLocalVocabularyNotebook().filter((saved) => saved.localKey !== key));
+  if (state.authToken) {
+    const serverItem = (state.vocabItems || []).find((saved) => notebookIdentity(saved) === key);
+    if (serverItem?.id) {
+      try { await deleteJson(`/api/vocabulary?id=${encodeURIComponent(serverItem.id)}`); } catch { /* local removal remains */ }
+    }
+    await refreshMineData();
+  }
+  state.vocabularyReview.notice = `${cleanReviewText(item?.word || item?.term || "This item")} removed from Notebook`;
+  renderVocabularyTrainer();
+}
+
+async function syncLocalVocabularyNotebook() {
+  if (!state.authToken) return;
+  const localItems = readLocalVocabularyNotebook();
+  if (!localItems.length) return;
+  const existing = new Set((state.vocabItems || []).map((item) => notebookIdentity(item)));
+  let uploaded = 0;
+  for (const item of localItems) {
+    if (existing.has(item.localKey)) continue;
+    try {
+      await postJson("/api/vocabulary", { term: item.term, context: item.context, explanation: item.structured ? encodeVocabularyImportPayload(item.structured) : item.explanation, source: item.source });
+      uploaded += 1;
+    } catch { return; }
+  }
+  if (uploaded) {
+    const response = await getJson("/api/vocabulary", { authToken: state.authToken });
+    state.vocabItems = response.items || state.vocabItems;
+  }
 }
 
 async function ensureIeltsCoreVocabularyLoaded() {
@@ -3781,9 +3893,11 @@ function renderVocabularyMeaning(item) {
 }
 
 function renderVocabularyReviewPage(allItems, subjectCounts, deck, item, knownCount, revealed, deckPosition, subjects, availableTopics, catalogStatus, miniItems, miniStart) {
+  const notebookSaved = item ? localNotebookHas(item) || (state.vocabItems || []).some((saved) => notebookIdentity(saved) === notebookIdentity(item)) : false;
   return `<section class="vocab-trainer-shell">
     <div class="vocab-library-toolbar" aria-label="Vocabulary filters">
-      <button class="secondary small-button vocab-back-button" type="button" data-vocab-back>← Back to hub</button>
+      <button class="secondary small-button vocab-back-button" type="button" data-vocab-back>← Library</button>
+      <button class="secondary small-button" type="button" data-vocab-open-notebook>Notebook${state.vocabItems?.length ? ` (${state.vocabItems.length})` : ""}</button>
       <label><span>Subject</span><select id="vocabSubjectFilter">
         ${subjects.map((subject) => `<option value="${escapeHtml(subject)}" ${state.vocabularyReview.subject === subject ? "selected" : ""}>${escapeHtml(vocabularySubjectLabel(subject))}${subject === "all" ? ` (${allItems.length})` : ` (${subjectCounts[subject] || 0})`}</option>`).join("")}
       </select></label>
@@ -3815,8 +3929,10 @@ function renderVocabularyReviewPage(allItems, subjectCounts, deck, item, knownCo
       <div class="vocab-review-actions">
         <button id="vocabAgain" class="secondary" type="button">Again</button>
         <button id="vocabKnown" class="secondary" type="button">Know it</button>
+        <button id="vocabNotebook" class="${notebookSaved ? "secondary is-saved" : "primary"}" type="button">${notebookSaved ? "Saved to Notebook" : "Save to Notebook"}</button>
       </div>
     </article>` : `<article class="vocab-review-card vocab-empty-state"><strong>No vocabulary matches these filters.</strong><p>Try another subject, topic, type, or clear the search.</p><button class="secondary" type="button" data-vocab-clear>Clear filters</button></article>`}
+    ${state.vocabularyReview.notice ? `<div class="vocab-notice" role="status">${escapeHtml(state.vocabularyReview.notice)}</div>` : ""}
     <aside class="vocab-review-side">
       <div class="vocab-study-meter">
         <span>Mastered in this deck</span>
@@ -3906,7 +4022,30 @@ function setVocabularyPage(page) {
   state.vocabularyReview.page = page;
   if (page === "hub") {
     state.vocabularyReview.revealed = false;
+    state.vocabularyReview.notice = "";
   }
+  renderVocabularyTrainer();
+}
+
+function openVocabularyNotebookEntry(key) {
+  const item = normalizedCoreVocabularyItems().find((entry) => notebookIdentity(entry) === key);
+  if (!item) {
+    state.vocabularyReview.notice = "This saved note is from Coach text; open its full explanation in Notebook.";
+    activateView("vocabulary", true);
+    state.vocabularyReview.page = "hub";
+    renderVocabularyTrainer();
+    return;
+  }
+  state.vocabularyReview.subject = item.subject || "all";
+  state.vocabularyReview.topic = item.topic || "all";
+  state.vocabularyReview.type = "all";
+  state.vocabularyReview.query = "";
+  const deck = filteredCoreVocabulary();
+  state.vocabularyReview.index = Math.max(0, deck.findIndex((entry) => notebookIdentity(entry) === key));
+  activateView("vocabulary", true);
+  state.vocabularyReview.page = "review";
+  state.vocabularyReview.revealed = true;
+  state.vocabularyReview.notice = "Opened from Notebook";
   renderVocabularyTrainer();
 }
 
@@ -3922,6 +4061,22 @@ function bindVocabularyControls() {
       setVocabularyPage("hub");
       activateView("mine", true);
     };
+  });
+  document.querySelectorAll("[data-vocab-open-notebook]").forEach((button) => {
+    button.onclick = () => {
+      state.vocabularyReview.notice = "";
+      activateView("mine", true);
+      renderMine();
+    };
+  });
+  $("vocabNotebook")?.addEventListener("click", async () => {
+    const item = currentCoreVocabularyItem();
+    if (!item) return;
+    if (localNotebookHas(item) || (state.vocabItems || []).some((saved) => notebookIdentity(saved) === notebookIdentity(item))) {
+      await removeVocabularyFromNotebook(item);
+    } else {
+      await saveVocabularyToNotebook(item);
+    }
   });
   $("vocabReveal")?.addEventListener("click", () => {
     state.vocabularyReview.revealed = !state.vocabularyReview.revealed;
@@ -3956,6 +4111,9 @@ function bindVocabularyControls() {
   document.querySelectorAll("[data-vocab-index]").forEach((button) => {
     button.onclick = () => setVocabularyIndex(button.dataset.vocabIndex);
   });
+  document.querySelectorAll("[data-vocab-review-key]").forEach((button) => {
+    button.onclick = () => openVocabularyNotebookEntry(button.dataset.vocabReviewKey || "");
+  });
   $("vocabSubjectFilter")?.addEventListener("change", (event) => {
     state.vocabularyReview.subject = event.target.value || "all";
     state.vocabularyReview.topic = "all";
@@ -3976,7 +4134,10 @@ function bindVocabularyControls() {
     renderVocabularyTrainer();
   });
   $("vocabSearch")?.addEventListener("input", (event) => {
-    state.vocabularyReview.query = event.target.value || "";
+    const value = event.target.value || "";
+    window.clearTimeout(state.vocabularyReview.searchTimer);
+    state.vocabularyReview.searchTimer = window.setTimeout(() => {
+      state.vocabularyReview.query = value;
     state.vocabularyReview.index = 0;
     state.vocabularyReview.revealed = false;
     state.vocabularyReview.page = "review";
@@ -3984,6 +4145,7 @@ function bindVocabularyControls() {
     const input = $("vocabSearch");
     input?.focus({ preventScroll: true });
     if (input) input.setSelectionRange(input.value.length, input.value.length);
+    }, 180);
   });
   document.querySelector("[data-vocab-clear]")?.addEventListener("click", () => {
     Object.assign(state.vocabularyReview, { page: "review", subject: "all", topic: "all", type: "all", query: "", index: 0, revealed: false });
@@ -4627,7 +4789,10 @@ function renderVocabularyItem(item, label) {
         <div class="vocab-analysis">${details}</div>
       </details>
     </div>
-    <button class="secondary small-button delete-vocab" data-vocab-id="${escapeHtml(item.id)}">Delete</button>
+    <div class="vocab-item-actions">
+      ${item.word || parseImportedVocabularyPayload(item) ? `<button class="secondary small-button review-vocab" type="button" data-vocab-review-key="${escapeHtml(notebookIdentity(item))}">Review</button>` : ""}
+      <button class="secondary small-button delete-vocab" data-vocab-id="${escapeHtml(item.id)}" data-vocab-key="${escapeHtml(notebookIdentity(item))}">Delete</button>
+    </div>
   </article>`;
 }
 
@@ -4678,6 +4843,7 @@ async function submitAuth(mode) {
     updateUserChrome();
     await syncCurrentDraftNow();
     await refreshMineData();
+    await syncLocalVocabularyNotebook();
   } catch (error) {
     if (message) message.textContent = error.message;
   }
@@ -4766,7 +4932,10 @@ function bindMineControls() {
     button.onclick = () => deleteDraft(button.dataset.draftKey);
   });
   document.querySelectorAll(".delete-vocab").forEach((button) => {
-    button.onclick = () => deleteVocabulary(button.dataset.vocabId);
+    button.onclick = () => deleteVocabulary(button.dataset.vocabId, button.dataset.vocabKey);
+  });
+  document.querySelectorAll("[data-vocab-review-key]").forEach((button) => {
+    button.onclick = () => openVocabularyNotebookEntry(button.dataset.vocabReviewKey || "");
   });
   document.querySelectorAll(".practice-liked-topic").forEach((button) => {
     button.onclick = () => {
@@ -4976,8 +5145,13 @@ async function saveHelpVocabulary() {
   await refreshMineData();
 }
 
-async function deleteVocabulary(id) {
-  if (!state.authToken) return;
+async function deleteVocabulary(id, key = "") {
+  if (key) writeLocalVocabularyNotebook(readLocalVocabularyNotebook().filter((item) => item.localKey !== key));
+  if (!state.authToken || String(id || "").startsWith("local:")) {
+    renderMine();
+    bindMineControls();
+    return;
+  }
   await deleteJson(`/api/vocabulary?id=${encodeURIComponent(id)}`);
   await refreshMineData();
 }
@@ -15566,6 +15740,7 @@ function encodeVocabularyImportPayload(payload) {
 }
 
 function parseImportedVocabularyPayload(item) {
+  if (item?.structured && typeof item.structured === "object") return item.structured;
   const raw = String(item?.explanation || item?.context || "");
   const source = String(item?.source || "");
   const shouldParse = raw.startsWith(VOCAB_IMPORT_MARKER) || source.startsWith("ProfessionalImport:");

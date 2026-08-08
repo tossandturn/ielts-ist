@@ -10515,6 +10515,30 @@ body.immersive-mode[data-immersive-module="speaking"] .exam-section.focused-sect
   justify-self: start;
 }
 
+.vocab-notice {
+  grid-column: 1 / -1;
+  padding: 10px 12px;
+  border: 1px solid #b9e6fe;
+  border-radius: 10px;
+  color: #0b4a6f;
+  background: #effaff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.vocab-review-actions .is-saved {
+  color: #067647;
+  border-color: #abefc6;
+  background: #ecfdf3;
+}
+
+.vocab-item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
 .vocab-hub-shell,
 .vocab-secondary-page {
   grid-column: 1 / -1;

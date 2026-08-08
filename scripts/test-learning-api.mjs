@@ -10,7 +10,13 @@ const baseUrl = `http://127.0.0.1:${port}`;
 const databasePath = path.join(root, "data", `learning-api-test-${process.pid}.sqlite`);
 const child = spawn(process.execPath, ["server.js"], {
   cwd: root,
-  env: { ...process.env, PORT: String(port), IELTSIST_DB_PATH: databasePath },
+  env: {
+    ...process.env,
+    PORT: String(port),
+    IELTSIST_DB_PATH: databasePath,
+    ADMIN_API_SECRET: "learning-api-admin-test-secret",
+    STEM_IDENTITY_SIGNING_KEY: "learning-api-stem-test-signing-key",
+  },
   stdio: ["ignore", "pipe", "pipe"],
 });
 
@@ -60,6 +66,41 @@ try {
   const registeredA = await request("/api/auth/register", jsonOptions("POST", { username: usernameA, password: "testing123" }));
   assert.equal(registeredA.response.status, 200);
   const tokenA = registeredA.json.token;
+
+  const adminHeaders = { "x-admin-secret": "learning-api-admin-test-secret" };
+  const defaultRoles = await request(`/api/admin/users/${registeredA.json.user.id}/roles`, { headers: adminHeaders });
+  assert.equal(defaultRoles.response.status, 200);
+  assert.deepEqual(defaultRoles.json.roles, ["student"]);
+  assert.deepEqual(defaultRoles.json.workspaceRoles, ["student"]);
+
+  const deniedRoles = await request(`/api/admin/users/${registeredA.json.user.id}/roles`);
+  assert.equal(deniedRoles.response.status, 403);
+
+  const invalidRoles = await request(`/api/admin/users/${registeredA.json.user.id}/roles`, {
+    method: "PUT",
+    headers: { ...adminHeaders, "content-type": "application/json" },
+    body: JSON.stringify({ roles: ["teacher", "not-a-role"] }),
+  });
+  assert.equal(invalidRoles.response.status, 400);
+
+  const updatedRoles = await request(`/api/admin/users/${registeredA.json.user.id}/roles`, {
+    method: "PUT",
+    headers: { ...adminHeaders, "content-type": "application/json" },
+    body: JSON.stringify({ roles: ["school_owner", "teacher", "staff", "school_admin", "teacher"] }),
+  });
+  assert.equal(updatedRoles.response.status, 200);
+  assert.deepEqual(updatedRoles.json.roles, ["teacher", "school_admin", "school_owner", "staff"]);
+
+  const stemIdentity = await request("/api/stem/identity", {
+    headers: { authorization: `Bearer ${tokenA}`, origin: "http://localhost:5173" },
+  });
+  assert.equal(stemIdentity.response.status, 200);
+  assert.equal(stemIdentity.response.headers.get("access-control-allow-origin"), "http://localhost:5173");
+  assert.deepEqual(stemIdentity.json.identity.roles, ["teacher", "school_admin", "school_owner", "staff"]);
+  assert.deepEqual(stemIdentity.json.identity.workspaceRoles, ["teacher", "school_admin", "school_owner", "staff"]);
+  const stemClaims = JSON.parse(Buffer.from(stemIdentity.json.accessToken.split(".")[1], "base64url").toString("utf8"));
+  assert.deepEqual(stemClaims.roles, ["teacher", "school_admin", "school_owner", "staff"]);
+  assert.deepEqual(stemClaims.workspaceRoles, ["teacher", "school_admin", "school_owner", "staff"]);
 
   const initialState = await request("/api/learning/state", { headers: { authorization: `Bearer ${tokenA}` } });
   assert.equal(initialState.json.todayPlan.kind, "onboarding");

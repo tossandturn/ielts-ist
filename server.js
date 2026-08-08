@@ -25,6 +25,14 @@ const STARTED_AT = Date.now();
 const PUBLIC_DIR = path.join(__dirname, "public");
 const APP_DB_PATH = process.env.IELTSIST_DB_PATH || path.join(__dirname, "data", "ieltsist.sqlite");
 const ADMIN_API_SECRET = process.env.ADMIN_API_SECRET || "";
+const USER_ROLE_ORDER = ["student", "teacher", "school_admin", "school_owner", "staff"];
+const VALID_USER_ROLES = new Set(USER_ROLE_ORDER);
+const STEM_IDENTITY_SIGNING_KEY = process.env.STEM_IDENTITY_SIGNING_KEY || "";
+const STEM_ALLOWED_ORIGINS = new Set([
+  "https://stem.ieltsist.com",
+  "http://127.0.0.1:5173",
+  "http://localhost:5173",
+]);
 const DEFAULT_CAMBRIDGE15_DIR = process.platform === "win32"
   ? "C:\\Users\\10604\\Desktop\\ap物理真题训练\\剑15"
   : path.join(__dirname, "data", "cambridge15");
@@ -1648,6 +1656,20 @@ function getAppDb() {
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS user_roles (
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      role TEXT NOT NULL DEFAULT 'student' CHECK (role IN ('student', 'teacher', 'school_admin', 'school_owner', 'staff')),
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      PRIMARY KEY (user_id, role)
+    );
+    CREATE INDEX IF NOT EXISTS idx_user_roles_role ON user_roles(role, user_id);
+    CREATE TRIGGER IF NOT EXISTS users_default_student_role
+    AFTER INSERT ON users
+    BEGIN
+      INSERT OR IGNORE INTO user_roles (user_id, role, created_at, updated_at)
+      VALUES (NEW.id, 'student', NEW.created_at, NEW.updated_at);
+    END;
     CREATE TABLE IF NOT EXISTS sessions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -1755,6 +1777,10 @@ function getAppDb() {
     );
     CREATE INDEX IF NOT EXISTS idx_weak_areas_user_status ON weak_areas(user_id, status, updated_at DESC);
   `);
+  appDb.prepare(`
+    INSERT OR IGNORE INTO user_roles (user_id, role, created_at, updated_at)
+    SELECT id, 'student', created_at, updated_at FROM users
+  `).run();
   const profileColumns = new Set(appDb.prepare("PRAGMA table_info(learner_profiles)").all().map((column) => column.name));
   if (!profileColumns.has("current_band")) appDb.exec("ALTER TABLE learner_profiles ADD COLUMN current_band REAL");
   return appDb;
@@ -1838,6 +1864,32 @@ function currentMembership(userId) {
   return getAppDb().prepare("SELECT * FROM memberships WHERE user_id = ?").get(userId) || null;
 }
 
+function getUserRoles(userId) {
+  const db = getAppDb();
+  const rows = db.prepare("SELECT role FROM user_roles WHERE user_id = ? ORDER BY role").all(userId);
+  if (!rows.length) {
+    const timestamp = nowIso();
+    db.prepare("INSERT OR IGNORE INTO user_roles (user_id, role, created_at, updated_at) VALUES (?, 'student', ?, ?)")
+      .run(userId, timestamp, timestamp);
+    return ["student"];
+  }
+  return rows.map((row) => row.role).sort((a, b) => USER_ROLE_ORDER.indexOf(a) - USER_ROLE_ORDER.indexOf(b));
+}
+
+function normalizeUserRoles(value) {
+  if (!Array.isArray(value) || value.length === 0) return null;
+  const roles = [...new Set(value.map((role) => String(role || "").trim().toLowerCase()))];
+  return roles.length && roles.every((role) => VALID_USER_ROLES.has(role)) ? roles.sort((a, b) => USER_ROLE_ORDER.indexOf(a) - USER_ROLE_ORDER.indexOf(b)) : null;
+}
+
+function requireAdminApiSecret(req) {
+  if (!ADMIN_API_SECRET || req.headers["x-admin-secret"] !== ADMIN_API_SECRET) {
+    const error = new Error("Admin API secret is required.");
+    error.statusCode = 403;
+    throw error;
+  }
+}
+
 function createSession(userId) {
   const db = getAppDb();
   const token = crypto.randomBytes(32).toString("base64url");
@@ -1850,6 +1902,62 @@ function createSession(userId) {
 
 function setSessionCookie(res, token, expiresAt) {
   res.setHeader("Set-Cookie", `ieltsist_session=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Expires=${new Date(expiresAt).toUTCString()}`);
+}
+
+function base64urlJson(value) {
+  return Buffer.from(JSON.stringify(value)).toString("base64url");
+}
+
+function signStemIdentity(payload) {
+  const header = base64urlJson({ alg: "HS256", typ: "JWT" });
+  const body = base64urlJson(payload);
+  const signature = crypto.createHmac("sha256", STEM_IDENTITY_SIGNING_KEY).update(`${header}.${body}`).digest("base64url");
+  return `${header}.${body}.${signature}`;
+}
+
+function applyStemCors(req, res) {
+  const origin = String(req.headers.origin || "");
+  if (!STEM_ALLOWED_ORIGINS.has(origin)) return false;
+  res.setHeader("Access-Control-Allow-Origin", origin);
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader("Access-Control-Allow-Headers", "content-type,authorization");
+  res.setHeader("Access-Control-Allow-Methods", "GET,OPTIONS");
+  res.setHeader("Vary", "Origin");
+  return true;
+}
+
+function handleStemIdentity(req, res) {
+  if (!STEM_IDENTITY_SIGNING_KEY) {
+    sendJson(res, 503, { error: "Shared STEM sign-in is not configured yet." });
+    return;
+  }
+  if (!applyStemCors(req, res)) {
+    sendJson(res, 403, { error: "This origin is not allowed to request STEM sign-in." });
+    return;
+  }
+  const user = requireUser(req);
+  const issuedAt = Math.floor(Date.now() / 1000);
+  const expiresAt = issuedAt + 300;
+  const roles = getUserRoles(user.id);
+  const identity = {
+    id: `ielts:${user.id}`,
+    username: user.username,
+    avatarDataUrl: user.avatar_data_url || "",
+    roles,
+    workspaceRoles: roles,
+  };
+  const accessToken = signStemIdentity({
+    iss: "ieltsist.com",
+    aud: "stem.ieltsist.com",
+    sub: identity.id,
+    username: identity.username,
+    avatarDataUrl: identity.avatarDataUrl,
+    roles: identity.roles,
+    workspaceRoles: identity.workspaceRoles,
+    iat: issuedAt,
+    exp: expiresAt,
+  });
+  sendJson(res, 200, { identity, accessToken, expiresAt: new Date(expiresAt * 1000).toISOString() });
 }
 
 async function handleAuthApi(req, res) {
@@ -1910,6 +2018,41 @@ async function handleAuthApi(req, res) {
   sendJson(res, 405, { error: "Method not allowed" });
 }
 
+async function handleAdminUserRoles(req, res, userId) {
+  requireAdminApiSecret(req);
+  const db = getAppDb();
+  const id = Number(userId);
+  const user = db.prepare("SELECT id, username FROM users WHERE id = ?").get(id);
+  if (!user) {
+    sendJson(res, 404, { error: "User not found." });
+    return;
+  }
+  if (req.method === "PUT") {
+    const payload = await readJsonBody(req);
+    const roles = normalizeUserRoles(payload.roles);
+    if (!roles) {
+      sendJson(res, 400, { error: `Roles must be a non-empty array containing only: ${USER_ROLE_ORDER.join(", ")}.` });
+      return;
+    }
+    const updatedAt = nowIso();
+    db.exec("BEGIN");
+    try {
+      db.prepare("DELETE FROM user_roles WHERE user_id = ?").run(user.id);
+      const insertRole = db.prepare("INSERT INTO user_roles (user_id, role, created_at, updated_at) VALUES (?, ?, ?, ?)");
+      for (const role of roles) insertRole.run(user.id, role, updatedAt, updatedAt);
+      db.exec("COMMIT");
+    } catch (error) {
+      db.exec("ROLLBACK");
+      throw error;
+    }
+  } else if (req.method !== "GET") {
+    sendJson(res, 405, { error: "Method not allowed" });
+    return;
+  }
+  const roles = getUserRoles(user.id);
+  sendJson(res, 200, { user, roles, workspaceRoles: roles });
+}
+
 function redemptionPlanDays(plan) {
   const key = String(plan || "").toLowerCase();
   if (key === "week" || key === "weekly") return 7;
@@ -1962,10 +2105,7 @@ async function handleRedeem(req, res) {
 }
 
 async function handleAdminRedemptionCodes(req, res) {
-  if (!ADMIN_API_SECRET || req.headers["x-admin-secret"] !== ADMIN_API_SECRET) {
-    sendJson(res, 403, { error: "Admin API secret is required." });
-    return;
-  }
+  requireAdminApiSecret(req);
   const payload = await readJsonBody(req);
   const plan = String(payload.plan || "").toLowerCase();
   const days = Number(payload.days || redemptionPlanDays(plan));
@@ -3983,7 +4123,7 @@ function extractSpeakingBandStable(text) {
   return extractSpeakingBand(text);
 }
 
-function localWritingFeedback(prompt, essay, warning = "") {
+function localWritingFeedbackLegacy(prompt, essay, warning = "") {
   const words = wordCount(essay);
   const paragraphs = essay.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
   const taskScore = words < 180 ? 5 : words < 240 ? 6 : 7;
@@ -4021,7 +4161,7 @@ function localWritingFeedback(prompt, essay, warning = "") {
   ].join("\n");
 }
 
-function fullExamSystemPrompt() {
+function fullExamSystemPromptChinese() {
   return [
     "You are an IELTS examiner and study coach.",
     "The candidate has completed an IELTS exam set. Listening and Reading objective scores are provided; Writing Task 1 and Task 2 responses may both be included. Speaking may include a band score from the embedded real-time IELTS speaking examiner.",
@@ -4043,7 +4183,7 @@ function localNextSpeakingQuestion(set, history = [], part = "part1") {
   return pool[askedCount % pool.length];
 }
 
-async function handleWriting(req, res) {
+async function handleLegacyWriting(req, res) {
   const payload = JSON.parse((await readBody(req)) || "{}");
   const prompt = String(payload.prompt || "").trim();
   const essay = String(payload.essay || "").trim();
@@ -4062,7 +4202,7 @@ async function handleWriting(req, res) {
   } catch (error) {
     warning = error.message || "AI unavailable";
   }
-  const feedback = ai || localWritingFeedback(prompt, essay, warning);
+  const feedback = ai || localWritingFeedbackLegacy(prompt, essay, warning);
   const pdfDataUrl = await createWritingReportPdfDataUrl(prompt, feedback);
   sendJson(res, 200, addPdfDownloadUrl(
     { mode: ai ? "ai" : "local", feedback, pdfDataUrl, pdfFileName: "ielts-writing-feedback.pdf", warning },
@@ -4197,7 +4337,7 @@ async function handleObjective(req, res, moduleName) {
   });
 }
 
-async function handleFullExam(req, res) {
+async function handleLegacyFullExam(req, res) {
   const payload = JSON.parse((await readBody(req)) || "{}");
   const listening = scoreObjective(payload.listening?.questions || [], payload.listening?.answers || {});
   const reading = scoreObjective(payload.reading?.questions || [], payload.reading?.answers || {});
@@ -4249,7 +4389,7 @@ async function handleFullExam(req, res) {
   let warning = "";
   try {
     ai = await callOpenAI({
-      system: fullExamSystemPrompt(),
+      system: fullExamSystemPromptChinese(),
       user: JSON.stringify(
         { listening, reading, writing: { tasks: writingTasks }, speaking },
         null,
@@ -4282,17 +4422,7 @@ async function handleFullExam(req, res) {
   }, "ielts-full-exam-report.pdf"));
 }
 
-function createWritingReportPdfDataUrl(prompt, body) {
-  const taskTitle = /task\s*1/i.test(prompt) ? "IELTS Writing Task 1 Feedback Report" : "IELTS Writing Task 2 Feedback Report";
-  return createStyledReportPdfDataUrl({
-    title: taskTitle,
-    subtitle: taskTitle,
-    prompt,
-    body,
-  });
-}
-
-function localWritingFeedback(prompt, essay, warning = "") {
+function localWritingFeedbackAmber(prompt, essay, warning = "") {
   const words = wordCount(essay);
   const paragraphs = essay.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
   const taskScore = words < 180 ? 5 : words < 240 ? 6 : 7;
@@ -4702,7 +4832,7 @@ async function buildWritingFeedbackResult(prompt, essay) {
   } catch (error) {
     warning = error.message || "AI unavailable";
   }
-  const fallbackFeedback = localWritingFeedback(prompt, essay, warning);
+  const fallbackFeedback = localWritingFeedbackAmber(prompt, essay, warning);
   const analysis = normalizeWritingAnalysis(ai, prompt, essay, ai || fallbackFeedback);
   const feedback = analysis.fullReport || fallbackFeedback;
   const pdfDataUrl = await createWritingReportPdfDataUrl(prompt, feedback);
@@ -5047,6 +5177,15 @@ async function handleFullExam(req, res) {
 
 const server = http.createServer(async (req, res) => {
   try {
+    if (req.method === "OPTIONS" && req.url === "/api/stem/identity") {
+      if (!applyStemCors(req, res)) {
+        sendJson(res, 403, { error: "This origin is not allowed to request STEM sign-in." });
+        return;
+      }
+      res.writeHead(204);
+      res.end();
+      return;
+    }
     if (req.method === "OPTIONS") {
       res.writeHead(204, {
         "access-control-allow-origin": "*",
@@ -5077,12 +5216,21 @@ const server = http.createServer(async (req, res) => {
       });
       return;
     }
+    if (req.method === "GET" && req.url === "/api/stem/identity") {
+      handleStemIdentity(req, res);
+      return;
+    }
     if (req.url.startsWith("/api/auth/") || req.url === "/api/me") {
       await handleAuthApi(req, res);
       return;
     }
     if (req.method === "POST" && req.url === "/api/redeem") {
       await handleRedeem(req, res);
+      return;
+    }
+    const adminRolesMatch = req.url.match(/^\/api\/admin\/users\/(\d+)\/roles(?:\?.*)?$/);
+    if (adminRolesMatch) {
+      await handleAdminUserRoles(req, res, adminRolesMatch[1]);
       return;
     }
     if (req.method === "POST" && req.url === "/api/admin/redemption-codes") {

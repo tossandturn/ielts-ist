@@ -53,6 +53,16 @@ assert.match(app, /aria-controls="vocabMeaning"/);
 assert.match(app, /meaningFace\.hidden = !state\.vocabularyReview\.revealed/);
 assert.match(app, /item\.topic \|\| "ielts-core"/);
 assert.match(app, /item\.conceptExplanation/);
+assert.match(app, /localVocabularyNotebookStoreKey/);
+assert.match(app, /function notebookIdentity/);
+assert.match(app, /function saveVocabularyToNotebook/);
+assert.match(app, /function removeVocabularyFromNotebook/);
+assert.match(app, /function syncLocalVocabularyNotebook/);
+assert.match(app, /id=\"vocabNotebook\"/);
+assert.match(app, /data-vocab-open-notebook/);
+assert.match(app, /data-vocab-review-key/);
+assert.match(app, /Opened from Notebook/);
+assert.match(app, /searchTimer/);
 assert.match(html, /20260807-stem-bridge-v7/);
 
 console.log(`IELTS Core vocabulary checks passed: ${catalog.items.length} items.`);
