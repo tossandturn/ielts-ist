@@ -95,7 +95,8 @@ try {
       assert.match(metrics.activeClasses, /focus-page/, `${viewport.name}/${route.name}: page family class is missing`);
       assert.ok(metrics.overflow <= 1, `${viewport.name}/${route.name}: horizontal overflow is ${metrics.overflow}px`);
       assert.equal(metrics.accent.toLowerCase(), "#7357e8", `${viewport.name}/${route.name}: shared brand token is not active`);
-      assert.equal(metrics.canvas, "rgb(245, 246, 251)", `${viewport.name}/${route.name}: shared canvas is not active`);
+      // Shared console canvas follows the verified STEM redesign prototype: #f7f7fb.
+      assert.equal(metrics.canvas, "rgb(247, 247, 251)", `${viewport.name}/${route.name}: shared canvas is not active`);
       if (viewport.width <= 600 && metrics.interactiveCount) {
         assert.ok(metrics.minInteractiveHeight >= 43.5, `${viewport.name}/${route.name}: smallest visible control is ${metrics.minInteractiveHeight}px (${metrics.shortestControl})`);
       }
