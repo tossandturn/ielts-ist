@@ -17394,3 +17394,12 @@ body.coach-dock-open .app-shell main {
   flex: 0 1 auto;
   white-space: nowrap;
 }
+
+/* Final shell override: legacy sidebar rules must not wash out the shared navy rail. */
+body.focus-camp-system .sidebar,
+body.focus-camp-system .app-shell.sidebar-collapsed .sidebar {
+  background: linear-gradient(180deg, #111b3a 0%, #0b264c 100%) !important;
+  border-right-color: rgba(255, 255, 255, .08) !important;
+  box-shadow: none !important;
+  color: #f7f8ff !important;
+}
