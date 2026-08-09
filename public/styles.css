@@ -17379,6 +17379,50 @@ body.coach-dock-open .app-shell main {
   min-width: 0;
 }
 
+/* The collapsed rail toggle sits over the immersive header on every narrow
+   layout; keep the campaign label clear of that fixed control. */
+body.single-immersive-mode .focus-page > .view-head::before {
+  left: 48px;
+}
+
+body.sidebar-is-collapsed .focus-page > .view-head::before {
+  left: 48px;
+}
+
+/* On portrait tablets the annotation tools are a full-width row. Keeping them
+   beside the timer makes the submit action wrap into unreadable fragments. */
+@media (max-width: 820px) and (orientation: portrait) {
+  body.single-immersive-mode #single > .view-head:has(> .annotation-toolbar) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+
+  body.single-immersive-mode #single > .view-head > .annotation-toolbar {
+    flex: 1 0 100%;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  body.single-immersive-mode #single > .view-head > .segmented {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  body.single-immersive-mode #single > .view-head > .single-sticky-timer {
+    flex: 0 1 auto;
+    min-width: 0;
+    width: auto;
+  }
+
+  body.single-immersive-mode #single > .view-head .back-submit-button {
+    white-space: nowrap;
+  }
+}
+
 .help-chat-actions {
   min-width: 0;
   max-width: calc(100% - 88px);
