@@ -24,6 +24,8 @@ const PORT = Number(process.env.PORT || 4321);
 const STARTED_AT = Date.now();
 const PUBLIC_DIR = path.join(__dirname, "public");
 const APP_DB_PATH = process.env.IELTSIST_DB_PATH || path.join(__dirname, "data", "ieltsist.sqlite");
+// Session cookies are only sent over HTTPS by default; set this to 0 for an explicitly HTTP-only local setup.
+const SESSION_COOKIE_SECURE = String(process.env.SESSION_COOKIE_SECURE || "1").trim() !== "0";
 const ADMIN_API_SECRET = process.env.ADMIN_API_SECRET || "";
 const USER_ROLE_ORDER = ["student", "teacher", "school_admin", "school_owner", "staff"];
 const VALID_USER_ROLES = new Set(USER_ROLE_ORDER);
@@ -1947,7 +1949,8 @@ function createSession(userId) {
 }
 
 function setSessionCookie(res, token, expiresAt) {
-  res.setHeader("Set-Cookie", `ieltsist_session=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Expires=${new Date(expiresAt).toUTCString()}`);
+  const secure = SESSION_COOKIE_SECURE ? "; Secure" : "";
+  res.setHeader("Set-Cookie", `ieltsist_session=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax${secure}; Expires=${new Date(expiresAt).toUTCString()}`);
 }
 
 function base64urlJson(value) {
@@ -2052,7 +2055,7 @@ async function handleAuthApi(req, res) {
   if (req.method === "POST" && url.pathname === "/api/auth/logout") {
     const token = getRequestToken(req);
     if (token) getAppDb().prepare("DELETE FROM sessions WHERE token_hash = ?").run(hashToken(token));
-    res.setHeader("Set-Cookie", "ieltsist_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0");
+    res.setHeader("Set-Cookie", `ieltsist_session=; Path=/; HttpOnly; SameSite=Lax${SESSION_COOKIE_SECURE ? "; Secure" : ""}; Max-Age=0`);
     sendJson(res, 200, { ok: true });
     return;
   }

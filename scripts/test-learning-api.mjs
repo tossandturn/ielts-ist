@@ -66,6 +66,8 @@ try {
   const registeredA = await request("/api/auth/register", jsonOptions("POST", { username: usernameA, password: "testing123" }));
   assert.equal(registeredA.response.status, 200);
   const tokenA = registeredA.json.token;
+  assert.match(registeredA.response.headers.get("set-cookie") || "", /; Secure(?:;|$)/i,
+    "Session cookies must be restricted to HTTPS by default");
 
   const adminHeaders = { "x-admin-secret": "learning-api-admin-test-secret" };
   const defaultRoles = await request(`/api/admin/users/${registeredA.json.user.id}/roles`, { headers: adminHeaders });
@@ -209,6 +211,13 @@ try {
   assert.equal(stateB.json.activeSession, null);
   assert.deepEqual(stateB.json.attempts, []);
   assert.deepEqual(stateB.json.weakAreas, []);
+
+  const loggedOut = await request("/api/auth/logout", jsonOptions("POST", {}, registeredA.json.token));
+  assert.equal(loggedOut.response.status, 200);
+  assert.match(loggedOut.response.headers.get("set-cookie") || "", /; Secure(?:;|$)/i,
+    "Logout cookie clearing must retain the Secure attribute");
+  const expired = await request("/api/me", { headers: { authorization: `Bearer ${registeredA.json.token}` } });
+  assert.equal(expired.response.status, 401);
 
   console.log("Learning profile API regression checks passed.");
 } finally {
