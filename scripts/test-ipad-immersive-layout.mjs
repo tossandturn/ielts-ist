@@ -42,7 +42,7 @@ try {
         window.scrollTo({ top: 0, behavior: "auto" });
       }, moduleName);
       await page.locator("#single.single-started").waitFor({ state: "visible" });
-      if (moduleName === "speaking") {
+      if (moduleName === "speaking" || moduleName === "writing") {
         await page.locator("#annotationToolbar").waitFor({ state: "hidden", timeout: 5_000 }).catch(() => {});
       } else {
         await page.locator("#annotationToolbar").waitFor({ state: "visible", timeout: 5_000 });
@@ -92,8 +92,8 @@ try {
           );
         }
       }
-      if (moduleName === "speaking") {
-        assert.equal(layout.toolbar, null, `${size.name} speaking: PDF annotation toolbar should be hidden`);
+      if (moduleName === "speaking" || moduleName === "writing") {
+        assert.equal(layout.toolbar, null, `${size.name} ${moduleName}: PDF annotation toolbar should be hidden`);
       } else {
         assert.ok(layout.toolbar, `${size.name} ${moduleName}: PDF annotation toolbar is missing`);
         assert.ok(layout.toolbar.left <= layout.header.left + 16, `${size.name} ${moduleName}: annotation toolbar is not top-left`);
