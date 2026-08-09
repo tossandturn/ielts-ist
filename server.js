@@ -516,7 +516,6 @@ function slimQuestions(questions, metadata = new Map()) {
         return {
           id: question.id || `q${index + 1}`,
           text: question.text || `Question ${index + 1}`,
-          answer: question.answer || "",
           type: question.type || meta.type || "unknown",
           typeLabel: question.typeLabel || meta.typeLabel || "Question",
           questionPage: question.questionPage || meta.questionPage || null,
@@ -4811,6 +4810,49 @@ function scoreObjective(questions, answers = {}) {
   return { correct, total: questions.length, scoredTotal: scorableQuestions.length, band, answerAvailable: true, details };
 }
 
+function objectiveScoreRequestError(message) {
+  const error = new Error(message);
+  error.statusCode = 400;
+  return error;
+}
+
+function canonicalObjectiveTaskId(value) {
+  return String(value || "").trim().split("::")[0];
+}
+
+function canonicalObjectiveTest(moduleName, value) {
+  const taskId = canonicalObjectiveTaskId(value);
+  const tests = moduleName === "listening" ? realListeningTests() : realReadingTests();
+  return tests.find((test) => test.id === taskId) || null;
+}
+
+function objectiveQuestionsForSubmission(moduleName, payload = {}) {
+  const submittedTaskId = String(payload.taskId || payload.sourceTaskId || "").trim();
+  if (!submittedTaskId) throw objectiveScoreRequestError("A task id is required for scoring.");
+  const test = canonicalObjectiveTest(moduleName, submittedTaskId);
+  if (!test) throw objectiveScoreRequestError("This IELTS task is not available for scoring.");
+  const questionIds = Array.isArray(payload.questionIds)
+    ? [...new Set(payload.questionIds.map((id) => String(id || "").trim()).filter(Boolean))]
+    : [];
+  if (!questionIds.length || questionIds.length > 40) {
+    throw objectiveScoreRequestError("Select the task questions before submitting answers.");
+  }
+  const questionsById = new Map((test.questions || []).map((question) => [String(question.id || ""), question]));
+  const questions = questionIds.map((id) => questionsById.get(id));
+  if (questions.some((question) => !question)) {
+    throw objectiveScoreRequestError("One or more submitted questions do not belong to this IELTS task.");
+  }
+  return questions;
+}
+
+function scoreObjectiveSubmission(moduleName, payload = {}) {
+  const questions = objectiveQuestionsForSubmission(moduleName, payload);
+  const answers = payload.answers && typeof payload.answers === "object" && !Array.isArray(payload.answers)
+    ? payload.answers
+    : {};
+  return scoreObjective(questions, answers);
+}
+
 function wordCount(text) {
   return (text || "").trim().split(/\s+/).filter(Boolean).length;
 }
@@ -5072,13 +5114,7 @@ async function handleSpeakingRecording(req, res) {
 
 async function handleObjective(req, res, moduleName) {
   const payload = JSON.parse((await readBody(req)) || "{}");
-  const questions = Array.isArray(payload.questions) ? payload.questions : [];
-  const answers = payload.answers || {};
-  if (!questions.length) {
-    sendJson(res, 400, { error: "缺少题目。" });
-    return;
-  }
-  const result = scoreObjective(questions, answers);
+  const result = scoreObjectiveSubmission(moduleName, payload);
   const moduleLabel = moduleName === "listening" ? "Listening" : "Reading";
   const feedback = result.answerAvailable
     ? `${moduleLabel} score: ${result.correct}/${result.scoredTotal}, estimated Band ${result.band.toFixed(1)}. Review wrong answers for keywords, paraphrasing, spelling and plural forms.`
@@ -5093,8 +5129,8 @@ async function handleObjective(req, res, moduleName) {
 
 async function handleLegacyFullExam(req, res) {
   const payload = JSON.parse((await readBody(req)) || "{}");
-  const listening = scoreObjective(payload.listening?.questions || [], payload.listening?.answers || {});
-  const reading = scoreObjective(payload.reading?.questions || [], payload.reading?.answers || {});
+  const listening = scoreObjectiveSubmission("listening", payload.listening || {});
+  const reading = scoreObjectiveSubmission("reading", payload.reading || {});
   const writingTasks = Array.isArray(payload.writing?.tasks)
     ? payload.writing.tasks.map((task, index) => ({
         type: String(task.type || `Task ${index + 1}`).trim(),
@@ -5852,8 +5888,8 @@ async function handleSpeaking(req, res) {
 
 async function handleFullExam(req, res) {
   const payload = JSON.parse((await readBody(req)) || "{}");
-  const listening = scoreObjective(payload.listening?.questions || [], payload.listening?.answers || {});
-  const reading = scoreObjective(payload.reading?.questions || [], payload.reading?.answers || {});
+  const listening = scoreObjectiveSubmission("listening", payload.listening || {});
+  const reading = scoreObjectiveSubmission("reading", payload.reading || {});
   const writingTasks = Array.isArray(payload.writing?.tasks)
     ? payload.writing.tasks.map((task, index) => ({
         type: String(task.type || `Task ${index + 1}`).trim(),

@@ -372,11 +372,11 @@ const reproducibility = spawnSync(process.execPath, [resolve("scripts", "generat
 });
 assert.equal(reproducibility.status, 0, `Semantic topic catalog must be reproducible:\n${reproducibility.stdout}\n${reproducibility.stderr}`);
 console.log("PASS semantic catalog covers 288 Listening Sections and 216 Reading Passages with the Cambridge 9 cache mismatch repaired");
-const preservedQuestionFields = (paper) => paper.questions.map(({ id, text, answer }) => ({ id, text, answer }));
+const preservedQuestionFields = (paper) => paper.questions.map(({ id, text }) => ({ id, text }));
 const sourceListeningPaper = cam15Source.listeningTests.find((item) => item.id === listeningPaper.id);
 const sourceReadingPaper = cam15Source.readingTests.find((item) => item.id === readingPaper.id);
-assert.deepEqual(preservedQuestionFields(listeningPaper), preservedQuestionFields(sourceListeningPaper), "Listening question ids, text and answers must remain unchanged");
-assert.deepEqual(preservedQuestionFields(readingPaper), preservedQuestionFields(sourceReadingPaper), "Reading question ids, text and answers must remain unchanged");
+assert.deepEqual(preservedQuestionFields(listeningPaper), preservedQuestionFields(sourceListeningPaper), "Listening question ids and text must remain unchanged");
+assert.deepEqual(preservedQuestionFields(readingPaper), preservedQuestionFields(sourceReadingPaper), "Reading question ids and text must remain unchanged");
 assert.deepEqual(listeningPaper.audioUrls, sourceListeningPaper.audioUrls, "All existing Listening audio must remain unchanged");
 assert.deepEqual(listeningPaper.questionPageImages, sourceListeningPaper.questionPageImages.map(({ page, url }) => ({ page, url })), "All existing Listening paper images must remain unchanged");
 function enabledSourcePaper(item) {
@@ -388,7 +388,6 @@ function projectedQuestions(questions) {
   return (questions || []).map((question, index) => ({
     id: question.id || `q${index + 1}`,
     text: question.text || `Question ${index + 1}`,
-    answer: question.answer || "",
   }));
 }
 

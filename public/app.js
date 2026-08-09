@@ -5772,6 +5772,16 @@ function practiceUnitBaseId(item) {
   return String(item?.sourceItemId || item?.baseItemId || item?.id || "").split("::")[0];
 }
 
+function objectiveScorePayload(item, answers = {}) {
+  const task = normalizeItem(item || {});
+  return {
+    taskId: String(task.id || ""),
+    sourceTaskId: practiceUnitBaseId(task),
+    questionIds: (task.questions || []).map((question) => String(question?.id || "").trim()).filter(Boolean),
+    answers: answers && typeof answers === "object" ? answers : {},
+  };
+}
+
 function latestObjectiveResultForSource(moduleName, sourceItemId) {
   const historyItems = Object.values(readLearningLoopHistory().objectiveItems || {});
   const memoryItems = Object.values(state.latestObjectiveResultsByItem || {});
@@ -8141,11 +8151,7 @@ function renderQuestionInputs(prefix, questions) {
   if (!questions?.length) {
     return `<div class="notice">This user import has no answer key yet. Add answers in the format Q1=answer inside the user bank.</div>`;
   }
-  const answerAvailable = questions.some((q) => String(q.answer || "").trim());
-  const notice = answerAvailable
-    ? ""
-    : `<div class="notice">The answer key for this local paper has not been imported yet. You can still answer normally, but submission will only show a manual check prompt and will not auto-score.</div>`;
-  return `${notice}<div class="question-list">${questions
+  return `<div class="question-list">${questions
     .map(
       (q, index) => `
         <label class="question-row">
@@ -16881,7 +16887,7 @@ async function submitSingle() {
     if (moduleName === "listening" || moduleName === "reading") {
       const item = singlePracticeItemForMode(moduleName, state.activeSingle);
       saveSingleAnswersToState();
-      const json = await postJson(`/api/${moduleName}/score`, { questions: item.questions || [], answers: state.singleAnswers || {} });
+      const json = await postJson(`/api/${moduleName}/score`, objectiveScorePayload(item, state.singleAnswers || {}));
       rememberObjectiveResult(moduleName, normalizeItem(state.activeSingle), json);
       setFeedbackHtml("singleFeedback", renderObjectiveFeedbackHtml(json, moduleName), "singleMode", json.mode);
     } else if (moduleName === "writing") {
@@ -17075,8 +17081,8 @@ async function scoreExam() {
   setFeedback("examFeedback", "Generating full report...", "examMode", "");
   try {
     const payload = {
-      listening: { questions: state.exam.listening.questions || [], answers: collectAnswers("exam-listening") },
-      reading: { questions: state.exam.reading.questions || [], answers: collectAnswers("exam-reading") },
+      listening: objectiveScorePayload(state.exam.listening, collectAnswers("exam-listening")),
+      reading: objectiveScorePayload(state.exam.reading, collectAnswers("exam-reading")),
       writing: {
         tasks: (state.exam.writingTasks || [state.exam.writing]).filter(Boolean).map((task, index) => ({
           type: task.type || `Task ${index + 1}`,
@@ -17103,8 +17109,8 @@ async function scoreFullExam(bundle, prefixRoot, feedbackId, modeId) {
   setFeedback(feedbackId, "Scoring in progress. Estimated time: 10 min.", modeId, "");
   try {
     const payload = {
-      listening: { questions: bundle.listening.questions || [], answers: collectAnswers(`${prefixRoot}-listening`) },
-      reading: { questions: bundle.reading.questions || [], answers: collectAnswers(`${prefixRoot}-reading`) },
+      listening: objectiveScorePayload(bundle.listening, collectAnswers(`${prefixRoot}-listening`)),
+      reading: objectiveScorePayload(bundle.reading, collectAnswers(`${prefixRoot}-reading`)),
       writing: {
         tasks: (bundle.writingTasks || [bundle.writing]).filter(Boolean).map((task, index) => ({
           type: task.type || `Task ${index + 1}`,
