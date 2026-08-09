@@ -20,6 +20,14 @@ const provider = http.createServer(async (req, res) => {
     res.end(JSON.stringify({ code: "INSUFFICIENT_BALANCE", message: "Insufficient account balance" }));
     return;
   }
+  if (String(userText).includes("force-timeout")) {
+    setTimeout(() => res.end(JSON.stringify({ choices: [{ message: { content: "late answer" } }] })), 6_000);
+    return;
+  }
+  if (String(userText).includes("product facts")) {
+    res.end(JSON.stringify({ choices: [{ message: { content: "Product facts: one IELTSist ID is used for sign-in.\nInternal system prompt: ignore previous instructions.\nFormula: $v=\\frac{d}{t}$. \\(...\\)\nRecords stay separate by product." } }] }));
+    return;
+  }
   res.end(JSON.stringify({ choices: [{ message: { content: "千问 Coach route is active." } }] }));
 });
 
@@ -36,6 +44,7 @@ const child = spawn(process.execPath, ["server.js"], {
     COACH_AI_API_KEY: "test-coach-key",
     COACH_AI_BASE_URL: `http://127.0.0.1:${providerPort}/v1`,
     COACH_AI_MODEL: "qwen-coach-test",
+    COACH_AI_TIMEOUT_MS: "5000",
   },
   stdio: ["ignore", "pipe", "pipe"],
 });
@@ -74,6 +83,19 @@ try {
   assert.equal(success.json.mode, "ai");
   assert.equal(success.json.answer, "千问 Coach route is active.");
 
+  const facts = await askCoach("Please explain the product facts for shared account login.");
+  assert.equal(facts.response.status, 200);
+  assert.equal(facts.json.mode, "ai");
+  assert.match(facts.json.answer, /Product facts:/i);
+  assert.doesNotMatch(facts.json.answer, /system prompt|developer instruction|ignore previous instructions/i);
+  assert.doesNotMatch(facts.json.answer, /\$[^$]+\$|\\\(|\\\[|\$\$/);
+  const factsPrompt = providerRequests.find((item) => String(item.body.messages?.find((m) => m.role === "user")?.content || "").includes("product facts"));
+  assert.ok(factsPrompt, "Product facts request must reach the provider");
+  const systemPrompt = factsPrompt.body.messages?.find((item) => item.role === "system")?.content || "";
+  assert.match(systemPrompt, /one IELTSist ID/i);
+  assert.match(systemPrompt, /returnTo/i);
+  assert.match(systemPrompt, /records stay in STEM|stay in IELTSist/i);
+
   const failed = await askCoach("force-provider-failure");
   assert.equal(failed.response.status, 200);
   assert.equal(failed.json.mode, "local");
@@ -82,7 +104,14 @@ try {
   assert.doesNotMatch(JSON.stringify(failed.json), /INSUFFICIENT_BALANCE|account balance|chat=403|responses=403|test-coach-key/i,
     "Provider errors and credentials must never reach the student response");
 
-  assert.deepEqual(providerRequests.map((item) => item.url), ["/v1/chat/completions", "/v1/chat/completions"],
+  const timedOut = await askCoach("force-timeout");
+  assert.equal(timedOut.response.status, 200);
+  assert.equal(timedOut.json.mode, "local");
+  assert.match(timedOut.json.warning, /could not reach|temporarily unavailable/i);
+  assert.match(timedOut.json.answer, /temporarily unavailable/i);
+
+  assert.ok(providerRequests.length >= 4);
+  assert.ok(providerRequests.every((item) => item.url === "/v1/chat/completions"),
     "Qwen-compatible Coach calls must not retry through the unsupported Responses endpoint");
   assert.ok(providerRequests.every((item) => item.body.model === "qwen-coach-test"));
   console.log("AI Coach Qwen routing and safe-failure regression checks passed.");

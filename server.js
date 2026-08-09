@@ -27,6 +27,8 @@ const APP_DB_PATH = process.env.IELTSIST_DB_PATH || path.join(__dirname, "data",
 const ADMIN_API_SECRET = process.env.ADMIN_API_SECRET || "";
 const USER_ROLE_ORDER = ["student", "teacher", "school_admin", "school_owner", "staff"];
 const VALID_USER_ROLES = new Set(USER_ROLE_ORDER);
+const STEM_MARKING_STATUSES = new Set(["queued", "processing", "completed", "failed", "missing_metadata"]);
+const STEM_ORGANIZATION_ROLES = new Set(["student", "teacher", "school_admin", "school_owner"]);
 const STEM_IDENTITY_SIGNING_KEY = process.env.STEM_IDENTITY_SIGNING_KEY || "";
 const STEM_ALLOWED_ORIGINS = new Set([
   "https://stem.ieltsist.com",
@@ -66,6 +68,11 @@ const WRITING_AI_API_KEY = process.env.WRITING_AI_API_KEY || process.env.QWEN_WR
 const COACH_AI_MODEL = process.env.COACH_AI_MODEL || process.env.QWEN_COACH_MODEL || "qwen3.7-max";
 const COACH_AI_BASE_URL = (process.env.COACH_AI_BASE_URL || process.env.QWEN_COACH_BASE_URL || DASHSCOPE_COMPAT_BASE_URL).replace(/\/+$/, "");
 const COACH_AI_API_KEY = process.env.COACH_AI_API_KEY || process.env.QWEN_COACH_API_KEY || DASHSCOPE_API_KEY;
+const COACH_AI_TIMEOUT_MS = Math.max(5_000, Math.min(60_000, Number(process.env.COACH_AI_TIMEOUT_MS || 25_000)));
+const STEM_MARKING_AI_DISABLED = process.env.STEM_MARKING_AI_DISABLED === "1";
+const STEM_MARKING_AI_MODEL = STEM_MARKING_AI_DISABLED ? "" : (process.env.STEM_MARKING_AI_MODEL || COACH_AI_MODEL);
+const STEM_MARKING_AI_BASE_URL = STEM_MARKING_AI_DISABLED ? "" : (process.env.STEM_MARKING_AI_BASE_URL || COACH_AI_BASE_URL).replace(/\/+$/, "");
+const STEM_MARKING_AI_API_KEY = STEM_MARKING_AI_DISABLED ? "" : (process.env.STEM_MARKING_AI_API_KEY || COACH_AI_API_KEY);
 const SPEAKING_AUDIO_AI_MODEL = process.env.SPEAKING_AUDIO_AI_MODEL || process.env.QWEN_SPEAKING_AUDIO_MODEL || "qwen3.5-omni-flash";
 const SPEAKING_AUDIO_AI_BASE_URL = (process.env.SPEAKING_AUDIO_AI_BASE_URL || process.env.QWEN_SPEAKING_AUDIO_BASE_URL || DASHSCOPE_COMPAT_BASE_URL).replace(/\/+$/, "");
 const SPEAKING_AUDIO_AI_API_KEY = process.env.SPEAKING_AUDIO_AI_API_KEY || process.env.QWEN_SPEAKING_AUDIO_API_KEY || DASHSCOPE_API_KEY;
@@ -1776,6 +1783,46 @@ function getAppDb() {
       updated_at TEXT NOT NULL
     );
     CREATE INDEX IF NOT EXISTS idx_weak_areas_user_status ON weak_areas(user_id, status, updated_at DESC);
+    CREATE TABLE IF NOT EXISTS stem_marking_submissions (
+      submission_id TEXT PRIMARY KEY,
+      idempotency_key TEXT NOT NULL,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      organization_id TEXT,
+      classroom_id TEXT,
+      route_id TEXT NOT NULL,
+      specification_version TEXT NOT NULL,
+      paper_id TEXT NOT NULL,
+      attempt_id TEXT NOT NULL,
+      request_json TEXT NOT NULL,
+      status TEXT NOT NULL CHECK (status IN ('queued', 'processing', 'completed', 'failed', 'missing_metadata')),
+      result_json TEXT NOT NULL,
+      failure_code TEXT,
+      processing_attempts INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      completed_at TEXT,
+      UNIQUE(user_id, idempotency_key)
+    );
+    CREATE INDEX IF NOT EXISTS idx_stem_marking_submissions_user_created ON stem_marking_submissions(user_id, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_stem_marking_submissions_org_status ON stem_marking_submissions(organization_id, classroom_id, status, created_at DESC);
+    CREATE TABLE IF NOT EXISTS stem_marking_events (
+      event_id TEXT PRIMARY KEY,
+      submission_id TEXT NOT NULL REFERENCES stem_marking_submissions(submission_id) ON DELETE CASCADE,
+      status TEXT NOT NULL,
+      code TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_stem_marking_events_submission_created ON stem_marking_events(submission_id, created_at ASC);
+    CREATE TABLE IF NOT EXISTS stem_organization_memberships (
+      organization_id TEXT NOT NULL,
+      classroom_id TEXT NOT NULL DEFAULT '',
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      role TEXT NOT NULL CHECK (role IN ('student', 'teacher', 'school_admin', 'school_owner')),
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      PRIMARY KEY (organization_id, classroom_id, user_id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_stem_organization_memberships_user ON stem_organization_memberships(user_id, organization_id, classroom_id);
   `);
   appDb.prepare(`
     INSERT OR IGNORE INTO user_roles (user_id, role, created_at, updated_at)
@@ -1915,13 +1962,13 @@ function signStemIdentity(payload) {
   return `${header}.${body}.${signature}`;
 }
 
-function applyStemCors(req, res) {
+function applyStemCors(req, res, methods = "GET,OPTIONS") {
   const origin = String(req.headers.origin || "");
   if (!STEM_ALLOWED_ORIGINS.has(origin)) return false;
   res.setHeader("Access-Control-Allow-Origin", origin);
   res.setHeader("Access-Control-Allow-Credentials", "true");
-  res.setHeader("Access-Control-Allow-Headers", "content-type,authorization");
-  res.setHeader("Access-Control-Allow-Methods", "GET,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "content-type,authorization,x-stem-identity");
+  res.setHeader("Access-Control-Allow-Methods", methods);
   res.setHeader("Vary", "Origin");
   return true;
 }
@@ -2555,6 +2602,664 @@ async function handleLearningApi(req, res) {
   const weakMatch = url.pathname.match(/^\/api\/learning\/weak-areas(?:\/([^/]+))?$/);
   if (weakMatch) return handleLearningWeakAreas(req, res, weakMatch[1] ? decodeURIComponent(weakMatch[1]) : "");
   sendJson(res, 404, { error: "Learning endpoint not found" });
+}
+
+// STEM marking keeps the submission projection mutable for fast reads, while every status
+// transition is appended to stem_marking_events for audit and recovery.
+const stemMarkingInFlight = new Set();
+
+function stemMarkingError(message, statusCode = 400) {
+  const error = new Error(message);
+  error.statusCode = statusCode;
+  return error;
+}
+
+function safeStemText(value, limit = 1200) {
+  return String(value || "").replace(/\s+/g, " ").trim().slice(0, limit);
+}
+
+function stemStableId(value, label, maxLength = 160) {
+  const id = String(value || "").trim();
+  if (!/^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$/.test(id) || id.length > maxLength) {
+    throw stemMarkingError(`Invalid ${label}.`);
+  }
+  return id;
+}
+
+function stemOptionalId(value, label, maxLength = 160) {
+  if (value === undefined || value === null || String(value).trim() === "") return "";
+  return stemStableId(value, label, maxLength);
+}
+
+function safeStemEvidence(value, limit = 900) {
+  if (!value || typeof value !== "object") return null;
+  const evidence = {
+    quote: safeStemText(value.quote || value.text || "", limit),
+    assetId: safeStemText(value.assetId || "", 160),
+    page: Number.isInteger(Number(value.page)) && Number(value.page) > 0 ? Number(value.page) : null,
+    region: Array.isArray(value.region) && value.region.length === 4
+      ? value.region.map(Number).every((item) => Number.isFinite(item) && item >= 0 && item <= 1)
+        ? value.region.map(Number)
+        : null
+      : null,
+  };
+  return evidence.quote || evidence.assetId || evidence.page || evidence.region ? evidence : null;
+}
+
+function parseStemImageDataUrl(value) {
+  const match = String(value || "").match(/^data:image\/(png|jpeg|jpg|webp);base64,([A-Za-z0-9+/=\r\n]+)$/i);
+  if (!match) return "";
+  const encoded = match[2].replace(/\s+/g, "");
+  if (!encoded || Buffer.byteLength(encoded, "utf8") > 10 * 1024 * 1024) return "";
+  return `data:image/${match[1].toLowerCase()};base64,${encoded}`;
+}
+
+function verifyStemIdentityToken(token) {
+  if (!STEM_IDENTITY_SIGNING_KEY || !token || token.split(".").length !== 3) return null;
+  const [header, body, signature] = token.split(".");
+  const expected = crypto.createHmac("sha256", STEM_IDENTITY_SIGNING_KEY).update(`${header}.${body}`).digest("base64url");
+  const receivedBuffer = Buffer.from(signature);
+  const expectedBuffer = Buffer.from(expected);
+  if (receivedBuffer.length !== expectedBuffer.length || !crypto.timingSafeEqual(receivedBuffer, expectedBuffer)) return null;
+  try {
+    const claims = JSON.parse(Buffer.from(body, "base64url").toString("utf8"));
+    if (claims.iss !== "ieltsist.com" || claims.aud !== "stem.ieltsist.com" || Number(claims.exp) <= Math.floor(Date.now() / 1000)) return null;
+    const match = String(claims.sub || "").match(/^ielts:(\d+)$/);
+    return match ? { userId: Number(match[1]) } : null;
+  } catch {
+    return null;
+  }
+}
+
+function requireStemActor(req) {
+  const auth = String(req.headers.authorization || "");
+  const suppliedIdentity = String(req.headers["x-stem-identity"] || "").trim()
+    || (auth.match(/^Bearer\s+(.+)$/i)?.[1]?.includes(".") ? auth.match(/^Bearer\s+(.+)$/i)?.[1] : "");
+  const identity = verifyStemIdentityToken(suppliedIdentity);
+  if (identity) {
+    const user = getAppDb().prepare("SELECT * FROM users WHERE id = ?").get(identity.userId);
+    if (!user) throw stemMarkingError("Shared sign-in is no longer valid. Please sign in again.", 401);
+    return user;
+  }
+  return requireUser(req);
+}
+
+function applyStemMarkingCors(req, res) {
+  const origin = String(req.headers.origin || "");
+  if (!origin) return;
+  if (!applyStemCors(req, res, "GET,POST,PUT,DELETE,OPTIONS")) {
+    throw stemMarkingError("This origin is not allowed to access STEM marking.", 403);
+  }
+}
+
+function stemMarkingEvent(db, submissionId, status, code) {
+  db.prepare("INSERT INTO stem_marking_events (event_id, submission_id, status, code, created_at) VALUES (?, ?, ?, ?, ?)")
+    .run(crypto.randomUUID(), submissionId, status, safeStemText(code, 100) || "status_changed", nowIso());
+}
+
+function normalizeStemMarkingQuestion(value, index) {
+  const question = value && typeof value === "object" ? value : {};
+  const questionPartId = stemStableId(question.questionPartId, `questions[${index}].questionPartId`);
+  const prompt = safeStemText(question.prompt, 12_000);
+  const availableMarks = Number(question.availableMarks);
+  const issues = [];
+  if (!prompt) issues.push("question_prompt_missing");
+  if (!Number.isFinite(availableMarks) || availableMarks <= 0 || availableMarks > 1000) issues.push("available_marks_missing");
+  const rawPoints = Array.isArray(question.markSchemePoints) ? question.markSchemePoints.slice(0, 80) : [];
+  if (!rawPoints.length) issues.push("mark_scheme_missing");
+  const markSchemePoints = [];
+  const pointIds = new Set();
+  for (let pointIndex = 0; pointIndex < rawPoints.length; pointIndex += 1) {
+    const point = rawPoints[pointIndex] && typeof rawPoints[pointIndex] === "object" ? rawPoints[pointIndex] : {};
+    let pointId = "";
+    try {
+      pointId = stemStableId(point.pointId, `markSchemePoints[${pointIndex}].pointId`);
+    } catch {
+      issues.push("mark_scheme_point_id_invalid");
+      continue;
+    }
+    const maxMarks = Number(point.maxMarks ?? point.marks);
+    const text = safeStemText(point.text || point.criterion || "", 2400);
+    if (pointIds.has(pointId) || !Number.isFinite(maxMarks) || maxMarks <= 0 || maxMarks > 100 || !text) {
+      issues.push("mark_scheme_point_invalid");
+      continue;
+    }
+    pointIds.add(pointId);
+    markSchemePoints.push({ pointId, maxMarks, text, sourceEvidence: safeStemEvidence(point.sourceEvidence, 900) });
+  }
+  const totalPointMarks = markSchemePoints.reduce((total, point) => total + point.maxMarks, 0);
+  if (Number.isFinite(availableMarks) && markSchemePoints.length && totalPointMarks !== availableMarks) issues.push("mark_allocation_mismatch");
+  const answer = question.answer && typeof question.answer === "object" ? question.answer : {};
+  const typedText = safeStemText(answer.typedText ?? answer.text ?? question.typedAnswer ?? "", 24_000);
+  const handwritingImageDataUrl = parseStemImageDataUrl(answer.handwritingImageDataUrl ?? answer.imageDataUrl ?? question.handwritingImageDataUrl ?? "");
+  const rawAssets = Array.isArray(question.assets) ? question.assets.slice(0, 8) : [];
+  const assets = rawAssets.map((asset, assetIndex) => {
+    const imageDataUrl = parseStemImageDataUrl(asset?.imageDataUrl || "");
+    if (asset?.imageDataUrl && !imageDataUrl) issues.push("asset_image_invalid");
+    return {
+      assetId: stemOptionalId(asset?.assetId || `asset-${assetIndex + 1}`, `assets[${assetIndex}].assetId`),
+      kind: safeStemText(asset?.kind || "source", 40),
+      label: safeStemText(asset?.label || "", 240),
+      checksum: safeStemText(asset?.checksum || "", 160),
+      imageDataUrl,
+      sourceEvidence: safeStemEvidence(asset?.sourceEvidence, 900),
+    };
+  });
+  return {
+    questionPartId,
+    prompt,
+    availableMarks: Number.isFinite(availableMarks) ? availableMarks : null,
+    markSchemePoints,
+    answer: { typedText, handwritingImageDataUrl },
+    answerAvailable: Boolean(typedText || handwritingImageDataUrl),
+    assets,
+    metadataIssues: [...new Set(issues)],
+  };
+}
+
+function normalizeStemMarkingRequest(payload) {
+  const submissionId = stemStableId(payload?.submissionId, "submissionId");
+  const idempotencyKey = stemStableId(payload?.idempotencyKey || submissionId, "idempotencyKey");
+  const questionsRaw = Array.isArray(payload?.questions) ? payload.questions.slice(0, 80) : [];
+  if (!questionsRaw.length) throw stemMarkingError("At least one question is required.");
+  const questions = questionsRaw.map(normalizeStemMarkingQuestion);
+  const metadataIssues = [...new Set(questions.flatMap((question) => question.metadataIssues))];
+  const specificationVersion = safeStemText(payload?.specificationVersion, 120);
+  if (!specificationVersion) throw stemMarkingError("Invalid specificationVersion.");
+  return {
+    schemaVersion: "stem-marking.v1",
+    submissionId,
+    idempotencyKey,
+    routeId: stemStableId(payload?.routeId, "routeId"),
+    specificationVersion,
+    paperId: stemStableId(payload?.paperId, "paperId"),
+    attemptId: stemStableId(payload?.attemptId, "attemptId"),
+    organizationId: stemOptionalId(payload?.organizationId, "organizationId"),
+    classroomId: stemOptionalId(payload?.classroomId, "classroomId"),
+    questions,
+    metadataIssues,
+  };
+}
+
+function stemEmptyResult(request, status, failureCode = "") {
+  const maxMarks = request.questions.reduce((total, question) => total + (Number(question.availableMarks) || 0), 0);
+  return {
+    schemaVersion: "stem-marking.v1",
+    status,
+    awardedMarks: null,
+    maxMarks: maxMarks || null,
+    confidence: null,
+    reviewRequired: true,
+    failureCode: failureCode || null,
+    questions: request.questions.map((question) => question.answerAvailable ? ({
+      questionPartId: question.questionPartId,
+      awardedMarks: null,
+      maxMarks: question.availableMarks,
+      markPoints: question.markSchemePoints.map((point) => ({
+        pointId: point.pointId,
+        awardedMarks: null,
+        maxMarks: point.maxMarks,
+        studentEvidence: null,
+        sourceEvidence: point.sourceEvidence,
+        confidence: null,
+        reviewRequired: true,
+      })),
+      batchStatus: "pending",
+      reviewRequired: true,
+    }) : stemEmptyAnswerQuestion(question)),
+  };
+}
+
+function stemEmptyAnswerQuestion(question) {
+  return {
+    questionPartId: question.questionPartId,
+    awardedMarks: 0,
+    maxMarks: question.availableMarks,
+    markPoints: question.markSchemePoints.map((point) => ({
+      pointId: point.pointId,
+      awardedMarks: 0,
+      maxMarks: point.maxMarks,
+      reason: "No student answer was submitted for this question.",
+      studentEvidence: null,
+      sourceEvidence: point.sourceEvidence,
+      confidence: 1,
+      reviewRequired: false,
+    })),
+    confidence: 1,
+    batchStatus: "completed",
+    reviewRequired: false,
+  };
+}
+
+function stemAggregateResult(request, questions, status, failureCode = "") {
+  const awarded = questions.map((question) => Number(question.awardedMarks)).filter(Number.isFinite);
+  const confidenceValues = questions.map((question) => Number(question.confidence)).filter(Number.isFinite);
+  return {
+    schemaVersion: "stem-marking.v1",
+    status,
+    awardedMarks: awarded.length ? awarded.reduce((total, value) => total + value, 0) : null,
+    maxMarks: request.questions.reduce((total, question) => total + (Number(question.availableMarks) || 0), 0) || null,
+    confidence: confidenceValues.length ? confidenceValues.reduce((total, value) => total + value, 0) / confidenceValues.length : null,
+    reviewRequired: status !== "completed" || questions.some((question) => question.reviewRequired),
+    failureCode: failureCode || null,
+    questions,
+  };
+}
+
+function stemProcessingResult(request, existingResult = null) {
+  const previous = new Map((existingResult?.questions || []).map((question) => [question.questionPartId, question]));
+  const questions = request.questions.map((question) => {
+    const prior = previous.get(question.questionPartId);
+    if (prior?.batchStatus === "completed") return prior;
+    return question.answerAvailable ? {
+      questionPartId: question.questionPartId,
+      awardedMarks: null,
+      maxMarks: question.availableMarks,
+      markPoints: question.markSchemePoints.map((point) => ({
+        pointId: point.pointId,
+        awardedMarks: null,
+        maxMarks: point.maxMarks,
+        studentEvidence: null,
+        sourceEvidence: point.sourceEvidence,
+        confidence: null,
+        reviewRequired: true,
+      })),
+      batchStatus: "pending",
+      reviewRequired: true,
+    } : stemEmptyAnswerQuestion(question);
+  });
+  return stemAggregateResult(request, questions, "processing");
+}
+
+function safeStemJson(value, label, limit = 24_000_000) {
+  const json = JSON.stringify(value);
+  if (Buffer.byteLength(json) > limit) throw stemMarkingError(`${label} is too large.`);
+  return json;
+}
+
+function stemMembershipForUser(userId, organizationId, classroomId = "") {
+  if (!organizationId) return null;
+  return getAppDb().prepare(`
+    SELECT * FROM stem_organization_memberships
+    WHERE user_id = ? AND organization_id = ? AND (classroom_id = ? OR classroom_id = '')
+    ORDER BY CASE WHEN classroom_id = ? THEN 0 ELSE 1 END
+    LIMIT 1
+  `).get(userId, organizationId, classroomId, classroomId) || null;
+}
+
+function assertStemSubmissionScope(user, request) {
+  if (!request.organizationId) return;
+  const membership = stemMembershipForUser(user.id, request.organizationId, request.classroomId);
+  if (!membership) throw stemMarkingError("You are not enrolled in this STEM classroom.", 403);
+}
+
+function canManageStemOrganization(user, organizationId) {
+  const globalRoles = getUserRoles(user.id);
+  // Only platform-level owners/staff may bootstrap a new organization. School admins
+  // must also belong to the target organization before they can manage its roster.
+  if (globalRoles.some((role) => ["school_owner", "staff"].includes(role))) return true;
+  const membership = stemMembershipForUser(user.id, organizationId, "");
+  return Boolean(membership && ["school_admin", "school_owner"].includes(membership.role));
+}
+
+function canReadStemOrganization(user, organizationId, classroomId) {
+  const membership = stemMembershipForUser(user.id, organizationId, classroomId);
+  if (!membership) return false;
+  return ["teacher", "school_admin", "school_owner"].includes(membership.role);
+}
+
+function publicStemMarkingSubmission(row, includeEvents = true) {
+  const request = parseStoredJson(row.request_json, {});
+  const events = includeEvents
+    ? getAppDb().prepare("SELECT status, code, created_at FROM stem_marking_events WHERE submission_id = ? ORDER BY created_at ASC").all(row.submission_id)
+      .map((event) => ({ status: event.status, code: event.code, at: event.created_at }))
+    : [];
+  return {
+    submissionId: row.submission_id,
+    idempotencyKey: row.idempotency_key,
+    routeId: row.route_id,
+    specificationVersion: row.specification_version,
+    paperId: row.paper_id,
+    attemptId: row.attempt_id,
+    organizationId: row.organization_id || "",
+    classroomId: row.classroom_id || "",
+    status: row.status,
+    result: parseStoredJson(row.result_json, stemEmptyResult(request, row.status, row.failure_code || "")),
+    retryable: row.status === "failed",
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    completedAt: row.completed_at || "",
+    events,
+  };
+}
+
+function providerFailureCode(error) {
+  const message = String(error?.message || "");
+  return /invalid structured marking response/i.test(message) ? "invalid_model_output" : "provider_unavailable";
+}
+
+async function callStemMarkingAI(question) {
+  if (!STEM_MARKING_AI_API_KEY) throw new Error("STEM marking provider is unavailable.");
+  const questionPayload = {
+    questionPartId: question.questionPartId,
+    prompt: question.prompt,
+    availableMarks: question.availableMarks,
+    markSchemePoints: question.markSchemePoints.map((point) => ({ pointId: point.pointId, maxMarks: point.maxMarks, text: point.text })),
+    typedAnswer: question.answer.typedText || "[No typed answer; inspect labelled student handwriting if present.]",
+    assets: question.assets.map((asset) => ({ assetId: asset.assetId, kind: asset.kind, label: asset.label, checksum: asset.checksum })),
+  };
+  const content = [{
+    type: "text",
+    text: [
+    "Assess the STEM student work only against the supplied question-level mark scheme.",
+    "Return strict JSON only: {questions:[{questionPartId,markPoints:[{pointId,awardedMarks,reason,studentEvidence,confidence,reviewRequired}]}]}.",
+    "Use only supplied point IDs. awardedMarks must be between zero and that point's maxMarks. Do not invent mark scheme points.",
+    JSON.stringify(questionPayload),
+    ].join("\n\n"),
+  }];
+  // Bound images per question, not per paper. The role marker is immediately before
+  // its image so multimodal providers cannot confuse source diagrams with handwriting.
+  question.assets.filter((asset) => asset.imageDataUrl).slice(0, 8).forEach((asset) => {
+    content.push({ type: "text", text: `[questionPartId=${question.questionPartId}][role=question_asset][assetId=${asset.assetId}]` });
+    content.push({ type: "image_url", image_url: { url: asset.imageDataUrl } });
+  });
+  if (question.answer.handwritingImageDataUrl) {
+    content.push({ type: "text", text: `[questionPartId=${question.questionPartId}][role=student_handwriting]` });
+    content.push({ type: "image_url", image_url: { url: question.answer.handwritingImageDataUrl } });
+  }
+  const response = await fetch(`${STEM_MARKING_AI_BASE_URL}/chat/completions`, {
+    method: "POST",
+    headers: { authorization: `Bearer ${STEM_MARKING_AI_API_KEY}`, "content-type": "application/json" },
+    body: JSON.stringify({
+      model: STEM_MARKING_AI_MODEL,
+      temperature: 0,
+      messages: [
+        { role: "system", content: "You are a careful A-Level examiner. Return valid JSON only, no markdown." },
+        { role: "user", content },
+      ],
+    }),
+  });
+  const body = await response.text();
+  if (!response.ok) throw new Error("STEM marking provider failed.");
+  let parsed = null;
+  try {
+    parsed = JSON.parse(chatCompletionTextFromJson(JSON.parse(body || "{}")) || "");
+  } catch {
+    const content = chatCompletionTextFromJson(JSON.parse(body || "{}"));
+    const clean = String(content || "").replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
+    try { parsed = JSON.parse(clean.slice(clean.indexOf("{"), clean.lastIndexOf("}") + 1)); } catch {}
+  }
+  if (!parsed || !Array.isArray(parsed.questions)) throw new Error("Invalid structured marking response.");
+  return parsed;
+}
+
+function normalizeStemMarkingProviderResult(request, raw) {
+  const rawQuestions = new Map((raw.questions || []).map((question) => [String(question?.questionPartId || ""), question]));
+  let anyRecognizedPoint = false;
+  const questions = request.questions.map((question) => {
+    const rawQuestion = rawQuestions.get(question.questionPartId) || {};
+    const rawPoints = new Map((Array.isArray(rawQuestion.markPoints) ? rawQuestion.markPoints : []).map((point) => [String(point?.pointId || ""), point]));
+    const markPoints = question.markSchemePoints.map((point) => {
+      const rawPoint = rawPoints.get(point.pointId);
+      if (rawPoint) anyRecognizedPoint = true;
+      const rawAward = rawPoint?.awardedMarks ?? rawPoint?.marks ?? (rawPoint?.awarded === true ? point.maxMarks : 0);
+      const awardedMarks = Math.max(0, Math.min(point.maxMarks, Number(rawAward) || 0));
+      const confidenceValue = Number(rawPoint?.confidence);
+      const confidence = Number.isFinite(confidenceValue) ? Math.max(0, Math.min(1, confidenceValue)) : 0;
+      return {
+        pointId: point.pointId,
+        awardedMarks,
+        maxMarks: point.maxMarks,
+        reason: safeStemText(rawPoint?.reason || (rawPoint ? "Mark point assessed." : "Model did not return this mark point."), 900),
+        studentEvidence: safeStemEvidence(rawPoint?.studentEvidence || { quote: rawPoint?.evidence || "" }, 900),
+        sourceEvidence: point.sourceEvidence,
+        confidence,
+        reviewRequired: Boolean(rawPoint?.reviewRequired) || !rawPoint || confidence < 0.6,
+      };
+    });
+    const awardedMarks = markPoints.reduce((total, point) => total + point.awardedMarks, 0);
+    return {
+      questionPartId: question.questionPartId,
+      awardedMarks,
+      maxMarks: question.availableMarks,
+      markPoints,
+      confidence: markPoints.length ? markPoints.reduce((total, point) => total + point.confidence, 0) / markPoints.length : 0,
+      batchStatus: "completed",
+      reviewRequired: markPoints.some((point) => point.reviewRequired),
+    };
+  });
+  if (!anyRecognizedPoint) throw new Error("Invalid structured marking response.");
+  const awardedMarks = questions.reduce((total, question) => total + question.awardedMarks, 0);
+  const maxMarks = questions.reduce((total, question) => total + question.maxMarks, 0);
+  return {
+    schemaVersion: "stem-marking.v1",
+    status: "completed",
+    awardedMarks,
+    maxMarks,
+    confidence: questions.length ? questions.reduce((total, question) => total + question.confidence, 0) / questions.length : 0,
+    reviewRequired: questions.some((question) => question.reviewRequired),
+    failureCode: null,
+    questions,
+  };
+}
+
+async function processStemMarkingSubmission(submissionId) {
+  if (stemMarkingInFlight.has(submissionId)) return;
+  stemMarkingInFlight.add(submissionId);
+  const db = getAppDb();
+  try {
+    const row = db.prepare("SELECT * FROM stem_marking_submissions WHERE submission_id = ?").get(submissionId);
+    if (!row || row.status !== "queued") return;
+    const request = parseStoredJson(row.request_json, {});
+    let result = stemProcessingResult(request, parseStoredJson(row.result_json, null));
+    db.prepare("UPDATE stem_marking_submissions SET status = 'processing', processing_attempts = processing_attempts + 1, updated_at = ? WHERE submission_id = ? AND status = 'queued'")
+      .run(nowIso(), submissionId);
+    stemMarkingEvent(db, submissionId, "processing", "provider_requested");
+    db.prepare("UPDATE stem_marking_submissions SET result_json = ?, updated_at = ? WHERE submission_id = ?")
+      .run(safeStemJson(result, "Marking progress", 2_000_000), nowIso(), submissionId);
+    try {
+      for (const question of request.questions) {
+        const currentQuestion = result.questions.find((item) => item.questionPartId === question.questionPartId);
+        if (currentQuestion?.batchStatus === "completed") continue;
+        try {
+          const providerResult = await callStemMarkingAI(question);
+          const normalized = normalizeStemMarkingProviderResult({ questions: [question] }, providerResult);
+          const index = result.questions.findIndex((item) => item.questionPartId === question.questionPartId);
+          result.questions[index] = normalized.questions[0];
+          result = stemAggregateResult(request, result.questions, "processing");
+          db.prepare("UPDATE stem_marking_submissions SET result_json = ?, updated_at = ? WHERE submission_id = ?")
+            .run(safeStemJson(result, "Marking progress", 2_000_000), nowIso(), submissionId);
+          stemMarkingEvent(db, submissionId, "processing", `question_completed:${question.questionPartId}`);
+        } catch (error) {
+          const index = result.questions.findIndex((item) => item.questionPartId === question.questionPartId);
+          result.questions[index] = {
+            ...result.questions[index],
+            batchStatus: "failed",
+            reviewRequired: true,
+            failureCode: providerFailureCode(error),
+          };
+          throw error;
+        }
+      }
+      result = stemAggregateResult(request, result.questions, "completed");
+      const completedAt = nowIso();
+      db.prepare("UPDATE stem_marking_submissions SET status = 'completed', result_json = ?, failure_code = NULL, updated_at = ?, completed_at = ? WHERE submission_id = ?")
+        .run(safeStemJson(result, "Marking result", 2_000_000), completedAt, completedAt, submissionId);
+      stemMarkingEvent(db, submissionId, "completed", "marks_available");
+    } catch (error) {
+      const failureCode = providerFailureCode(error);
+      const failedResult = stemAggregateResult(request, result.questions, "failed", failureCode);
+      db.prepare("UPDATE stem_marking_submissions SET status = 'failed', result_json = ?, failure_code = ?, updated_at = ? WHERE submission_id = ?")
+        .run(safeStemJson(failedResult, "Marking failure", 2_000_000), failureCode, nowIso(), submissionId);
+      stemMarkingEvent(db, submissionId, "failed", failureCode);
+    }
+  } finally {
+    stemMarkingInFlight.delete(submissionId);
+  }
+}
+
+function enqueueStemMarkingSubmission(submissionId) {
+  const task = setImmediate(() => { processStemMarkingSubmission(submissionId).catch(() => {}); });
+  task.unref?.();
+}
+
+function assertStemSubmissionReadable(user, row) {
+  if (Number(row.user_id) === Number(user.id)) return "student";
+  // Staff reports are deliberately aggregate-only. Individual submitted handwriting and
+  // evidence remain visible only to the student who submitted it.
+  throw stemMarkingError("Individual STEM submissions are available only to the submitting student.", 403);
+}
+
+async function handleStemMarkingSubmissionCreate(req, res) {
+  const user = requireStemActor(req);
+  const request = normalizeStemMarkingRequest(await readJsonBody(req));
+  assertStemSubmissionScope(user, request);
+  if (!STEM_MARKING_AI_API_KEY) {
+    sendJson(res, 503, { error: "Structured STEM marking is not configured.", code: "marking_unavailable" });
+    return;
+  }
+  const db = getAppDb();
+  const existing = db.prepare("SELECT * FROM stem_marking_submissions WHERE user_id = ? AND (submission_id = ? OR idempotency_key = ?) LIMIT 1")
+    .get(user.id, request.submissionId, request.idempotencyKey);
+  if (existing) {
+    sendJson(res, 200, { submission: publicStemMarkingSubmission(existing), idempotent: true });
+    return;
+  }
+  if (db.prepare("SELECT 1 FROM stem_marking_submissions WHERE submission_id = ?").get(request.submissionId)) {
+    throw stemMarkingError("Submission id already exists.", 409);
+  }
+  const status = request.metadataIssues.length ? "missing_metadata" : "queued";
+  const timestamp = nowIso();
+  const result = stemEmptyResult(request, status, status === "missing_metadata" ? "missing_metadata" : "");
+  db.prepare(`
+    INSERT INTO stem_marking_submissions (submission_id, idempotency_key, user_id, organization_id, classroom_id, route_id, specification_version, paper_id, attempt_id, request_json, status, result_json, failure_code, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    request.submissionId, request.idempotencyKey, user.id, request.organizationId || null, request.classroomId || null,
+    request.routeId, request.specificationVersion, request.paperId, request.attemptId, safeStemJson(request, "Marking request"), status,
+    safeStemJson(result, "Marking result", 2_000_000), status === "missing_metadata" ? "missing_metadata" : null, timestamp, timestamp,
+  );
+  stemMarkingEvent(db, request.submissionId, status, status === "queued" ? "accepted_for_marking" : request.metadataIssues.join(","));
+  const row = db.prepare("SELECT * FROM stem_marking_submissions WHERE submission_id = ?").get(request.submissionId);
+  if (status === "queued") enqueueStemMarkingSubmission(request.submissionId);
+  sendJson(res, status === "queued" ? 202 : 422, {
+    submission: publicStemMarkingSubmission(row),
+    idempotent: false,
+    metadataIssues: request.metadataIssues,
+  });
+}
+
+function handleStemMarkingSubmissionGet(req, res, submissionId) {
+  const user = requireStemActor(req);
+  const row = getAppDb().prepare("SELECT * FROM stem_marking_submissions WHERE submission_id = ?").get(submissionId);
+  if (!row) throw stemMarkingError("STEM submission not found.", 404);
+  assertStemSubmissionReadable(user, row);
+  sendJson(res, 200, { submission: publicStemMarkingSubmission(row) });
+}
+
+function handleStemMarkingRetry(req, res, submissionId) {
+  const user = requireStemActor(req);
+  const db = getAppDb();
+  const row = db.prepare("SELECT * FROM stem_marking_submissions WHERE submission_id = ?").get(submissionId);
+  if (!row) throw stemMarkingError("STEM submission not found.", 404);
+  if (Number(row.user_id) !== Number(user.id)) throw stemMarkingError("Only the submitting student can retry marking.", 403);
+  if (row.status === "missing_metadata") throw stemMarkingError("Mark allocation or mark scheme is missing; submit corrected metadata instead.", 409);
+  if (row.status === "completed") {
+    sendJson(res, 200, { submission: publicStemMarkingSubmission(row), idempotent: true });
+    return;
+  }
+  if (row.status === "queued" || row.status === "processing") {
+    sendJson(res, 202, { submission: publicStemMarkingSubmission(row), idempotent: true });
+    return;
+  }
+  const request = parseStoredJson(row.request_json, {});
+  const timestamp = nowIso();
+  db.prepare("UPDATE stem_marking_submissions SET status = 'queued', result_json = ?, failure_code = NULL, updated_at = ?, completed_at = NULL WHERE submission_id = ?")
+    .run(safeStemJson(stemAggregateResult(request, stemProcessingResult(request, parseStoredJson(row.result_json, null)).questions, "queued"), "Marking retry", 2_000_000), timestamp, submissionId);
+  stemMarkingEvent(db, submissionId, "queued", "retry_accepted");
+  const updated = db.prepare("SELECT * FROM stem_marking_submissions WHERE submission_id = ?").get(submissionId);
+  enqueueStemMarkingSubmission(submissionId);
+  sendJson(res, 202, { submission: publicStemMarkingSubmission(updated), idempotent: false });
+}
+
+function handleStemMarkingOrganizationSummary(req, res, organizationId) {
+  const user = requireStemActor(req);
+  const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+  const classroomId = stemOptionalId(url.searchParams.get("classroomId"), "classroomId");
+  if (!canReadStemOrganization(user, organizationId, classroomId)) throw stemMarkingError("You do not have permission to view this classroom summary.", 403);
+  const db = getAppDb();
+  const rows = db.prepare(`
+    SELECT status, COUNT(*) AS submissions, COALESCE(SUM(CAST(json_extract(result_json, '$.awardedMarks') AS REAL)), 0) AS awarded_marks,
+      COALESCE(SUM(CAST(json_extract(result_json, '$.maxMarks') AS REAL)), 0) AS max_marks
+    FROM stem_marking_submissions
+    WHERE organization_id = ? ${classroomId ? "AND classroom_id = ?" : ""}
+    GROUP BY status
+  `).all(...(classroomId ? [organizationId, classroomId] : [organizationId]));
+  const total = rows.reduce((count, row) => count + Number(row.submissions), 0);
+  sendJson(res, 200, {
+    organizationId,
+    classroomId,
+    totalSubmissions: total,
+    statuses: Object.fromEntries([...STEM_MARKING_STATUSES].map((status) => [status, Number(rows.find((row) => row.status === status)?.submissions || 0)])),
+    awardedMarks: rows.reduce((sum, row) => sum + Number(row.awarded_marks || 0), 0),
+    maxMarks: rows.reduce((sum, row) => sum + Number(row.max_marks || 0), 0),
+  });
+}
+
+async function handleStemMarkingMembership(req, res, organizationId, targetUserId) {
+  const user = requireStemActor(req);
+  if (!canManageStemOrganization(user, organizationId)) throw stemMarkingError("You do not have permission to manage this organization.", 403);
+  const db = getAppDb();
+  if (req.method === "DELETE") {
+    const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+    const classroomId = stemOptionalId(url.searchParams.get("classroomId"), "classroomId");
+    db.prepare("DELETE FROM stem_organization_memberships WHERE organization_id = ? AND classroom_id = ? AND user_id = ?")
+      .run(organizationId, classroomId, targetUserId);
+    sendJson(res, 200, { ok: true });
+    return;
+  }
+  const payload = await readJsonBody(req);
+  const classroomId = stemOptionalId(payload.classroomId, "classroomId");
+  const role = String(payload.role || "").trim();
+  if (!STEM_ORGANIZATION_ROLES.has(role)) throw stemMarkingError("Invalid organization role.");
+  const exists = db.prepare("SELECT id FROM users WHERE id = ?").get(targetUserId);
+  if (!exists) throw stemMarkingError("User not found.", 404);
+  const timestamp = nowIso();
+  db.prepare(`
+    INSERT INTO stem_organization_memberships (organization_id, classroom_id, user_id, role, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?)
+    ON CONFLICT(organization_id, classroom_id, user_id) DO UPDATE SET role = excluded.role, updated_at = excluded.updated_at
+  `).run(organizationId, classroomId, targetUserId, role, timestamp, timestamp);
+  sendJson(res, 200, { membership: { organizationId, classroomId, userId: targetUserId, role } });
+}
+
+async function handleStemMarkingApi(req, res) {
+  applyStemMarkingCors(req, res);
+  const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+  if (req.method === "POST" && url.pathname === "/api/stem/marking/submissions") return handleStemMarkingSubmissionCreate(req, res);
+  const retryMatch = url.pathname.match(/^\/api\/stem\/marking\/submissions\/([^/]+)\/retry$/);
+  if (retryMatch && req.method === "POST") return handleStemMarkingRetry(req, res, stemStableId(decodeURIComponent(retryMatch[1]), "submissionId"));
+  const submissionMatch = url.pathname.match(/^\/api\/stem\/marking\/submissions\/([^/]+)$/);
+  if (submissionMatch && req.method === "GET") return handleStemMarkingSubmissionGet(req, res, stemStableId(decodeURIComponent(submissionMatch[1]), "submissionId"));
+  const summaryMatch = url.pathname.match(/^\/api\/stem\/marking\/organizations\/([^/]+)\/summary$/);
+  if (summaryMatch && req.method === "GET") return handleStemMarkingOrganizationSummary(req, res, stemStableId(decodeURIComponent(summaryMatch[1]), "organizationId"));
+  const membershipMatch = url.pathname.match(/^\/api\/stem\/marking\/organizations\/([^/]+)\/members\/(\d+)$/);
+  if (membershipMatch && (req.method === "PUT" || req.method === "DELETE")) {
+    return handleStemMarkingMembership(req, res, stemStableId(decodeURIComponent(membershipMatch[1]), "organizationId"), Number(membershipMatch[2]));
+  }
+  throw stemMarkingError("STEM marking endpoint not found.", 404);
+}
+
+function recoverStemMarkingJobs() {
+  if (!DatabaseSync) return;
+  const db = getAppDb();
+  const interrupted = db.prepare("SELECT submission_id FROM stem_marking_submissions WHERE status = 'processing'").all();
+  for (const row of interrupted) {
+    db.prepare("UPDATE stem_marking_submissions SET status = 'queued', updated_at = ? WHERE submission_id = ?").run(nowIso(), row.submission_id);
+    stemMarkingEvent(db, row.submission_id, "queued", "recovered_after_restart");
+  }
+  db.prepare("SELECT submission_id FROM stem_marking_submissions WHERE status = 'queued'").all()
+    .forEach((row) => enqueueStemMarkingSubmission(row.submission_id));
 }
 
 function resolveReportFont() {
@@ -3203,8 +3908,12 @@ async function callCoachAI({ system, user, temperature = 0.25 }) {
   let lastError = null;
   for (const provider of providers) {
     try {
-      const answer = await callOpenAI({ system, user, temperature, ...provider });
-      if (answer) return answer;
+      const answer = await Promise.race([
+        callOpenAI({ system, user, temperature, ...provider }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("AI Coach request timed out.")), COACH_AI_TIMEOUT_MS)),
+      ]);
+      const safeAnswer = sanitizeCoachStudentOutput(answer);
+      if (safeAnswer) return safeAnswer;
     } catch (error) {
       lastError = error;
     }
@@ -3219,6 +3928,44 @@ function coachProviderWarning(error) {
     return "AI Coach could not reach the model service. Please retry in a moment.";
   }
   return "AI Coach is temporarily unavailable. Please retry in a moment.";
+}
+
+function sanitizeCoachStudentOutput(value) {
+  const protectedContent = /(?:system|developer|internal)\s*(?:prompt|instruction|message)|ignore\s+(?:all|previous|above)\s+instructions|api[_ -]?key|authorization\s*:/i;
+  return String(value || "")
+    .replace(/\u0000/g, "")
+    .replace(/\\\[([\s\S]*?)\\\]/g, "$1")
+    .replace(/\\\(([\s\S]*?)\\\)/g, "$1")
+    .replace(/\$\$([\s\S]*?)\$\$/g, "$1")
+    .replace(/\$([^$\n]{1,500})\$/g, "$1")
+    .replace(/```[\s\S]*?```/g, "")
+    .replace(/\r\n?/g, "\n")
+    .split("\n")
+    .filter((line) => !protectedContent.test(line))
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim()
+    .slice(0, 12_000);
+}
+
+function sharedAccountProductFacts() {
+  return [
+    "Product facts are authoritative: IELTSist and STEM Campus use one IELTSist ID for sign-in.",
+    "When STEM needs login or registration, it hands the learner to IELTSist authentication and uses returnTo to return to the original STEM attempt or question.",
+    "This shares identity only. IELTS drafts, IELTS scores, reports, and vocabulary stay in IELTSist; STEM subject attempts and marking submissions stay in STEM. Do not claim unrelated results, progress, notebooks, or access tokens sync between products.",
+    "The STEM identity handoff token is short-lived and must never be displayed, copied, or described as a reusable student credential.",
+    "If current account state cannot be verified from the request, say so plainly. Never claim a login, registration, return, marking result, or sync succeeded unless the product confirmed it.",
+  ].join("\n");
+}
+
+function localProductFactsAnswer(message) {
+  if (!/(?:stem|account|login|register|returnto|shared\s+sign|same\s+account|\u8d26\u53f7|\u767b\u5f55|\u6ce8\u518c|\u8fd4\u56de)/i.test(String(message || ""))) return "";
+  return [
+    "IELTSist and STEM Campus use one IELTSist account for sign-in.",
+    "If STEM asks you to sign in or register, it sends you through IELTSist and then returns you to the original STEM page with returnTo.",
+    "Your privacy boundary stays clear: IELTS drafts, IELTS scores, reports and vocabulary remain in IELTSist; STEM subject attempts and marking records remain in STEM. They are not copied into each other.",
+    "The handoff is only for sign-in. It does not sync unrelated progress or reusable access tokens.",
+  ].join("\n");
 }
 
 function parseImageDataUrl(dataUrl) {
@@ -3247,7 +3994,9 @@ async function recognizeHelpImage(imageBuffer) {
   }
 }
 
-function localHelpExplanation(ocrText, warning = "") {
+function localHelpExplanation(ocrText, warning = "", message = "") {
+  const productFacts = localProductFactsAnswer(message);
+  if (productFacts) return productFacts;
   const clean = String(ocrText || "").trim();
   if (!clean) {
     return [
@@ -3256,13 +4005,13 @@ function localHelpExplanation(ocrText, warning = "") {
       warning ? "AI Coach is temporarily unavailable. Your screenshot stays in this conversation; please retry in a moment or type the question text." : "",
     ].filter(Boolean).join("\n");
   }
-  return [
+  return sanitizeCoachStudentOutput([
     "Recognized text:",
     clean,
     "",
     "Local mode: AI explanation is unavailable right now. You can ask a follow-up question, or retry after the AI service recovers.",
     warning ? "AI Coach is temporarily unavailable. Please retry in a moment." : "",
-  ].filter(Boolean).join("\n");
+  ].filter(Boolean).join("\n"));
 }
 
 function compactHelpText(value, maxLength = 12000) {
@@ -3877,7 +4626,8 @@ async function handleHelpChat(req, res) {
         "If the student asks where they are, which screen is open, or what the current page is for, answer from the Current IELTS-ist surface before giving advice.",
         "When the student wants to start a practice area, answer as an agentic coach: briefly confirm the best module, explain why it fits, and tell them IELTS-ist will open the matching practice area.",
         "Recommended IELTSist workflow: start the recommended practice -> submit or finish -> read the AI explanation/report -> save vocabulary or weak area -> retest that skill.",
-        "IELTS-ist and https://stem.ieltsist.com are complementary but independent products. Keep IELTS language, academic vocabulary, question wording and translation support in IELTS-ist Vocabulary. When a student wants Physics, Mathematics, Chemistry or Economics syllabus teaching, worked subject questions or past-paper practice, recommend opening STEM Campus in a new tab. Never claim that accounts, tokens, scores or progress sync between the two sites.",
+        sharedAccountProductFacts(),
+        "Keep IELTS language, academic vocabulary, question wording and translation support in IELTSist Vocabulary. When a student wants Physics, Mathematics, Chemistry or Economics syllabus teaching, worked subject questions or past-paper practice, recommend STEM Campus only when that is relevant to the question.",
         "When useful, end with executable IELTSist next steps using these exact action labels: Save vocabulary, Add to weak area, Retest this skill, Generate similar question, Explain in Chinese, Show evidence.",
         "Treat AI Coach as the product brain across all modules, not a generic Help popup. Use the current screen, current question, student answer, correct answer, paper/audio evidence, writing text, speaking transcript, recent weak areas and vocabulary whenever they are present.",
         "The structured Reading/Listening context is authoritative app data. Use it even if the screenshot OCR is short, partial, or noisy.",
@@ -3910,7 +4660,11 @@ async function handleHelpChat(req, res) {
   } catch (error) {
     warning = coachProviderWarning(error);
   }
-  const answer = ai || localHelpExplanation([contextText, imageOcrText].filter(Boolean).join("\n\n"), warning || imageOcrWarning);
+  const answer = sanitizeCoachStudentOutput(ai || localHelpExplanation(
+    [contextText, imageOcrText].filter(Boolean).join("\n\n"),
+    warning || imageOcrWarning,
+    message,
+  ));
   const resolvedAnswer = ensureReadingHintLocation(answer, helpContext, message);
   sendJson(res, 200, {
     mode: ai ? "ai" : "local",
@@ -5177,7 +5931,17 @@ async function handleFullExam(req, res) {
 
 const server = http.createServer(async (req, res) => {
   try {
-    if (req.method === "OPTIONS" && req.url === "/api/stem/identity") {
+    const requestPathname = new URL(req.url, `http://${req.headers.host || "localhost"}`).pathname;
+    if (req.method === "OPTIONS" && requestPathname.startsWith("/api/stem/marking/")) {
+      if (!applyStemCors(req, res, "GET,POST,PUT,DELETE,OPTIONS")) {
+        sendJson(res, 403, { error: "This origin is not allowed to access STEM marking." });
+        return;
+      }
+      res.writeHead(204);
+      res.end();
+      return;
+    }
+    if (req.method === "OPTIONS" && requestPathname === "/api/stem/identity") {
       if (!applyStemCors(req, res)) {
         sendJson(res, 403, { error: "This origin is not allowed to request STEM sign-in." });
         return;
@@ -5216,8 +5980,12 @@ const server = http.createServer(async (req, res) => {
       });
       return;
     }
-    if (req.method === "GET" && req.url === "/api/stem/identity") {
+    if (req.method === "GET" && requestPathname === "/api/stem/identity") {
       handleStemIdentity(req, res);
+      return;
+    }
+    if (req.url.startsWith("/api/stem/marking/")) {
+      await handleStemMarkingApi(req, res);
       return;
     }
     if (req.url.startsWith("/api/auth/") || req.url === "/api/me") {
@@ -6095,6 +6863,7 @@ function buildQwenSessionUpdate(config = {}) {
 }
 
 server.listen(PORT, () => {
+  recoverStemMarkingJobs();
   console.log(`IELTS-ist running at http://localhost:${PORT}`);
   console.log(COACH_AI_API_KEY
     ? `AI Coach enabled with Qwen model ${COACH_AI_MODEL}`

@@ -17,6 +17,9 @@ Navicat can open this SQLite file directly. The server creates tables automatica
 - `redemption_uses`: code usage history.
 - `drafts`: autosaved practice drafts.
 - `vocabulary_items`: Help vocabulary notebook entries.
+- `stem_marking_submissions`: private STEM question-level marking projection keyed by submission/idempotency/user.
+- `stem_marking_events`: append-only STEM marking status transitions for audit and restart recovery.
+- `stem_organization_memberships`: organization/classroom membership used for aggregate teacher/school access.
 
 ## Redemption Code API
 

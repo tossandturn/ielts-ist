@@ -2646,6 +2646,149 @@ textarea:focus,
   z-index: 3;
 }
 
+/* Shared IELTSist / STEM console system. Keep exam panes functional, but remove the
+   previous glass-card treatment from the high-frequency learning workspace. */
+:root {
+  --bg: #f7f7fb;
+  --bg-2: #eef0f5;
+  --surface: #ffffff;
+  --surface-2: #fbfbfd;
+  --surface-3: #eef0f5;
+  --text: #182033;
+  --muted: #6c7488;
+  --line: #dde1eb;
+  --line-strong: #cad0dd;
+  --accent: #6d4aff;
+  --accent-dark: #4b35d2;
+  --accent-2: #826cff;
+  --accent-soft: #f0edff;
+  --accent-gradient: linear-gradient(90deg, #3f5bff, #6d4aff);
+  --radius-control: 9px;
+  --radius-card: 10px;
+  --radius-hero: 10px;
+  --shadow-card: 0 4px 13px rgba(27, 32, 66, .045);
+  --shadow-soft: 0 1px 2px rgba(17, 27, 58, .05);
+}
+
+body.focus-camp-system {
+  background: var(--bg);
+}
+
+body.focus-camp-system .sidebar {
+  background: linear-gradient(180deg, #111b3a, #0b264c);
+  border-right-color: rgba(255, 255, 255, .08);
+  box-shadow: none;
+  backdrop-filter: none;
+  color: #f7f8ff;
+}
+
+body.focus-camp-system .brand h1,
+body.focus-camp-system .sidebar-account-copy strong {
+  color: #fff;
+}
+
+body.focus-camp-system .brand p,
+body.focus-camp-system .sidebar-account-copy em,
+body.focus-camp-system .nav-group-label {
+  color: #aeb8cf;
+}
+
+body.focus-camp-system .status-pill,
+body.focus-camp-system .product-switch-link {
+  border-color: rgba(255, 255, 255, .12);
+  background: rgba(255, 255, 255, .06);
+  color: #eff3ff;
+  box-shadow: none;
+}
+
+body.focus-camp-system .product-switch-link em {
+  color: #bcc5da;
+}
+
+body.focus-camp-system .product-switch-link:hover {
+  border-color: rgba(130, 108, 255, .78);
+  background: rgba(255, 255, 255, .12);
+}
+
+body.focus-camp-system .tab,
+body.focus-camp-system .sidebar-account-entry {
+  color: #e4e9f7;
+  box-shadow: none;
+}
+
+body.focus-camp-system .tab.active,
+body.focus-camp-system .tab:hover,
+body.focus-camp-system .sidebar-account-entry:hover {
+  color: #fff;
+  border-color: transparent;
+  background: rgba(109, 74, 255, .24);
+  box-shadow: inset 3px 0 #826cff;
+}
+
+body.focus-camp-system .panel,
+body.focus-camp-system .bank-item,
+body.focus-camp-system .public-topic-form,
+body.focus-camp-system .exam-quick-nav,
+body.focus-camp-system .help-chat-panel {
+  border-color: var(--line);
+  border-radius: 10px;
+  background: var(--surface) !important;
+  box-shadow: var(--shadow-card);
+  backdrop-filter: none;
+}
+
+body.focus-camp-system .secondary,
+body.focus-camp-system .module-btn,
+body.focus-camp-system .icon-btn,
+body.focus-camp-system .text-input,
+body.focus-camp-system select {
+  border-color: var(--line-strong);
+  border-radius: 9px;
+  background: #fff;
+  box-shadow: none;
+}
+
+body.focus-camp-system .primary,
+body.focus-camp-system .module-btn.active,
+body.focus-camp-system #single .module-btn.active,
+body.focus-camp-system .exam-quick-nav a.active {
+  box-shadow: 0 7px 18px rgba(91, 76, 241, .22);
+}
+
+body.focus-camp-system .mine-card,
+body.focus-camp-system .vocab-review-card,
+body.focus-camp-system .vocab-trainer-shell,
+body.focus-camp-system .dashboard-focus-hero {
+  border-radius: 10px;
+}
+
+body.focus-camp-system .account-boundary-note {
+  margin: 16px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+body.focus-camp-system .help-chat-panel[aria-busy="true"] .help-chat-head {
+  border-bottom-color: #d9d3ff;
+}
+
+body.focus-camp-system .help-chat-actions .icon-btn:disabled {
+  opacity: .45;
+}
+
+@media (max-width: 680px) {
+  body.focus-camp-system .sidebar {
+    background: #111b3a;
+  }
+
+  body.focus-camp-system .help-chat-panel {
+    border-radius: 0;
+  }
+}
+
 .reading-evidence-highlight {
   position: absolute;
   z-index: 2;
@@ -17229,4 +17372,25 @@ body.coach-dock-open .app-shell main {
   body.focus-camp-system #bank.focus-page.active #bankList .practice-speaking-topic {
     min-height: 44px !important;
   }
+}
+
+/* Coach controls must stay inside the fixed drawer at desktop and tablet widths. */
+.help-chat-head {
+  min-width: 0;
+}
+
+.help-chat-actions {
+  min-width: 0;
+  max-width: calc(100% - 88px);
+  flex: 1 1 auto;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  overflow: hidden;
+}
+
+.help-chat-actions .icon-btn {
+  min-width: 0;
+  max-width: 100%;
+  flex: 0 1 auto;
+  white-space: nowrap;
 }

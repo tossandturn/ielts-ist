@@ -125,6 +125,11 @@
     surfaceOverride: null,
     binding: null,
     busy: false,
+    requestController: null,
+    requestTimer: null,
+    requestId: 0,
+    abortReason: "",
+    lastRequest: null,
   },
   coach: {
     history: [],
@@ -3466,8 +3471,8 @@ function renderMine() {
       <section class="panel auth-panel mine-auth-card">
         <div class="panel-head">
           <div>
-            <h3>Login or register</h3>
-            <p>Keep drafts, vocabulary and membership on this device.</p>
+          <h3>One IELTSist ID</h3>
+          <p>Sign in here or from STEM Campus with the same account. IELTS drafts and scores stay in IELTSist; STEM attempts stay in STEM.</p>
           </div>
         </div>
         <form id="authForm" class="auth-form">
@@ -3493,12 +3498,12 @@ function renderMine() {
   }
   node.innerHTML = `
     <section class="mine-workspace-main">
-      <section class="panel mine-card mine-account-card">
+        <section class="panel mine-card mine-account-card">
         <div class="mine-section-head">
           <h3>Account Overview</h3>
           <button id="logoutUser" class="secondary small-button">Logout</button>
         </div>
-        <div class="membership-card workspace-plan-card">
+          <div class="membership-card workspace-plan-card">
           <div class="mine-plan-row">
             <div class="mine-plan-icon">I</div>
             <div>
@@ -3508,6 +3513,7 @@ function renderMine() {
             </div>
             <button class="secondary small-button mine-quick-action" type="button" data-mine-action="plans">View Plans</button>
           </div>
+          <p class="account-boundary-note">This IELTSist ID also signs you into STEM Campus. The handoff returns to the original STEM task; IELTS drafts, scores, Coach chats and notebook entries do not become STEM classroom data.</p>
           <div class="mine-plan-validity">
             <span>Membership</span>
             <strong>${escapeHtml(membershipExpiryTitle())}</strong>
@@ -3589,6 +3595,17 @@ function loadCoreVocabularyKnown() {
 
 function saveCoreVocabularyKnown() {
   localStorage.setItem(coreVocabularyStoreKey, JSON.stringify([...state.vocabularyReview.known]));
+}
+
+function updateStemProductSwitchLinks() {
+  document.querySelectorAll(".product-switch-link").forEach((link) => {
+    const url = new URL("https://stem.ieltsist.com/");
+    url.searchParams.set("from", "ieltsist");
+    url.searchParams.set("focus", "syllabus");
+    url.searchParams.set("returnTo", window.location.href);
+    link.href = url.toString();
+    link.removeAttribute("target");
+  });
 }
 
 function readLocalVocabularyNotebook() {
@@ -6225,6 +6242,47 @@ function coachRequestFailureMessage() {
   return "AI Coach is temporarily unavailable. Please retry in a moment. Your practice and conversation are still saved.";
 }
 
+const coachClientTimeoutMs = 32_000;
+
+function syncHelpRequestControls() {
+  const busy = Boolean(state.help.busy);
+  const cancel = $("helpChatCancel");
+  const retry = $("helpChatRetry");
+  if (cancel) cancel.disabled = !busy;
+  if (retry) retry.disabled = busy || !state.help.lastRequest;
+  $("helpChatPanel")?.setAttribute("aria-busy", String(busy));
+}
+
+function clearHelpRequest(requestId) {
+  if (requestId !== state.help.requestId) return;
+  if (state.help.requestTimer) window.clearTimeout(state.help.requestTimer);
+  state.help.requestTimer = null;
+  state.help.requestController = null;
+  state.help.busy = false;
+  syncHelpRequestControls();
+}
+
+function cancelHelpChatRequest(reason = "cancelled") {
+  if (!state.help.busy || !state.help.requestController) return;
+  state.help.abortReason = reason;
+  state.help.requestController.abort();
+  setHelpStatus(reason === "timeout" ? "Timed out" : "Cancelled");
+}
+
+function helpRequestFailureMessage(reason) {
+  if (reason === "cancelled") return "AI Coach request was cancelled. Your question and practice remain unchanged; retry when you are ready.";
+  if (reason === "timeout") return "AI Coach took too long to respond. No result was saved as a success. Retry, shorten the question, or continue your practice.";
+  return coachRequestFailureMessage();
+}
+
+async function retryLastHelpChatRequest() {
+  const request = state.help.lastRequest;
+  if (!request || state.help.busy) return;
+  state.help.pendingImageDataUrl = request.imageDataUrl || state.help.pendingImageDataUrl;
+  updateHelpAttachmentPreview();
+  await sendHelpChatMessage(request.message, { isRetry: true });
+}
+
 function openHelpPanel() {
   const panel = $("helpChatPanel");
   if (panel) panel.hidden = false;
@@ -6668,18 +6726,26 @@ async function beginHelpCapture(mode = "explain") {
   }
 }
 
-async function sendHelpChatMessage(message) {
+async function sendHelpChatMessage(message, options = {}) {
   const clean = String(message || "").trim();
   const imageDataUrl = state.help.pendingImageDataUrl || "";
   if (!clean && !imageDataUrl) return;
   if (state.help.busy) return;
   state.help.busy = true;
+  state.help.abortReason = "";
+  const requestId = state.help.requestId + 1;
+  state.help.requestId = requestId;
+  const controller = new AbortController();
+  state.help.requestController = controller;
+  state.help.lastRequest = { message: clean, imageDataUrl };
+  state.help.requestTimer = window.setTimeout(() => cancelHelpChatRequest("timeout"), coachClientTimeoutMs);
   const agentActions = coachAgentActionsFromText(clean);
   const agentAction = agentActions[0] || null;
   openGlobalCoachPanel();
   renderGlobalCoachContext();
-  addHelpMessage("user", [clean, imageDataUrl ? "[Screenshot attached]" : ""].filter(Boolean).join("\n"));
-  setHelpStatus("Thinking");
+  if (!options.isRetry) addHelpMessage("user", [clean, imageDataUrl ? "[Screenshot attached]" : ""].filter(Boolean).join("\n"));
+  setHelpStatus("Processing - you can cancel or retry");
+  syncHelpRequestControls();
   try {
     const helpContext = await hydrateCoachEvidenceContext(buildCoachHelpContext({}));
     const json = await postJson("/api/help/chat", {
@@ -6689,7 +6755,7 @@ async function sendHelpChatMessage(message) {
       history: state.help.history.slice(-8),
       imageDataUrl,
       message: clean || "Please explain this screenshot.",
-    });
+    }, { signal: controller.signal });
     const answerNode = addHelpMessage("assistant", json.answer || "");
     if (json.readingEvidence) {
       focusReadingEvidence(json.readingEvidence);
@@ -6715,11 +6781,12 @@ async function sendHelpChatMessage(message) {
       }, 650);
     }
   } catch (error) {
-    const fallbackNode = addHelpMessage("assistant", coachRequestFailureMessage());
+    const reason = requestId === state.help.requestId ? state.help.abortReason : "";
+    const fallbackNode = addHelpMessage("assistant", helpRequestFailureMessage(reason));
     appendCoachAgentActions(fallbackNode, agentActions);
-    setHelpStatus("Error");
+    setHelpStatus(reason === "timeout" ? "Timed out" : reason === "cancelled" ? "Cancelled" : "Unavailable");
   } finally {
-    state.help.busy = false;
+    clearHelpRequest(requestId);
   }
 }
 
@@ -20308,6 +20375,7 @@ function applyInitialHash() {
 }
 
 function bindEvents() {
+  updateStemProductSwitchLinks();
   bindQwenWakeLockEvents();
   bindHelpControls();
   $("helpCaptureAgain")?.addEventListener("click", beginHelpCapture);
@@ -20329,6 +20397,8 @@ function bindEvents() {
     setHelpStatus("Ready");
   });
   $("helpChatClose")?.addEventListener("click", closeHelpPanel);
+  $("helpChatCancel")?.addEventListener("click", () => cancelHelpChatRequest());
+  $("helpChatRetry")?.addEventListener("click", () => { void retryLastHelpChatRequest(); });
   $("helpChatForm")?.addEventListener("submit", async (event) => {
     event.preventDefault();
     const input = $("helpChatInput");
