@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { rm } from "node:fs/promises";
+import { rm, writeFile } from "node:fs/promises";
 import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -10,6 +10,7 @@ const appPort = 6200 + (process.pid % 200);
 const providerPort = 6500 + (process.pid % 200);
 const baseUrl = `http://127.0.0.1:${appPort}`;
 const databasePath = path.join(root, "data", `stem-marking-test-${process.pid}.sqlite`);
+const manifestPath = path.join(root, "data", `stem-marking-manifest-test-${process.pid}.json`);
 const providerCalls = new Map();
 const providerBodies = [];
 const providerQuestionCalls = [];
@@ -75,6 +76,7 @@ function startApp() {
       STEM_MARKING_AI_API_KEY: "stem-marking-test-key",
       STEM_MARKING_AI_BASE_URL: `http://127.0.0.1:${providerPort}/v1`,
       STEM_MARKING_AI_MODEL: "stem-marking-test-model",
+      STEM_MARKING_TRUSTED_MANIFEST_PATH: manifestPath,
     },
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -147,6 +149,7 @@ function submissionPayload(suffix, typedText = "F = ma") {
     submissionId: `stem-submission-${process.pid}-${suffix}`,
     idempotencyKey: `stem-idempotency-${process.pid}-${suffix}`,
     routeId: "alevel-physics-mechanics",
+    qualification: "A-Level",
     specificationVersion: "A-Level STEM 2026",
     paperId: "paper-math-p1-2025",
     attemptId: `attempt-${process.pid}-${suffix}`,
@@ -184,7 +187,57 @@ function multiQuestionPayload(suffix, count, options = {}) {
   return payload;
 }
 
+function igcsePayload(suffix) {
+  const payload = submissionPayload(suffix);
+  payload.routeId = "cambridge-igcse-mathematics-0580";
+  payload.qualification = "IGCSE";
+  payload.specificationVersion = "Cambridge IGCSE Mathematics 0580";
+  payload.paperId = "0580-23-mj-2025";
+  payload.questions = [{
+    questionPartId: "0580-23-mj-2025-q1a",
+    prompt: "Calculate the value of 3x when x = 4.",
+    availableMarks: 2,
+    markSchemePoints: [{ pointId: "0580-23-mj-2025-q1a-m1", maxMarks: 2, text: "Substitutes x = 4 and calculates 12" }],
+    answer: { typedText: "12" },
+    assets: [],
+  }];
+  return payload;
+}
+
+function manifestEntry(payload, question) {
+  return {
+    routeId: payload.routeId,
+    qualification: payload.qualification,
+    specificationVersion: payload.specificationVersion,
+    paperId: payload.paperId,
+    questionPartId: question.questionPartId,
+    prompt: question.prompt,
+    availableMarks: question.availableMarks,
+    markSchemePoints: question.markSchemePoints,
+    assets: (question.assets || []).map(({ assetId, kind, label, checksum, sourceEvidence }) => ({ assetId, kind, label, checksum, sourceEvidence })),
+  };
+}
+
+async function writeTrustedManifest() {
+  const payloads = [
+    submissionPayload("success"),
+    multiQuestionPayload("eleven", 11),
+    multiQuestionPayload("blank", 3),
+    multiQuestionPayload("batch-failure", 4),
+    submissionPayload("retry"),
+    multiQuestionPayload("restart", 4, { restartSlow: true }),
+    igcsePayload("igcse"),
+  ];
+  const entries = new Map();
+  payloads.forEach((payload) => payload.questions.forEach((question) => {
+    const entry = manifestEntry(payload, question);
+    entries.set([entry.routeId, entry.specificationVersion, entry.paperId, entry.questionPartId].join("/"), entry);
+  }));
+  await writeFile(manifestPath, JSON.stringify({ schemaVersion: "stem-marking-manifest.v1", questions: [...entries.values()] }));
+}
+
 try {
+  await writeTrustedManifest();
   startApp();
   await waitForServer();
 
@@ -237,6 +290,11 @@ try {
   assert.equal(identity.response.status, 200);
   const sharedHeaders = { "x-stem-identity": identity.json.accessToken, origin: "http://localhost:5173" };
 
+  const availability = await request("/api/stem/marking/availability", { headers: sharedHeaders });
+  assert.equal(availability.response.status, 200);
+  assert.deepEqual(availability.json, { enabled: true, modelConfigured: true, queueAvailable: true, authenticationRequired: false });
+  assert.doesNotMatch(JSON.stringify(availability.json), /key|token|provider|url|error/i);
+
   const successPayload = submissionPayload("success");
   const accepted = await request("/api/stem/marking/submissions", jsonOptions("POST", successPayload, "", sharedHeaders));
   assert.equal(accepted.response.status, 202);
@@ -251,6 +309,20 @@ try {
   assert.ok(providerBodies.some((body) => Array.isArray(body.messages?.[1]?.content) && body.messages[1].content.some((item) => item.type === "image_url")),
     "Question/handwriting image evidence must be passed to the structured marking provider.");
   assert.equal(providerCalls.get("success"), 1, "Duplicate submissions must not re-run marking.");
+  const aLevelSystemPrompt = providerBodies.find((body) => JSON.stringify(body).includes(successPayload.questions[0].questionPartId))?.messages?.[0]?.content || "";
+  assert.match(aLevelSystemPrompt, /Cambridge A-Level examiner/i);
+  assert.match(aLevelSystemPrompt, /AI-assisted formative marking, not an official Cambridge result/i);
+  assert.doesNotMatch(aLevelSystemPrompt, /IGCSE/i);
+
+  const igcse = igcsePayload("igcse");
+  delete igcse.organizationId;
+  delete igcse.classroomId;
+  const igcseAccepted = await request("/api/stem/marking/submissions", jsonOptions("POST", igcse, student.json.token));
+  assert.equal(igcseAccepted.response.status, 202);
+  await waitForStatus(igcse.submissionId, student.json.token, "completed");
+  const igcseSystemPrompt = providerBodies.find((body) => JSON.stringify(body).includes(igcse.questions[0].questionPartId))?.messages?.[0]?.content || "";
+  assert.match(igcseSystemPrompt, /Cambridge IGCSE examiner/i);
+  assert.doesNotMatch(igcseSystemPrompt, /A-Level examiner/i);
 
   const elevenStart = providerQuestionCalls.length;
   const elevenPayload = multiQuestionPayload("eleven", 11);
@@ -375,5 +447,10 @@ try {
 } finally {
   await stopApp();
   await new Promise((resolve) => provider.close(resolve));
-  await Promise.all([rm(databasePath, { force: true }), rm(`${databasePath}-shm`, { force: true }), rm(`${databasePath}-wal`, { force: true })]);
+  await Promise.all([
+    rm(databasePath, { force: true }),
+    rm(`${databasePath}-shm`, { force: true }),
+    rm(`${databasePath}-wal`, { force: true }),
+    rm(manifestPath, { force: true }),
+  ]);
 }

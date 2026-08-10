@@ -75,6 +75,8 @@ const STEM_MARKING_AI_DISABLED = process.env.STEM_MARKING_AI_DISABLED === "1";
 const STEM_MARKING_AI_MODEL = STEM_MARKING_AI_DISABLED ? "" : (process.env.STEM_MARKING_AI_MODEL || COACH_AI_MODEL);
 const STEM_MARKING_AI_BASE_URL = STEM_MARKING_AI_DISABLED ? "" : (process.env.STEM_MARKING_AI_BASE_URL || COACH_AI_BASE_URL).replace(/\/+$/, "");
 const STEM_MARKING_AI_API_KEY = STEM_MARKING_AI_DISABLED ? "" : (process.env.STEM_MARKING_AI_API_KEY || COACH_AI_API_KEY);
+const STEM_MARKING_QUEUE_DISABLED = process.env.STEM_MARKING_QUEUE_DISABLED === "1";
+const STEM_MARKING_TRUSTED_MANIFEST_PATH = String(process.env.STEM_MARKING_TRUSTED_MANIFEST_PATH || "").trim();
 const SPEAKING_AUDIO_AI_MODEL = process.env.SPEAKING_AUDIO_AI_MODEL || process.env.QWEN_SPEAKING_AUDIO_MODEL || "qwen3.5-omni-flash";
 const SPEAKING_AUDIO_AI_BASE_URL = (process.env.SPEAKING_AUDIO_AI_BASE_URL || process.env.QWEN_SPEAKING_AUDIO_BASE_URL || DASHSCOPE_COMPAT_BASE_URL).replace(/\/+$/, "");
 const SPEAKING_AUDIO_AI_API_KEY = process.env.SPEAKING_AUDIO_AI_API_KEY || process.env.QWEN_SPEAKING_AUDIO_API_KEY || DASHSCOPE_API_KEY;
@@ -2648,6 +2650,129 @@ function safeStemEvidence(value, limit = 900) {
   return evidence.quote || evidence.assetId || evidence.page || evidence.region ? evidence : null;
 }
 
+function stemManifestId(value, label) {
+  const id = String(value || "").trim();
+  if (!/^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$/.test(id)) throw new Error(`Invalid manifest ${label}.`);
+  return id;
+}
+
+function stemManifestQuestionKey(question) {
+  return [question.routeId, question.specificationVersion, question.paperId, question.questionPartId].join("\u0001");
+}
+
+function loadTrustedStemMarkingManifest() {
+  if (!STEM_MARKING_TRUSTED_MANIFEST_PATH) return { ready: false, entries: new Map() };
+  try {
+    const raw = JSON.parse(fs.readFileSync(path.resolve(STEM_MARKING_TRUSTED_MANIFEST_PATH), "utf8"));
+    if (raw?.schemaVersion !== "stem-marking-manifest.v1" || !Array.isArray(raw.questions) || !raw.questions.length) {
+      throw new Error("Invalid trusted STEM marking manifest.");
+    }
+    const entries = new Map();
+    raw.questions.forEach((value, index) => {
+      const question = value && typeof value === "object" ? value : {};
+      const routeId = stemManifestId(question.routeId, `questions[${index}].routeId`);
+      const qualification = safeStemText(question.qualification, 120);
+      const specificationVersion = safeStemText(question.specificationVersion, 120);
+      const paperId = stemManifestId(question.paperId, `questions[${index}].paperId`);
+      const questionPartId = stemManifestId(question.questionPartId, `questions[${index}].questionPartId`);
+      const prompt = safeStemText(question.prompt, 12_000);
+      const availableMarks = Number(question.availableMarks);
+      if (!qualification || !specificationVersion || !prompt || !Number.isFinite(availableMarks) || availableMarks <= 0 || availableMarks > 1000) {
+        throw new Error("Trusted STEM marking question metadata is incomplete.");
+      }
+      const pointIds = new Set();
+      const markSchemePoints = (Array.isArray(question.markSchemePoints) ? question.markSchemePoints.slice(0, 80) : []).map((point, pointIndex) => {
+        const pointId = stemManifestId(point?.pointId, `questions[${index}].markSchemePoints[${pointIndex}].pointId`);
+        const maxMarks = Number(point?.maxMarks ?? point?.marks);
+        const text = safeStemText(point?.text || point?.criterion || "", 2400);
+        if (pointIds.has(pointId) || !Number.isFinite(maxMarks) || maxMarks <= 0 || maxMarks > 100 || !text) {
+          throw new Error("Trusted STEM marking point metadata is invalid.");
+        }
+        pointIds.add(pointId);
+        return { pointId, maxMarks, text, sourceEvidence: safeStemEvidence(point?.sourceEvidence, 900) };
+      });
+      if (!markSchemePoints.length || markSchemePoints.reduce((total, point) => total + point.maxMarks, 0) !== availableMarks) {
+        throw new Error("Trusted STEM marking allocation is invalid.");
+      }
+      const assetIds = new Set();
+      const assets = (Array.isArray(question.assets) ? question.assets.slice(0, 8) : []).map((asset, assetIndex) => {
+        const assetId = stemManifestId(asset?.assetId, `questions[${index}].assets[${assetIndex}].assetId`);
+        if (assetIds.has(assetId)) throw new Error("Trusted STEM marking asset metadata is invalid.");
+        assetIds.add(assetId);
+        return {
+          assetId,
+          kind: safeStemText(asset?.kind || "source", 40),
+          label: safeStemText(asset?.label || "", 240),
+          checksum: safeStemText(asset?.checksum || "", 160),
+          sourceEvidence: safeStemEvidence(asset?.sourceEvidence, 900),
+        };
+      });
+      const entry = { routeId, qualification, specificationVersion, paperId, questionPartId, prompt, availableMarks, markSchemePoints, assets };
+      const key = stemManifestQuestionKey(entry);
+      if (entries.has(key)) throw new Error("Duplicate trusted STEM marking question.");
+      entries.set(key, entry);
+    });
+    return { ready: true, entries };
+  } catch {
+    // Configuration diagnostics stay server-side. STEM receives only safe availability booleans.
+    return { ready: false, entries: new Map() };
+  }
+}
+
+const TRUSTED_STEM_MARKING_MANIFEST = loadTrustedStemMarkingManifest();
+
+function stemMarkingModelConfigured() {
+  return Boolean(!STEM_MARKING_AI_DISABLED && STEM_MARKING_AI_API_KEY && STEM_MARKING_AI_BASE_URL && STEM_MARKING_AI_MODEL);
+}
+
+function stemMarkingQueueAvailable() {
+  return Boolean(stemMarkingModelConfigured() && TRUSTED_STEM_MARKING_MANIFEST.ready && !STEM_MARKING_QUEUE_DISABLED);
+}
+
+function sameStemMarkingPointSet(provided, canonical) {
+  if (!Array.isArray(provided) || provided.length !== canonical.length) return false;
+  const byId = new Map(provided.map((point) => [point.pointId, point]));
+  return canonical.every((point) => {
+    const received = byId.get(point.pointId);
+    return Boolean(received && Number(received.maxMarks) === Number(point.maxMarks) && safeStemText(received.text, 2400) === point.text);
+  });
+}
+
+function canonicalizeStemMarkingQuestion(request, question) {
+  const canonical = TRUSTED_STEM_MARKING_MANIFEST.entries.get(stemManifestQuestionKey({
+    routeId: request.routeId,
+    specificationVersion: request.specificationVersion,
+    paperId: request.paperId,
+    questionPartId: question.questionPartId,
+  }));
+  const issues = [...question.metadataIssues];
+  if (!canonical) {
+    issues.push("trusted_manifest_question_missing");
+    return { ...question, metadataIssues: [...new Set(issues)] };
+  }
+  if (question.prompt !== canonical.prompt
+    || request.qualification !== canonical.qualification
+    || Number(question.availableMarks) !== Number(canonical.availableMarks)
+    || !sameStemMarkingPointSet(question.markSchemePoints, canonical.markSchemePoints)) {
+    issues.push("trusted_manifest_mismatch");
+  }
+  const suppliedAssets = new Map(question.assets.map((asset) => [asset.assetId, asset]));
+  const assets = canonical.assets.map((asset) => {
+    const supplied = suppliedAssets.get(asset.assetId);
+    if (!supplied || (asset.checksum && supplied.checksum !== asset.checksum)) issues.push("trusted_asset_mismatch");
+    return { ...asset, imageDataUrl: supplied?.imageDataUrl || "" };
+  });
+  return {
+    ...question,
+    qualification: canonical.qualification,
+    prompt: canonical.prompt,
+    availableMarks: canonical.availableMarks,
+    markSchemePoints: canonical.markSchemePoints,
+    assets,
+    metadataIssues: [...new Set(issues)],
+  };
+}
+
 function parseStemImageDataUrl(value) {
   const match = String(value || "").match(/^data:image\/(png|jpeg|jpg|webp);base64,([A-Za-z0-9+/=\r\n]+)$/i);
   if (!match) return "";
@@ -2765,22 +2890,27 @@ function normalizeStemMarkingRequest(payload) {
   const questionsRaw = Array.isArray(payload?.questions) ? payload.questions.slice(0, 80) : [];
   if (!questionsRaw.length) throw stemMarkingError("At least one question is required.");
   const questions = questionsRaw.map(normalizeStemMarkingQuestion);
-  const metadataIssues = [...new Set(questions.flatMap((question) => question.metadataIssues))];
   const specificationVersion = safeStemText(payload?.specificationVersion, 120);
-  if (!specificationVersion) throw stemMarkingError("Invalid specificationVersion.");
-  return {
+  const qualification = safeStemText(payload?.qualification, 120);
+  if (!specificationVersion || !qualification) throw stemMarkingError("Invalid marking qualification or specificationVersion.");
+  const request = {
     schemaVersion: "stem-marking.v1",
     submissionId,
     idempotencyKey,
     routeId: stemStableId(payload?.routeId, "routeId"),
+    qualification,
     specificationVersion,
     paperId: stemStableId(payload?.paperId, "paperId"),
     attemptId: stemStableId(payload?.attemptId, "attemptId"),
     organizationId: stemOptionalId(payload?.organizationId, "organizationId"),
     classroomId: stemOptionalId(payload?.classroomId, "classroomId"),
     questions,
-    metadataIssues,
   };
+  request.questions = request.questions.map((question) => canonicalizeStemMarkingQuestion(request, question));
+  const canonicalQualifications = new Set(request.questions.map((question) => question.qualification).filter(Boolean));
+  if (canonicalQualifications.size === 1) request.qualification = [...canonicalQualifications][0];
+  request.metadataIssues = [...new Set(request.questions.flatMap((question) => question.metadataIssues))];
+  return request;
 }
 
 function stemEmptyResult(request, status, failureCode = "") {
@@ -2940,9 +3070,12 @@ function providerFailureCode(error) {
   return /invalid structured marking response/i.test(message) ? "invalid_model_output" : "provider_unavailable";
 }
 
-async function callStemMarkingAI(question) {
+async function callStemMarkingAI(question, request) {
   if (!STEM_MARKING_AI_API_KEY) throw new Error("STEM marking provider is unavailable.");
   const questionPayload = {
+    qualification: request.qualification,
+    specificationVersion: request.specificationVersion,
+    paperId: request.paperId,
     questionPartId: question.questionPartId,
     prompt: question.prompt,
     availableMarks: question.availableMarks,
@@ -2976,7 +3109,11 @@ async function callStemMarkingAI(question) {
       model: STEM_MARKING_AI_MODEL,
       temperature: 0,
       messages: [
-        { role: "system", content: "You are a careful A-Level examiner. Return valid JSON only, no markdown." },
+        { role: "system", content: [
+          `You are a careful Cambridge ${request.qualification} examiner for ${request.specificationVersion}, paper ${request.paperId}.`,
+          "This is AI-assisted formative marking, not an official Cambridge result.",
+          "Assess only against the supplied canonical question-level mark points. Return valid JSON only, no markdown.",
+        ].join(" ") },
         { role: "user", content },
       ],
     }),
@@ -3047,6 +3184,7 @@ function normalizeStemMarkingProviderResult(request, raw) {
 
 async function processStemMarkingSubmission(submissionId) {
   if (stemMarkingInFlight.has(submissionId)) return;
+  if (!stemMarkingQueueAvailable()) return;
   stemMarkingInFlight.add(submissionId);
   const db = getAppDb();
   try {
@@ -3064,7 +3202,7 @@ async function processStemMarkingSubmission(submissionId) {
         const currentQuestion = result.questions.find((item) => item.questionPartId === question.questionPartId);
         if (currentQuestion?.batchStatus === "completed") continue;
         try {
-          const providerResult = await callStemMarkingAI(question);
+          const providerResult = await callStemMarkingAI(question, request);
           const normalized = normalizeStemMarkingProviderResult({ questions: [question] }, providerResult);
           const index = result.questions.findIndex((item) => item.questionPartId === question.questionPartId);
           result.questions[index] = normalized.questions[0];
@@ -3112,14 +3250,32 @@ function assertStemSubmissionReadable(user, row) {
   throw stemMarkingError("Individual STEM submissions are available only to the submitting student.", 403);
 }
 
+function handleStemMarkingAvailability(req, res) {
+  let authenticated = true;
+  try {
+    requireStemActor(req);
+  } catch (error) {
+    if (Number(error?.statusCode) !== 401) throw error;
+    authenticated = false;
+  }
+  const modelConfigured = stemMarkingModelConfigured();
+  const queueAvailable = stemMarkingQueueAvailable();
+  sendJson(res, 200, {
+    enabled: Boolean(authenticated && queueAvailable),
+    modelConfigured,
+    queueAvailable,
+    authenticationRequired: !authenticated,
+  });
+}
+
 async function handleStemMarkingSubmissionCreate(req, res) {
   const user = requireStemActor(req);
-  const request = normalizeStemMarkingRequest(await readJsonBody(req));
-  assertStemSubmissionScope(user, request);
-  if (!STEM_MARKING_AI_API_KEY) {
+  if (!stemMarkingQueueAvailable()) {
     sendJson(res, 503, { error: "Structured STEM marking is not configured.", code: "marking_unavailable" });
     return;
   }
+  const request = normalizeStemMarkingRequest(await readJsonBody(req));
+  assertStemSubmissionScope(user, request);
   const db = getAppDb();
   const existing = db.prepare("SELECT * FROM stem_marking_submissions WHERE user_id = ? AND (submission_id = ? OR idempotency_key = ?) LIMIT 1")
     .get(user.id, request.submissionId, request.idempotencyKey);
@@ -3172,6 +3328,10 @@ function handleStemMarkingRetry(req, res, submissionId) {
   }
   if (row.status === "queued" || row.status === "processing") {
     sendJson(res, 202, { submission: publicStemMarkingSubmission(row), idempotent: true });
+    return;
+  }
+  if (!stemMarkingQueueAvailable()) {
+    sendJson(res, 503, { error: "Structured STEM marking is not configured.", code: "marking_unavailable" });
     return;
   }
   const request = parseStoredJson(row.request_json, {});
@@ -3238,6 +3398,7 @@ async function handleStemMarkingMembership(req, res, organizationId, targetUserI
 async function handleStemMarkingApi(req, res) {
   applyStemMarkingCors(req, res);
   const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+  if (req.method === "GET" && url.pathname === "/api/stem/marking/availability") return handleStemMarkingAvailability(req, res);
   if (req.method === "POST" && url.pathname === "/api/stem/marking/submissions") return handleStemMarkingSubmissionCreate(req, res);
   const retryMatch = url.pathname.match(/^\/api\/stem\/marking\/submissions\/([^/]+)\/retry$/);
   if (retryMatch && req.method === "POST") return handleStemMarkingRetry(req, res, stemStableId(decodeURIComponent(retryMatch[1]), "submissionId"));

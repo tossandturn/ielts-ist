@@ -63,6 +63,32 @@ It does not persist a submission or claim it is `queued` or `processing`. Provid
 after a server-accepted job are persisted as `failed` with a sanitized failure code; provider
 URLs, keys, tokens, and raw responses never appear in the student response.
 
+## Availability
+
+Before rendering a submit action, STEM may call `GET /api/stem/marking/availability` with the
+shared identity. The response is deliberately limited to safe booleans:
+
+```json
+{"enabled":true,"modelConfigured":true,"queueAvailable":true,"authenticationRequired":false}
+```
+
+It never returns a provider URL, key, token, raw error, or queue diagnostics. `enabled` is true
+only when the caller is authenticated, server-only model configuration is complete, the trusted
+question manifest is loaded, and queueing is not disabled.
+
+## Trusted question manifest
+
+Canonical mark allocation and mark points come from the server-side
+`STEM_MARKING_TRUSTED_MANIFEST_PATH` JSON manifest (`stem-marking-manifest.v1`). It stores
+qualification, route/specification/paper IDs, questionPartId, prompt, available marks, canonical
+point IDs/marks/text, and source asset checksums. Client-provided prompt/marks/points are checked
+against that entry and never overwrite it. Missing or mismatched entries are `missing_metadata`
+and are not queued.
+
+Every request includes `qualification` such as `IGCSE` or `A-Level`. Provider context uses the
+trusted qualification/specification/paper and states that marking is AI-assisted formative
+feedback, not an official Cambridge result.
+
 ## Create Submission
 
 ```http

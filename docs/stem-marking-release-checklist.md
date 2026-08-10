@@ -10,9 +10,10 @@ the IELTSist migration, shared-session CORS contract, and provider safety checks
 3. Deploy the IELTSist server code and restart it once. Startup creates the STEM marking tables and indexes with `CREATE TABLE IF NOT EXISTS`; verify migration success before accepting coursework.
 4. Check `GET /healthz` over HTTPS.
 5. From `https://stem.ieltsist.com`, verify identity and marking preflights return the exact origin, `Access-Control-Allow-Credentials: true`, and `x-stem-identity` in allowed headers. Confirm an untrusted origin receives `403` and never `Access-Control-Allow-Origin: *` for these routes.
-6. Verify the browser path using a real signed-in IELTSist session: cookie -> `GET /api/stem/identity` with `credentials: "include"` -> five-minute identity token -> one marking status request. Do not record or paste a real token in release evidence.
-7. With `STEM_MARKING_AI_DISABLED=1`, verify a valid create request returns `503 marking_unavailable` and creates no queued job. Then enable the configured provider and verify one question-level submission, reload recovery, retry behaviour, and no raw provider diagnostic in the result.
-8. Verify authorization: a student can read only their own individual submission; a teacher/school account sees organization/classroom aggregate totals only, never other students' answer images, typed answers, or point evidence.
+6. Verify `GET /api/stem/marking/availability` returns only `enabled`, `modelConfigured`, `queueAvailable`, and `authenticationRequired`; it must not expose provider URL/key/token/raw error.
+7. Verify the browser path using a real signed-in IELTSist session: cookie -> `GET /api/stem/identity` with `credentials: "include"` -> five-minute identity token -> availability -> one marking status request. Do not record or paste a real token in release evidence.
+8. With `STEM_MARKING_AI_DISABLED=1` or no trusted manifest, verify availability is disabled and a valid create request returns `503 marking_unavailable` without a queued job. Then enable the configured manifest/provider and verify one question-level submission, reload recovery, retry behaviour, and no raw provider diagnostic in the result.
+9. Verify authorization: a student can read only their own individual submission; a teacher/school account sees organization/classroom aggregate totals only, never other students' answer images, typed answers, or point evidence.
 
 ## STEM Second
 

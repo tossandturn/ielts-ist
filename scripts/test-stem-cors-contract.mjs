@@ -112,12 +112,29 @@ try {
   assert.equal(markingPreflight.response.status, 204);
   assertAllowedCors(markingPreflight.response, /POST/);
 
+  const availabilityPreflight = await request("/api/stem/marking/availability", {
+    method: "OPTIONS",
+    headers: {
+      origin: stemOrigin,
+      "access-control-request-method": "GET",
+      "access-control-request-headers": "content-type, x-stem-identity",
+    },
+  });
+  assert.equal(availabilityPreflight.response.status, 204);
+  assertAllowedCors(availabilityPreflight.response, /GET/);
+
   const markingBlocked = await request("/api/stem/marking/submissions", {
     method: "OPTIONS",
     headers: { origin: "https://evil.example", "access-control-request-method": "POST" },
   });
   assert.equal(markingBlocked.response.status, 403);
   assert.notEqual(markingBlocked.response.headers.get("access-control-allow-origin"), "*");
+
+  const anonymousAvailability = await request("/api/stem/marking/availability", { headers: { origin: stemOrigin } });
+  assert.equal(anonymousAvailability.response.status, 200);
+  assertAllowedCors(anonymousAvailability.response, /GET/);
+  assert.deepEqual(anonymousAvailability.json, { enabled: false, modelConfigured: false, queueAvailable: false, authenticationRequired: true });
+  assert.doesNotMatch(JSON.stringify(anonymousAvailability.json), /key|token|provider|url|error/i);
 
   const username = `corsstudent${process.pid}`.slice(0, 24);
   const registered = await request("/api/auth/register", {
@@ -135,6 +152,13 @@ try {
   assert.equal(identity.response.status, 200);
   assertAllowedCors(identity.response, /GET/);
   assert.match(identity.json.accessToken || "", /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/);
+
+  const signedInAvailability = await request("/api/stem/marking/availability", {
+    headers: { origin: stemOrigin, "x-stem-identity": identity.json.accessToken },
+  });
+  assert.equal(signedInAvailability.response.status, 200);
+  assertAllowedCors(signedInAvailability.response, /GET/);
+  assert.deepEqual(signedInAvailability.json, { enabled: false, modelConfigured: false, queueAvailable: false, authenticationRequired: false });
 
   const unavailablePayload = validSubmission("unavailable");
   const unavailable = await request("/api/stem/marking/submissions", {
