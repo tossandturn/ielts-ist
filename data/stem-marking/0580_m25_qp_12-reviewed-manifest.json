@@ -1,22 +1,1182 @@
 {
   "schemaVersion": "stem-marking-manifest.v1",
+  "generatedAt": "2026-08-10T09:52:46.526Z",
+  "source": {
+    "reviewedSet": "cie-0580-0580_m25_qp_12.json",
+    "sha256": "05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30",
+    "questionCount": 26,
+    "partCount": 46,
+    "totalMarks": 80
+  },
   "questions": [
     {
       "routeId": "cie-0580-igcse-mathematics",
       "qualification": "IGCSE",
       "specificationVersion": "cambridge-0580-2025-2027",
       "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q1:part-a",
+      "prompt": "Write the number twenty thousand in figures.",
+      "availableMarks": 1,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q1:part-a:scheme",
+          "maxMarks": 1,
+          "text": "A1: 20 000.",
+          "sourceEvidence": {
+            "page": 7,
+            "quote": "A1: 20 000."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-3",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 3,
+            "quote": "Question paper Q1"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q2:part-a",
+      "prompt": "Write 0.07 as a percentage.",
+      "availableMarks": 1,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q2:part-a:scheme",
+          "maxMarks": 1,
+          "text": "A1: 7 (the percentage sign is printed in the answer space).",
+          "sourceEvidence": {
+            "page": 7,
+            "quote": "A1: 7 (the percentage sign is printed in the answer space)."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-3",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 3,
+            "quote": "Question paper Q2(a)"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q2:part-b",
+      "prompt": "Write 0.07 as a fraction.",
+      "availableMarks": 1,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q2:part-b:scheme",
+          "maxMarks": 1,
+          "text": "A1: 7/100.",
+          "sourceEvidence": {
+            "page": 7,
+            "quote": "A1: 7/100."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-3",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 3,
+            "quote": "Question paper Q2(b)"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q2:part-c",
+      "prompt": "Write 0.07 in standard form.",
+      "availableMarks": 1,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q2:part-c:scheme",
+          "maxMarks": 1,
+          "text": "A1: 7 × 10⁻².",
+          "sourceEvidence": {
+            "page": 7,
+            "quote": "A1: 7 × 10⁻²."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-3",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 3,
+            "quote": "Question paper Q2(c)"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q3:part-a",
+      "prompt": "Write down all the factors of 18.",
+      "availableMarks": 2,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q3:part-a:scheme",
+          "maxMarks": 2,
+          "text": "B2: 1, 2, 3, 6, 9 and 18, with no extras. / B1: 4 correct and no extras, or all 6 correct with one incorrect extra.",
+          "sourceEvidence": {
+            "page": 7,
+            "quote": "B2: 1, 2, 3, 6, 9 and 18, with no extras. / B1: 4 correct and no extras, or all 6 correct with one incorrect extra."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-3",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 3,
+            "quote": "Question paper Q3"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q4:part-a",
+      "prompt": "Find the value of 10³.",
+      "availableMarks": 1,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q4:part-a:scheme",
+          "maxMarks": 1,
+          "text": "A1: 1000.",
+          "sourceEvidence": {
+            "page": 7,
+            "quote": "A1: 1000."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-3",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 3,
+            "quote": "Question paper Q4(a)"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q4:part-b",
+      "prompt": "Find the value of ∛27.",
+      "availableMarks": 1,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q4:part-b:scheme",
+          "maxMarks": 1,
+          "text": "A1: 3.",
+          "sourceEvidence": {
+            "page": 7,
+            "quote": "A1: 3."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-3",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 3,
+            "quote": "Question paper Q4(b)"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q4:part-c",
+      "prompt": "Find the value of 7⁰.",
+      "availableMarks": 1,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q4:part-c:scheme",
+          "maxMarks": 1,
+          "text": "A1: 1.",
+          "sourceEvidence": {
+            "page": 7,
+            "quote": "A1: 1."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-3",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 3,
+            "quote": "Question paper Q4(c)"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q5:part-a",
+      "prompt": "On the diagram, draw all the lines of symmetry.",
+      "availableMarks": 2,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q5:part-a:scheme",
+          "maxMarks": 2,
+          "text": "B2: draw the vertical and horizontal lines of symmetry through the centre of the shape. / B1: one correct line and no extras, or both correct lines and one extra.",
+          "sourceEvidence": {
+            "page": 7,
+            "quote": "B2: draw the vertical and horizontal lines of symmetry through the centre of the shape. / B1: one correct line and no extras, or both correct lines and one extra."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-4",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 4,
+            "quote": "Question paper Q5(a)"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q5:part-b",
+      "prompt": "Shade one square so that the diagram has rotational symmetry of order 2.",
+      "availableMarks": 1,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q5:part-b:scheme",
+          "maxMarks": 1,
+          "text": "B1: shade row 2, column 3 of the 5 × 5 grid, counted from the top-left.",
+          "sourceEvidence": {
+            "page": 7,
+            "quote": "B1: shade row 2, column 3 of the 5 × 5 grid, counted from the top-left."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-4",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 4,
+            "quote": "Question paper Q5(b)"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q6:part-a",
+      "prompt": "Find the value of the reciprocal of 0.25.",
+      "availableMarks": 2,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q6:part-a:scheme",
+          "maxMarks": 2,
+          "text": "A1: 4. / M1: 1/0.25 or equivalent.",
+          "sourceEvidence": {
+            "page": 7,
+            "quote": "A1: 4. / M1: 1/0.25 or equivalent."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-4",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 4,
+            "quote": "Question paper Q6"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q7:part-a",
+      "prompt": "Work out −6 × −3 + 7 × 2.",
+      "availableMarks": 2,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q7:part-a:scheme",
+          "maxMarks": 2,
+          "text": "A1: 32. / B1: 18 or 14.",
+          "sourceEvidence": {
+            "page": 7,
+            "quote": "A1: 32. / B1: 18 or 14."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-5",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 5,
+            "quote": "Question paper Q7"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q8:part-a",
+      "prompt": "Write these numbers in order, starting with the smallest.\n34%    π    1/3    3    3/10",
+      "availableMarks": 2,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q8:part-a:scheme",
+          "maxMarks": 2,
+          "text": "B2: 3/10, 1/3, 34%, 3, π in this order. / B1: 4 values in the correct order; or M1 for suitable decimal equivalents.",
+          "sourceEvidence": {
+            "page": 7,
+            "quote": "B2: 3/10, 1/3, 34%, 3, π in this order. / B1: 4 values in the correct order; or M1 for suitable decimal equivalents."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-5",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 5,
+            "quote": "Question paper Q8"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q9:part-a",
+      "prompt": "A film starts at 19 35. The film lasts for 70 minutes. Work out the time the film finishes.",
+      "availableMarks": 1,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q9:part-a:scheme",
+          "maxMarks": 1,
+          "text": "Answer: 2045.",
+          "sourceEvidence": {
+            "page": 7,
+            "quote": "Answer: 2045."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-5",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 5,
+            "quote": "Question paper Q9"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q10:part-a",
+      "prompt": "A shape is drawn on a 1 cm² grid. Find the area of the shape.",
+      "availableMarks": 1,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q10:part-a:scheme",
+          "maxMarks": 1,
+          "text": "Answer: 20.",
+          "sourceEvidence": {
+            "page": 7,
+            "quote": "Answer: 20."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-6",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 6,
+            "quote": "Question paper Q10(a)"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q10:part-b",
+      "prompt": "On the grid, shade 50% of the shape.",
+      "availableMarks": 1,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q10:part-b:scheme",
+          "maxMarks": 1,
+          "text": "Answer: 10 squares shaded.",
+          "sourceEvidence": {
+            "page": 7,
+            "quote": "Answer: 10 squares shaded."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-6",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 6,
+            "quote": "Question paper Q10(b)"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q11:part-a",
+      "prompt": "Given 19.5 × 20.4 = 397.8, work out 1.95 × 2.04.",
+      "availableMarks": 1,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q11:part-a:scheme",
+          "maxMarks": 1,
+          "text": "Answer: 3.978.",
+          "sourceEvidence": {
+            "page": 7,
+            "quote": "Answer: 3.978."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-6",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 6,
+            "quote": "Question paper Q11(a)"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q11:part-b",
+      "prompt": "Given 19.5 × 20.4 = 397.8, work out 3978 ÷ 204.",
+      "availableMarks": 1,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q11:part-b:scheme",
+          "maxMarks": 1,
+          "text": "Answer: 19.5.",
+          "sourceEvidence": {
+            "page": 7,
+            "quote": "Answer: 19.5."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-6",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 6,
+            "quote": "Question paper Q11(b)"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q12:part-a",
+      "prompt": "Kat's method is (the sum of a and b) × (the difference between a and b). Her example is 17² − 13² = (17 + 13) × (17 − 13) = 30 × 4 = 120. Work out 29² − 21² using Kat's method.",
+      "availableMarks": 2,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q12:part-a:scheme",
+          "maxMarks": 2,
+          "text": "M1 for (29 + 21) × (29 − 21) = 50 × 8. / A1 for 400.",
+          "sourceEvidence": {
+            "page": 8,
+            "quote": "M1 for (29 + 21) × (29 − 21) = 50 × 8. / A1 for 400."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-7",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 7,
+            "quote": "Question paper Q12(a)"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q12:part-b",
+      "prompt": "In this part, all lengths are in centimetres. The diagram shows a prism. Work out the volume of the prism.",
+      "availableMarks": 2,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q12:part-b:scheme",
+          "maxMarks": 2,
+          "text": "Answer: 12000. / M1 for (17² − 13²) [× 100] oe.",
+          "sourceEvidence": {
+            "page": 8,
+            "quote": "Answer: 12000. / M1 for (17² − 13²) [× 100] oe."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-7",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 7,
+            "quote": "Question paper Q12(b)"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q13:part-a",
+      "prompt": "Convert 8 litres into cm³.",
+      "availableMarks": 1,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q13:part-a:scheme",
+          "maxMarks": 1,
+          "text": "Answer: 8000.",
+          "sourceEvidence": {
+            "page": 8,
+            "quote": "Answer: 8000."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-8",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 8,
+            "quote": "Question paper Q13"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q14:part-a",
+      "prompt": "The diagram shows a triangular prism. ABC is isosceles with AC = BC; its perpendicular height is 4 cm; AB = 6 cm and BD = 6 cm. Complete: The prism has ... faces and ... edges.",
+      "availableMarks": 2,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q14:part-a:scheme",
+          "maxMarks": 2,
+          "text": "Answer: 5 faces and 9 edges. / B1 for each.",
+          "sourceEvidence": {
+            "page": 8,
+            "quote": "Answer: 5 faces and 9 edges. / B1 for each."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-8",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 8,
+            "quote": "Question paper Q14(a)"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q14:part-b",
+      "prompt": "The diagram shows a triangular prism. ABC is isosceles with AC = BC; its perpendicular height is 4 cm; AB = 6 cm and BD = 6 cm. Show that the length of BC is 5 cm.",
+      "availableMarks": 2,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q14:part-b:scheme",
+          "maxMarks": 2,
+          "text": "Answer: √(3² + 4²) [= 5]. / M1 for 3² + 4².",
+          "sourceEvidence": {
+            "page": 8,
+            "quote": "Answer: √(3² + 4²) [= 5]. / M1 for 3² + 4²."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-8",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 8,
+            "quote": "Question paper Q14(b)"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q14:part-c",
+      "prompt": "Complete the net of the prism on the 1 cm² grid. The base has been drawn for you.",
+      "availableMarks": 3,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q14:part-c:scheme",
+          "maxMarks": 3,
+          "text": "Full credit: correct net drawn. / B2 for 3 correct extra faces drawn in correct places. / B1 for 1 correct extra face drawn in correct place.",
+          "sourceEvidence": {
+            "page": 8,
+            "quote": "Full credit: correct net drawn. / B2 for 3 correct extra faces drawn in correct places. / B1 for 1 correct extra face drawn in correct place."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-9",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 9,
+            "quote": "Question paper Q14(c)"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q15:part-a",
+      "prompt": "The diagram shows triangle BCD and straight line ABC, with DB = DC = BC. Write down the mathematical name for triangle BCD.",
+      "availableMarks": 1,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q15:part-a:scheme",
+          "maxMarks": 1,
+          "text": "Answer: equilateral.",
+          "sourceEvidence": {
+            "page": 8,
+            "quote": "Answer: equilateral."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-10",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 10,
+            "quote": "Question paper Q15(a)"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q15:part-b",
+      "prompt": "The diagram shows triangle BCD and straight line ABC, with DB = DC = BC. Work out the value of y. Give two geometrical reasons for your answer.",
+      "availableMarks": 4,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q15:part-b:scheme",
+          "maxMarks": 4,
+          "text": "Answer: 120 (2 marks); B1 for angle DBC = 60. / Angles in an equilateral triangle are equal (1 mark). / Angles on a straight line add to 180 (1 mark).",
+          "sourceEvidence": {
+            "page": 8,
+            "quote": "Answer: 120 (2 marks); B1 for angle DBC = 60. / Angles in an equilateral triangle are equal (1 mark). / Angles on a straight line add to 180 (1 mark)."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-10",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 10,
+            "quote": "Question paper Q15(b)"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q16:part-a",
+      "prompt": "Jill records the temperature and the number of people on a beach for each of ten days. The results are shown in the scatter diagram. What type of correlation is shown?",
+      "availableMarks": 1,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q16:part-a:scheme",
+          "maxMarks": 1,
+          "text": "Answer: positive.",
+          "sourceEvidence": {
+            "page": 8,
+            "quote": "Answer: positive."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-11",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 11,
+            "quote": "Question paper Q16(a)"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q16:part-b",
+      "prompt": "Jill records the temperature and the number of people on a beach for each of ten days. Describe the relationship between the temperature and the number of people on the beach.",
+      "availableMarks": 1,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q16:part-b:scheme",
+          "maxMarks": 1,
+          "text": "The higher the temperature the higher the number of people oe.",
+          "sourceEvidence": {
+            "page": 8,
+            "quote": "The higher the temperature the higher the number of people oe."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-11",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 11,
+            "quote": "Question paper Q16(b)"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q17:part-a",
+      "prompt": "Line L is shown on the grid. Find the equation of line L in the form y = mx + c.",
+      "availableMarks": 2,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q17:part-a:scheme",
+          "maxMarks": 2,
+          "text": "Final answer: y = 1/2 x + 3. / B1 for 1/2 x + c. / or B1 for mx + 3 where m != 0.",
+          "sourceEvidence": {
+            "page": 8,
+            "quote": "Final answer: y = 1/2 x + 3. / B1 for 1/2 x + c. / or B1 for mx + 3 where m != 0."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-12",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 12,
+            "quote": "Question paper Q17(a)"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q17:part-b",
+      "prompt": "Line L crosses the x-axis at P. Find the coordinates of P.",
+      "availableMarks": 2,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q17:part-b:scheme",
+          "maxMarks": 2,
+          "text": "Answer: (-6, 0). / B1 for (-6, j) or (k, 0). / or M1 for 0 = their 1/2 x + 3 or better.",
+          "sourceEvidence": {
+            "page": 8,
+            "quote": "Answer: (-6, 0). / B1 for (-6, j) or (k, 0). / or M1 for 0 = their 1/2 x + 3 or better."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-12",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 12,
+            "quote": "Question paper Q17(b)"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q18:part-a",
+      "prompt": "Complete the table of values for y = 12/x.",
+      "availableMarks": 3,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q18:part-a:scheme",
+          "maxMarks": 3,
+          "text": "Full-credit values in blank order: -2, -4, -12, 12, 4, 2. / B2 for 4 correct. / B1 for 1 correct.",
+          "sourceEvidence": {
+            "page": 8,
+            "quote": "Full-credit values in blank order: -2, -4, -12, 12, 4, 2. / B2 for 4 correct. / B1 for 1 correct."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-13",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 13,
+            "quote": "Question paper Q18(a)"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q18:part-b",
+      "prompt": "On the grid, draw the graph of y = 12/x for -6 <= x <= -1 and 1 <= x <= 6.",
+      "availableMarks": 4,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q18:part-b:scheme",
+          "maxMarks": 4,
+          "text": "Full credit: correct curve. / B3FT for 9 points correctly plotted. / B2FT for 7 points correctly plotted. / B1FT for 5 points correctly plotted.",
+          "sourceEvidence": {
+            "page": 8,
+            "quote": "Full credit: correct curve. / B3FT for 9 points correctly plotted. / B2FT for 7 points correctly plotted. / B1FT for 5 points correctly plotted."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-13",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 13,
+            "quote": "Question paper Q18(b)"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q18:part-c",
+      "prompt": "On the grid, draw the line y = -9.",
+      "availableMarks": 1,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q18:part-c:scheme",
+          "maxMarks": 1,
+          "text": "y = -9 correctly drawn, ruled.",
+          "sourceEvidence": {
+            "page": 8,
+            "quote": "y = -9 correctly drawn, ruled."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-13",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 13,
+            "quote": "Question paper Q18(c)"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q18:part-d",
+      "prompt": "Use your graph to solve 12/x = -9.",
+      "availableMarks": 1,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q18:part-d:scheme",
+          "maxMarks": 1,
+          "text": "Answer in the range -1.4 to -1.2. / FT their curve and y = -9.",
+          "sourceEvidence": {
+            "page": 8,
+            "quote": "Answer in the range -1.4 to -1.2. / FT their curve and y = -9."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-13",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 13,
+            "quote": "Question paper Q18(d)"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q19:part-a",
+      "prompt": "n is an odd number. Write down the values of n that satisfy 7 < n <= 15.",
+      "availableMarks": 2,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q19:part-a:scheme",
+          "maxMarks": 2,
+          "text": "Full-credit final answer: 9, 11, 13, 15. / B1 for 3 correct and no errors or for 4 correct and one extra.",
+          "sourceEvidence": {
+            "page": 9,
+            "quote": "Full-credit final answer: 9, 11, 13, 15. / B1 for 3 correct and no errors or for 4 correct and one extra."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-14",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 14,
+            "quote": "Question paper Q19(a)"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q19:part-b",
+      "prompt": "Pip thinks -1 < x < 8 is the inequality represented on the number line. Complete the statement. Pip's inequality is not correct because ...",
+      "availableMarks": 1,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q19:part-b:scheme",
+          "maxMarks": 1,
+          "text": "Pip needed to use two <= signs oe.",
+          "sourceEvidence": {
+            "page": 9,
+            "quote": "Pip needed to use two <= signs oe."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-14",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 14,
+            "quote": "Question paper Q19(b)"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
       "questionPartId": "cie-0580-0580_m25_qp_12:q20:part-a",
-      "prompt": "The height, h metres, of a building is 635 m, correct to the nearest metre.\nComplete this statement about the value of h.",
+      "prompt": "The height, h metres, of a building is 635 m, correct to the nearest metre. Complete this statement about the value of h: _____ <= h < _____.",
       "availableMarks": 2,
       "markSchemePoints": [
         {
           "pointId": "cie-0580-0580_m25_qp_12:q20:part-a:scheme",
           "maxMarks": 2,
-          "text": "B1: one mark for each of 634.5 and 635.5. / SC1: both values correct but answers reversed.",
+          "text": "B1 for each of 634.5 and 635.5. / SC1 if both are correct but reversed after scoring 0.",
           "sourceEvidence": {
             "page": 9,
-            "quote": "B1 for each / If 0 scored SC1 for both correct but answers reversed"
+            "quote": "B1 for each of 634.5 and 635.5. / SC1 if both are correct but reversed after scoring 0."
           }
         }
       ],
@@ -38,17 +1198,81 @@
       "qualification": "IGCSE",
       "specificationVersion": "cambridge-0580-2025-2027",
       "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q21:part-a",
+      "prompt": "Given X = (1/3)w^2p, find the value of X when w = 5 and p = 6.",
+      "availableMarks": 2,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q21:part-a:scheme",
+          "maxMarks": 2,
+          "text": "Answer: 50. / M1 for (1/3) * 5^2 * 6 or better.",
+          "sourceEvidence": {
+            "page": 9,
+            "quote": "Answer: 50. / M1 for (1/3) * 5^2 * 6 or better."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-15",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 15,
+            "quote": "Question paper Q21(a)"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q21:part-b",
+      "prompt": "Given X = (1/3)w^2p, make p the subject of the formula.",
+      "availableMarks": 2,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q21:part-b:scheme",
+          "maxMarks": 2,
+          "text": "Final answer: p = 3X/w^2 or p = 3Xw^-2. / M1 for 3X = w^2p. / or X/w^2 = (1/3)p or Xw^-2 = (1/3)p.",
+          "sourceEvidence": {
+            "page": 9,
+            "quote": "Final answer: p = 3X/w^2 or p = 3Xw^-2. / M1 for 3X = w^2p. / or X/w^2 = (1/3)p or Xw^-2 = (1/3)p."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-15",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 15,
+            "quote": "Question paper Q21(b)"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
       "questionPartId": "cie-0580-0580_m25_qp_12:q22:part-a",
-      "prompt": "Work out 1 7/15 − 4/5.\nGive your answer as a fraction in its simplest form.",
+      "prompt": "Work out 1 7/15 - 4/5. Give your answer as a fraction in its simplest form.",
       "availableMarks": 3,
       "markSchemePoints": [
         {
           "pointId": "cie-0580-0580_m25_qp_12:q22:part-a:scheme",
           "maxMarks": 3,
-          "text": "B2: final answer is 10/15 or equivalent fraction. / B1: 22/15 or 7/15 + 1/3. / M1: (3*4)/(3*5) oe or (3*1)/(3*5) oe.",
+          "text": "Answer: 2/3 cao. / B2 for final answer 10/15 or equivalent fraction. / B1 for 22/15 or 7/15 + 1/5. / M1 for (3*4)/(3*5) oe or (3*1)/(3*5) oe.",
           "sourceEvidence": {
             "page": 9,
-            "quote": "B2 for final answer 10/15 or equivalent fraction / B1 for 22/15 or 7/15 + 1/3 / M1 for (3*4)/(3*5) oe or (3*1)/(3*5) oe"
+            "quote": "Answer: 2/3 cao. / B2 for final answer 10/15 or equivalent fraction. / B1 for 22/15 or 7/15 + 1/5. / M1 for (3*4)/(3*5) oe or (3*1)/(3*5) oe."
           }
         }
       ],
@@ -70,17 +1294,113 @@
       "qualification": "IGCSE",
       "specificationVersion": "cambridge-0580-2025-2027",
       "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q23:part-a",
+      "prompt": "Mai buys two batteries. The probability that a battery is faulty is 1/10. Complete the tree diagram.",
+      "availableMarks": 2,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q23:part-a:scheme",
+          "maxMarks": 2,
+          "text": "Answer in blank order: 9/10, 1/10, 9/10, 1/10, 9/10. / B1 for 1/10 and 1/10 in correct places in 2nd battery. / or 9/10 correctly placed for the first battery.",
+          "sourceEvidence": {
+            "page": 9,
+            "quote": "Answer in blank order: 9/10, 1/10, 9/10, 1/10, 9/10. / B1 for 1/10 and 1/10 in correct places in 2nd battery. / or 9/10 correctly placed for the first battery."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-16",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 16,
+            "quote": "Question paper Q23(a)"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q23:part-b",
+      "prompt": "The probability that a battery is faulty is 1/10. Find the probability that Mai buys two faulty batteries.",
+      "availableMarks": 2,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q23:part-b:scheme",
+          "maxMarks": 2,
+          "text": "Answer: 1/100 oe. / M1 for 1/10 * their 1/10.",
+          "sourceEvidence": {
+            "page": 9,
+            "quote": "Answer: 1/100 oe. / M1 for 1/10 * their 1/10."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-16",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 16,
+            "quote": "Question paper Q23(b)"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q23:part-c",
+      "prompt": "A shop sells 3000 batteries in one month. The probability that a battery is faulty is 1/10. Work out the expected number of faulty batteries the shop sells.",
+      "availableMarks": 1,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q23:part-c:scheme",
+          "maxMarks": 1,
+          "text": "Answer: 300.",
+          "sourceEvidence": {
+            "page": 9,
+            "quote": "Answer: 300."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-16",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 16,
+            "quote": "Question paper Q23(c)"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
       "questionPartId": "cie-0580-0580_m25_qp_12:q24:part-a",
-      "prompt": "A circle has radius 7 cm.\nA square has side x cm.\nThe circumference of the circle is the same length as the perimeter of the square.\n\nFind the value of x.\nGive your answer in terms of π.",
+      "prompt": "A circle has radius 7 cm. A square has side x cm. The circumference of the circle is the same length as the perimeter of the square. Find the value of x. Give your answer in terms of pi.",
       "availableMarks": 3,
       "markSchemePoints": [
         {
           "pointId": "cie-0580-0580_m25_qp_12:q24:part-a:scheme",
           "maxMarks": 3,
-          "text": "M2: 2*pi*7 = 4x oe. / M1: 2*pi*7 or 14*pi or 4x. / A1: x = 7*pi/2 or 3.5*pi.",
+          "text": "M2 for 2*pi*7 = 4x oe. / or M1 for 2*pi*7 or 14*pi or 4x. / Answer: 7*pi/2 or 3.5*pi.",
           "sourceEvidence": {
             "page": 9,
-            "quote": "M2 for 2*pi*7=4x oe / M1 for 2*pi*7 or 14*pi or 4x / Answer: 7*pi/2 or 3.5*pi"
+            "quote": "M2 for 2*pi*7 = 4x oe. / or M1 for 2*pi*7 or 14*pi or 4x. / Answer: 7*pi/2 or 3.5*pi."
           }
         }
       ],
@@ -93,6 +1413,70 @@
           "sourceEvidence": {
             "page": 17,
             "quote": "Question paper Q24"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q25:part-a",
+      "prompt": "Triangle ABC is mathematically similar to triangle PQR. In triangle ABC, AC = 5 cm and BC = 7 cm. In triangle PQR, PR = 10 cm. Show that QR = 14 cm.",
+      "availableMarks": 1,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q25:part-a:scheme",
+          "maxMarks": 1,
+          "text": "(10/5) * 7 [=14] oe.",
+          "sourceEvidence": {
+            "page": 9,
+            "quote": "(10/5) * 7 [=14] oe."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-17",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 17,
+            "quote": "Question paper Q25"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q26:part-a",
+      "prompt": "Solve the simultaneous equations: 4t - 3w = 11 and 6t + 2w = -3.",
+      "availableMarks": 4,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q26:part-a:scheme",
+          "maxMarks": 4,
+          "text": "M1 for correctly equating one set of coefficients. / M1 for correct method to eliminate one variable. / OR M1 for making t or w the subject of one equation. / M1 for substitution of t or w from their rearranged equation. / A1 for t = 0.5. / A1 for w = -3. / If A0 scored SC1 for 2 values satisfying one of the original equations.",
+          "sourceEvidence": {
+            "page": 10,
+            "quote": "M1 for correctly equating one set of coefficients. / M1 for correct method to eliminate one variable. / OR M1 for making t or w the subject of one equation. / M1 for substitution of t or w from their rearranged equation. / A1 for t = 0.5. / A1 for w = -3. / If A0 scored SC1 for 2 values satisfying one of the original equations."
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-18",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 18,
+            "quote": "Question paper Q26"
           }
         }
       ]
