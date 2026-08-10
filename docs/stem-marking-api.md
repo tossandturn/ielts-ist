@@ -100,6 +100,7 @@ POST /api/stem/marking/submissions
   "submissionId": "stem-submission-2026-0001",
   "idempotencyKey": "stem-attempt-2026-0001-v1",
   "routeId": "alevel-physics-mechanics",
+  "qualification": "A-Level",
   "specificationVersion": "A-Level STEM 2026",
   "paperId": "edexcel-math-p1-mar-2025",
   "attemptId": "attempt-7c6c2a",

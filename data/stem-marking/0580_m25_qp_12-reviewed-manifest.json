@@ -1,0 +1,101 @@
+{
+  "schemaVersion": "stem-marking-manifest.v1",
+  "questions": [
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q20:part-a",
+      "prompt": "The height, h metres, of a building is 635 m, correct to the nearest metre.\nComplete this statement about the value of h.",
+      "availableMarks": 2,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q20:part-a:scheme",
+          "maxMarks": 2,
+          "text": "B1: one mark for each of 634.5 and 635.5. / SC1: both values correct but answers reversed.",
+          "sourceEvidence": {
+            "page": 9,
+            "quote": "B1 for each / If 0 scored SC1 for both correct but answers reversed"
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-14",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 14,
+            "quote": "Question paper Q20"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q22:part-a",
+      "prompt": "Work out 1 7/15 − 4/5.\nGive your answer as a fraction in its simplest form.",
+      "availableMarks": 3,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q22:part-a:scheme",
+          "maxMarks": 3,
+          "text": "B2: final answer is 10/15 or equivalent fraction. / B1: 22/15 or 7/15 + 1/3. / M1: (3*4)/(3*5) oe or (3*1)/(3*5) oe.",
+          "sourceEvidence": {
+            "page": 9,
+            "quote": "B2 for final answer 10/15 or equivalent fraction / B1 for 22/15 or 7/15 + 1/3 / M1 for (3*4)/(3*5) oe or (3*1)/(3*5) oe"
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-15",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 15,
+            "quote": "Question paper Q22"
+          }
+        }
+      ]
+    },
+    {
+      "routeId": "cie-0580-igcse-mathematics",
+      "qualification": "IGCSE",
+      "specificationVersion": "cambridge-0580-2025-2027",
+      "paperId": "cie-0580-0580_m25_qp_12",
+      "questionPartId": "cie-0580-0580_m25_qp_12:q24:part-a",
+      "prompt": "A circle has radius 7 cm.\nA square has side x cm.\nThe circumference of the circle is the same length as the perimeter of the square.\n\nFind the value of x.\nGive your answer in terms of π.",
+      "availableMarks": 3,
+      "markSchemePoints": [
+        {
+          "pointId": "cie-0580-0580_m25_qp_12:q24:part-a:scheme",
+          "maxMarks": 3,
+          "text": "M2: 2*pi*7 = 4x oe. / M1: 2*pi*7 or 14*pi or 4x. / A1: x = 7*pi/2 or 3.5*pi.",
+          "sourceEvidence": {
+            "page": 9,
+            "quote": "M2 for 2*pi*7=4x oe / M1 for 2*pi*7 or 14*pi or 4x / Answer: 7*pi/2 or 3.5*pi"
+          }
+        }
+      ],
+      "assets": [
+        {
+          "assetId": "cie-0580-0580_m25_qp_12:page-17",
+          "kind": "pdf-page",
+          "label": "Question page",
+          "checksum": "sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26",
+          "sourceEvidence": {
+            "page": 17,
+            "quote": "Question paper Q24"
+          }
+        }
+      ]
+    }
+  ]
+}

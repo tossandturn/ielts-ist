@@ -77,6 +77,28 @@ Expected:
 - `wss://ieltsist.com/qwen-client` upgrades through Nginx
 - PM2 process `ieltsist` is online
 
+## STEM marking configuration
+
+The IELTSist server owns STEM's shared AI marking contract. Deploy the reviewed manifest
+with the release under `data/stem-marking/` and set these variables only in the server
+`.env` (never in the STEM browser bundle):
+
+```text
+STEM_MARKING_TRUSTED_MANIFEST_PATH=./data/stem-marking/0580_m25_qp_12-reviewed-manifest.json
+STEM_MARKING_AI_MODEL=<server-only model name>
+STEM_MARKING_AI_BASE_URL=<server-only compatible API base URL>
+STEM_MARKING_AI_API_KEY=<server-only provider key>
+STEM_MARKING_AI_DISABLED=0
+STEM_MARKING_QUEUE_DISABLED=0
+```
+
+Without the manifest, provider configuration, or authenticated shared identity,
+`GET /api/stem/marking/availability` must report `enabled: false`; the create endpoint
+must return `503` with `code: "marking_unavailable"` and must not persist a queued job.
+After setting the variables, restart only the `ieltsist` PM2 process with `--update-env`,
+then verify availability from the STEM origin and complete one reviewed question-level
+submission. Do not print the `.env` file or provider diagnostics in release evidence.
+
 ## Important
 
 - Keep secrets out of Git.
