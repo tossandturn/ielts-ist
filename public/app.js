@@ -4271,17 +4271,17 @@ function buildVocabularyStemUrl(item) {
     contractVersion: state.vocabularyRouteContext.contractVersion || "stem-vocabulary-context-v1",
     family: state.vocabularyRouteContext.family || item.family || "exam",
     taxonomyId: state.vocabularyRouteContext.taxonomyId || item.taxonomyId || item.topicId || "",
-    routeId: item.routeId,
+    routeId: state.vocabularyRouteContext.routeId || item.routeId,
     specificationVersion: item.specificationVersion,
     subjectCode: state.vocabularyRouteContext.subjectCode || item.subjectCode || item.subject || "",
-    topicId: item.topicId,
+    topicId: state.vocabularyRouteContext.topicId || item.topicId,
     questionPartId,
     termId: item.termId,
     termIds: termIds.join(","),
     attemptId: state.vocabularyRouteContext.attemptId || "",
     returnTo,
   });
-  if (item.stage) params.set("stage", item.stage);
+  if (state.vocabularyRouteContext.stage || item.stage) params.set("stage", state.vocabularyRouteContext.stage || item.stage);
   if (state.vocabularyRouteContext.source) params.set("source", state.vocabularyRouteContext.source);
   if (state.vocabularyRouteContext.sourceStatus) params.set("sourceStatus", state.vocabularyRouteContext.sourceStatus);
   if (state.vocabularyRouteContext.termInventoryStatus) params.set("termInventoryStatus", state.vocabularyRouteContext.termInventoryStatus);

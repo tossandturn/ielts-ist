@@ -95,6 +95,11 @@ try {
   await unknown.getByRole("button", { name: "Browse selected subject" }).click();
   await unknown.locator(".vocab-word-face h3").waitFor();
   assert.equal(new URL(unknown.url()).searchParams.has("termId"), false, "Browsing the subject must remove the stale term constraint");
+  await unknown.locator("#vocabReveal").click();
+  const browsedReturn = new URL(await unknown.locator(".vocab-cross-link").getAttribute("href"));
+  assert.equal(browsedReturn.searchParams.get("routeId"), term.routeId, "Browsing a local term must preserve the original STEM route");
+  assert.equal(browsedReturn.searchParams.get("topicId"), term.topicId, "Browsing a local term must preserve the original STEM topic");
+  assert.equal(browsedReturn.searchParams.get("stage"), term.stage, "Browsing a local term must preserve the original STEM stage");
   await unknown.close();
 
   const staleParams = new URL(stemVocabularyUrl(returnTo));
