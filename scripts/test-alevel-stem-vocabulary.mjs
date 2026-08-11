@@ -111,8 +111,14 @@ assert.match(app, /https:\/\/stem\.ieltsist\.com\/\?from=ieltsist&focus=/);
 assert.match(app, /Continue in STEM Campus/);
 assert.match(app, /Need the subject knowledge behind the terms/);
 assert.match(html, /class="product-switch-link" href="https:\/\/stem\.ieltsist\.com\/\?from=ieltsist&amp;focus=syllabus"/);
-assert.match(server, /complementary but independent products/);
-assert.match(server, /Never claim that accounts, tokens, scores or progress sync/);
+assert.match(server, /IELTSist and STEM Campus use one IELTSist ID for sign-in/i,
+  "Product facts must state that one IELTSist ID signs into both products");
+assert.match(server, /IELTS drafts,\s*IELTS scores,\s*reports,\s*and vocabulary stay in IELTSist/i,
+  "Product facts must keep IELTS learning data inside IELTSist");
+assert.match(server, /STEM subject attempts and marking submissions stay in STEM/i,
+  "Product facts must keep STEM learning data inside STEM Campus");
+assert.match(server, /Do not claim unrelated results,\s*progress,\s*notebooks,\s*or access tokens sync between products/i,
+  "Product facts must not claim unrelated scores, tokens, or notebooks synchronize");
 assert.match(app, /vocabularyItemKey\(item\)/, "Known progress must use stable item keys");
 assert.match(html, /700\+ A-Level Mathematics, Physics, Chemistry, Economics and exam-language entries/);
 

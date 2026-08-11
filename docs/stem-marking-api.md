@@ -79,11 +79,18 @@ question manifest is loaded, and queueing is not disabled.
 ## Trusted question manifest
 
 Canonical mark allocation and mark points come from the server-side
-`STEM_MARKING_TRUSTED_MANIFEST_PATH` JSON manifest (`stem-marking-manifest.v1`). It stores
-qualification, route/specification/paper IDs, questionPartId, prompt, available marks, canonical
-point IDs/marks/text, and source asset checksums. Client-provided prompt/marks/points are checked
-against that entry and never overwrite it. Missing or mismatched entries are `missing_metadata`
-and are not queued.
+`STEM_MARKING_TRUSTED_MANIFEST_PATH` JSON manifest (`stem-marking-manifest.v2`). It stores
+qualification, route/specification/paper IDs, questionPartId, sourceQuestionId, prompt, available
+marks, canonical point IDs/marks/text, source asset checksums, and a reviewed-source record:
+`review.status`, `review.schemaVersion`, `review.version`, and `sourceEvidence`. Only canonical
+entries with `review.status: "approved"` and `review.schemaVersion: "stem-source-review.v1"` may
+enter the marking queue. The older v1 manifest is deliberately unavailable for AI marking.
+
+Client-provided `reviewStatus`, `sourceContentComplete`, `aiAssistedMarkingAvailable`, prompt,
+marks and mark points never grant access or overwrite canonical data. The client must send the
+same sourceQuestionId, review schema/version and source evidence so the server can detect stale or
+cross-question payloads. Unknown, unreviewed, stale and quarantined source entries are persisted
+as `missing_metadata` and are not queued.
 
 Every request includes `qualification` such as `IGCSE` or `A-Level`. Provider context uses the
 trusted qualification/specification/paper and states that marking is AI-assisted formative
@@ -94,6 +101,9 @@ feedback, not an official Cambridge result.
 ```http
 POST /api/stem/marking/submissions
 ```
+
+`POST /api/ai/mark-handwriting` is a compatibility alias for the exact same reviewed submission
+contract. It does not offer a direct-provider or synchronous scoring bypass.
 
 ```json
 {
@@ -109,6 +119,14 @@ POST /api/stem/marking/submissions
   "questions": [
     {
       "questionPartId": "edexcel-math-p1-mar-2025-q1a",
+      "sourceQuestionId": "edexcel-math-p1-mar-2025-q1a",
+      "reviewSchemaVersion": "stem-source-review.v1",
+      "reviewVersion": "reviewed:source-sha-or-release-id",
+      "sourceEvidence": {
+        "assetId": "question-page-2",
+        "page": 2,
+        "quote": "Question 1(a)"
+      },
       "prompt": "State the relationship between force, mass and acceleration.",
       "availableMarks": 2,
       "assets": [
@@ -145,7 +163,7 @@ An empty answer slot is valid exam behaviour, not missing metadata: it receives 
 
 `202 Accepted` means the server validated complete mark metadata, stored the append-only submission record, and accepted it for processing. The initial status is exactly `queued`.
 
-`422 Unprocessable Entity` with `status: "missing_metadata"` means the server stored the submission but did not queue any AI work. Typical `metadataIssues` are `mark_scheme_missing`, `available_marks_missing`, and `mark_allocation_mismatch`. STEM must display the missing-metadata state, not a processing state.
+`422 Unprocessable Entity` with `status: "missing_metadata"` means the server stored the submission but did not queue any AI work. Typical `metadataIssues` are `mark_scheme_missing`, `available_marks_missing`, `mark_allocation_mismatch`, `source_question_unknown`, `source_question_unreviewed`, `source_question_stale`, `source_question_quarantined`, and `source_review_mismatch`. The safe top-level `code` is one of `missing_metadata`, `source_question_unknown`, `source_question_unreviewed`, `source_question_stale`, `source_question_quarantined`, `source_provenance_missing`, or `source_provenance_mismatch`. STEM must display this as a reviewed-source problem, not a processing state.
 
 Repeating the same `submissionId` or `idempotencyKey` for the same student returns `200` with `idempotent: true` and never makes another provider request.
 

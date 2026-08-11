@@ -33,7 +33,7 @@ function questionPaperPage(number, label) {
 }
 const expectedChecksum = 'sha256:bb8bebf6fabb2cb1a4dd0ff5387bdb6407ba2934046974312d9aed88b3cdfc26'
 
-assert.equal(manifest.schemaVersion, 'stem-marking-manifest.v1')
+assert.equal(manifest.schemaVersion, 'stem-marking-manifest.v2')
 assert.equal(manifest.questions.length, 46)
 assert.equal(manifest.questions.reduce((sum, question) => sum + question.availableMarks, 0), 80)
 assert.equal(new Set(manifest.questions.map((question) => question.questionPartId)).size, 46)
@@ -41,6 +41,10 @@ assert.equal(new Set(manifest.questions.map((question) => question.questionPartI
 const marksSeen = {}
 for (const question of manifest.questions) {
   assert.deepEqual(Object.fromEntries(Object.keys(tuple).map((key) => [key, question[key]])), tuple)
+  assert.equal(question.sourceQuestionId, question.questionPartId)
+  assert.equal(question.review?.status, 'approved')
+  assert.equal(question.review?.schemaVersion, 'stem-source-review.v1')
+  assert.match(question.review?.version || '', /^reviewed:/)
   const match = question.questionPartId.match(/:q(\d+):part-(.+)$/)
   assert.ok(match, `${question.questionPartId} must contain a printed question number and part label`)
   const number = Number(match[1])
@@ -53,6 +57,7 @@ for (const question of manifest.questions) {
   assert.equal(question.assets[0].assetId, `${tuple.paperId}:page-${questionPaperPage(number, match[2])}`)
   assert.equal(question.assets[0].checksum, expectedChecksum)
   assert.equal(question.assets[0].sourceEvidence.page, questionPaperPage(number, match[2]))
+  assert.deepEqual(question.sourceEvidence, { assetId: question.assets[0].assetId, ...question.assets[0].sourceEvidence })
 }
 assert.deepEqual(marksSeen, marksByQuestion)
 const q22 = manifest.questions.find((question) => question.questionPartId.includes(':q22:'))
@@ -64,4 +69,4 @@ assert.match(q26.prompt, /4t - 3w = 11/)
 assert.match(q26.prompt, /6t \+ 2w = -3/)
 assert.match(q26.markSchemePoints[0].text, /w = -3/)
 
-console.log('Reviewed STEM manifest contract passed for Q1-Q26 (46 parts, 80 marks).')
+console.log('Reviewed STEM manifest v2 contract passed for Q1-Q26 (46 parts, 80 marks).')

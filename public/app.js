@@ -31,6 +31,10 @@
   readingContextCache: {},
   latestObjectiveResults: {},
   latestObjectiveResultsByItem: {},
+  objectiveAttemptPromises: {},
+  objectiveExamPromises: {},
+  localDataOwner: "guest",
+  localDataOwnerResolved: false,
   latestWritingAttempt: null,
   latestSpeakingResult: null,
   speakingRetestParentAttemptId: "",
@@ -85,12 +89,17 @@
   qwenRuntimeLoadedAt: 0,
   authToken: "",
   currentUser: null,
+  authBridge: null,
+  redeemCodeDraft: "",
+  redeemPending: false,
+  mineRefreshEpoch: 0,
   learningState: null,
-  learningSyncTimer: null,
+  learningSyncTimers: {},
   practiceSessionCompleted: false,
   serverDrafts: [],
   vocabItems: [],
   draftSaveTimer: null,
+  restoringDraft: false,
   practiceSessionSaveTimer: null,
   practiceWritingDrafts: {},
   annotation: {
@@ -179,12 +188,16 @@
     stage: "",
   },
   examSubmitted: false,
+  sequenceSubmitted: false,
+  examReport: null,
+  sequenceReport: null,
 };
 
 const $ = (id) => document.getElementById(id);
 const storeKey = "ieltsTrainerUserBank";
 const sidebarStoreKey = "ieltsTrainerSidebarCollapsed";
 const authStoreKey = "ieltsistAuthToken";
+const localDataOwnerStoreKey = "ieltsistLocalDataOwnerV1";
 const draftStoreKey = "ieltsistDeviceDrafts";
 const likedTopicStoreKey = "ieltsistLikedSpeakingTopics";
 const annotationStoreKey = "ieltsistPdfAnnotations";
@@ -194,18 +207,69 @@ const localVocabularyNotebookStoreKey = "ieltsistLocalVocabularyNotebookV1";
 const learningHistoryStoreKey = "ieltsistLearningLoopHistory";
 const coachHistoryStoreKey = "ieltsistCoachHistoryV1";
 const practiceSessionStoreKey = "ieltsistPracticeSessionV1";
+const practiceSessionsStoreKey = "ieltsistPracticeSessionsV2";
 const guestLearningProfileStoreKey = "ieltsistGuestLearningProfileV1";
 const pendingPracticeCompletionStoreKey = "ieltsistPendingPracticeCompletionV1";
 const completionStoreKey = "ieltsistCompletedItemsV1";
 const pendingLearningAttemptsStoreKey = "ieltsistPendingLearningAttemptsV1";
 const writingUploadSessionStoreKey = "ieltsistWritingUploadSessionV1";
 const writingTimerStoreKey = "ieltsistWritingTimerV1";
+const objectiveAttemptStoreKey = "ieltsistObjectiveAttemptsV1";
+const examSessionStoreKey = "ieltsistExamSessionsV1";
 const recommendationHistoryStoreKey = "ieltsistRecommendationHistoryV1";
 const speakingRecentQuestionsStoreKey = "ieltsistSpeakingRecentQuestionsV1";
+const stemAuthBridgeSessionStoreKey = "ieltsistStemAuthBridgeV1";
 const listeningAudioGraphs = new WeakMap();
 const listeningAsrCacheSource = "qwen-asr-live-vad-v1";
 const listeningCaptionDefaultWordsPerSecond = 1.45;
 const listeningCaptionLoopWarmupMs = 9000;
+
+function localDataOwnerForUser(user) {
+  const userId = String(user?.id || "").trim();
+  return userId ? `user:${userId}` : "guest";
+}
+
+function validLocalDataOwner(owner) {
+  return owner === "guest" || /^user:[1-9]\d*$/.test(String(owner || ""));
+}
+
+function ownerStorageKey(baseKey, owner = state.localDataOwner) {
+  if (!state.localDataOwnerResolved && owner === state.localDataOwner) return "";
+  if (!validLocalDataOwner(owner)) return "";
+  return `${baseKey}::${encodeURIComponent(owner)}`;
+}
+
+function readStoredJson(key, fallback = null) {
+  if (!key) return fallback;
+  try {
+    const value = JSON.parse(localStorage.getItem(key) || "null");
+    return value === null ? fallback : value;
+  } catch {
+    return fallback;
+  }
+}
+
+function writeStoredJson(key, value) {
+  if (!key) return false;
+  localStorage.setItem(key, JSON.stringify(value));
+  return true;
+}
+
+function removeStoredValue(key) {
+  if (key) localStorage.removeItem(key);
+}
+
+function ownerStoredJson(baseKey, fallback = null, owner = state.localDataOwner) {
+  return readStoredJson(ownerStorageKey(baseKey, owner), fallback);
+}
+
+function writeOwnerStoredJson(baseKey, value, owner = state.localDataOwner) {
+  return writeStoredJson(ownerStorageKey(baseKey, owner), value);
+}
+
+function removeOwnerStoredValue(baseKey, owner = state.localDataOwner) {
+  removeStoredValue(ownerStorageKey(baseKey, owner));
+}
 const ieltsCoreVocabularySeed = [
   { word: "significant", phonetic: "/sɪɡˈnɪfɪkənt/", meaning: "显著的，重要的", cn: "常用于小作文趋势和大作文观点。", example: "There was a significant increase in public transport use.", collocations: ["significant increase", "significant impact"] },
   { word: "approximately", phonetic: "/əˈprɒksɪmətli/", meaning: "大约，近似", cn: "小作文描述数字时比 about 更正式。", example: "Approximately 40% of respondents chose online shopping.", collocations: ["approximately half", "approximately 30 percent"] },
@@ -1120,22 +1184,19 @@ function clearSingleFeedback() {
   setFeedback("singleFeedback", "After you submit a single module, the score will appear here.", "singleMode", "");
 }
 
-function readLocalDrafts() {
-  try {
-    return JSON.parse(localStorage.getItem(draftStoreKey) || "[]");
-  } catch {
-    return [];
-  }
+function readLocalDrafts(owner = state.localDataOwner) {
+  const drafts = ownerStoredJson(draftStoreKey, [], owner);
+  return Array.isArray(drafts) ? drafts : [];
 }
 
-function writeLocalDrafts(drafts) {
-  localStorage.setItem(draftStoreKey, JSON.stringify(drafts.slice(0, 80)));
+function writeLocalDrafts(drafts, owner = state.localDataOwner) {
+  writeOwnerStoredJson(draftStoreKey, drafts.slice(0, 80), owner);
 }
 
-function upsertLocalDraft(draft) {
-  const drafts = readLocalDrafts().filter((item) => item.key !== draft.key);
+function upsertLocalDraft(draft, owner = state.localDataOwner) {
+  const drafts = readLocalDrafts(owner).filter((item) => item.key !== draft.key);
   drafts.unshift(draft);
-  writeLocalDrafts(drafts);
+  writeLocalDrafts(drafts, owner);
 }
 
 function authHeaders() {
@@ -1201,6 +1262,7 @@ function updateUserChrome() {
 
 async function refreshMineData() {
   const authToken = state.authToken;
+  const refreshEpoch = state.mineRefreshEpoch;
   const ownerIdentityAtStart = practiceCompletionIdentityKey();
   const ownerWasKnownAtStart = Boolean(state.currentUser?.id || state.currentUser?.username);
   if (!authToken) {
@@ -1215,34 +1277,59 @@ async function refreshMineData() {
   }
   try {
     const me = await getJson("/api/me", { authToken });
-    if (state.authToken !== authToken || (ownerWasKnownAtStart && practiceCompletionIdentityKey() !== ownerIdentityAtStart)) return;
+    if (
+      state.authToken !== authToken
+      || state.mineRefreshEpoch !== refreshEpoch
+      || (ownerWasKnownAtStart && practiceCompletionIdentityKey() !== ownerIdentityAtStart)
+    ) return;
     const responseIdentity = practiceCompletionIdentityForUser(me.user);
     if (ownerWasKnownAtStart && responseIdentity !== ownerIdentityAtStart) return;
+    const responseOwner = localDataOwnerForUser(me.user);
+    if (!state.localDataOwnerResolved || state.localDataOwner !== responseOwner) {
+      cancelOwnerBoundWork();
+      setLocalDataOwner(responseOwner);
+      migrateLegacyLocalData(responseOwner);
+      reloadAfterOwnerSwitch();
+      return;
+    }
     const ownerIdentity = ownerWasKnownAtStart ? ownerIdentityAtStart : responseIdentity;
     state.currentUser = me.user || null;
-    if (!completionSyncOwnerIsCurrent(ownerIdentity, authToken)) return;
+    if (!completionSyncOwnerIsCurrent(ownerIdentity, authToken) || state.mineRefreshEpoch !== refreshEpoch) return;
     await retryPendingPracticeCompletion({ ownerIdentity, authToken });
-    if (!completionSyncOwnerIsCurrent(ownerIdentity, authToken)) return;
+    if (!completionSyncOwnerIsCurrent(ownerIdentity, authToken) || state.mineRefreshEpoch !== refreshEpoch) return;
     await retryPendingLearningAttempts({ ownerIdentity, authToken });
-    if (!completionSyncOwnerIsCurrent(ownerIdentity, authToken)) return;
+    if (!completionSyncOwnerIsCurrent(ownerIdentity, authToken) || state.mineRefreshEpoch !== refreshEpoch) return;
     const [drafts, vocab, learning] = await Promise.all([
       getJson("/api/drafts", { authToken }),
       getJson("/api/vocabulary", { authToken }),
       getJson("/api/learning/state", { authToken }),
     ]);
-    if (!completionSyncOwnerIsCurrent(ownerIdentity, authToken)) return;
+    if (!completionSyncOwnerIsCurrent(ownerIdentity, authToken) || state.mineRefreshEpoch !== refreshEpoch) return;
     state.serverDrafts = drafts.drafts || [];
     state.vocabItems = vocab.items || [];
     state.learningState = learning ? { ...learning, completionIdentity: ownerIdentity } : null;
     await syncLocalVocabularyNotebook();
-    if (!readPendingPracticeCompletion()) importRemotePracticeSession(learning.activeSession);
+    if (!readPendingPracticeCompletion()) {
+      importRemotePracticeSessions(learning.activeSessions || (learning.activeSession ? [learning.activeSession] : []));
+      if (activeViewId() === "single" && !state.singleStarted) renderSingle();
+    }
   } catch (error) {
-    if (state.authToken === authToken && /log in|expired|401/i.test(error.message)) {
+    if (
+      state.authToken === authToken
+      && state.mineRefreshEpoch === refreshEpoch
+      && (error.status === 401 || /log in|expired|401/i.test(error.message))
+    ) {
+      flushLocalOwnerState(state.localDataOwner);
+      cancelOwnerBoundWork();
       state.authToken = "";
       state.currentUser = null;
       localStorage.removeItem(authStoreKey);
+      setLocalDataOwner("guest");
+      reloadAfterOwnerSwitch();
+      return;
     }
   }
+  if (state.authToken !== authToken || state.mineRefreshEpoch !== refreshEpoch) return;
   updateUserChrome();
   renderMine();
   renderDashboard();
@@ -1921,7 +2008,7 @@ function renderDashboardFocusMock(attempts = mineLearningAttempts()) {
   const latest = fullMocks[0] || null;
   if (!latest) {
     return `<aside class="dashboard-focus-mock is-empty" aria-label="Full mock score">
-      <div class="dashboard-focus-panel-title"><span>📝 Latest full mock</span><em>Build a baseline</em></div>
+      <div class="dashboard-focus-panel-title"><span><span aria-hidden="true">📝</span> Latest full mock</span><em>Build a baseline</em></div>
       <strong>No full mock yet</strong>
       <p>Complete Same Test or Random Exam to create a truthful overall Band.</p>
       <button class="secondary small-button" type="button" data-home-action="exam">Start full mock</button>
@@ -1941,7 +2028,7 @@ function renderDashboardFocusMock(attempts = mineLearningAttempts()) {
     return `<i style="height:${Math.max(18, Math.min(100, Math.round((band / 9) * 100)))}%"></i>`;
   }).join("");
   return `<aside class="dashboard-focus-mock" aria-label="Full mock score">
-    <div class="dashboard-focus-panel-title"><span>📝 Latest full mock</span>${Number.isFinite(delta) ? `<em>${delta >= 0 ? "+" : ""}${delta.toFixed(1)} change</em>` : `<em>Official simulation</em>`}</div>
+    <div class="dashboard-focus-panel-title"><span><span aria-hidden="true">📝</span> Latest full mock</span>${Number.isFinite(delta) ? `<em>${delta >= 0 ? "+" : ""}${delta.toFixed(1)} change</em>` : `<em>Official simulation</em>`}</div>
     <div class="dashboard-focus-band"><strong>${escapeHtml(latestBand)}</strong><span>overall Band</span></div>
     <p>${escapeHtml(latest.title || "Same Test / Random Exam")} · ${escapeHtml(latest.submittedAt ? new Date(latest.submittedAt).toLocaleDateString() : "Saved")}</p>
     <div class="dashboard-focus-trend" aria-label="Full mock Band trend">${trend}</div>
@@ -1966,7 +2053,10 @@ function renderDashboardFocusSkill(moduleName, currentTask, resumableSession, at
     speaking: "15-minute AI examiner practice",
   };
   const actions = { listening: "module:listening", reading: "module:reading", writing: "writing-upload", speaking: "bank" };
-  return `<button class="dashboard-focus-skill tone-${escapeHtml(moduleName)}${currentTask?.module === moduleName ? " is-current" : ""}" type="button" data-module="${escapeHtml(moduleName)}" data-home-action="${escapeHtml(actions[moduleName])}">
+  const action = resumableSession?.module === moduleName
+    ? `resume-practice:${moduleName}:${encodeURIComponent(resumableSession.itemId)}`
+    : actions[moduleName];
+  return `<button class="dashboard-focus-skill tone-${escapeHtml(moduleName)}${currentTask?.module === moduleName ? " is-current" : ""}" type="button" data-module="${escapeHtml(moduleName)}" data-home-action="${escapeHtml(action)}">
     <span class="dashboard-focus-skill-emoji" aria-hidden="true">${dashboardModuleEmoji(moduleName)}</span>
     <b>${escapeHtml(moduleDisplayName(moduleName))}</b>
     <span class="dashboard-focus-skill-score"><em>${attempt ? "Latest" : "Status"}</em><strong>${escapeHtml(status)}</strong></span>
@@ -1992,14 +2082,14 @@ function renderDashboardFocusHistory(attempts = mineLearningAttempts()) {
     </article>`;
   }).join("");
   return `<section class="dashboard-focus-history" aria-label="Recent practice">
-    <header><strong>🗂️ Recent practice</strong><button type="button" data-home-action="mine">View full history →</button></header>
-    <div>${rows || `<div class="dashboard-focus-history-empty"><span>🌱</span><strong>Your first result will appear here.</strong><button class="secondary small-button" type="button" data-home-action="coach-diagnostic">Choose diagnostic</button></div>`}</div>
+    <header><strong><span aria-hidden="true">🗂️</span> Recent practice</strong><button type="button" data-home-action="mine">View full history <span aria-hidden="true">→</span></button></header>
+    <div>${rows || `<div class="dashboard-focus-history-empty"><span aria-hidden="true">🌱</span><strong>Your first result will appear here.</strong><button class="secondary small-button" type="button" data-home-action="coach-diagnostic">Choose diagnostic</button></div>`}</div>
   </section>`;
 }
 
 function readGuestLearningProfile() {
   try {
-    const stored = JSON.parse(localStorage.getItem(guestLearningProfileStoreKey) || "null");
+    const stored = ownerStoredJson(guestLearningProfileStoreKey, null);
     if (!stored || stored.version !== 1) return null;
     const currentBand = Number(stored.currentBand);
     const targetBand = Number(stored.targetBand);
@@ -2033,7 +2123,7 @@ function renderDashboardGoalDialog(profile = dashboardEffectiveProfile()) {
   return `<dialog id="dashboardGoalDialog" class="dashboard-goal-dialog" aria-labelledby="dashboardGoalTitle" aria-describedby="dashboardGoalDescription">
     <form id="dashboardGoalForm" method="dialog">
       <header>
-        <div><span>🎯 YOUR IELTS GOAL</span><h2 id="dashboardGoalTitle">Make the plan yours</h2></div>
+        <div><span><span aria-hidden="true">🎯</span> YOUR IELTS GOAL</span><h2 id="dashboardGoalTitle">Make the plan yours</h2></div>
         <button class="dashboard-goal-close" type="button" data-dashboard-goal-close aria-label="Close goal editor">×</button>
       </header>
       <p id="dashboardGoalDescription">Set all four details so practice recommendations fit your target and available time.</p>
@@ -2043,7 +2133,7 @@ function renderDashboardGoalDialog(profile = dashboardEffectiveProfile()) {
         <label><span>Exam date</span><input name="examDate" type="date" value="${escapeHtml(String(profile.examDate || ""))}" required /></label>
         <label><span>Minutes / day</span><input name="dailyMinutes" type="number" min="5" max="360" step="5" value="${Number.isFinite(dailyMinutes) ? dailyMinutes : 30}" required /></label>
       </div>
-      ${state.currentUser ? "" : `<p class="dashboard-goal-sync-note">☁️ Sign in to sync this goal across devices. It will stay saved on this device for now.</p>`}
+      ${state.currentUser ? "" : `<p class="dashboard-goal-sync-note"><span aria-hidden="true">☁️</span> Sign in to sync this goal across devices. It will stay saved on this device for now.</p>`}
       <p class="dashboard-goal-error" data-dashboard-goal-error aria-live="polite"></p>
       <footer>
         <button class="secondary" type="button" data-dashboard-goal-close>Cancel</button>
@@ -2264,7 +2354,8 @@ function renderDashboard() {
   const signals = dashboardSignalSummary();
   const plan = buildTodayPracticePlan();
   const attempts = mineLearningAttempts();
-  const resumableSession = readPracticeSession();
+  const resumableSessions = readPracticeSessions();
+  const resumableSession = resumableSessions[0] || null;
   const resumableItem = resumableSession ? findItemById(resumableSession.module, resumableSession.itemId) : null;
   const resumableAnswers = resumableSession ? Object.values(resumableSession.answers || {}).filter((value) => String(value || "").trim()).length : 0;
   const needsOnboarding = Boolean(state.currentUser && state.learningState?.todayPlan?.kind === "onboarding");
@@ -2322,31 +2413,31 @@ function renderDashboard() {
   node.innerHTML = `<section class="dashboard-cockpit dashboard-focus-camp">
     <header class="dashboard-focus-header">
       <div>
-        <span class="dashboard-focus-date">${escapeHtml(todayLabel)} · your IELTS training camp</span>
+        <span class="dashboard-focus-date">${escapeHtml(todayLabel)} · your IELTS study plan</span>
         <h1>${escapeHtml(personal.heading)} <span aria-hidden="true">👋</span></h1>
         <p>One clear task now, every score and saved practice ready when you need it.</p>
       </div>
       <dl class="dashboard-focus-badges" aria-label="Personal IELTS goals">
-        <div class="is-editable"><dt>🎯 Target</dt><dd><button type="button" data-dashboard-goal="target" aria-label="Edit IELTS target Band">${personal.targetLabel === "Set goal" ? "" : "Band "}${escapeHtml(personal.targetLabel)} <span aria-hidden="true">✎</span></button></dd></div>
-        <div><dt>🔥 Streak</dt><dd>${streak} day${streak === 1 ? "" : "s"}</dd></div>
-        <div class="is-editable"><dt>📅 Exam</dt><dd><button type="button" data-dashboard-goal="exam" aria-label="Edit IELTS exam date">${escapeHtml(personal.examLabel)} <span aria-hidden="true">✎</span></button></dd></div>
+        <div class="is-editable"><dt><span aria-hidden="true">🎯</span> Target</dt><dd><button type="button" data-dashboard-goal="target" aria-label="Edit IELTS target Band">${personal.targetLabel === "Set goal" ? "" : "Band "}${escapeHtml(personal.targetLabel)} <span aria-hidden="true">✎</span></button></dd></div>
+        <div><dt><span aria-hidden="true">🔥</span> Streak</dt><dd>${streak} day${streak === 1 ? "" : "s"}</dd></div>
+        <div class="is-editable"><dt><span aria-hidden="true">📅</span> Exam</dt><dd><button type="button" data-dashboard-goal="exam" aria-label="Edit IELTS exam date">${escapeHtml(personal.examLabel)} <span aria-hidden="true">✎</span></button></dd></div>
       </dl>
     </header>
 
     <div class="dashboard-focus-priority">
       <section class="dashboard-focus-hero tone-${escapeHtml(currentTask.module || "coach")}" aria-label="Current learning task">
         <span class="dashboard-focus-hero-emoji" aria-hidden="true">${dashboardModuleEmoji(currentTask.module)}</span>
-        <span class="dashboard-focus-kicker">⚡ ${escapeHtml(currentTask.sourceLabel || "Today's AI Practice Plan")}</span>
+        <span class="dashboard-focus-kicker"><span aria-hidden="true">⚡</span> ${escapeHtml(currentTask.sourceLabel || "Today's AI Practice Plan")}</span>
         <h2>${escapeHtml(currentTask.title)}</h2>
         <p class="dashboard-focus-subtitle">${escapeHtml(compactText(currentTask.subtitle, 130))}</p>
         <div class="dashboard-focus-reason">
-          <strong>✨ Why this now</strong>
+          <strong><span aria-hidden="true">✨</span> Why this now</strong>
           <span>${escapeHtml(compactText(currentTask.why, 220))}</span>
         </div>
         ${profileFieldsHtml}
         <dl class="dashboard-focus-meta">
-          <div><dt>⏱️ Time</dt><dd>${escapeHtml(currentTask.estimate)}</dd></div>
-          <div><dt>🏁 Reward</dt><dd>${escapeHtml(compactText(currentTask.output, 100))}</dd></div>
+          <div><dt><span aria-hidden="true">⏱️</span> Time</dt><dd>${escapeHtml(currentTask.estimate)}</dd></div>
+          <div><dt><span aria-hidden="true">🏁</span> Reward</dt><dd>${escapeHtml(compactText(currentTask.output, 100))}</dd></div>
         </dl>
         <div class="dashboard-focus-actions">
           <button class="primary" ${primaryAttributes}>${escapeHtml(currentTask.primaryLabel)} <span aria-hidden="true">→</span></button>
@@ -2361,7 +2452,12 @@ function renderDashboard() {
       <div class="dashboard-focus-scoreboard">
         ${renderDashboardRadar(attempts, effectiveProfile)}
         <div class="dashboard-focus-skill-grid">
-          ${["listening", "reading", "writing", "speaking"].map((moduleName) => renderDashboardFocusSkill(moduleName, currentTask, resumableSession, attempts)).join("")}
+          ${["listening", "reading", "writing", "speaking"].map((moduleName) => renderDashboardFocusSkill(
+            moduleName,
+            currentTask,
+            resumableSessions.find((session) => session.module === moduleName) || null,
+            attempts,
+          )).join("")}
         </div>
       </div>
     </section>
@@ -2376,7 +2472,7 @@ function renderDashboard() {
         <blockquote>“${escapeHtml(compactText(currentTask.why, 140))}”</blockquote>
         <div>
           <button class="secondary" type="button" data-home-action="coach">Open AI Coach</button>
-          <button type="button" data-dashboard-coach-prompt="${escapeHtml(coachPrompt)}">Why this task? ✨</button>
+          <button type="button" data-dashboard-coach-prompt="${escapeHtml(coachPrompt)}">Why this task?</button>
         </div>
       </aside>
     </div>
@@ -2405,15 +2501,12 @@ function answeredCountForPrefix(prefix) {
 }
 
 function readWeakAreas() {
-  try {
-    return JSON.parse(localStorage.getItem(weakAreaStoreKey) || "[]");
-  } catch {
-    return [];
-  }
+  const value = ownerStoredJson(weakAreaStoreKey, []);
+  return Array.isArray(value) ? value : [];
 }
 
 function writeWeakAreas(items) {
-  localStorage.setItem(weakAreaStoreKey, JSON.stringify(items.slice(0, 60)));
+  writeOwnerStoredJson(weakAreaStoreKey, items.slice(0, 60));
 }
 
 async function syncWeakArea(entry) {
@@ -2458,12 +2551,8 @@ async function resolveRetestedWeakAreas(moduleName, result) {
 }
 
 function readLearningLoopHistory() {
-  try {
-    const value = JSON.parse(localStorage.getItem(learningHistoryStoreKey) || "{}");
-    return value && typeof value === "object" ? value : {};
-  } catch {
-    return {};
-  }
+  const value = ownerStoredJson(learningHistoryStoreKey, {});
+  return value && typeof value === "object" ? value : {};
 }
 
 function updateLearningLoopHistory(patch = {}) {
@@ -2482,7 +2571,7 @@ function updateLearningLoopHistory(patch = {}) {
     speakingAttempts: mergeAttempts("speakingAttempts", patch.speaking),
     updatedAt: new Date().toISOString(),
   };
-  localStorage.setItem(learningHistoryStoreKey, JSON.stringify(next));
+  writeOwnerStoredJson(learningHistoryStoreKey, next);
   return next;
 }
 
@@ -2537,19 +2626,15 @@ function practiceCompletionKey(moduleName, item) {
 }
 
 function readPracticeCompletionStore() {
-  try {
-    const value = JSON.parse(localStorage.getItem(completionStoreKey) || "{}");
-    if (!value || typeof value !== "object") return { version: 1, partitions: {} };
-    if (value.version === 1 && value.partitions && typeof value.partitions === "object") return value;
-    return { version: 1, partitions: {} };
-  } catch {
-    return { version: 1, partitions: {} };
-  }
+  const value = ownerStoredJson(completionStoreKey, {});
+  if (!value || typeof value !== "object") return { version: 1, partitions: {} };
+  if (value.version === 1 && value.partitions && typeof value.partitions === "object") return value;
+  return { version: 1, partitions: {} };
 }
 
 function writePracticeCompletionStore(value) {
   const safeValue = value && typeof value === "object" ? value : { version: 1, partitions: {} };
-  localStorage.setItem(completionStoreKey, JSON.stringify({ version: 1, partitions: safeValue.partitions || {} }));
+  writeOwnerStoredJson(completionStoreKey, { version: 1, partitions: safeValue.partitions || {} });
 }
 
 function practiceCompletionScoreFields(value = {}) {
@@ -2687,26 +2772,17 @@ function practiceCompletionStatus(moduleName, item, completionIndex = null) {
 }
 
 function readPendingLearningAttempts(identity = practiceCompletionIdentityKey()) {
-  try {
-    const value = JSON.parse(localStorage.getItem(pendingLearningAttemptsStoreKey) || "{}");
-    const partitions = value?.version === 1 && value.partitions && typeof value.partitions === "object" ? value.partitions : {};
-    const pending = partitions[identity];
-    return Array.isArray(pending) ? pending : [];
-  } catch {
-    return [];
-  }
+  const value = ownerStoredJson(pendingLearningAttemptsStoreKey, {});
+  const partitions = value?.version === 1 && value.partitions && typeof value.partitions === "object" ? value.partitions : {};
+  const pending = partitions[identity];
+  return Array.isArray(pending) ? pending : [];
 }
 
 function writePendingLearningAttempts(attempts, identity = practiceCompletionIdentityKey()) {
-  let value;
-  try {
-    value = JSON.parse(localStorage.getItem(pendingLearningAttemptsStoreKey) || "{}");
-  } catch {
-    value = {};
-  }
+  const value = ownerStoredJson(pendingLearningAttemptsStoreKey, {});
   const partitions = value?.version === 1 && value.partitions && typeof value.partitions === "object" ? value.partitions : {};
   partitions[identity] = (Array.isArray(attempts) ? attempts : []).slice(-100);
-  localStorage.setItem(pendingLearningAttemptsStoreKey, JSON.stringify({ version: 1, partitions }));
+  writeOwnerStoredJson(pendingLearningAttemptsStoreKey, { version: 1, partitions });
 }
 
 function queuePendingLearningAttempt(payload, identity = practiceCompletionIdentityKey()) {
@@ -2754,7 +2830,7 @@ function coachBindingKey(binding = {}) {
 
 function readCoachHistoryThreads() {
   try {
-    const value = JSON.parse(localStorage.getItem(coachHistoryStoreKey) || "[]");
+    const value = ownerStoredJson(coachHistoryStoreKey, []);
     if (!Array.isArray(value)) return [];
     return value
       .filter((thread) => thread && thread.key && Array.isArray(thread.messages))
@@ -2800,7 +2876,7 @@ function persistCoachThread(binding = state.help.binding, history = state.help.h
     contextText: String(state.help.contextText || "").slice(0, 16000),
     updatedAt: new Date().toISOString(),
   };
-  localStorage.setItem(coachHistoryStoreKey, JSON.stringify([thread, ...existing].slice(0, 12)));
+  writeOwnerStoredJson(coachHistoryStoreKey, [thread, ...existing].slice(0, 12));
   return thread;
 }
 
@@ -2874,7 +2950,7 @@ function rememberObjectiveResult(moduleName, item, json) {
   const practiceScope = item?.practiceScope || "paper";
   const canonicalItemId = canonicalPracticeCompletionId(moduleName, item);
   const result = {
-    attemptId: learningEntityId("attempt"),
+    attemptId: String(json?.attemptId || "") || learningEntityId("attempt"),
     completionIdentity: practiceCompletionIdentityKey(),
     module: moduleName,
     itemId: canonicalItemId,
@@ -2883,7 +2959,14 @@ function rememberObjectiveResult(moduleName, item, json) {
     total: Number(json?.result?.scoredTotal ?? json?.result?.total ?? details.length),
     band: practiceScope === "paper" ? json?.result?.band ?? null : null,
     practiceScope,
+    practiceSection: Number(item?.practiceSection || 0),
     sourceItemId: practiceUnitBaseId(item),
+    remainingSeconds: Math.max(0, Number(state.singleSeconds || 0)),
+    totalSeconds: Math.max(0, Number(state.singleTotal || singleModuleTotal(moduleName))),
+    answerAvailable: Boolean(json?.result?.answerAvailable),
+    feedback: String(json?.feedback || ""),
+    reviewError: String(json?.reviewError || ""),
+    mode: String(json?.mode || ""),
     details: details.slice(0, 40),
     wrongQuestionIds: details.filter((entry) => entry.correct === false).map((entry) => entry.id || entry.qid || "").filter(Boolean),
     createdAt: new Date().toISOString(),
@@ -2895,6 +2978,54 @@ function rememberObjectiveResult(moduleName, item, json) {
   archiveLearningAttempt(moduleName, result);
   resolveRetestedWeakAreas(moduleName, result);
   return result;
+}
+
+function objectiveReviewPracticeItem(moduleName, review) {
+  const sourceItemId = String(review?.sourceItemId || practiceUnitBaseId(review) || "").trim();
+  const sourceItem = mergedItems(moduleName).map(normalizeItem).find((item) => item.id === sourceItemId) || null;
+  if (!sourceItem) return scopedPracticeUnitById(moduleName, review?.itemId || "");
+  const scope = ["paper", "section", "topic", "review"].includes(review?.practiceScope)
+    ? review.practiceScope
+    : "paper";
+  if (["section", "topic"].includes(scope)) {
+    const section = Number(review?.practiceSection || 0);
+    if (!Number.isInteger(section) || section < 1) return null;
+    return scopedPracticeUnit(moduleName, sourceItem, scope, section);
+  }
+  return scopedPracticeUnit(moduleName, sourceItem, scope);
+}
+
+function restoreSubmittedObjectiveReview(moduleName, review) {
+  const item = objectiveReviewPracticeItem(moduleName, review);
+  if (!item) return false;
+  syncCurrentDraftNow();
+  savePracticeSession();
+  state.activeModule = moduleName;
+  state.singlePracticeModes[moduleName] = "review";
+  state.singlePracticeScopes[moduleName] = review.practiceScope || "paper";
+  if (review.practiceSection) state.singlePracticeSections[moduleName] = Number(review.practiceSection);
+  state.activeSingle = item;
+  state.singleStarted = true;
+  state.practiceSessionCompleted = true;
+  state.singleAnswers = Object.fromEntries(
+    (review.details || []).map((detail) => [String(detail.id || detail.qid || ""), String(detail.actual || "")]).filter(([id]) => id),
+  );
+  state.singleAnswerItemId = item.id;
+  state.singleTotal = Math.max(0, Number(review.totalSeconds || singleModuleTotal(moduleName)));
+  state.singleSeconds = Math.max(0, Math.min(state.singleTotal, Number(review.remainingSeconds ?? state.singleTotal)));
+  stopSingleTimer();
+  document.querySelectorAll(".module-btn").forEach((button) => button.classList.toggle("active", button.dataset.module === moduleName));
+  renderSingle();
+  renderSingleTimer();
+  setFeedbackHtml("singleFeedback", renderObjectiveFeedbackHtml({
+    feedback: review.feedback || "",
+    reviewError: review.reviewError || "",
+    result: review,
+  }, moduleName), "singleMode", review.mode || "review");
+  activateView("single", true);
+  exitImmersiveMode();
+  window.scrollTo({ top: 0, behavior: "auto" });
+  return true;
 }
 
 function rememberWritingAttempt(attempt = {}) {
@@ -2940,7 +3071,6 @@ function singleQuestionSnapshots(item, prefix = "single") {
       question: String(question.text || `Question ${number}`).slice(0, 260),
       type: String(question.type || "").slice(0, 80),
       typeLabel: String(question.typeLabel || "").slice(0, 120),
-      expectedAnswer: String(question.answer || "").slice(0, 120),
       studentAnswer: String(answers[id] || "").slice(0, 120),
     };
   });
@@ -3458,6 +3588,8 @@ function renderMine() {
   const node = $("mineContent");
   if (!node) return;
   const localDrafts = readLocalDrafts();
+  const redeemCodeDraft = String(state.redeemCodeDraft || "");
+  const redeemPending = Boolean(state.redeemPending);
   const allDrafts = uniqueDrafts([...state.serverDrafts, ...localDrafts]);
   const vocabItems = [...(state.vocabItems || [])];
   const localNotebookItems = readLocalVocabularyNotebook();
@@ -3467,23 +3599,32 @@ function renderMine() {
   });
   const likedTopics = likedSpeakingTopicGroups();
   if (!state.currentUser) {
+    const bridgeAction = state.authBridge?.action;
+    const bridgeMode = ["login", "register"].includes(bridgeAction) ? bridgeAction : "";
+    const bridgeTitle = bridgeMode === "register"
+      ? "Create your IELTSist ID"
+      : bridgeMode === "login" ? "Sign in to continue to STEM" : "One IELTSist ID";
+    const bridgeDescription = bridgeMode
+      ? "Use one IELTSist ID across IELTSist and STEM Campus. Your private practice records remain inside each product."
+      : "Sign in here or from STEM Campus with the same account. IELTS drafts and scores stay in IELTSist; STEM attempts stay in STEM.";
+    const bridgeMessage = state.authBridge?.error || (bridgeMode ? `Complete ${bridgeMode}, then you will return to the original STEM page.` : "");
     node.innerHTML = `
-      <section class="panel auth-panel mine-auth-card">
+      <section class="panel auth-panel mine-auth-card"${bridgeMode ? ` data-auth-bridge-mode="${escapeHtml(bridgeMode)}"` : ""}>
         <div class="panel-head">
           <div>
-          <h3>One IELTSist ID</h3>
-          <p>Sign in here or from STEM Campus with the same account. IELTS drafts and scores stay in IELTSist; STEM attempts stay in STEM.</p>
+          <h3>${escapeHtml(bridgeTitle)}</h3>
+          <p>${escapeHtml(bridgeDescription)}</p>
           </div>
         </div>
         <form id="authForm" class="auth-form">
           <input id="authUsername" class="text-input" autocomplete="username" placeholder="Username: 3-24 lowercase letters/numbers/_" />
-          <input id="authPassword" class="text-input spaced" type="password" autocomplete="current-password" placeholder="Password" />
+          <input id="authPassword" class="text-input spaced" type="password" autocomplete="${bridgeMode === "register" ? "new-password" : "current-password"}" placeholder="Password" />
           <div class="actions">
-            <button id="loginUser" class="primary" type="submit">Login</button>
-            <button id="registerUser" class="secondary" type="button">Register</button>
+            <button id="loginUser" class="${bridgeMode === "register" ? "secondary" : "primary"}" type="submit">Login</button>
+            <button id="registerUser" class="${bridgeMode === "register" ? "primary" : "secondary"}" type="button">Register</button>
           </div>
         </form>
-        <div id="authMessage" class="compact-notice"></div>
+        <div id="authMessage" class="compact-notice"${state.authBridge?.error ? ` role="alert"` : ""}>${escapeHtml(bridgeMessage)}</div>
       </section>
       <section class="panel mine-card mine-draft-card">
         <div class="mine-section-head"><h3>Device Draft Box</h3><span>${localDrafts.length} items</span></div>
@@ -3514,6 +3655,7 @@ function renderMine() {
             <button class="secondary small-button mine-quick-action" type="button" data-mine-action="plans">View Plans</button>
           </div>
           <p class="account-boundary-note">This IELTSist ID also signs you into STEM Campus. The handoff returns to the original STEM task; IELTS drafts, scores, Coach chats and notebook entries do not become STEM classroom data.</p>
+          ${state.authBridge?.error ? `<div id="authMessage" class="compact-notice" role="alert">${escapeHtml(state.authBridge.error)}</div>` : ""}
           <div class="mine-plan-validity">
             <span>Membership</span>
             <strong>${escapeHtml(membershipExpiryTitle())}</strong>
@@ -3521,8 +3663,8 @@ function renderMine() {
         </div>
         <label class="mine-redeem-label" for="redeemCode">Redemption Code</label>
         <div class="redeem-row">
-          <input id="redeemCode" class="text-input" placeholder="Enter redemption code" />
-          <button id="redeemCodeButton" class="primary">Redeem</button>
+          <input id="redeemCode" class="text-input" value="${escapeHtml(redeemCodeDraft)}" placeholder="Enter redemption code" />
+          <button id="redeemCodeButton" class="primary" type="button"${redeemPending ? ' disabled aria-busy="true"' : ""}>${redeemPending ? "Redeeming..." : "Redeem"}</button>
         </div>
         <div id="redeemMessage" class="compact-notice"></div>
       </section>
@@ -3585,36 +3727,232 @@ function renderMineAction(title, subtitle, action, tone) {
 }
 
 function loadCoreVocabularyKnown() {
-  try {
-    const values = JSON.parse(localStorage.getItem(coreVocabularyStoreKey) || "[]");
-    state.vocabularyReview.known = new Set(Array.isArray(values) ? values : []);
-  } catch {
-    state.vocabularyReview.known = new Set();
-  }
+  const values = ownerStoredJson(coreVocabularyStoreKey, []);
+  state.vocabularyReview.known = new Set(Array.isArray(values) ? values : []);
 }
 
 function saveCoreVocabularyKnown() {
-  localStorage.setItem(coreVocabularyStoreKey, JSON.stringify([...state.vocabularyReview.known]));
+  writeOwnerStoredJson(coreVocabularyStoreKey, [...state.vocabularyReview.known]);
 }
 
-function updateStemProductSwitchLinks() {
+const productReturnAllowedOrigins = new Set([
+  "https://ieltsist.com",
+  "https://stem.ieltsist.com",
+]);
+const productReturnTransientParams = new Set([
+  "from",
+  "focus",
+  "returnto",
+  "return_to",
+  "auth",
+  "bridge",
+  "token",
+  "access_token",
+  "id_token",
+  "refresh_token",
+  "oauth_token",
+  "session",
+  "session_id",
+  "code",
+  "state",
+  "nonce",
+  "callback",
+  "callback_url",
+  "redirect",
+  "redirect_url",
+  "redirect_uri",
+  "continue",
+  "next",
+]);
+const productReturnUrlMaxLength = 1800;
+const productReturnUnsafeRouteSegments = new Set(["auth", "callback", "oauth", "redirect"]);
+const productReturnSensitiveValuePattern = /(?:access_token|id_token|refresh_token|oauth_token|session(?:_id)?|callback(?:_url)?|redirect(?:_url|_uri)?|return_?to|[?&#](?:token|code|state))=/i;
+
+function removeProductReturnTransientParams(params) {
+  [...params.keys()].forEach((key) => {
+    const normalizedKey = String(key).toLowerCase();
+    const values = params.getAll(key);
+    if (productReturnTransientParams.has(normalizedKey)
+      || /(?:^|_)(?:access|id|refresh|oauth)?token$/.test(normalizedKey)
+      || values.some((value) => productReturnSensitiveValuePattern.test(String(value)))) {
+      params.delete(key);
+    }
+  });
+  params.sort();
+}
+
+function safeProductReturnRoute(route) {
+  const value = String(route || "").replace(/^\/+|\/+$/g, "");
+  if (!value) return "";
+  if (!/^[A-Za-z0-9][A-Za-z0-9/_-]{0,300}$/.test(value)) return "";
+  const segments = value.toLowerCase().split("/").filter(Boolean);
+  return segments.some((segment) => productReturnUnsafeRouteSegments.has(segment)) ? "" : value;
+}
+
+function canonicalProductReturnHash(hash) {
+  const raw = String(hash || "").replace(/^#/, "");
+  if (!raw) return "";
+  const queryIndex = raw.indexOf("?");
+  const hashLooksLikeQuery = queryIndex < 0 && raw.includes("=");
+  const rawRoute = hashLooksLikeQuery ? "" : queryIndex < 0 ? raw : raw.slice(0, queryIndex);
+  const route = safeProductReturnRoute(rawRoute);
+  if (rawRoute && !route) return "";
+  const params = new URLSearchParams(hashLooksLikeQuery ? raw : queryIndex >= 0 ? raw.slice(queryIndex + 1) : "");
+  removeProductReturnTransientParams(params);
+  const query = params.toString();
+  if (!route && !query) return "";
+  return `#${route}${query ? `?${query}` : ""}`;
+}
+
+function canonicalProductReturnUrl(value) {
+  try {
+    const url = new URL(String(value || ""));
+    if (!productReturnAllowedOrigins.has(url.origin) || url.username || url.password) return "";
+    const pathSegments = decodeURIComponent(url.pathname).toLowerCase().split("/").filter(Boolean);
+    if (pathSegments.some((segment) => productReturnUnsafeRouteSegments.has(segment))) return "";
+    removeProductReturnTransientParams(url.searchParams);
+    url.hash = canonicalProductReturnHash(url.hash);
+    const canonical = url.toString();
+    return canonical.length <= productReturnUrlMaxLength ? canonical : "";
+  } catch {
+    return "";
+  }
+}
+
+function updateStemProductSwitchLinks(sourceHref = window.location.href) {
+  const returnTo = canonicalProductReturnUrl(sourceHref);
   document.querySelectorAll(".product-switch-link").forEach((link) => {
     const url = new URL("https://stem.ieltsist.com/");
     url.searchParams.set("from", "ieltsist");
     url.searchParams.set("focus", "syllabus");
-    url.searchParams.set("returnTo", window.location.href);
+    if (returnTo) url.searchParams.set("returnTo", returnTo);
     link.href = url.toString();
     link.removeAttribute("target");
   });
 }
 
-function readLocalVocabularyNotebook() {
+function canonicalStemAuthReturnUrl(value) {
+  const canonical = canonicalProductReturnUrl(value);
+  if (!canonical) return "";
   try {
-    const value = JSON.parse(localStorage.getItem(localVocabularyNotebookStoreKey) || "[]");
-    return Array.isArray(value) ? value : [];
+    return new URL(canonical).origin === "https://stem.ieltsist.com" ? canonical : "";
   } catch {
-    return [];
+    return "";
   }
+}
+
+function persistStemAuthBridge(bridge = state.authBridge) {
+  try {
+    if (!bridge?.returnTo || !["login", "register", "logout"].includes(bridge.action)) {
+      sessionStorage.removeItem(stemAuthBridgeSessionStoreKey);
+      return;
+    }
+    sessionStorage.setItem(stemAuthBridgeSessionStoreKey, JSON.stringify({
+      action: bridge.action,
+      returnTo: bridge.returnTo,
+      status: bridge.status || "pending",
+      error: String(bridge.error || "").slice(0, 240),
+      createdAt: Number(bridge.createdAt || Date.now()),
+    }));
+  } catch {}
+}
+
+function clearStemAuthBridge() {
+  try { sessionStorage.removeItem(stemAuthBridgeSessionStoreKey); } catch {}
+  state.authBridge = null;
+}
+
+function storedStemAuthBridge() {
+  try {
+    const bridge = JSON.parse(sessionStorage.getItem(stemAuthBridgeSessionStoreKey) || "null");
+    if (!bridge || !["login", "register", "logout"].includes(bridge.action)) return null;
+    if (Date.now() - Number(bridge.createdAt || 0) > 15 * 60 * 1000) {
+      sessionStorage.removeItem(stemAuthBridgeSessionStoreKey);
+      return null;
+    }
+    const returnTo = canonicalStemAuthReturnUrl(bridge.returnTo);
+    if (!returnTo) {
+      sessionStorage.removeItem(stemAuthBridgeSessionStoreKey);
+      return null;
+    }
+    return { ...bridge, returnTo };
+  } catch {
+    return null;
+  }
+}
+
+function cleanStemAuthBridgeLocation(url) {
+  removeProductReturnTransientParams(url.searchParams);
+  url.hash = canonicalProductReturnHash(url.hash);
+  history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+}
+
+function captureStemAuthBridgeFromLocation() {
+  const url = new URL(window.location.href);
+  const action = String(url.searchParams.get("auth") || "").trim().toLowerCase();
+  if (!action) return storedStemAuthBridge();
+  const fromStem = String(url.searchParams.get("from") || "").trim().toLowerCase() === "stem";
+  const supportedAction = ["login", "register", "logout"].includes(action);
+  const returnTo = canonicalStemAuthReturnUrl(url.searchParams.get("returnTo") || url.searchParams.get("return_to") || "");
+  cleanStemAuthBridgeLocation(url);
+  if (!fromStem || !supportedAction || !returnTo) {
+    clearStemAuthBridge();
+    return {
+      action: supportedAction ? action : "",
+      returnTo: "",
+      status: "rejected",
+      error: "This STEM account handoff is invalid or expired. Start it again from STEM Campus.",
+      createdAt: Date.now(),
+    };
+  }
+  const bridge = { action, returnTo, status: "pending", error: "", createdAt: Date.now() };
+  state.authBridge = bridge;
+  persistStemAuthBridge(bridge);
+  return bridge;
+}
+
+function setStemAuthBridgeFailure(message) {
+  if (!state.authBridge) return;
+  state.authBridge = {
+    ...state.authBridge,
+    status: "failed",
+    error: String(message || "The account handoff could not finish. Retry here.").slice(0, 240),
+  };
+  persistStemAuthBridge();
+  renderMine();
+}
+
+function completeStemAuthBridge() {
+  const returnTo = canonicalStemAuthReturnUrl(state.authBridge?.returnTo || "");
+  if (!returnTo) {
+    setStemAuthBridgeFailure("The STEM return address is no longer valid. Start the handoff again from STEM Campus.");
+    return false;
+  }
+  clearStemAuthBridge();
+  window.location.assign(returnTo);
+  return true;
+}
+
+async function processStemAuthBridge() {
+  const bridge = state.authBridge;
+  if (!bridge) return false;
+  activateView("mine", true);
+  renderMine();
+  if (bridge.status === "rejected") return false;
+  if (["login", "register"].includes(bridge.action)) {
+    if (state.currentUser && state.authToken) return completeStemAuthBridge();
+    requestAnimationFrame(() => $("authUsername")?.focus());
+    return true;
+  }
+  if (bridge.action === "logout") {
+    return logoutUser({ requireServerSuccess: true, returnTo: bridge.returnTo });
+  }
+  return false;
+}
+
+function readLocalVocabularyNotebook() {
+  const value = ownerStoredJson(localVocabularyNotebookStoreKey, []);
+  return Array.isArray(value) ? value : [];
 }
 
 function writeLocalVocabularyNotebook(items) {
@@ -3625,7 +3963,7 @@ function writeLocalVocabularyNotebook(items) {
     seen.add(key);
     return true;
   });
-  localStorage.setItem(localVocabularyNotebookStoreKey, JSON.stringify(unique.slice(0, 300)));
+  writeOwnerStoredJson(localVocabularyNotebookStoreKey, unique.slice(0, 300));
 }
 
 function notebookIdentity(item) {
@@ -3801,19 +4139,24 @@ function normalizeVocabularyMetadata(item, index = 0) {
 
 function vocabularyRouteContextFromLocation() {
   const params = new URLSearchParams(window.location.search);
-  const termIds = [...params.getAll("termId"), params.get("termIds") || ""]
+  const value = (camel, snake = "") => params.get(camel) || (snake ? params.get(snake) : "") || "";
+  const termIds = [
+    ...params.getAll("termId"),
+    ...params.getAll("term_id"),
+    value("termIds", "term_ids"),
+  ]
     .flatMap((value) => String(value).split(","))
     .map((value) => value.trim())
     .filter(Boolean);
   return {
     from: String(params.get("from") || "").trim().toLowerCase(),
-    routeId: String(params.get("routeId") || "").trim(),
-    specificationVersion: String(params.get("specificationVersion") || "").trim(),
-    topicId: String(params.get("topicId") || "").trim(),
-    questionPartId: String(params.get("questionPartId") || "").trim(),
+    routeId: String(value("routeId", "route_id")).trim(),
+    specificationVersion: String(value("specificationVersion", "specification_version")).trim(),
+    topicId: String(value("topicId", "topic_id")).trim(),
+    questionPartId: String(value("questionPartId", "question_part_id")).trim(),
     termIds: [...new Set(termIds)],
-    attemptId: String(params.get("attemptId") || "").trim(),
-    returnTo: String(params.get("returnTo") || "").trim(),
+    attemptId: String(value("attemptId", "attempt_id")).trim(),
+    returnTo: String(value("returnTo", "return_to")).trim(),
     focus: String(params.get("focus") || "").trim().toLowerCase(),
     stage: String(params.get("stage") || "").trim().toUpperCase(),
   };
@@ -3868,7 +4211,8 @@ function applyVocabularyRouteContext(allItems) {
 
 function buildVocabularyStemUrl(item) {
   const questionPartId = item.relatedQuestionPartIds?.[0] || `vocabulary:${item.termId}`;
-  const returnTo = vocabularyReturnToStemUrl() || window.location.href;
+  const termIds = [...new Set([...(state.vocabularyRouteContext.termIds || []), item.termId].filter(Boolean))];
+  const returnTo = vocabularyReturnToStemUrl() || canonicalProductReturnUrl(window.location.href);
   const params = new URLSearchParams({
     from: "ieltsist",
     routeId: item.routeId,
@@ -3876,6 +4220,7 @@ function buildVocabularyStemUrl(item) {
     topicId: item.topicId,
     questionPartId,
     termId: item.termId,
+    termIds: termIds.join(","),
     attemptId: state.vocabularyRouteContext.attemptId || "",
     returnTo,
   });
@@ -3911,8 +4256,8 @@ function vocabularyReturnToStemUrl() {
   const value = String(state.vocabularyRouteContext.returnTo || "").trim();
   if (!value) return "";
   try {
-    const url = new URL(value, "https://stem.ieltsist.com/");
-    return url.origin === "https://stem.ieltsist.com" ? url.toString() : "";
+    const canonical = canonicalProductReturnUrl(new URL(value, "https://stem.ieltsist.com/").toString());
+    return canonical && new URL(canonical).origin === "https://stem.ieltsist.com" ? canonical : "";
   } catch {
     return "";
   }
@@ -4500,7 +4845,15 @@ function bindVocabularyControls() {
   });
 }
 
-function renderSubscriptionPlan(name, price, label, features, featured = false) {
+function renderSubscriptionPlan(name, price, label, features, options = {}) {
+  const featured = options.featured === true;
+  const action = String(options.action || "");
+  const actionLabel = String(options.actionLabel || "");
+  const unavailable = options.unavailable === true;
+  const note = String(options.note || "");
+  const control = unavailable
+    ? `<button class="secondary" type="button" disabled aria-describedby="subscriptionCheckoutStatus">${escapeHtml(actionLabel)}</button>`
+    : `<button class="${featured ? "primary" : "secondary"}" type="button" data-home-action="${escapeHtml(action)}">${escapeHtml(actionLabel)}</button>`;
   return `<article class="subscription-card${featured ? " featured" : ""}">
     <div class="subscription-card-head">
       <span>${escapeHtml(label)}</span>
@@ -4508,7 +4861,8 @@ function renderSubscriptionPlan(name, price, label, features, featured = false) 
       <strong>${escapeHtml(price)}</strong>
     </div>
     <ul>${features.map((feature) => `<li>${escapeHtml(feature)}</li>`).join("")}</ul>
-    <button class="${featured ? "primary" : "secondary"}" type="button" data-home-action="${featured ? "mine" : "module:listening"}">${featured ? "Redeem code" : "Start free"}</button>
+    ${note ? `<p class="subscription-card-note">${escapeHtml(note)}</p>` : ""}
+    ${control}
   </article>`;
 }
 
@@ -4516,24 +4870,42 @@ function renderSubscription() {
   const node = $("subscriptionContent");
   if (!node) return;
   node.innerHTML = `
-    ${renderSubscriptionPlan("Free", "¥0", "Starter", [
+    <section id="subscriptionCheckoutStatus" class="subscription-commerce-note" role="status">
+      <strong>Membership activation</strong>
+      <p>Online checkout is not enabled in this deployment. Pro access is activated with a valid redemption code after sign-in; no card is charged and there is no automatic renewal.</p>
+    </section>
+    ${renderSubscriptionPlan("Free", "CNY ¥0", "Starter", [
       "Listening and reading practice",
       "Basic answer checking",
       "Limited AI trial",
       "Device draft box",
-    ])}
-    ${renderSubscriptionPlan("Pro", "¥300 / month", "Recommended", [
-      "Unlimited AI Speaking Examiner",
-      "Unlimited Writing Feedback",
-      "AI Coach screenshot explanations",
-      "Study reports and vocabulary review",
-    ], true)}
-    ${renderSubscriptionPlan("School", "Custom", "Classroom", [
+    ], { action: "module:listening", actionLabel: "Start free" })}
+    ${renderSubscriptionPlan("Pro", "CNY ¥300 / month", "Redemption code", [
+      "AI Speaking Examiner access",
+      "Writing feedback access",
+      "AI Coach and study reports",
+      "Vocabulary notebook and review",
+    ], {
+      featured: true,
+      action: "mine",
+      actionLabel: "Sign in and redeem code",
+      note: "Reference monthly price in CNY. A valid code sets the plan expiry; checkout is not available here.",
+    })}
+    ${renderSubscriptionPlan("School", "CNY quotation", "Contact sales", [
       "Teacher-managed student accounts",
       "Batch redemption codes",
       "Shared topic banks",
       "Learning analytics export",
-    ])}`;
+    ], {
+      actionLabel: "Contact sales",
+      unavailable: true,
+      note: "School sales contact is not configured in this deployment. Ask your school administrator or code issuer for access.",
+    })}
+    <section class="subscription-policy-note" aria-label="Membership conditions">
+      <span><strong>Renewal</strong> No automatic renewal is enabled.</span>
+      <span><strong>Cancellation</strong> There is no recurring in-app subscription to cancel.</span>
+      <span><strong>Refunds</strong> Redemption codes are issued outside the app; ask the original issuer about refunds.</span>
+    </section>`;
   bindHomeControls(node);
 }
 
@@ -4562,6 +4934,7 @@ function runHomeAction(action) {
     const expectedItemId = decodeURIComponent(encodedItemId || "");
     if (!restorePracticeSessionAfterData(expectedModule, expectedItemId)) return;
     renderSingle();
+    renderSingleTimer();
     activateView("single", true);
     setSingleImmersive(state.activeModule);
     return;
@@ -4616,23 +4989,8 @@ function runHomeAction(action) {
   if (action.startsWith("review:")) {
     const moduleName = action.split(":")[1];
     if (["listening", "reading"].includes(moduleName)) {
-      state.singlePracticeModes[moduleName] = "review";
-      state.singlePracticeScopes[moduleName] = "review";
-      activateSingleModule(moduleName, true);
       const review = latestObjectiveResult(moduleName);
-      const options = singleOptions(moduleName);
-      state.activeSingle = options.find((item) => item.id === review?.itemId) || options[0] || null;
-      state.singleStarted = Boolean(state.activeSingle);
-      state.practiceSessionCompleted = false;
-      state.singleAnswers = {};
-      state.singleAnswerItemId = state.activeSingle?.id || "";
-      resetSingleTimer(moduleName);
-      renderSingle();
-      if (state.activeSingle) {
-        setSingleImmersive(moduleName);
-        window.scrollTo({ top: 0, behavior: "auto" });
-        savePracticeSession();
-      }
+      if (!review || !restoreSubmittedObjectiveReview(moduleName, review)) activateSingleModule(moduleName, true);
     }
     return;
   }
@@ -4982,7 +5340,7 @@ function bindHomeControls(root = document) {
           } catch {}
           state.learningState = { ...(state.learningState || {}), profile: json.profile, todayPlan };
         } else {
-          localStorage.setItem(guestLearningProfileStoreKey, JSON.stringify({ version: 1, ...profile }));
+          writeOwnerStoredJson(guestLearningProfileStoreKey, { version: 1, ...profile });
         }
         goalDialog?.close();
         renderDashboard();
@@ -5161,47 +5519,210 @@ function compactText(value, maxLength) {
   return `${text.slice(0, Math.max(0, maxLength - 1)).trim()}…`;
 }
 
+function cancelOwnerBoundWork() {
+  if (state.draftSaveTimer) window.clearTimeout(state.draftSaveTimer);
+  if (state.practiceSessionSaveTimer) window.clearTimeout(state.practiceSessionSaveTimer);
+  state.draftSaveTimer = null;
+  state.practiceSessionSaveTimer = null;
+  Object.values(state.learningSyncTimers || {}).forEach((timer) => window.clearTimeout(timer));
+  state.learningSyncTimers = {};
+  if (state.singleTimerId) window.clearInterval(state.singleTimerId);
+  if (state.writingTimerId) window.clearInterval(state.writingTimerId);
+  state.singleTimerId = null;
+  state.writingTimerId = null;
+}
+
+function flushLocalOwnerState(owner = state.localDataOwner) {
+  if (!state.localDataOwnerResolved || !validLocalDataOwner(owner)) return;
+  persistExamSession("exam", { owner });
+  persistExamSession("sequence", { owner });
+  if (state.singleStarted && state.activeSingle?.id && !state.practiceSessionCompleted) {
+    savePracticeSession({ owner, authToken: "", scheduleRemote: false });
+  }
+  const draft = currentDraftSnapshot();
+  if (draft) upsertLocalDraft(draft, owner);
+  if (state.writingWorkspaceMode !== "entry" && state.pendingWritingSetId) {
+    saveWritingUploadSessionPointer(
+      state.pendingWritingSetId,
+      state.selectedWritingTask1Id,
+      state.selectedWritingTask2Id,
+      owner,
+    );
+    saveWritingTimerState(Boolean(state.writingTimerStartedAt), owner);
+  }
+}
+
+function resetOwnerVisibleState() {
+  state.serverDrafts = [];
+  state.vocabItems = [];
+  state.learningState = null;
+  state.latestObjectiveResults = {};
+  state.latestObjectiveResultsByItem = {};
+  state.latestWritingAttempt = null;
+  state.latestSpeakingResult = null;
+  state.redeemCodeDraft = "";
+  state.redeemPending = false;
+  state.mineRefreshEpoch += 1;
+  state.objectiveAttemptPromises = {};
+  state.activeSingle = null;
+  state.singleStarted = false;
+  state.singleAnswers = {};
+  state.singleAnswerItemId = "";
+  state.practiceWritingDrafts = {};
+  state.uploadWritingTasks = [];
+  state.pendingWritingSetId = "";
+  state.selectedWritingTask1Id = "";
+  state.selectedWritingTask2Id = "";
+  state.writingWorkspaceMode = "entry";
+  state.writingTimerStartedAt = 0;
+  state.writingTimerElapsed = 0;
+  state.writingTimerLastPersisted = -1;
+}
+
+function reloadAfterOwnerSwitch() {
+  resetOwnerVisibleState();
+  window.location.reload();
+}
+
+async function initializeLocalDataOwner() {
+  state.localDataOwnerResolved = false;
+  if (!state.authToken) {
+    state.currentUser = null;
+    setLocalDataOwner("guest");
+    migrateLegacyLocalData("guest");
+    return;
+  }
+  try {
+    const me = await getJson("/api/me", { authToken: state.authToken });
+    const owner = localDataOwnerForUser(me.user);
+    if (owner === "guest") throw new Error("Authenticated account identity is incomplete.");
+    state.currentUser = me.user || null;
+    setLocalDataOwner(owner);
+    migrateLegacyLocalData(owner);
+  } catch (error) {
+    if (error.status === 401) {
+      state.authToken = "";
+      state.currentUser = null;
+      localStorage.removeItem(authStoreKey);
+      setLocalDataOwner("guest");
+      migrateLegacyLocalData("guest");
+      return;
+    }
+    state.localDataOwner = "guest";
+    state.localDataOwnerResolved = false;
+  }
+}
+
 async function submitAuth(mode) {
   const message = $("authMessage");
   try {
+    if (state.authBridge && ["login", "register"].includes(state.authBridge.action)) {
+      state.authBridge = { ...state.authBridge, status: "processing", error: "" };
+      persistStemAuthBridge();
+    }
     const username = $("authUsername")?.value || "";
     const password = $("authPassword")?.value || "";
     const json = await postJson(`/api/auth/${mode}`, { username, password });
-    state.authToken = json.token || "";
+    const nextToken = String(json.token || "");
+    const nextOwner = localDataOwnerForUser(json.user);
+    if (!nextToken || nextOwner === "guest") throw new Error("The account response is incomplete.");
+    const previousOwner = state.localDataOwner;
+    flushLocalOwnerState(previousOwner);
+    cancelOwnerBoundWork();
+    if (previousOwner === "guest") mergeLocalDataOwners("guest", nextOwner);
+    state.authToken = nextToken;
     state.currentUser = json.user || null;
-    if (state.authToken) localStorage.setItem(authStoreKey, state.authToken);
-    updateUserChrome();
-    await syncCurrentDraftNow();
-    await refreshMineData();
-    await syncLocalVocabularyNotebook();
+    setLocalDataOwner(nextOwner);
+    localStorage.setItem(authStoreKey, nextToken);
+    await syncAllLocalDrafts({ owner: nextOwner, authToken: nextToken });
+    if (state.authBridge?.returnTo && ["login", "register"].includes(state.authBridge.action)) {
+      completeStemAuthBridge();
+      return;
+    }
+    reloadAfterOwnerSwitch();
   } catch (error) {
+    if (state.authBridge && ["login", "register"].includes(state.authBridge.action)) {
+      setStemAuthBridgeFailure(error.message || "The account handoff failed. Check your details and retry.");
+    }
     if (message) message.textContent = error.message;
   }
 }
 
-async function logoutUser() {
+async function logoutUser(options = {}) {
+  const config = options && typeof options === "object" && !options.currentTarget ? options : {};
+  const owner = state.localDataOwner;
+  const authToken = state.authToken;
+  flushLocalOwnerState(owner);
+  cancelOwnerBoundWork();
   try {
-    await postJson("/api/auth/logout", {});
-  } catch {
+    await postJson("/api/auth/logout", {}, { authToken });
+  } catch (error) {
+    if (config.requireServerSuccess) {
+      setStemAuthBridgeFailure("Logout could not be confirmed. Your account is still signed in; retry to return safely.");
+      return false;
+    }
     // Local logout still works when the network is unavailable.
   }
   state.authToken = "";
   state.currentUser = null;
   localStorage.removeItem(authStoreKey);
-  updateUserChrome();
-  renderMine();
+  setLocalDataOwner("guest");
+  migrateLegacyLocalData("guest");
+  if (config.returnTo) {
+    resetOwnerVisibleState();
+    return completeStemAuthBridge();
+  }
+  reloadAfterOwnerSwitch();
+  return true;
 }
 
-async function redeemCode() {
-  const message = $("redeemMessage");
+function redemptionCodeFromButton(button) {
+  const rowInput = button?.closest?.(".redeem-row")?.querySelector("#redeemCode");
+  const rowValue = String(rowInput?.value || "").trim();
+  if (rowValue) return rowValue;
+  const draftValue = String(state.redeemCodeDraft || "").trim();
+  if (draftValue) return draftValue;
+  return String($("redeemCode")?.value || "").trim();
+}
+
+function setRedeemPending(pending) {
+  state.redeemPending = Boolean(pending);
+  const button = $("redeemCodeButton");
+  if (!button) return;
+  button.disabled = state.redeemPending;
+  button.setAttribute("aria-busy", String(state.redeemPending));
+  button.textContent = state.redeemPending ? "Redeeming..." : "Redeem";
+}
+
+async function redeemCode(submissionCode = "") {
+  const code = String(submissionCode || state.redeemCodeDraft || $("redeemCode")?.value || "").trim();
+  if (!code) {
+    const message = $("redeemMessage");
+    if (message) message.textContent = "Redemption code is required.";
+    return;
+  }
+  if (state.redeemPending) return;
+  const authToken = state.authToken;
+  const owner = state.localDataOwner;
+  state.redeemCodeDraft = code;
+  setRedeemPending(true);
   try {
-    const code = $("redeemCode")?.value || "";
     const json = await postJson("/api/redeem", { code });
+    if (state.authToken !== authToken || state.localDataOwner !== owner) return;
+    // A background refresh that began before redemption contains stale membership
+    // data and must not replace the successful result.
+    state.mineRefreshEpoch += 1;
     state.currentUser = json.user || state.currentUser;
-    if (message) message.textContent = "Redeemed. Membership updated.";
+    state.redeemCodeDraft = "";
+    state.redeemPending = false;
     updateUserChrome();
     renderMine();
+    const message = $("redeemMessage");
+    if (message) message.textContent = "Redeemed. Membership updated.";
   } catch (error) {
+    if (state.authToken !== authToken || state.localDataOwner !== owner) return;
+    setRedeemPending(false);
+    const message = $("redeemMessage");
     if (message) message.textContent = error.message;
   }
 }
@@ -5252,8 +5773,14 @@ function bindMineControls() {
     submitAuth("login");
   });
   $("registerUser")?.addEventListener("click", () => submitAuth("register"));
-  $("logoutUser")?.addEventListener("click", logoutUser);
-  $("redeemCodeButton")?.addEventListener("click", redeemCode);
+  $("logoutUser")?.addEventListener("click", () => logoutUser());
+  $("redeemCodeButton")?.addEventListener("click", (event) => {
+    const code = redemptionCodeFromButton(event.currentTarget);
+    void redeemCode(code);
+  });
+  $("redeemCode")?.addEventListener("input", (event) => {
+    state.redeemCodeDraft = event.currentTarget?.value || "";
+  });
   $("syncDraftsNow")?.addEventListener("click", syncAllLocalDrafts);
   document.querySelectorAll(".restore-draft").forEach((button) => {
     button.onclick = () => restoreDraft(button.dataset.draftKey);
@@ -5277,6 +5804,9 @@ function bindMineControls() {
     button.onclick = () => runMineAction(button.dataset.mineAction);
   });
   bindMineLearningAssetControls();
+  if (["login", "register"].includes(state.authBridge?.action)) {
+    requestAnimationFrame(() => $("authUsername")?.focus());
+  }
 }
 
 function runMineAction(action) {
@@ -5346,37 +5876,66 @@ function currentDraftSnapshot() {
   const writingTask1Id = writingSetId ? state.selectedWritingTask1Id || writingUploadTaskByNumber(1)?.id || "" : "";
   const writingTask2Id = writingSetId ? state.selectedWritingTask2Id || writingUploadTaskByNumber(2)?.id || "" : "";
   const draftModule = activeView === "writing-upload" ? "writing" : state.activeModule;
+  const writingTimer = activeView === "writing-upload" ? {
+    setId: writingSetId,
+    elapsed: writingTimerElapsedSeconds(),
+    duration: state.writingTimerDuration,
+    running: Boolean(state.writingTimerStartedAt),
+    savedAt: Date.now(),
+    remainingTimePolicy: "elapsed-wall-clock",
+  } : null;
   return {
     key: `${activeView}:${draftModule}:${writingSetId || state.activeSingle?.id || bundle?.listeningId || "current"}${writingSetId ? `:${writingTask1Id}:${writingTask2Id}` : ""}`,
     module: activeView === "single" ? state.activeModule : draftModule || activeView,
     title: `${activeTitle} · ${draftModule || "practice"}`,
-    payload: { values, activeView, activeModule: draftModule, activeSingleId: state.activeSingle?.id || "", writingSetId, writingTask1Id, writingTask2Id, bundle },
+    payload: {
+      values,
+      activeView,
+      activeModule: draftModule,
+      activeSingleId: state.activeSingle?.id || "",
+      writingSetId,
+      writingTask1Id,
+      writingTask2Id,
+      writingPracticeKind: activeView === "writing-upload" ? state.pendingWritingKind || "" : "",
+      writingSetupMode: activeView === "writing-upload" ? state.writingSetupMode || "coach" : "",
+      writingActiveTaskNumber: activeView === "writing-upload" ? Number(state.writingActiveTaskNumber) || 1 : 0,
+      writingTimer,
+      bundle,
+    },
     updatedAt: new Date().toISOString(),
   };
 }
 
-async function syncDraft(draft) {
-  if (!state.authToken || !draft) return;
-  await postJson("/api/drafts", draft);
+async function syncDraft(draft, options = {}) {
+  const authToken = Object.prototype.hasOwnProperty.call(options, "authToken") ? options.authToken : state.authToken;
+  if (!authToken || !draft) return;
+  await postJson("/api/drafts", draft, { authToken });
 }
 
-async function syncCurrentDraftNow() {
+async function syncCurrentDraftNow(options = {}) {
+  const owner = options.owner || state.localDataOwner;
+  const authToken = Object.prototype.hasOwnProperty.call(options, "authToken") ? options.authToken : state.authToken;
+  if (options.requireCurrent !== false && (owner !== state.localDataOwner || authToken !== state.authToken)) return;
   const draft = currentDraftSnapshot();
   if (!draft) return;
-  upsertLocalDraft(draft);
+  upsertLocalDraft(draft, owner);
   try {
-    await syncDraft(draft);
+    await syncDraft(draft, { authToken });
   } catch {
     // The device draft remains available offline.
   }
 }
 
 function scheduleDraftAutosave() {
+  if (state.restoringDraft) return;
   if (state.draftSaveTimer) window.clearTimeout(state.draftSaveTimer);
+  const owner = state.localDataOwner;
+  const authToken = state.authToken;
   setWritingAutosaveStatus("Saving...");
   state.draftSaveTimer = window.setTimeout(async () => {
     state.draftSaveTimer = null;
-    await syncCurrentDraftNow();
+    if (owner !== state.localDataOwner || authToken !== state.authToken) return;
+    await syncCurrentDraftNow({ owner, authToken });
     setWritingAutosaveStatus("Saved");
   }, 700);
 }
@@ -5388,12 +5947,15 @@ function setWritingAutosaveStatus(label) {
   });
 }
 
-async function syncAllLocalDrafts() {
-  if (!state.authToken) return;
-  const drafts = readLocalDrafts();
+async function syncAllLocalDrafts(options = {}) {
+  const owner = options.owner || state.localDataOwner;
+  const authToken = Object.prototype.hasOwnProperty.call(options, "authToken") ? options.authToken : state.authToken;
+  if (!authToken) return;
+  const drafts = readLocalDrafts(owner);
   for (const draft of drafts) {
     try {
-      await syncDraft(draft);
+      if (owner !== state.localDataOwner || authToken !== state.authToken) return;
+      await syncDraft(draft, { authToken });
     } catch {
       break;
     }
@@ -5433,16 +5995,44 @@ function restoreDraft(key) {
     const setId = draft.payload.writingSetId || "";
     const task1Id = draft.payload.writingTask1Id || "";
     const task2Id = draft.payload.writingTask2Id || "";
+    const practiceKind = draft.payload.writingPracticeKind || (task1Id && task2Id ? "full-test" : task1Id ? "task1" : "task2");
+    const activeTaskNumber = Number(draft.payload.writingActiveTaskNumber) === 2 ? 2 : 1;
+    const fullTest = task1Id && task2Id
+      ? writingFullTestOptions().find((option) => option.id === setId
+        && writingTask1ForOption(option)?.id === task1Id
+        && writingTask2ForOption(option)?.id === task2Id)
+      : null;
     const taskNumber = task1Id ? 1 : task2Id ? 2 : 0;
     const taskId = taskNumber === 1 ? task1Id : task2Id;
-    if (setId && taskId) {
+    state.writingSetupMode = draft.payload.writingSetupMode === "exam" ? "exam" : "coach";
+    if (fullTest && practiceKind === "full-test") {
+      startWritingFullTestPractice(fullTest, { activeTaskNumber, scroll: false });
+    } else if (setId && taskId) {
       state.writingLibraryTaskNumber = taskNumber;
-      startWritingSystemPractice("selected", { setId, taskNumber, taskId, scroll: false });
+      startWritingSystemPractice("selected", { setId, taskNumber, taskId, practiceKind, scroll: false });
     } else {
       setWritingWorkspaceMode("custom");
     }
   }
-  applyDraftValues(draft.payload.values);
+  state.restoringDraft = true;
+  try {
+    applyDraftValues(draft.payload.values);
+  } finally {
+    state.restoringDraft = false;
+  }
+  if (targetView === "writing-upload") {
+    const timer = draft.payload.writingTimer;
+    const setId = draft.payload.writingSetId || "";
+    const restoredTimer = timer
+      ? restoreWritingTimerSnapshot({
+          ...timer,
+          setupMode: draft.payload.writingSetupMode || timer.setupMode,
+        }, setId)
+      : restoreWritingTimerState(setId);
+    const shouldResumeTimer = timer ? Boolean(timer.running) : Boolean(state.writingTimerStartedAt);
+    if (restoredTimer && shouldResumeTimer) startWritingTimer();
+    else if (restoredTimer) stopWritingTimer({ pause: false });
+  }
 }
 
 async function deleteDraft(key) {
@@ -5505,6 +6095,108 @@ function getBank(moduleName) {
 
 function pick(items) {
   return items[Math.floor(Math.random() * items.length)];
+}
+
+const randomExamGeneratorVersion = "ieltsist-random-exam-v2";
+const sameTestGeneratorVersion = "ieltsist-same-test-v1";
+
+function stableExamHash(value) {
+  let hash = 2166136261;
+  for (const character of String(value || "")) {
+    hash ^= character.charCodeAt(0);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(36).padStart(7, "0");
+}
+
+function createRandomExamSeed() {
+  if (globalThis.crypto?.getRandomValues) {
+    const values = globalThis.crypto.getRandomValues(new Uint32Array(3));
+    return Array.from(values, (value) => value.toString(36).padStart(7, "0")).join("");
+  }
+  return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 12)}`;
+}
+
+function seededExamRandom(seed) {
+  let stateValue = Number.parseInt(stableExamHash(seed), 36) >>> 0;
+  return () => {
+    stateValue += 0x6d2b79f5;
+    let value = stateValue;
+    value = Math.imul(value ^ (value >>> 15), value | 1);
+    value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function sortedExamCandidates(items = []) {
+  return [...items].sort((first, second) => {
+    const firstKey = String(first?.id || first?.title || first?.source || "");
+    const secondKey = String(second?.id || second?.title || second?.source || "");
+    return firstKey.localeCompare(secondKey, undefined, { numeric: true });
+  });
+}
+
+function seededExamPick(items, random) {
+  const candidates = sortedExamCandidates(items);
+  if (!candidates.length) return null;
+  return candidates[Math.floor(random() * candidates.length)];
+}
+
+function examSourceId(item) {
+  return String(item?.id || item?.title || "").trim();
+}
+
+function currentExamBankVersion() {
+  const identities = [
+    ...mergedItems("listening").map((item) => `l:${examSourceId(item)}`),
+    ...mergedItems("reading").map((item) => `r:${examSourceId(item)}`),
+    ...mergedItems("writing").map((item) => `w:${examSourceId(item)}`),
+    ...mergedItems("speaking").map((item) => `s:${examSourceId(item)}`),
+  ].filter((value) => !value.endsWith(":")).sort();
+  return `bank-${stableExamHash(identities.join("|"))}`;
+}
+
+function examMetadataForBundle(bundle, { context, seed, generatorVersion, sourceSetId = "" }) {
+  const writingSourceIds = (bundle?.writingTasks || [bundle?.writing]).filter(Boolean).map(examSourceId).filter(Boolean);
+  const sources = {
+    listeningSourceId: examSourceId(bundle?.listening),
+    readingSourceId: examSourceId(bundle?.reading),
+    writingSourceIds,
+    speakingSourceId: examSourceId(bundle?.speaking),
+  };
+  const cleanSeed = String(seed || sourceSetId || createRandomExamSeed());
+  const fingerprint = [context, cleanSeed, sourceSetId, ...Object.values(sources).flat()].join("|");
+  return {
+    schemaVersion: "ieltsist-exam-source.v1",
+    examId: `${context === "same-test" ? "same" : "random"}-${stableExamHash(fingerprint)}-${stableExamHash([...fingerprint].reverse().join(""))}`,
+    context,
+    seed: cleanSeed,
+    bankVersion: currentExamBankVersion(),
+    generatorVersion,
+    sourceSetId,
+    ...sources,
+  };
+}
+
+function normalizedExamMetadata(metadata = {}) {
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) return null;
+  const writingSourceIds = Array.isArray(metadata.writingSourceIds)
+    ? metadata.writingSourceIds.map((value) => String(value || "").trim()).filter(Boolean).slice(0, 2)
+    : [];
+  const clean = {
+    schemaVersion: String(metadata.schemaVersion || "ieltsist-exam-source.v1"),
+    examId: String(metadata.examId || ""),
+    context: String(metadata.context || ""),
+    seed: String(metadata.seed || ""),
+    bankVersion: String(metadata.bankVersion || ""),
+    generatorVersion: String(metadata.generatorVersion || ""),
+    sourceSetId: String(metadata.sourceSetId || ""),
+    listeningSourceId: String(metadata.listeningSourceId || ""),
+    readingSourceId: String(metadata.readingSourceId || ""),
+    writingSourceIds,
+    speakingSourceId: String(metadata.speakingSourceId || ""),
+  };
+  return clean.examId && clean.seed && clean.bankVersion && clean.generatorVersion ? clean : null;
 }
 
 function writingTaskNumber(item) {
@@ -5772,13 +6464,355 @@ function practiceUnitBaseId(item) {
   return String(item?.sourceItemId || item?.baseItemId || item?.id || "").split("::")[0];
 }
 
-function objectiveScorePayload(item, answers = {}) {
+function objectiveAttemptBinding(item, moduleName, context) {
   const task = normalizeItem(item || {});
+  const questionIds = (task.questions || []).map((question) => String(question?.id || "").trim()).filter(Boolean);
+  const taskId = practiceUnitBaseId(task);
   return {
-    taskId: String(task.id || ""),
-    sourceTaskId: practiceUnitBaseId(task),
-    questionIds: (task.questions || []).map((question) => String(question?.id || "").trim()).filter(Boolean),
-    answers: answers && typeof answers === "object" ? answers : {},
+    key: [context, moduleName, taskId, questionIds.join(",")].join("|"),
+    context,
+    module: moduleName,
+    taskId,
+    questionIds,
+  };
+}
+
+function readObjectiveAttemptStore(owner = state.localDataOwner) {
+  const stored = ownerStoredJson(objectiveAttemptStoreKey, null, owner);
+  return stored?.version === 1 && stored.attempts && typeof stored.attempts === "object"
+    ? { version: 1, exams: { ...(stored.exams || {}) }, attempts: { ...stored.attempts }, submissionSnapshots: { ...(stored.submissionSnapshots || {}) } }
+    : { version: 1, exams: {}, attempts: {}, submissionSnapshots: {} };
+}
+
+function writeObjectiveAttemptStore(store, owner = state.localDataOwner) {
+  const ordered = Object.entries(store?.attempts || {})
+    .sort(([, first], [, second]) => String(second?.createdAt || "").localeCompare(String(first?.createdAt || "")))
+    .slice(0, 80);
+  const attempts = Object.fromEntries(ordered);
+  const submissionSnapshots = Object.fromEntries(
+    ordered.filter(([key]) => store?.submissionSnapshots?.[key]).map(([key]) => [key, store.submissionSnapshots[key]]),
+  );
+  const exams = Object.fromEntries(
+    Object.entries(store?.exams || {})
+      .sort(([, first], [, second]) => String(second?.createdAt || "").localeCompare(String(first?.createdAt || "")))
+      .slice(0, 30),
+  );
+  writeOwnerStoredJson(objectiveAttemptStoreKey, { version: 1, exams, attempts, submissionSnapshots }, owner);
+}
+
+function objectiveClientAttemptKey() {
+  const random = globalThis.crypto?.randomUUID?.().replace(/-/g, "")
+    || `${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`;
+  return `web_${random}`.slice(0, 100);
+}
+
+function objectiveAttemptToken() {
+  if (!globalThis.crypto?.getRandomValues || typeof globalThis.btoa !== "function") {
+    throw new Error("Secure attempt startup is unavailable in this browser.");
+  }
+  const bytes = globalThis.crypto.getRandomValues(new Uint8Array(32));
+  const binary = Array.from(bytes, (value) => String.fromCharCode(value)).join("");
+  return globalThis.btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+function objectiveExamBinding(bundle, context) {
+  const listeningTaskId = practiceUnitBaseId(bundle?.listening);
+  const readingTaskId = practiceUnitBaseId(bundle?.reading);
+  const metadata = normalizedExamMetadata(bundle?.examMetadata) || {};
+  const sourceExamId = String(metadata.examId || "");
+  const writingSourceIds = Array.isArray(metadata.writingSourceIds) ? metadata.writingSourceIds : [];
+  const speakingSourceId = String(metadata.speakingSourceId || "");
+  return {
+    key: [context, sourceExamId, listeningTaskId, readingTaskId, ...writingSourceIds, speakingSourceId].join("|"),
+    context,
+    sourceExamId,
+    listeningTaskId,
+    readingTaskId,
+  };
+}
+
+function objectiveExamBundleForContext(context) {
+  return context === "same-test" ? state.sequence : context === "random-exam" ? state.exam : null;
+}
+
+function newPendingObjectiveExam(binding, bundle) {
+  const metadata = bundle?.examMetadata || {};
+  return {
+    bindingKey: binding.key,
+    clientExamKey: objectiveClientAttemptKey(),
+    examToken: objectiveAttemptToken(),
+    context: binding.context,
+    listeningTaskId: binding.listeningTaskId,
+    readingTaskId: binding.readingTaskId,
+    manifest: {
+      examId: String(metadata.examId || ""),
+      seed: String(metadata.seed || ""),
+      bankVersion: String(metadata.bankVersion || ""),
+      generatorVersion: String(metadata.generatorVersion || ""),
+      listeningSourceId: binding.listeningTaskId,
+      readingSourceId: binding.readingTaskId,
+      writingSourceIds: Array.isArray(metadata.writingSourceIds) ? metadata.writingSourceIds.slice(0, 2) : [],
+      speakingSourceId: String(metadata.speakingSourceId || ""),
+    },
+    status: "starting",
+    createdAt: new Date().toISOString(),
+  };
+}
+
+function pendingObjectiveExam(exam, binding) {
+  return Boolean(exam)
+    && exam.bindingKey === binding.key
+    && exam.context === binding.context
+    && exam.listeningTaskId === binding.listeningTaskId
+    && exam.readingTaskId === binding.readingTaskId
+    && exam.status === "starting"
+    && /^[A-Za-z0-9_-]{8,120}$/.test(String(exam.clientExamKey || ""))
+    && /^[A-Za-z0-9_-]{32,128}$/.test(String(exam.examToken || ""));
+}
+
+function reusableObjectiveExam(exam, { reuseSubmitted = false } = {}) {
+  if (!exam?.examId || !exam?.examToken) return false;
+  if (exam.status === "submitted") return reuseSubmitted;
+  return exam.status === "open" && Date.parse(exam.expiresAt || "") > Date.now();
+}
+
+async function ensureObjectiveExam(bundle, context, options = {}) {
+  if (!state.localDataOwnerResolved) throw new Error("Your local account data is still loading. Try again in a moment.");
+  if (!["same-test", "random-exam"].includes(context)) return null;
+  const binding = objectiveExamBinding(bundle, context);
+  if (!binding.listeningTaskId || !binding.readingTaskId) throw new Error("This full exam is incomplete.");
+  if (state.objectiveExamPromises[binding.key]) return state.objectiveExamPromises[binding.key];
+  const owner = state.localDataOwner;
+  const authToken = state.authToken;
+  const store = readObjectiveAttemptStore(owner);
+  const existing = store.exams[binding.key];
+  if (reusableObjectiveExam(existing, options)) return existing;
+  const startRequest = pendingObjectiveExam(existing, binding) ? existing : newPendingObjectiveExam(binding, bundle);
+  if (startRequest !== existing) {
+    store.exams[binding.key] = startRequest;
+    writeObjectiveAttemptStore(store, owner);
+  }
+  const promise = postJson("/api/objective/exams", {
+    clientExamKey: startRequest.clientExamKey,
+    examToken: startRequest.examToken,
+    context: binding.context,
+    listeningTaskId: binding.listeningTaskId,
+    readingTaskId: binding.readingTaskId,
+    manifest: startRequest.manifest,
+  }, { authToken }).then((exam) => {
+    if (owner !== state.localDataOwner || authToken !== state.authToken) {
+      throw new Error("The active account changed while this full exam was starting.");
+    }
+    if (exam.examToken && exam.examToken !== startRequest.examToken) {
+      throw new Error("The full-exam capability response did not match this generation.");
+    }
+    const latest = readObjectiveAttemptStore(owner);
+    latest.exams[binding.key] = {
+      ...startRequest,
+      ...exam,
+      examToken: startRequest.examToken,
+      bindingKey: binding.key,
+      createdAt: exam.createdAt || startRequest.createdAt,
+    };
+    writeObjectiveAttemptStore(latest, owner);
+    if (objectiveExamBundleForContext(binding.context) === bundle) {
+      persistExamSession(binding.context === "same-test" ? "sequence" : "exam", { owner });
+    }
+    return latest.exams[binding.key];
+  }).catch((error) => {
+    if (error?.status === 410 && error?.restartRequired
+      && owner === state.localDataOwner && authToken === state.authToken) {
+      const latest = readObjectiveAttemptStore(owner);
+      const pending = latest.exams[binding.key];
+      if (pending?.clientExamKey === startRequest.clientExamKey && pending?.examToken === startRequest.examToken) {
+        delete latest.exams[binding.key];
+        writeObjectiveAttemptStore(latest, owner);
+      }
+    }
+    throw error;
+  }).finally(() => {
+    delete state.objectiveExamPromises[binding.key];
+  });
+  state.objectiveExamPromises[binding.key] = promise;
+  return promise;
+}
+
+function primeObjectiveExam(bundle, context) {
+  void ensureObjectiveExam(bundle, context).catch(() => {});
+}
+
+function objectiveAttemptMatchesBinding(attempt, binding) {
+  return Boolean(attempt)
+    && attempt.bindingKey === binding.key
+    && attempt.context === binding.context
+    && attempt.module === binding.module
+    && attempt.taskId === binding.taskId
+    && JSON.stringify(attempt.questionIds || []) === JSON.stringify(binding.questionIds);
+}
+
+function pendingObjectiveAttempt(attempt, binding) {
+  return objectiveAttemptMatchesBinding(attempt, binding)
+    && attempt.status === "starting"
+    && /^[A-Za-z0-9_-]{8,120}$/.test(String(attempt.clientAttemptKey || ""))
+    && /^[A-Za-z0-9_-]{32,128}$/.test(String(attempt.attemptToken || ""));
+}
+
+function newPendingObjectiveAttempt(binding, parentExam = null) {
+  return {
+    bindingKey: binding.key,
+    clientAttemptKey: objectiveClientAttemptKey(),
+    attemptToken: objectiveAttemptToken(),
+    context: binding.context,
+    module: binding.module,
+    taskId: binding.taskId,
+    questionIds: [...binding.questionIds],
+    examId: parentExam?.examId || "",
+    status: "starting",
+    createdAt: new Date().toISOString(),
+  };
+}
+
+function reusableObjectiveAttempt(attempt, { reuseSubmitted = false } = {}) {
+  if (!attempt?.attemptId || !attempt?.attemptToken) return false;
+  if (attempt.status === "submitted") return reuseSubmitted;
+  return attempt.status === "open" && Date.parse(attempt.expiresAt || "") > Date.now();
+}
+
+async function ensureObjectiveAttempt(item, moduleName, context, options = {}) {
+  if (!state.localDataOwnerResolved) throw new Error("Your local account data is still loading. Try again in a moment.");
+  const binding = objectiveAttemptBinding(item, moduleName, context);
+  if (!binding.taskId || !binding.questionIds.length) throw new Error("This question set cannot be submitted yet.");
+  if (state.objectiveAttemptPromises[binding.key]) return state.objectiveAttemptPromises[binding.key];
+  const owner = state.localDataOwner;
+  const authToken = state.authToken;
+  const parentExam = context === "single"
+    ? null
+    : await ensureObjectiveExam(options.examBundle || objectiveExamBundleForContext(context), context, options);
+  const store = readObjectiveAttemptStore(owner);
+  const existing = store.attempts[binding.key];
+  const sameParent = context === "single" || String(existing?.examId || "") === String(parentExam?.examId || "");
+  if (sameParent && reusableObjectiveAttempt(existing, options)) return existing;
+  const startRequest = sameParent && pendingObjectiveAttempt(existing, binding)
+    ? existing
+    : newPendingObjectiveAttempt(binding, parentExam);
+  if (startRequest !== existing) {
+    store.attempts[binding.key] = startRequest;
+    delete store.submissionSnapshots[binding.key];
+    writeObjectiveAttemptStore(store, owner);
+  }
+  const promise = postJson("/api/objective/attempts", {
+    clientAttemptKey: startRequest.clientAttemptKey,
+    attemptToken: startRequest.attemptToken,
+    context: binding.context,
+    module: binding.module,
+    taskId: binding.taskId,
+    questionIds: binding.questionIds,
+    ...(parentExam ? { examId: parentExam.examId, examToken: parentExam.examToken } : {}),
+  }, { authToken }).then((attempt) => {
+    if (owner !== state.localDataOwner || authToken !== state.authToken) {
+      throw new Error("The active account changed while this practice was starting.");
+    }
+    if (attempt.attemptToken && attempt.attemptToken !== startRequest.attemptToken) {
+      throw new Error("The attempt capability response did not match this practice.");
+    }
+    const latest = readObjectiveAttemptStore(owner);
+    latest.attempts[binding.key] = {
+      ...startRequest,
+      ...attempt,
+      attemptToken: startRequest.attemptToken,
+      examId: parentExam?.examId || "",
+      bindingKey: binding.key,
+      createdAt: attempt.createdAt || startRequest.createdAt,
+    };
+    writeObjectiveAttemptStore(latest, owner);
+    return latest.attempts[binding.key];
+  }).catch((error) => {
+    if (error?.status === 410 && error?.restartRequired
+      && owner === state.localDataOwner && authToken === state.authToken) {
+      const latest = readObjectiveAttemptStore(owner);
+      const pending = latest.attempts[binding.key];
+      if (pending?.clientAttemptKey === startRequest.clientAttemptKey
+        && pending?.attemptToken === startRequest.attemptToken) {
+        delete latest.attempts[binding.key];
+        delete latest.submissionSnapshots[binding.key];
+        writeObjectiveAttemptStore(latest, owner);
+      }
+    }
+    throw error;
+  }).finally(() => {
+    delete state.objectiveAttemptPromises[binding.key];
+  });
+  state.objectiveAttemptPromises[binding.key] = promise;
+  return promise;
+}
+
+function primeObjectiveAttempt(item, moduleName, context) {
+  void ensureObjectiveAttempt(item, moduleName, context).catch(() => {});
+}
+
+function objectiveAnswerSnapshot(binding, answers) {
+  const source = answers && typeof answers === "object" && !Array.isArray(answers) ? answers : {};
+  return Object.fromEntries(binding.questionIds.map((questionId) => [questionId, String(source[questionId] || "")]));
+}
+
+async function objectiveSubmissionPayload(item, moduleName, context, answers = {}) {
+  const binding = objectiveAttemptBinding(item, moduleName, context);
+  const attempt = await ensureObjectiveAttempt(item, moduleName, context, { reuseSubmitted: true });
+  const owner = state.localDataOwner;
+  const store = readObjectiveAttemptStore(owner);
+  let snapshot = store.submissionSnapshots[binding.key];
+  if (!snapshot || snapshot.attemptId !== attempt.attemptId) {
+    snapshot = {
+      attemptId: attempt.attemptId,
+      answers: objectiveAnswerSnapshot(binding, answers),
+      createdAt: new Date().toISOString(),
+    };
+    store.submissionSnapshots[binding.key] = snapshot;
+    writeObjectiveAttemptStore(store, owner);
+  }
+  return {
+    attemptId: attempt.attemptId,
+    attemptToken: attempt.attemptToken,
+    answers: { ...snapshot.answers },
+  };
+}
+
+function markObjectiveAttemptSubmitted(attemptId) {
+  if (!attemptId) return;
+  const store = readObjectiveAttemptStore();
+  Object.entries(store.attempts).forEach(([key, attempt]) => {
+    if (attempt?.attemptId === attemptId) store.attempts[key] = { ...attempt, status: "submitted", submittedAt: new Date().toISOString() };
+  });
+  writeObjectiveAttemptStore(store);
+}
+
+function markObjectiveExamSubmitted(bundle, context, examId) {
+  const binding = objectiveExamBinding(bundle, context);
+  const store = readObjectiveAttemptStore();
+  const exam = store.exams[binding.key];
+  if (!exam || (examId && exam.examId !== examId)) return;
+  store.exams[binding.key] = { ...exam, status: "submitted", submittedAt: new Date().toISOString() };
+  writeObjectiveAttemptStore(store);
+}
+
+async function fetchObjectiveAttemptReview(submission) {
+  if (!submission?.attemptId || !submission?.attemptToken) return { wrongAnswers: [] };
+  return getJson(`/api/objective/attempts/${encodeURIComponent(submission.attemptId)}/review`, {
+    headers: { "x-objective-attempt": submission.attemptToken },
+  });
+}
+
+function mergeObjectiveReview(json, review) {
+  const wrongById = new Map((review?.wrongAnswers || []).map((item) => [String(item.questionId || ""), item]));
+  return {
+    ...json,
+    result: {
+      ...(json?.result || {}),
+      details: (json?.result?.details || []).map((detail) => {
+        const reviewed = wrongById.get(String(detail.id || ""));
+        return reviewed ? { ...detail, canonicalAnswer: reviewed.canonicalAnswer || "" } : detail;
+      }),
+    },
   };
 }
 
@@ -5978,7 +7012,142 @@ function bundleDraftPayload(bundle) {
     readingId: bundle.reading?.id || "",
     writingTaskIds: (bundle.writingTasks || [bundle.writing]).filter(Boolean).map((item) => item.id || ""),
     speakingId: bundle.speaking?.id || "",
+    examMetadata: normalizedExamMetadata(bundle.examMetadata),
   };
+}
+
+function examSessionRootState(prefixRoot) {
+  if (prefixRoot === "exam") {
+    return {
+      bundle: state.exam,
+      seconds: state.examSeconds,
+      total: state.examTotal,
+      running: Boolean(state.examTimerId),
+      submitted: Boolean(state.examSubmitted),
+      report: state.examReport,
+    };
+  }
+  if (prefixRoot === "sequence") {
+    return {
+      bundle: state.sequence,
+      seconds: state.sequenceSeconds,
+      total: state.sequenceTotal,
+      running: Boolean(state.sequenceTimerId),
+      submitted: Boolean(state.sequenceSubmitted),
+      report: state.sequenceReport,
+    };
+  }
+  return null;
+}
+
+function readExamSessionStore(owner = state.localDataOwner) {
+  const stored = ownerStoredJson(examSessionStoreKey, null, owner);
+  return stored?.version === 1 && stored && typeof stored === "object"
+    ? { version: 1, exam: stored.exam || null, sequence: stored.sequence || null }
+    : { version: 1, exam: null, sequence: null };
+}
+
+function writeExamSessionStore(store, owner = state.localDataOwner) {
+  writeOwnerStoredJson(examSessionStoreKey, {
+    version: 1,
+    exam: store?.exam || null,
+    sequence: store?.sequence || null,
+  }, owner);
+}
+
+function examSessionInputValues(prefixRoot) {
+  const root = $(prefixRoot === "exam" ? "examPaper" : "sequencePaper");
+  if (!root) return {};
+  const values = {};
+  root.querySelectorAll("textarea, input.answer-input, input.paper-answer-input, input.page-card-input, input.band-input").forEach((field) => {
+    const key = draftFieldKey(field);
+    if (key) values[key] = field.value || "";
+  });
+  return values;
+}
+
+function objectiveExamIdForBundle(bundle, context) {
+  if (!bundle || !context) return "";
+  const binding = objectiveExamBinding(bundle, context);
+  return String(readObjectiveAttemptStore().exams[binding.key]?.examId || "");
+}
+
+function persistExamSession(prefixRoot, options = {}) {
+  const rootState = examSessionRootState(prefixRoot);
+  if (!rootState?.bundle || !isExamBundle(rootState.bundle) || !state.localDataOwnerResolved) return null;
+  const context = prefixRoot === "sequence" ? "same-test" : "random-exam";
+  const store = readExamSessionStore(options.owner || state.localDataOwner);
+  const total = Math.max(1, Number(rootState.total) || 164 * 60);
+  const seconds = Math.max(0, Math.min(total, Number(rootState.seconds) || total));
+  store[prefixRoot] = {
+    version: 1,
+    context,
+    bundle: bundleDraftPayload(rootState.bundle),
+    values: examSessionInputValues(prefixRoot),
+    seconds,
+    total,
+    running: Boolean(rootState.running && !rootState.submitted),
+    submitted: Boolean(rootState.submitted),
+    parentExamId: objectiveExamIdForBundle(rootState.bundle, context),
+    report: rootState.report && typeof rootState.report === "object" ? { ...rootState.report } : null,
+    updatedAt: new Date().toISOString(),
+    savedAt: Date.now(),
+  };
+  writeExamSessionStore(store, options.owner || state.localDataOwner);
+  return store[prefixRoot];
+}
+
+function clearExamSession(prefixRoot, owner = state.localDataOwner) {
+  const store = readExamSessionStore(owner);
+  if (!store[prefixRoot]) return;
+  store[prefixRoot] = null;
+  writeExamSessionStore(store, owner);
+}
+
+function examSessionMatchesCurrentBank(record, bundle, context) {
+  const metadata = normalizedExamMetadata(bundle?.examMetadata);
+  if (!record || !metadata || metadata.context !== context || metadata.bankVersion !== currentExamBankVersion()) return false;
+  if (String(record.context || "") !== context) return false;
+  const sources = {
+    listeningSourceId: examSourceId(bundle.listening),
+    readingSourceId: examSourceId(bundle.reading),
+    writingSourceIds: (bundle.writingTasks || []).map(examSourceId).filter(Boolean),
+    speakingSourceId: examSourceId(bundle.speaking),
+  };
+  return metadata.listeningSourceId === sources.listeningSourceId
+    && metadata.readingSourceId === sources.readingSourceId
+    && JSON.stringify(metadata.writingSourceIds) === JSON.stringify(sources.writingSourceIds)
+    && metadata.speakingSourceId === sources.speakingSourceId;
+}
+
+function restoredExamSessionState(record, fallbackTotal) {
+  const total = Math.max(1, Number(record?.total) || fallbackTotal);
+  let seconds = Math.max(0, Math.min(total, Number(record?.seconds) || total));
+  const running = Boolean(record?.running && !record?.submitted);
+  if (running) {
+    const elapsed = Math.max(0, Math.floor((Date.now() - Number(record?.savedAt || Date.now())) / 1000));
+    seconds = Math.max(0, seconds - elapsed);
+  }
+  return { total, seconds, running, submitted: Boolean(record?.submitted) };
+}
+
+function restoreExamSessionValues(record) {
+  if (!record?.values || typeof record.values !== "object") return;
+  requestAnimationFrame(() => applyDraftValues(record.values));
+}
+
+function restoreExamSessionAfterData(prefixRoot) {
+  const record = readExamSessionStore()[prefixRoot];
+  if (!record || typeof record !== "object") return false;
+  const context = prefixRoot === "sequence" ? "same-test" : "random-exam";
+  const bundle = restoreBundleFromDraft(record.bundle);
+  if (!bundle || !examSessionMatchesCurrentBank(record, bundle, context)) {
+    clearExamSession(prefixRoot);
+    return false;
+  }
+  if (prefixRoot === "exam") buildExam(bundle, { restoredSession: record });
+  else buildSequence(bundle, { restoredSession: record });
+  return true;
 }
 
 function restoreBundleFromDraft(payload) {
@@ -5990,6 +7159,7 @@ function restoreBundleFromDraft(payload) {
     writingTasks,
     writing: writingTasks[0],
     speaking: findItemById("speaking", payload.speakingId),
+    examMetadata: normalizedExamMetadata(payload.examMetadata),
   };
   return bundle.listening && bundle.reading && bundle.writingTasks.length && bundle.speaking ? bundle : null;
 }
@@ -6016,10 +7186,11 @@ function renderExamTimer() {
   });
 }
 
-function stopExamTimer() {
+function stopExamTimer(options = {}) {
   if (state.examTimerId) clearInterval(state.examTimerId);
   state.examTimerId = null;
   renderExamTimer();
+  if (options.persist !== false) persistExamSession("exam");
 }
 
 function startExamTimer() {
@@ -6027,9 +7198,11 @@ function startExamTimer() {
   state.examTimerId = setInterval(() => {
     state.examSeconds = Math.max(0, state.examSeconds - 1);
     renderExamTimer();
+    if (state.examSeconds % 5 === 0) persistExamSession("exam");
     if (state.examSeconds === 0) stopExamTimer();
   }, 1000);
   renderExamTimer();
+  persistExamSession("exam");
 }
 
 function renderSequenceTimer() {
@@ -6043,10 +7216,11 @@ function renderSequenceTimer() {
   });
 }
 
-function stopSequenceTimer() {
+function stopSequenceTimer(options = {}) {
   if (state.sequenceTimerId) clearInterval(state.sequenceTimerId);
   state.sequenceTimerId = null;
   renderSequenceTimer();
+  if (options.persist !== false) persistExamSession("sequence");
 }
 
 function startSequenceTimer() {
@@ -6054,9 +7228,11 @@ function startSequenceTimer() {
   state.sequenceTimerId = setInterval(() => {
     state.sequenceSeconds = Math.max(0, state.sequenceSeconds - 1);
     renderSequenceTimer();
+    if (state.sequenceSeconds % 5 === 0) persistExamSession("sequence");
     if (state.sequenceSeconds === 0) stopSequenceTimer();
   }, 1000);
   renderSequenceTimer();
+  persistExamSession("sequence");
 }
 
 function resetSequenceTimer() {
@@ -6082,10 +7258,12 @@ function singleModuleTotal(moduleName = state.activeModule) {
 }
 
 function renderSingleTimer() {
-  const timer = $("singleTimer");
-  if (timer) timer.textContent = formatTime(state.singleSeconds);
-  const toggle = $("singleTimerToggle");
-  if (toggle) toggle.textContent = state.singleTimerId ? "Pause" : "Start";
+  document.querySelectorAll("#singleTimer").forEach((timer) => {
+    timer.textContent = formatTime(state.singleSeconds);
+  });
+  document.querySelectorAll("#singleTimerToggle").forEach((toggle) => {
+    toggle.textContent = state.singleTimerId ? "Pause" : "Start";
+  });
 }
 
 function stopSingleTimer() {
@@ -6127,13 +7305,21 @@ async function parseJsonResponse(response) {
       throw new Error(`Server returned non-JSON content (${response.status}, ${contentType || "unknown type"}): ${preview}`);
     }
   }
-  if (!response.ok) throw new Error(json?.error || `Request failed (${response.status})`);
+  if (!response.ok) {
+    const error = new Error(json?.error || `Request failed (${response.status})`);
+    error.status = response.status;
+    error.code = String(json?.code || "");
+    error.retryable = Boolean(json?.retryable);
+    error.restartRequired = Boolean(json?.restartRequired);
+    throw error;
+  }
   return json || {};
 }
 
 async function getJson(url, options = {}) {
   const authToken = Object.prototype.hasOwnProperty.call(options, "authToken") ? options.authToken : state.authToken;
-  const headers = authToken ? { authorization: `Bearer ${authToken}` } : {};
+  const headers = { ...(options.headers || {}) };
+  if (authToken) headers.authorization = `Bearer ${authToken}`;
   const response = await fetch(url, { cache: "no-store", headers });
   return parseJsonResponse(response);
 }
@@ -8147,6 +9333,59 @@ function normalizeItem(item) {
   return item.source === "User real-question bank" ? bankToTest(item) : item;
 }
 
+function objectiveQuestionOptions(question) {
+  return Array.isArray(question?.options)
+    ? question.options.map((option) => ({
+        value: String(option?.value || "").trim().toUpperCase(),
+        label: String(option?.label || "").trim(),
+      })).filter((option) => /^(?:[A-I]|TRUE|FALSE|NOT GIVEN|YES|NO)$/.test(option.value) && option.label)
+    : [];
+}
+
+function objectiveControlKind(question) {
+  const type = String(question?.type || "");
+  if (type === "multiple_choice_multiple") return "checkbox";
+  if (["matching", "matching_headings", "matching_information", "matching_features", "map_plan_labelling"].includes(type)) return "select";
+  if (["multiple_choice", "true_false_not_given", "yes_no_not_given"].includes(type)) return "radio";
+  return "text";
+}
+
+function renderObjectiveAnswerProxy(prefix, question, groupId = "") {
+  return `<input class="answer-input objective-answer-proxy" type="hidden" data-objective-proxy="true" data-prefix="${escapeHtml(prefix)}" data-qid="${escapeHtml(question.id)}"${groupId ? ` data-objective-group-id="${escapeHtml(groupId)}"` : ""} />`;
+}
+
+function renderObjectiveAnswerControl(question, prefix, number) {
+  const visibleOptions = objectiveQuestionOptions(question);
+  const kind = objectiveControlKind(question);
+  const controlId = `objective-${prefix}-${question.id}`.replace(/[^A-Za-z0-9_-]/g, "-");
+  const fallback = kind !== "text" && visibleOptions.length < 2;
+  if (kind === "radio" && !fallback) {
+    return `<div class='objective-answer-shell objective-answer-radio' data-objective-qid='${escapeHtml(question.id)}'><fieldset><legend class='sr-only'>Question ${number} answer</legend>${visibleOptions.map((option) => {
+      const id = `${controlId}-${option.value}`;
+      return `<label for='${id}'><input id='${id}' class='objective-answer-control' type='radio' name='${controlId}' value='${escapeHtml(option.value)}' data-prefix='${escapeHtml(prefix)}' data-qid='${escapeHtml(question.id)}' /> <strong>${escapeHtml(option.value)}</strong><span>${escapeHtml(option.label)}</span></label>`;
+    }).join("")}</fieldset>${renderObjectiveAnswerProxy(prefix, question)}</div>`;
+  }
+  if (kind === "select" && !fallback) {
+    return `<label class='objective-answer-shell objective-answer-select' for='${controlId}'><span class='sr-only'>Question ${number} answer</span><select id='${controlId}' class='text-input objective-answer-control' data-prefix='${escapeHtml(prefix)}' data-qid='${escapeHtml(question.id)}'><option value=''>Choose an answer</option>${visibleOptions.map((option) => `<option value='${escapeHtml(option.value)}'>${escapeHtml(option.value)} · ${escapeHtml(option.label)}</option>`).join("")}</select>${renderObjectiveAnswerProxy(prefix, question)}</label>`;
+  }
+  const contentGap = fallback ? `<span class='objective-content-gap'>Options are not imported for this question. Type the letter or answer shown on the paper.</span>` : "";
+  return `<label class='objective-answer-shell objective-answer-text' for='${controlId}'><span class='sr-only'>Question ${number} answer</span><input id='${controlId}' class='text-input objective-answer-control' data-prefix='${escapeHtml(prefix)}' data-qid='${escapeHtml(question.id)}' placeholder='${fallback ? "Letter or answer" : "Answer"}' />${renderObjectiveAnswerProxy(prefix, question)}${contentGap}</label>`;
+}
+
+function renderObjectiveMultipleChoiceGroup(entries, prefix) {
+  const first = entries[0];
+  const question = first?.[1];
+  const visibleOptions = objectiveQuestionOptions(question);
+  const limit = Math.max(2, Math.min(entries.length, Number(question?.selectionLimit) || entries.length));
+  const groupId = String(question?.optionGroupId || "");
+  if (!groupId || visibleOptions.length < 2) return "";
+  const numbers = entries.map(([number]) => number);
+  return `<div class='paper-answer-row objective-multiple-answer-group' data-question-number='${numbers[0]}' data-qid='${escapeHtml(entries.map(([, item]) => item.id).join(","))}' data-objective-group-id='${escapeHtml(groupId)}' data-selection-limit='${limit}'><div class='paper-answer-number'><strong>${escapeHtml(numbers.join(" / "))}</strong><span>Multiple choice · choose ${limit}</span></div><fieldset><legend>Choose ${limit} answers for Questions ${escapeHtml(numbers.join(" and "))}</legend>${visibleOptions.map((option) => {
+    const id = `objective-${prefix}-${groupId}-${option.value}`.replace(/[^A-Za-z0-9_-]/g, "-");
+    return `<label for='${id}'><input id='${id}' class='objective-group-choice' type='checkbox' value='${escapeHtml(option.value)}' /> <strong>${escapeHtml(option.value)}</strong><span>${escapeHtml(option.label)}</span></label>`;
+  }).join("")}<span class='objective-group-status' aria-live='polite'>0 / ${limit} selected</span></fieldset>${entries.map(([, item]) => renderObjectiveAnswerProxy(prefix, item, groupId)).join("")}</div>`;
+}
+
 function renderQuestionInputs(prefix, questions) {
   if (!questions?.length) {
     return `<div class="notice">This user import has no answer key yet. Add answers in the format Q1=answer inside the user bank.</div>`;
@@ -8154,15 +9393,17 @@ function renderQuestionInputs(prefix, questions) {
   return `<div class="question-list">${questions
     .map(
       (q, index) => `
-        <label class="question-row">
+        <div class="question-row">
           <span>${index + 1}. ${q.text}</span>
-          <input class="text-input answer-input" data-prefix="${prefix}" data-qid="${q.id}" placeholder="Your answer" />
-        </label>`,
+          ${renderObjectiveAnswerControl(q, prefix, index + 1)}
+        </div>`,
     )
     .join("")}</div>`;
 }
 
 function questionNumber(question, fallbackIndex) {
+  const canonical = Number(question?.canonicalNumber);
+  if (Number.isInteger(canonical) && canonical > 0) return canonical;
   const match = String(question?.id || question?.text || "").match(/(?:^|q|question\s*)(\d{1,2})\b/i);
   const value = Number(match?.[1] || fallbackIndex + 1);
   return Number.isFinite(value) ? value : fallbackIndex + 1;
@@ -8976,7 +10217,7 @@ function renderPageAudioControl(audioUrls, numbers, pageText = "", prefix = "") 
   return `<div class="page-card-audio" title="Section ${sectionIndex + 1} audio">
     <span>S${sectionIndex + 1}</span>
     <div class="audio-caption-row">
-      <audio class="listening-player" controls preload="none" data-prefix="${escapeHtml(prefix)}" data-section="${sectionIndex + 1}" src="${escapeHtml(url)}"></audio>
+      <audio class="listening-player" controls preload="metadata" data-prefix="${escapeHtml(prefix)}" data-section="${sectionIndex + 1}" src="${escapeHtml(url)}"></audio>
       ${renderListeningCaptionToggle(prefix, sectionIndex + 1)}
     </div>
   </div>`;
@@ -8996,10 +10237,7 @@ function renderPageAnswerCard(prefix, questions, numbers, label, audioControl = 
     .map((number) => {
       const question = byNumber.get(number);
       if (!question) return "";
-      return `<label class="page-card-answer">
-        <span>${number}</span>
-        <input class="text-input answer-input page-card-input" data-prefix="${prefix}" data-qid="${question.id}" placeholder="Answer" />
-      </label>`;
+      return `<div class="page-card-answer"><span>${number}</span>${renderObjectiveAnswerControl(question, prefix, number)}</div>`;
     })
     .join("");
   return `<aside class="page-answer-card" aria-label="${escapeHtml(title)}">
@@ -9025,7 +10263,7 @@ function renderSectionAudio(url, section, prefix = "") {
       <span>Section ${section} audio</span>
       ${renderListeningCaptionToggle(prefix, section)}
     </div>
-    <audio class="listening-player" controls preload="none" data-prefix="${escapeHtml(prefix)}" data-section="${escapeHtml(section)}" src="${escapeHtml(url)}"></audio>
+    <audio class="listening-player" controls preload="metadata" data-prefix="${escapeHtml(prefix)}" data-section="${escapeHtml(section)}" src="${escapeHtml(url)}"></audio>
   </div>`;
 }
 
@@ -9085,31 +10323,43 @@ function renderAnswerGroup(group, prefix, options = {}) {
   return `<section class="paper-answer-group"${!isReading && group.section ? ` data-listening-section="${escapeHtml(group.section)}"` : ""}>
     <div class="paper-answer-group-title">${escapeHtml(group.title)}</div>
     ${renderSectionAudio(group.audioUrl, group.section, prefix)}
-    <div class="paper-answer-grid">${group.entries
-      .map(([number, question]) => {
-        if (!isReading) {
-          return `<label class="paper-answer-row">
-            <span>${number}</span>
-            <input class="text-input answer-input paper-answer-input" data-prefix="${prefix}" data-qid="${escapeHtml(question.id)}" placeholder="Answer" />
-          </label>`;
-        }
-        const marked = Boolean(state.readingReviewMarks?.[question.id]);
-        const passagePage = passagePageByQuestion.get(number) || "";
-        return `<div class="paper-answer-row${marked ? " marked-review" : ""}" data-question-number="${number}" data-question-page="${escapeHtml(question.questionPage || "")}" data-reading-passage-page="${escapeHtml(passagePage)}" data-qid="${escapeHtml(question.id)}">
-          <div class="paper-answer-number"><strong>${number}</strong>${isReading ? `<span>${escapeHtml(question.typeLabel || "Question")}</span>` : ""}</div>
-          <label>
-            <span class="sr-only">Question ${number} answer</span>
-            <input class="text-input answer-input paper-answer-input" data-prefix="${prefix}" data-qid="${escapeHtml(question.id)}" placeholder="Answer" />
-          </label>
-          ${isReading ? `<div class="reading-question-actions">
-            <span class="reading-answer-state">Unanswered</span>
-            <button class="reading-mark-review${marked ? " active" : ""}" type="button" data-reading-mark="${escapeHtml(question.id)}" aria-pressed="${marked ? "true" : "false"}"${examLocked ? " disabled aria-label=\"Mark review is available after submission\"" : ""}>${marked ? "Marked" : "Mark"}</button>
-            <button class="reading-hint-step" type="button" data-reading-hint="${escapeHtml(question.id)}" data-hint-step="1"${examLocked ? " disabled aria-label=\"Hints are available after submission\"" : ""}>Hint 1</button>
-          </div>` : ""}
-        </div>`;
-      })
-      .join("")}</div>
+    <div class="paper-answer-grid">${renderObjectiveAnswerEntries(group.entries, prefix, { isReading, examLocked, passagePageByQuestion })}</div>
   </section>`;
+}
+
+function renderObjectiveAnswerEntries(entries, prefix, options = {}) {
+  const isReading = options.isReading === true;
+  const examLocked = options.examLocked === true;
+  const passagePageByQuestion = options.passagePageByQuestion instanceof Map ? options.passagePageByQuestion : new Map();
+  const output = [];
+  const consumedGroups = new Set();
+  entries.forEach(([number, question]) => {
+    const groupId = String(question?.optionGroupId || "");
+    if (groupId && question?.type === "multiple_choice_multiple" && objectiveQuestionOptions(question).length >= 2) {
+      if (consumedGroups.has(groupId)) return;
+      const groupEntries = entries.filter(([, candidate]) => String(candidate?.optionGroupId || "") === groupId);
+      groupEntries.forEach(([, candidate]) => consumedGroups.add(String(candidate?.optionGroupId || "")));
+      output.push(renderObjectiveMultipleChoiceGroup(groupEntries, prefix));
+      return;
+    }
+    const field = renderObjectiveAnswerControl(question, prefix, number);
+    if (!isReading) {
+      output.push(`<div class='paper-answer-row'><span>${number}</span>${field}</div>`);
+      return;
+    }
+    const marked = Boolean(state.readingReviewMarks?.[question.id]);
+    const passagePage = passagePageByQuestion.get(number) || "";
+    output.push(`<div class='paper-answer-row${marked ? " marked-review" : ""}' data-question-number='${number}' data-question-page='${escapeHtml(question.questionPage || "")}' data-reading-passage-page='${escapeHtml(passagePage)}' data-qid='${escapeHtml(question.id)}'>
+      <div class='paper-answer-number'><strong>${number}</strong><span>${escapeHtml(question.typeLabel || "Question")}</span></div>
+      ${field}
+      <div class='reading-question-actions'>
+        <span class='reading-answer-state'>Unanswered</span>
+        <button class='reading-mark-review${marked ? " active" : ""}' type='button' data-reading-mark='${escapeHtml(question.id)}' aria-pressed='${marked ? "true" : "false"}'${examLocked ? " disabled aria-label=\"Mark review is available after submission\"" : ""}>${marked ? "Marked" : "Mark"}</button>
+        <button class='reading-hint-step' type='button' data-reading-hint='${escapeHtml(question.id)}' data-hint-step='1'${examLocked ? " disabled aria-label=\"Hints are available after submission\"" : ""}>Hint 1</button>
+      </div>
+    </div>`);
+  });
+  return output.join("");
 }
 
 function renderPaperAnswerPanel(prefix, questions, assignments, label, audioUrls = [], options = {}) {
@@ -9159,6 +10409,82 @@ function collectAnswers(prefix) {
   return answers;
 }
 
+function objectiveProxyForControl(control) {
+  const qid = String(control?.dataset?.qid || "");
+  const prefix = String(control?.dataset?.prefix || "");
+  const root = control?.closest(".objective-answer-shell");
+  return root?.querySelector(".objective-answer-proxy")
+    || [...document.querySelectorAll(".objective-answer-proxy")].find((proxy) => proxy.dataset.qid === qid && proxy.dataset.prefix === prefix)
+    || null;
+}
+
+function setObjectiveProxyValue(proxy, value) {
+  if (!proxy) return;
+  const next = String(value || "");
+  if (proxy.value === next) return;
+  proxy.value = next;
+  proxy.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
+function syncObjectiveMultipleChoiceGroup(group) {
+  if (!group) return;
+  const limit = Math.max(1, Number(group.dataset.selectionLimit) || 1);
+  const proxies = [...group.querySelectorAll(".objective-answer-proxy")];
+  const values = proxies.map((proxy) => String(proxy.value || "")).filter(Boolean);
+  const selected = [...new Set(values)];
+  group.querySelectorAll(".objective-group-choice").forEach((choice) => {
+    choice.checked = selected.includes(choice.value);
+    choice.disabled = selected.length >= limit && !choice.checked;
+  });
+  const status = group.querySelector(".objective-group-status");
+  if (status) status.textContent = `${selected.length} / ${limit} selected`;
+}
+
+function syncObjectiveControlFromProxy(proxy) {
+  if (!proxy) return;
+  const group = proxy.closest(".objective-multiple-answer-group");
+  if (group) {
+    syncObjectiveMultipleChoiceGroup(group);
+    return;
+  }
+  const shell = proxy.closest(".objective-answer-shell");
+  if (!shell) return;
+  const value = String(proxy.value || "");
+  shell.querySelectorAll(".objective-answer-control").forEach((control) => {
+    if (control.type === "radio" || control.type === "checkbox") control.checked = control.value === value;
+    else control.value = value;
+  });
+}
+
+function bindObjectiveAnswerControls() {
+  document.querySelectorAll(".objective-answer-proxy").forEach((proxy) => {
+    if (!proxy.dataset.objectiveBound) {
+      proxy.dataset.objectiveBound = "true";
+      proxy.addEventListener("input", () => syncObjectiveControlFromProxy(proxy));
+    }
+    syncObjectiveControlFromProxy(proxy);
+  });
+  document.querySelectorAll(".objective-answer-control").forEach((control) => {
+    if (control.dataset.objectiveBound) return;
+    control.dataset.objectiveBound = "true";
+    const update = () => setObjectiveProxyValue(objectiveProxyForControl(control), control.value || (control.checked ? control.value : ""));
+    control.addEventListener("input", update);
+    control.addEventListener("change", update);
+  });
+  document.querySelectorAll(".objective-multiple-answer-group").forEach((group) => {
+    if (group.dataset.objectiveBound) { syncObjectiveMultipleChoiceGroup(group); return; }
+    group.dataset.objectiveBound = "true";
+    group.querySelectorAll(".objective-group-choice").forEach((choice) => choice.addEventListener("change", () => {
+      const limit = Math.max(1, Number(group.dataset.selectionLimit) || 1);
+      const selected = [...group.querySelectorAll(".objective-group-choice:checked")].map((item) => item.value);
+      if (selected.length > limit) { choice.checked = false; return; }
+      group.querySelectorAll(".objective-answer-proxy").forEach((proxy, index) => setObjectiveProxyValue(proxy, selected[index] || ""));
+      syncObjectiveMultipleChoiceGroup(group);
+    }));
+    syncObjectiveMultipleChoiceGroup(group);
+  });
+}
+
 function collectSingleWritingDrafts() {
   const drafts = {};
   document.querySelectorAll('#single textarea[id$="-writing"]').forEach((textarea) => {
@@ -9196,19 +10522,25 @@ function practiceSessionRemotePayload(session, status = "in_progress") {
   };
 }
 
-function scheduleRemotePracticeSessionSync(session) {
-  if (!state.authToken || !session?.sessionId) return;
-  if (state.learningSyncTimer) clearTimeout(state.learningSyncTimer);
-  state.learningSyncTimer = setTimeout(async () => {
-    state.learningSyncTimer = null;
+function scheduleRemotePracticeSessionSync(session, options = {}) {
+  const owner = options.owner || state.localDataOwner;
+  const authToken = Object.prototype.hasOwnProperty.call(options, "authToken") ? options.authToken : state.authToken;
+  if (!authToken || !session?.sessionId) return;
+  if (state.learningSyncTimers[session.sessionId]) clearTimeout(state.learningSyncTimers[session.sessionId]);
+  state.learningSyncTimers[session.sessionId] = setTimeout(async () => {
+    delete state.learningSyncTimers[session.sessionId];
+    if (owner !== state.localDataOwner || authToken !== state.authToken) return;
     try {
-      const json = await putJson(`/api/learning/sessions/${encodeURIComponent(session.sessionId)}`, practiceSessionRemotePayload(session));
-      const current = readPracticeSession();
+      const json = await putJson(`/api/learning/sessions/${encodeURIComponent(session.sessionId)}`, practiceSessionRemotePayload(session), { authToken });
+      if (owner !== state.localDataOwner || authToken !== state.authToken) return;
+      const current = readPracticeSession(session.module, session.itemId, owner);
       if (current?.sessionId === session.sessionId && json.session?.revision) {
         current.revision = json.session.revision;
-        localStorage.setItem(practiceSessionStoreKey, JSON.stringify(current));
+        upsertPracticeSession(current, owner);
       }
-      state.learningState = { ...(state.learningState || {}), activeSession: json.session || null };
+      const activeSessions = (state.learningState?.activeSessions || []).filter((item) => item.sessionId !== session.sessionId);
+      if (json.session?.status === "in_progress") activeSessions.push(json.session);
+      state.learningState = { ...(state.learningState || {}), activeSession: json.session || null, activeSessions };
     } catch (error) {
       if (/another device/i.test(error.message)) {
         state.learningState = { ...(state.learningState || {}), syncConflict: true };
@@ -9217,11 +10549,13 @@ function scheduleRemotePracticeSessionSync(session) {
   }, 500);
 }
 
-function savePracticeSession() {
+function savePracticeSession(options = {}) {
   if (!state.singleStarted || !state.activeSingle?.id || state.practiceSessionCompleted) return;
+  const owner = options.owner || state.localDataOwner;
+  const authToken = Object.prototype.hasOwnProperty.call(options, "authToken") ? options.authToken : state.authToken;
   saveSingleAnswersToState();
   state.practiceWritingDrafts = { ...state.practiceWritingDrafts, ...collectSingleWritingDrafts() };
-  const previous = readPracticeSession();
+  const previous = readPracticeSession(state.activeModule, state.activeSingle.id, owner);
   const sameSession = previous?.module === state.activeModule && previous?.itemId === state.activeSingle.id;
   const session = {
     version: 1,
@@ -9247,50 +10581,50 @@ function savePracticeSession() {
     updatedAt: new Date().toISOString(),
   };
   try {
-    localStorage.setItem(practiceSessionStoreKey, JSON.stringify(session));
+    upsertPracticeSession(session, owner);
   } catch {}
-  scheduleRemotePracticeSessionSync(session);
+  if (options.scheduleRemote !== false) scheduleRemotePracticeSessionSync(session, { owner, authToken });
 }
 
 async function completeActivePracticeSession() {
-  const session = readPracticeSession();
+  const owner = state.localDataOwner;
+  const authToken = state.authToken;
+  const session = readPracticeSession(state.activeModule, state.activeSingle?.id, owner);
   if (!session || session.module !== state.activeModule || session.itemId !== state.activeSingle?.id) return;
   state.practiceSessionCompleted = true;
-  if (!state.authToken || !session.sessionId) {
-    localStorage.removeItem(practiceSessionStoreKey);
+  if (!authToken || !session.sessionId) {
+    removePracticeSession(session.sessionId, owner);
     return;
   }
-  localStorage.setItem(pendingPracticeCompletionStoreKey, JSON.stringify(session));
+  writeOwnerStoredJson(pendingPracticeCompletionStoreKey, session, owner);
   try {
-    const json = await putJson(`/api/learning/sessions/${encodeURIComponent(session.sessionId)}`, practiceSessionRemotePayload(session, "completed"));
-    localStorage.removeItem(practiceSessionStoreKey);
-    localStorage.removeItem(pendingPracticeCompletionStoreKey);
-    state.learningState = { ...(state.learningState || {}), activeSession: null };
+    const json = await putJson(`/api/learning/sessions/${encodeURIComponent(session.sessionId)}`, practiceSessionRemotePayload(session, "completed"), { authToken });
+    if (state.localDataOwner !== owner || state.authToken !== authToken) return;
+    removePracticeSession(session.sessionId, owner);
+    removeOwnerStoredValue(pendingPracticeCompletionStoreKey, owner);
+    const activeSessions = (state.learningState?.activeSessions || []).filter((item) => item.sessionId !== session.sessionId);
+    state.learningState = { ...(state.learningState || {}), activeSession: activeSessions[0] || null, activeSessions };
     if (json.session) state.learningState.lastCompletedSession = json.session;
   } catch {
-    localStorage.removeItem(practiceSessionStoreKey);
+    removePracticeSession(session.sessionId, owner);
     // Keep a completion tombstone so the stale remote session is never restored as unfinished.
   }
 }
 
-function readPendingPracticeCompletion() {
-  try {
-    return JSON.parse(localStorage.getItem(pendingPracticeCompletionStoreKey) || "null");
-  } catch {
-    return null;
-  }
+function readPendingPracticeCompletion(owner = state.localDataOwner) {
+  return ownerStoredJson(pendingPracticeCompletionStoreKey, null, owner);
 }
 
 async function retryPendingPracticeCompletion(options = {}) {
   const ownerIdentity = options.ownerIdentity || practiceCompletionIdentityKey();
   const authToken = Object.prototype.hasOwnProperty.call(options, "authToken") ? options.authToken : state.authToken;
-  const session = readPendingPracticeCompletion();
+  const session = readPendingPracticeCompletion(ownerIdentity);
   if (!authToken || !session?.sessionId || !completionSyncOwnerIsCurrent(ownerIdentity, authToken)) return false;
   try {
     await putJson(`/api/learning/sessions/${encodeURIComponent(session.sessionId)}`, practiceSessionRemotePayload(session, "completed"), { authToken });
     if (!completionSyncOwnerIsCurrent(ownerIdentity, authToken)) return false;
-    localStorage.removeItem(pendingPracticeCompletionStoreKey);
-    localStorage.removeItem(practiceSessionStoreKey);
+    removeOwnerStoredValue(pendingPracticeCompletionStoreKey, ownerIdentity);
+    removePracticeSession(session.sessionId, ownerIdentity);
     return true;
   } catch {
     return false;
@@ -9299,24 +10633,19 @@ async function retryPendingPracticeCompletion(options = {}) {
 
 function schedulePracticeSessionSave() {
   if (state.practiceSessionSaveTimer) clearTimeout(state.practiceSessionSaveTimer);
+  const owner = state.localDataOwner;
+  const authToken = state.authToken;
   state.practiceSessionSaveTimer = setTimeout(() => {
     state.practiceSessionSaveTimer = null;
-    savePracticeSession();
+    if (owner !== state.localDataOwner || authToken !== state.authToken) return;
+    savePracticeSession({ owner, authToken });
   }, 180);
 }
 
-function readPracticeSession() {
-  try {
-    const session = JSON.parse(localStorage.getItem(practiceSessionStoreKey) || "null");
-    if (!session || session.version !== 1 || !session.started || !session.itemId) return null;
-    return session;
-  } catch {
-    return null;
-  }
-}
-
 function importRemotePracticeSession(remote) {
-  if (!remote?.sessionId || readPracticeSession()) return false;
+  if (!remote?.sessionId || remote.status !== "in_progress") return false;
+  const existing = readPracticeSessions().find((session) => session.sessionId === remote.sessionId);
+  if (existing && String(existing.updatedAt || "") >= String(remote.updatedAt || "")) return false;
   const sessionState = remote.state || {};
   const session = {
     version: 1,
@@ -9342,15 +10671,20 @@ function importRemotePracticeSession(remote) {
     updatedAt: remote.updatedAt || new Date().toISOString(),
   };
   if (!session.started || !session.itemId) return false;
-  localStorage.setItem(practiceSessionStoreKey, JSON.stringify(session));
+  upsertPracticeSession(session);
   return true;
 }
 
+function importRemotePracticeSessions(remotes = []) {
+  return remotes.map(importRemotePracticeSession).filter(Boolean).length;
+}
+
 function restorePracticeSessionAfterData(expectedModule = "", expectedItemId = "") {
-  const savedSession = readPracticeSession();
   const hasExpectedTarget = ["listening", "reading", "writing", "speaking"].includes(expectedModule) && Boolean(expectedItemId);
-  const sessionMatchesTarget = savedSession?.module === expectedModule && savedSession?.itemId === expectedItemId;
-  const session = hasExpectedTarget && !sessionMatchesTarget
+  const savedSession = hasExpectedTarget
+    ? readPracticeSession(expectedModule, expectedItemId)
+    : readPracticeSession();
+  const session = hasExpectedTarget && !savedSession
     ? {
         version: 1,
         started: true,
@@ -9634,7 +10968,6 @@ function currentReadingContext() {
       number,
       id: question.id || `q${number}`,
       question: String(question.text || `Question ${number}`).slice(0, 260),
-      expectedAnswer: String(question.answer || "").slice(0, 120),
       studentAnswer: String(answers[question.id] || "").slice(0, 120),
     };
   });
@@ -9686,7 +11019,6 @@ function currentListeningContext() {
       number,
       id: question.id || `q${number}`,
       question: String(question.text || `Question ${number}`).slice(0, 260),
-      expectedAnswer: String(question.answer || "").slice(0, 120),
       studentAnswer: String(answers[question.id] || "").slice(0, 120),
     };
   });
@@ -9925,15 +11257,12 @@ function renderPageImagesWithAnswers(images, label, prefix, questions, paper, op
 }
 
 function readAnnotations() {
-  try {
-    return JSON.parse(localStorage.getItem(annotationStoreKey) || "{}");
-  } catch {
-    return {};
-  }
+  const value = ownerStoredJson(annotationStoreKey, {});
+  return value && typeof value === "object" ? value : {};
 }
 
 function writeAnnotations(value) {
-  localStorage.setItem(annotationStoreKey, JSON.stringify(value));
+  writeOwnerStoredJson(annotationStoreKey, value && typeof value === "object" ? value : {});
 }
 
 function setAnnotationMode(enabled, erasing = false) {
@@ -10335,6 +11664,7 @@ function renderListening(test, prefix = "single") {
     : prefix === "single" && practiceMode === "training" && !item.practiceScope
       ? state.singlePracticeSections.listening
       : "";
+  const questionIds = (item.questions || []).map((question) => String(question.id || "")).filter(Boolean);
   const playbackRule = listeningPlaybackRule(practiceMode);
   const playbackActions = !audioUrls.length && !audioUrl
     ? `<button class="secondary play-audio" data-text="${encodeURIComponent(transcript)}">Play listening</button>`
@@ -10345,7 +11675,7 @@ function renderListening(test, prefix = "single") {
       ? `<details class="question-paper" open><summary>Listening OCR text</summary><pre>${escapeHtml(item.questionPaper)}</pre></details>`
       : `<div class="notice">This listening set has not been extracted from the PDF yet. Open the local PDF and answer directly.</div>`;
   return `
-    <div class="listening-study" id="${escapeHtml(prefix)}-listening-studio" data-listening-prefix="${escapeHtml(prefix)}" data-listening-mode="${escapeHtml(practiceMode)}" data-listening-id="${escapeHtml(sourceItemId)}" data-practice-unit-id="${escapeHtml(item.id || "")}" data-page-images="${escapeHtml(encodeURIComponent(JSON.stringify(pageImageUrls)))}">
+    <div class="listening-study" id="${escapeHtml(prefix)}-listening-studio" data-listening-prefix="${escapeHtml(prefix)}" data-listening-mode="${escapeHtml(practiceMode)}" data-listening-id="${escapeHtml(sourceItemId)}" data-practice-unit-id="${escapeHtml(item.id || "")}" data-current-section="${escapeHtml(activeSection)}" data-question-ids="${escapeHtml(encodeURIComponent(JSON.stringify(questionIds)))}" data-page-images="${escapeHtml(encodeURIComponent(JSON.stringify(pageImageUrls)))}">
       <div class="listening-main">
         <div class="listening-head-row">
           <div class="module-meta">${[item.source, item.period || "", `${item.minutes || 30} min`].filter(Boolean).join(" · ")} ${sourceLink}</div>
@@ -13152,25 +14482,20 @@ function qwenQuestionIsDuplicate(askedQuestions, text) {
 }
 
 function qwenRecentQuestionLedger(identity = practiceCompletionIdentityKey()) {
-  try {
-    const store = JSON.parse(localStorage.getItem(speakingRecentQuestionsStoreKey) || "{}");
-    const questions = store?.partitions?.[identity];
-    return Array.isArray(questions) ? questions.map(compactDialogueText).filter(Boolean).slice(-40) : [];
-  } catch {
-    return [];
-  }
+  const store = ownerStoredJson(speakingRecentQuestionsStoreKey, {});
+  const questions = store?.partitions?.[identity];
+  return Array.isArray(questions) ? questions.map(compactDialogueText).filter(Boolean).slice(-40) : [];
 }
 
 function qwenRememberRecentQuestion(text, identity = practiceCompletionIdentityKey()) {
   const question = qwenExtractQuestion(text);
   if (!question) return false;
-  let store = {};
-  try { store = JSON.parse(localStorage.getItem(speakingRecentQuestionsStoreKey) || "{}"); } catch {}
+  const store = ownerStoredJson(speakingRecentQuestionsStoreKey, {});
   const partitions = store?.partitions && typeof store.partitions === "object" ? { ...store.partitions } : {};
   const current = Array.isArray(partitions[identity]) ? partitions[identity].map(compactDialogueText).filter(Boolean) : [];
   const withoutDuplicate = current.filter((item) => !qwenQuestionIsDuplicate([item], question));
   partitions[identity] = [...withoutDuplicate, question].slice(-40);
-  localStorage.setItem(speakingRecentQuestionsStoreKey, JSON.stringify({ version: 1, partitions }));
+  writeOwnerStoredJson(speakingRecentQuestionsStoreKey, { version: 1, partitions });
   return true;
 }
 
@@ -15829,10 +17154,10 @@ function singleSectionQuestionRange(moduleName, section = 1) {
 }
 
 function questionsInRange(questions, start, end) {
-  return (questions || []).filter((question, index) => {
-    const number = questionNumber(question, index);
-    return number >= start && number <= end;
-  });
+  return (questions || [])
+    .map((question, index) => ({ question, canonicalNumber: questionNumber(question, index) }))
+    .filter(({ canonicalNumber }) => canonicalNumber >= start && canonicalNumber <= end)
+    .map(({ question, canonicalNumber }) => ({ ...question, canonicalNumber }));
 }
 
 function selectedQuestionNumbers(questions) {
@@ -15842,6 +17167,8 @@ function selectedQuestionNumbers(questions) {
 function paperImagesForQuestionSubset(images, allQuestions, paper, selectedQuestions) {
   if (!Array.isArray(images) || !images.length || !selectedQuestions?.length) return images || [];
   const selected = selectedQuestionNumbers(selectedQuestions);
+  const all = selectedQuestionNumbers(allQuestions);
+  const isStrictSubset = selected.size > 0 && selected.size < all.size;
   const metadataPages = new Set((selectedQuestions || []).map((question) => Number(question.questionPage)).filter(Number.isFinite));
   if (metadataPages.size) {
     const metadataFiltered = uniqueOrderedImages(images).filter((image) => metadataPages.has(Number(image.page)));
@@ -15852,7 +17179,7 @@ function paperImagesForQuestionSubset(images, allQuestions, paper, selectedQuest
     const page = image.page || index + 1;
     return (assignments.get(page) || []).some((number) => selected.has(number));
   });
-  return filtered.length ? filtered : images;
+  return filtered.length ? filtered : isStrictSubset ? [] : images;
 }
 
 function readingPassageImagesForQuestionSubset(images, paper, selectedQuestions, providedStarts = {}) {
@@ -15881,10 +17208,14 @@ function saveSingleAnswersToState() {
 }
 
 function restoreSingleAnswersFromState() {
-  document.querySelectorAll('.answer-input[data-prefix="single"]').forEach((input) => {
+  const inputs = [...document.querySelectorAll('.answer-input[data-prefix="single"]')];
+  inputs.forEach((input) => {
     const saved = state.singleAnswers?.[input.dataset.qid];
     if (saved !== undefined) input.value = saved;
   });
+  // Do not dispatch input while hydrating: the persistence handler would save
+  // the still-empty proxies before the rest of the session has been restored.
+  inputs.forEach((input) => syncObjectiveControlFromProxy(input));
 }
 
 function singlePracticeItemForMode(moduleName, sourceItem) {
@@ -16031,6 +17362,336 @@ function practiceCompletionGroupSummary(moduleName, items = [], completionIndex 
     totalCount: normalized.length,
     label: `${completedCount}/${normalized.length} completed`,
   };
+}
+
+function storedPracticeSession(value) {
+  if (!value || value.version !== 1 || !value.started || !value.itemId || !value.sessionId) return null;
+  return value;
+}
+
+function readPracticeSessions(owner = state.localDataOwner) {
+  const sessions = [];
+  try {
+    const parsed = ownerStoredJson(practiceSessionsStoreKey, null, owner);
+    const values = parsed?.version === 2 && parsed.sessions && typeof parsed.sessions === "object"
+      ? Object.values(parsed.sessions)
+      : [];
+    values.map(storedPracticeSession).filter(Boolean).forEach((session) => sessions.push(session));
+  } catch {}
+  try {
+    const legacy = storedPracticeSession(ownerStoredJson(practiceSessionStoreKey, null, owner));
+    if (legacy && !sessions.some((session) => session.sessionId === legacy.sessionId)) sessions.push(legacy);
+  } catch {}
+  return sessions.sort((a, b) => String(b.updatedAt || "").localeCompare(String(a.updatedAt || "")));
+}
+
+function writePracticeSessions(sessions = [], owner = state.localDataOwner) {
+  const entries = {};
+  sessions.filter(storedPracticeSession).forEach((session) => { entries[session.sessionId] = session; });
+  try {
+    writeOwnerStoredJson(practiceSessionsStoreKey, { version: 2, sessions: entries }, owner);
+    const latest = Object.values(entries).sort((a, b) => String(b.updatedAt || "").localeCompare(String(a.updatedAt || "")))[0];
+    if (latest) writeOwnerStoredJson(practiceSessionStoreKey, latest, owner);
+    else removeOwnerStoredValue(practiceSessionStoreKey, owner);
+  } catch {}
+}
+
+function upsertPracticeSession(session, owner = state.localDataOwner) {
+  if (!storedPracticeSession(session)) return;
+  writePracticeSessions([...readPracticeSessions(owner).filter((item) => item.sessionId !== session.sessionId), session], owner);
+}
+
+function removePracticeSession(sessionId, owner = state.localDataOwner) {
+  if (!sessionId) return;
+  writePracticeSessions(readPracticeSessions(owner).filter((session) => session.sessionId !== sessionId), owner);
+}
+
+function readPracticeSession(moduleName = "", itemId = "", owner = state.localDataOwner) {
+  const sessions = readPracticeSessions(owner);
+  return sessions.find((session) => (!moduleName || session.module === moduleName) && (!itemId || session.itemId === itemId))
+    || (!moduleName && !itemId ? sessions[0] || null : null);
+}
+
+const privateOwnerScopedLocalKeys = [
+  weakAreaStoreKey,
+  learningHistoryStoreKey,
+  coachHistoryStoreKey,
+  coreVocabularyStoreKey,
+  localVocabularyNotebookStoreKey,
+  annotationStoreKey,
+  storeKey,
+  likedTopicStoreKey,
+  recommendationHistoryStoreKey,
+  guestLearningProfileStoreKey,
+  completionStoreKey,
+  pendingLearningAttemptsStoreKey,
+  speakingRecentQuestionsStoreKey,
+];
+
+const ownerScopedLocalKeys = [
+  draftStoreKey,
+  practiceSessionStoreKey,
+  practiceSessionsStoreKey,
+  pendingPracticeCompletionStoreKey,
+  writingUploadSessionStoreKey,
+  writingTimerStoreKey,
+  objectiveAttemptStoreKey,
+  examSessionStoreKey,
+  ...privateOwnerScopedLocalKeys,
+];
+
+function localRecordTime(record) {
+  const value = Date.parse(
+    record?.updatedAt
+    || record?.updated_at
+    || record?.submittedAt
+    || record?.createdAt
+    || record?.queuedAt
+    || "",
+  ) || Number(record?.savedAt || 0);
+  return Number.isFinite(value) ? value : 0;
+}
+
+function mergeDraftCollections(...collections) {
+  const byKey = new Map();
+  collections.flat().filter(Boolean).forEach((draft) => {
+    const key = String(draft.key || draft.draft_key || "").trim();
+    if (!key) return;
+    const current = byKey.get(key);
+    if (!current || localRecordTime(draft) >= localRecordTime(current)) byKey.set(key, draft);
+  });
+  return [...byKey.values()].sort((a, b) => localRecordTime(b) - localRecordTime(a)).slice(0, 80);
+}
+
+function mergePracticeSessionCollections(...collections) {
+  const byId = new Map();
+  collections.flat().map(storedPracticeSession).filter(Boolean).forEach((session) => {
+    const current = byId.get(session.sessionId);
+    const newer = !current
+      || Number(session.revision || 0) > Number(current.revision || 0)
+      || (Number(session.revision || 0) === Number(current.revision || 0) && localRecordTime(session) >= localRecordTime(current));
+    if (newer) byId.set(session.sessionId, session);
+  });
+  return [...byId.values()].sort((a, b) => localRecordTime(b) - localRecordTime(a));
+}
+
+function practiceSessionsFromStoredValues(v2, v1) {
+  const sessions = v2?.version === 2 && v2.sessions && typeof v2.sessions === "object"
+    ? Object.values(v2.sessions)
+    : [];
+  return mergePracticeSessionCollections(sessions, [v1]);
+}
+
+function chooseNewestRecord(first, second) {
+  if (!first) return second || null;
+  if (!second) return first;
+  return localRecordTime(second) >= localRecordTime(first) ? second : first;
+}
+
+function coherentWritingResume(pointer, timer) {
+  if (!pointer) return { pointer: null, timer: null };
+  const matches = timer && (!timer.setId || !pointer.setId || timer.setId === pointer.setId);
+  return { pointer, timer: matches ? timer : null };
+}
+
+function mergeObjectiveAttemptStores(destination = {}, source = {}) {
+  const exams = { ...(destination.exams || {}) };
+  const attempts = { ...(destination.attempts || {}) };
+  const submissionSnapshots = { ...(destination.submissionSnapshots || {}) };
+  Object.entries(source.attempts || {}).forEach(([key, attempt]) => {
+    const current = attempts[key];
+    const useSource = !current || Date.parse(attempt?.expiresAt || "") >= Date.parse(current?.expiresAt || "");
+    if (useSource) {
+      attempts[key] = attempt;
+      if (source.submissionSnapshots?.[key]) submissionSnapshots[key] = source.submissionSnapshots[key];
+      else delete submissionSnapshots[key];
+    }
+  });
+  Object.entries(source.exams || {}).forEach(([key, exam]) => {
+    const current = exams[key];
+    if (!current || Date.parse(exam?.expiresAt || "") >= Date.parse(current?.expiresAt || "")) exams[key] = exam;
+  });
+  return { version: 1, exams, attempts, submissionSnapshots };
+}
+
+function mergeExamSessionStores(destination = {}, source = {}) {
+  const first = destination && typeof destination === "object" ? destination : {};
+  const second = source && typeof source === "object" ? source : {};
+  return {
+    version: 1,
+    exam: chooseNewestRecord(first.exam, second.exam),
+    sequence: chooseNewestRecord(first.sequence, second.sequence),
+  };
+}
+
+function mergePrivateRecordCollections(destination, source, identityFields, limit) {
+  const records = new Map();
+  [...(Array.isArray(destination) ? destination : []), ...(Array.isArray(source) ? source : [])]
+    .filter(Boolean)
+    .forEach((record, index) => {
+      const identity = identityFields.map((field) => String(record?.[field] || "").trim()).find(Boolean)
+        || `anonymous:${index}:${JSON.stringify(record).slice(0, 120)}`;
+      const current = records.get(identity);
+      if (!current || localRecordTime(record) >= localRecordTime(current)) records.set(identity, record);
+    });
+  return [...records.values()]
+    .sort((first, second) => localRecordTime(second) - localRecordTime(first))
+    .slice(0, limit);
+}
+
+function mergeLearningLoopHistories(destination = {}, source = {}) {
+  const first = destination && typeof destination === "object" ? destination : {};
+  const second = source && typeof source === "object" ? source : {};
+  return {
+    ...first,
+    ...second,
+    objective: { ...(first.objective || {}), ...(second.objective || {}) },
+    objectiveItems: { ...(first.objectiveItems || {}), ...(second.objectiveItems || {}) },
+    writing: chooseNewestRecord(first.writing, second.writing),
+    speaking: chooseNewestRecord(first.speaking, second.speaking),
+    writingAttempts: mergePrivateRecordCollections(first.writingAttempts, second.writingAttempts, ["attemptId"], 5),
+    speakingAttempts: mergePrivateRecordCollections(first.speakingAttempts, second.speakingAttempts, ["attemptId"], 5),
+    updatedAt: [first.updatedAt, second.updatedAt].filter(Boolean).sort().at(-1) || "",
+  };
+}
+
+function mergePartitionedPrivateStore(baseKey, destination = {}, source = {}, sourceOwner, destinationOwner) {
+  const destinationPartitions = destination?.partitions && typeof destination.partitions === "object" ? destination.partitions : {};
+  const sourcePartitions = source?.partitions && typeof source.partitions === "object" ? source.partitions : {};
+  const destinationValue = destinationPartitions[destinationOwner];
+  const sourceValue = sourcePartitions[sourceOwner];
+  let merged;
+  if (baseKey === completionStoreKey) {
+    merged = { ...(destinationValue || {}) };
+    Object.entries(sourceValue || {}).forEach(([key, record]) => {
+      merged[key] = chooseNewestRecord(merged[key], record);
+    });
+  } else if (baseKey === pendingLearningAttemptsStoreKey) {
+    merged = mergePrivateRecordCollections(destinationValue, sourceValue, ["attemptId"], 100);
+  } else {
+    merged = [...new Set([...(Array.isArray(destinationValue) ? destinationValue : []), ...(Array.isArray(sourceValue) ? sourceValue : [])])].slice(-40);
+  }
+  return {
+    version: 1,
+    partitions: { ...destinationPartitions, [destinationOwner]: merged },
+  };
+}
+
+function mergePrivateOwnerValue(baseKey, destination, source, sourceOwner, destinationOwner) {
+  if ([completionStoreKey, pendingLearningAttemptsStoreKey, speakingRecentQuestionsStoreKey].includes(baseKey)) {
+    return mergePartitionedPrivateStore(baseKey, destination, source, sourceOwner, destinationOwner);
+  }
+  if (baseKey === weakAreaStoreKey) return mergePrivateRecordCollections(destination, source, ["id", "questionId"], 60);
+  if (baseKey === coachHistoryStoreKey) return mergePrivateRecordCollections(destination, source, ["key"], 12);
+  if (baseKey === localVocabularyNotebookStoreKey) return mergePrivateRecordCollections(destination, source, ["localKey", "termId", "word"], 300);
+  if (baseKey === storeKey) return mergePrivateRecordCollections(destination, source, ["id"], 1000);
+  if ([coreVocabularyStoreKey, likedTopicStoreKey].includes(baseKey)) {
+    return [...new Set([...(Array.isArray(destination) ? destination : []), ...(Array.isArray(source) ? source : [])])];
+  }
+  if (baseKey === learningHistoryStoreKey) return mergeLearningLoopHistories(destination, source);
+  if ([annotationStoreKey, recommendationHistoryStoreKey].includes(baseKey)) {
+    return {
+      ...(destination && typeof destination === "object" ? destination : {}),
+      ...(source && typeof source === "object" ? source : {}),
+    };
+  }
+  if (baseKey === guestLearningProfileStoreKey) return chooseNewestRecord(destination, source);
+  return source ?? destination ?? null;
+}
+
+function mergePrivateOwnerStores(sourceOwner, destinationOwner, legacyValues = null) {
+  privateOwnerScopedLocalKeys.forEach((baseKey) => {
+    const destination = ownerStoredJson(baseKey, null, destinationOwner);
+    const source = legacyValues ? legacyValues[baseKey] : ownerStoredJson(baseKey, null, sourceOwner);
+    if (destination === null && source === null) return;
+    const merged = mergePrivateOwnerValue(baseKey, destination, source, sourceOwner, destinationOwner);
+    if (merged === null) removeOwnerStoredValue(baseKey, destinationOwner);
+    else writeOwnerStoredJson(baseKey, merged, destinationOwner);
+  });
+}
+
+function writeWritingResumeBundle(owner, bundle) {
+  if (bundle.pointer) writeOwnerStoredJson(writingUploadSessionStoreKey, bundle.pointer, owner);
+  else removeOwnerStoredValue(writingUploadSessionStoreKey, owner);
+  if (bundle.timer) writeOwnerStoredJson(writingTimerStoreKey, bundle.timer, owner);
+  else removeOwnerStoredValue(writingTimerStoreKey, owner);
+}
+
+function mergeLocalDataOwners(sourceOwner, destinationOwner) {
+  if (!validLocalDataOwner(sourceOwner) || !validLocalDataOwner(destinationOwner) || sourceOwner === destinationOwner) return;
+  const destinationDrafts = readLocalDrafts(destinationOwner);
+  const sourceDrafts = readLocalDrafts(sourceOwner);
+  const destinationSessions = readPracticeSessions(destinationOwner);
+  const sourceSessions = readPracticeSessions(sourceOwner);
+  const destinationPending = ownerStoredJson(pendingPracticeCompletionStoreKey, null, destinationOwner);
+  const sourcePending = ownerStoredJson(pendingPracticeCompletionStoreKey, null, sourceOwner);
+  const destinationPointer = ownerStoredJson(writingUploadSessionStoreKey, null, destinationOwner);
+  const sourcePointer = ownerStoredJson(writingUploadSessionStoreKey, null, sourceOwner);
+  const selectedPointer = chooseNewestRecord(destinationPointer, sourcePointer);
+  const selectedPointerIsSource = selectedPointer === sourcePointer;
+  const selectedTimer = selectedPointerIsSource
+    ? ownerStoredJson(writingTimerStoreKey, null, sourceOwner)
+    : ownerStoredJson(writingTimerStoreKey, null, destinationOwner);
+  const destinationAttempts = ownerStoredJson(objectiveAttemptStoreKey, { version: 1, attempts: {}, submissionSnapshots: {} }, destinationOwner);
+  const sourceAttempts = ownerStoredJson(objectiveAttemptStoreKey, { version: 1, attempts: {}, submissionSnapshots: {} }, sourceOwner);
+  const destinationExamSessions = readExamSessionStore(destinationOwner);
+  const sourceExamSessions = readExamSessionStore(sourceOwner);
+
+  writeLocalDrafts(mergeDraftCollections(destinationDrafts, sourceDrafts), destinationOwner);
+  writePracticeSessions(mergePracticeSessionCollections(destinationSessions, sourceSessions), destinationOwner);
+  const pending = chooseNewestRecord(destinationPending, sourcePending);
+  if (pending) writeOwnerStoredJson(pendingPracticeCompletionStoreKey, pending, destinationOwner);
+  writeWritingResumeBundle(destinationOwner, coherentWritingResume(selectedPointer, selectedTimer));
+  writeOwnerStoredJson(objectiveAttemptStoreKey, mergeObjectiveAttemptStores(destinationAttempts, sourceAttempts), destinationOwner);
+  writeExamSessionStore(mergeExamSessionStores(destinationExamSessions, sourceExamSessions), destinationOwner);
+  mergePrivateOwnerStores(sourceOwner, destinationOwner);
+
+  ownerScopedLocalKeys.forEach((baseKey) => removeOwnerStoredValue(baseKey, sourceOwner));
+}
+
+function migrateLegacyLocalData(owner) {
+  if (!validLocalDataOwner(owner)) return false;
+  const legacyValues = Object.fromEntries(ownerScopedLocalKeys.map((baseKey) => [baseKey, readStoredJson(baseKey, null)]));
+  if (!Object.values(legacyValues).some((value) => value !== null)) return false;
+  const legacySessions = practiceSessionsFromStoredValues(
+    legacyValues[practiceSessionsStoreKey],
+    legacyValues[practiceSessionStoreKey],
+  );
+  writeLocalDrafts(mergeDraftCollections(readLocalDrafts(owner), legacyValues[draftStoreKey] || []), owner);
+  writePracticeSessions(mergePracticeSessionCollections(readPracticeSessions(owner), legacySessions), owner);
+  const pending = chooseNewestRecord(
+    ownerStoredJson(pendingPracticeCompletionStoreKey, null, owner),
+    legacyValues[pendingPracticeCompletionStoreKey],
+  );
+  if (pending) writeOwnerStoredJson(pendingPracticeCompletionStoreKey, pending, owner);
+  const destinationPointer = ownerStoredJson(writingUploadSessionStoreKey, null, owner);
+  const legacyPointer = legacyValues[writingUploadSessionStoreKey];
+  const selectedPointer = chooseNewestRecord(destinationPointer, legacyPointer);
+  const selectedTimer = selectedPointer === legacyPointer
+    ? legacyValues[writingTimerStoreKey]
+    : ownerStoredJson(writingTimerStoreKey, null, owner);
+  writeWritingResumeBundle(owner, coherentWritingResume(selectedPointer, selectedTimer));
+  writeOwnerStoredJson(
+    objectiveAttemptStoreKey,
+    mergeObjectiveAttemptStores(
+      ownerStoredJson(objectiveAttemptStoreKey, { version: 1, attempts: {}, submissionSnapshots: {} }, owner),
+      legacyValues[objectiveAttemptStoreKey] || {},
+    ),
+    owner,
+  );
+  writeExamSessionStore(
+    mergeExamSessionStores(readExamSessionStore(owner), legacyValues[examSessionStoreKey] || {}),
+    owner,
+  );
+  mergePrivateOwnerStores(owner, owner, legacyValues);
+  ownerScopedLocalKeys.forEach((baseKey) => removeStoredValue(baseKey));
+  return true;
+}
+
+function setLocalDataOwner(owner, { persist = true } = {}) {
+  state.localDataOwner = validLocalDataOwner(owner) ? owner : "guest";
+  state.localDataOwnerResolved = true;
+  if (persist) localStorage.setItem(localDataOwnerStoreKey, state.localDataOwner);
 }
 
 const objectiveTopicDirectory = [
@@ -16366,17 +18027,13 @@ function singleOptionTitle(item) {
 }
 
 function readRecommendationHistory() {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(recommendationHistoryStoreKey) || "{}");
-    return parsed && typeof parsed === "object" ? parsed : {};
-  } catch {
-    return {};
-  }
+  const parsed = ownerStoredJson(recommendationHistoryStoreKey, {});
+  return parsed && typeof parsed === "object" ? parsed : {};
 }
 
 function writeRecommendationHistory(value) {
   try {
-    localStorage.setItem(recommendationHistoryStoreKey, JSON.stringify(value || {}));
+    writeOwnerStoredJson(recommendationHistoryStoreKey, value || {});
   } catch {}
 }
 
@@ -16577,9 +18234,20 @@ function renderSingleLaunch(moduleName, options, completionIndex = null) {
   </div>`;
 }
 
-function beginSinglePracticeUnit(item) {
+function beginSinglePracticeUnit(item, options = {}) {
   if (!item) return;
   const moduleName = state.activeModule;
+  const restart = Boolean(options.restart);
+  const savedSession = readPracticeSession(moduleName, item.id);
+  if (!restart && savedSession && restorePracticeSessionAfterData(moduleName, item.id)) {
+    rememberPracticeRecommendation(moduleName, state.activeSingle || item);
+    renderSingle();
+    renderSingleTimer();
+    setSingleImmersive(moduleName);
+    window.scrollTo({ top: 0, behavior: "auto" });
+    return;
+  }
+  if (restart && savedSession) removePracticeSession(savedSession.sessionId);
   state.activeSingle = item;
   if (item.libraryScope === "topic") setSinglePracticeScope(moduleName, "topic");
   else if (item.practiceScope) setSinglePracticeScope(moduleName, item.practiceScope);
@@ -16671,6 +18339,9 @@ function renderSingle() {
     bindDynamicControls();
     return;
   }
+  if (["listening", "reading"].includes(moduleName) && !state.practiceSessionCompleted) {
+    primeObjectiveAttempt(practiceItem, moduleName, "single");
+  }
   $("singleContent").innerHTML =
     moduleName === "listening"
       ? `${modeIntro}${renderListening(practiceItem, prefix)}`
@@ -16726,6 +18397,32 @@ function buildExam() {
   stopExamTimer();
 }
 
+function renderExamSourceManifest(bundle, prefixRoot) {
+  const metadata = normalizedExamMetadata(bundle?.examMetadata);
+  if (!metadata) {
+    return `<section class="exam-source-manifest notice" role="status">This restored exam has no source manifest. Generate a new exam before submitting.</section>`;
+  }
+  const rows = [
+    ["Listening", metadata.listeningSourceId],
+    ["Reading", metadata.readingSourceId],
+    ["Writing Task 1", metadata.writingSourceIds[0]],
+    ["Writing Task 2", metadata.writingSourceIds[1]],
+    ["Speaking", metadata.speakingSourceId],
+  ];
+  return `<details class="exam-source-manifest" ${prefixRoot === "sequence" ? "open" : ""}>
+    <summary><span>Paper source</span><strong>${escapeHtml(metadata.examId)}</strong></summary>
+    <div class="exam-source-summary">
+      <dl>
+        <div><dt>Seed</dt><dd>${escapeHtml(metadata.seed)}</dd></div>
+        <div><dt>Bank</dt><dd>${escapeHtml(metadata.bankVersion)}</dd></div>
+        <div><dt>Generator</dt><dd>${escapeHtml(metadata.generatorVersion)}</dd></div>
+        ${metadata.sourceSetId ? `<div><dt>Cambridge set</dt><dd>${escapeHtml(metadata.sourceSetId)}</dd></div>` : ""}
+      </dl>
+      <table><thead><tr><th>Module</th><th>Source ID</th></tr></thead><tbody>${rows.map(([moduleName, sourceId]) => `<tr><th>${escapeHtml(moduleName)}</th><td>${escapeHtml(sourceId || "Unavailable")}</td></tr>`).join("")}</tbody></table>
+    </div>
+  </details>`;
+}
+
 function renderFullExamPaper(bundle, prefixRoot, scoreButtonId) {
   const timerConfig = prefixRoot === "exam"
     ? { timer: "examStickyTimer", toggle: "examStickyTimerToggle", reset: "examStickyTimerReset", seconds: state.examSeconds }
@@ -16740,6 +18437,7 @@ function renderFullExamPaper(bundle, prefixRoot, scoreButtonId) {
       </div>`
     : "";
   return `
+    ${renderExamSourceManifest(bundle, prefixRoot)}
     <nav class="exam-quick-nav" aria-label="quick navigation">
       <div class="exam-quick-links">
         <button class="inline-sidebar-toggle" type="button" aria-label="Stopped">&gt;</button>
@@ -16765,67 +18463,108 @@ function renderFullExamPaper(bundle, prefixRoot, scoreButtonId) {
   `;
 }
 
-function pickAvoidingSet(items, avoidKeys) {
+function pickAvoidingSet(items, avoidKeys, random = Math.random) {
   const candidates = items.filter((item) => {
     const key = examSetKey(item);
     return !key || !avoidKeys.has(key);
   });
-  return pick(candidates.length ? candidates : items);
+  return seededExamPick(candidates.length ? candidates : items, random);
 }
 
-function pickWritingPairAvoidingSet(pairs, avoidKeys) {
+function pickWritingPairAvoidingSet(pairs, avoidKeys, random = Math.random) {
   const validPairs = pairs.filter((pair) => Array.isArray(pair) && pair[0] && pair[1]);
   const candidates = validPairs.filter((pair) => {
     const key = examSetKey(pair[0]);
     return !key || !avoidKeys.has(key);
   });
-  return pick(candidates.length ? candidates : validPairs);
+  return seededExamPick(candidates.length ? candidates : validPairs, random);
 }
 
-function buildRandomBundle() {
+function buildRandomBundle(requestedSeed = "") {
   const listeningPool = mergedItems("listening");
   const readingPool = mergedItems("reading");
   const writingPairs = pairedWritingSets(mergedItems("writing"));
   const speakingPool = mergedItems("speaking");
   if (!listeningPool.length || !readingPool.length || !writingPairs.length || !speakingPool.length) return null;
+  const seed = String(requestedSeed || createRandomExamSeed()).trim().slice(0, 120);
+  const random = seededExamRandom(seed);
   const used = new Set();
-  const listening = normalizeItem(pick(listeningPool));
+  const listening = normalizeItem(seededExamPick(listeningPool, random));
   const listeningKey = examSetKey(listening);
   if (listeningKey) used.add(listeningKey);
-  const reading = normalizeItem(pickAvoidingSet(readingPool, used));
+  const reading = normalizeItem(pickAvoidingSet(readingPool, used, random));
   const readingKey = examSetKey(reading);
   if (readingKey) used.add(readingKey);
-  const pickedWritingPair = pickWritingPairAvoidingSet(writingPairs, used);
+  const pickedWritingPair = pickWritingPairAvoidingSet(writingPairs, used, random);
   if (!pickedWritingPair?.length) return null;
   const writingTasks = pickedWritingPair.map(normalizeItem).filter((item) => item.id || item.title || item.prompt || item.writingPageImages?.length);
   if (writingTasks.length < 2) return null;
-  return {
+  const writingKey = examSetKey(writingTasks[0]);
+  if (writingKey) used.add(writingKey);
+  const bundle = {
     listening,
     reading,
     writingTasks,
     writing: writingTasks[0],
-    speaking: normalizeItem(pick(speakingPool)),
+    speaking: normalizeItem(pickAvoidingSet(speakingPool, used, random)),
   };
+  bundle.examMetadata = examMetadataForBundle(bundle, {
+    context: "random-exam",
+    seed,
+    generatorVersion: randomExamGeneratorVersion,
+  });
+  return bundle;
 }
 
-function buildExam(savedBundle = null) {
+function buildExam(savedBundle = null, options = {}) {
   setImmersivePractice("", "");
-  const bundle = isExamBundle(savedBundle) ? savedBundle : buildRandomBundle();
+  const seedField = $("examSeed");
+  const requestedSeed = seedField?.value.trim() || "";
+  const bundle = isExamBundle(savedBundle) ? savedBundle : buildRandomBundle(requestedSeed);
   if (!bundle) {
     $("examPaper").innerHTML = `<section class="panel notice">The question bank is incomplete, so a random exam cannot be generated.</section>`;
     return;
   }
+  if (!bundle.examMetadata) {
+    bundle.examMetadata = examMetadataForBundle(bundle, {
+      context: "random-exam",
+      seed: requestedSeed || createRandomExamSeed(),
+      generatorVersion: randomExamGeneratorVersion,
+    });
+  }
+  if (seedField) seedField.value = bundle.examMetadata.seed;
+  const restored = options.restoredSession || null;
+  const restoredState = restoredExamSessionState(restored, state.examTotal);
   state.exam = bundle;
-  state.examSubmitted = false;
+  state.examSubmitted = restoredState.submitted;
+  state.examReport = restored?.report && typeof restored.report === "object" ? { ...restored.report } : null;
+  primeObjectiveExam(state.exam, "random-exam");
+  primeObjectiveAttempt(state.exam.listening, "listening", "random-exam");
+  primeObjectiveAttempt(state.exam.reading, "reading", "random-exam");
   $("examPaper").innerHTML = renderFullExamPaper(state.exam, "exam", "scoreExamBottom");
   $("scoreExamBottom").addEventListener("click", () => scoreFullExam(state.exam, "exam", "examFeedback", "examMode"));
   bindDynamicControls();
-  state.examSeconds = state.examTotal;
-  stopExamTimer();
+  state.examTotal = restoredState.total;
+  state.examSeconds = restoredState.seconds;
+  stopExamTimer({ persist: false });
+  restoreExamSessionValues(restored);
+  if (state.examReport?.feedback) {
+    setFeedback("examFeedback", state.examReport.feedback, "examMode", state.examReport.mode || "local");
+  }
+  if (restoredState.running && !restoredState.submitted && state.examSeconds > 0) startExamTimer();
+  else persistExamSession("exam");
 }
 
 function sequenceSets() {
-  return completeCambridgeExamSets(mergedItems("listening"), mergedItems("reading"), mergedItems("writing"));
+  const speakingBySet = new Map(
+    mergedItems("speaking")
+      .map(normalizeItem)
+      .map((item) => [examSetKey(item), item])
+      .filter(([key]) => key),
+  );
+  return completeCambridgeExamSets(mergedItems("listening"), mergedItems("reading"), mergedItems("writing"))
+    .map((set) => ({ ...set, speaking: speakingBySet.get(set.key) || null }))
+    .filter((set) => set.speaking);
 }
 
 function renderSequenceFilters() {
@@ -16834,35 +18573,66 @@ function renderSequenceFilters() {
   const selectedBook = filterValue("sequenceBookFilter");
   const testSets = selectedBook === "all" ? sets : sets.filter((set) => String(itemBook(set.listening)) === selectedBook);
   renderFilterOptions("sequenceTestFilter", testSets.map((set) => itemTest(set.listening)), "All tests");
+  renderSequenceSelectionStatus();
 }
 
-function renderSequenceFilters() {
-  const sets = sequenceSets();
-  renderFilterOptions("sequenceBookFilter", sets.map((set) => itemBook(set.listening)), "All Cambridge");
-  const selectedBook = filterValue("sequenceBookFilter");
-  const testSets = selectedBook === "all" ? sets : sets.filter((set) => String(itemBook(set.listening)) === selectedBook);
-  renderFilterOptions("sequenceTestFilter", testSets.map((set) => itemTest(set.listening)), "All tests");
+function renderSequenceSelectionStatus() {
+  const status = $("sequenceSelectionStatus");
+  if (!status) return;
+  const book = filterValue("sequenceBookFilter");
+  const test = filterValue("sequenceTestFilter");
+  if (book === "all" || test === "all") {
+    status.textContent = "Choose one Cambridge book and one test. IELTSist will not select a paper for you.";
+    status.dataset.state = "waiting";
+    return;
+  }
+  const selected = sequenceSets().find((set) => String(itemBook(set.listening)) === book && String(itemTest(set.listening)) === test);
+  status.textContent = selected
+    ? `Ready: Cambridge ${book} Test ${test} · ${selected.listening.id} · ${selected.reading.id} · ${selected.task1.id} + ${selected.task2.id} · ${selected.speaking.id}`
+    : "That full Cambridge set is unavailable. Choose another test.";
+  status.dataset.state = selected ? "ready" : "error";
 }
 
-function buildSequence(savedBundle = null) {
+function buildSequence(savedBundle = null, options = {}) {
   setImmersivePractice("", "");
   renderSequenceFilters();
   if (isExamBundle(savedBundle)) {
+    const restored = options.restoredSession || null;
+    const restoredState = restoredExamSessionState(restored, state.sequenceTotal);
     state.sequence = savedBundle;
+    state.sequenceSubmitted = restoredState.submitted;
+    state.sequenceReport = restored?.report && typeof restored.report === "object" ? { ...restored.report } : null;
+    primeObjectiveExam(state.sequence, "same-test");
+    primeObjectiveAttempt(state.sequence.listening, "listening", "same-test");
+    primeObjectiveAttempt(state.sequence.reading, "reading", "same-test");
     $("sequencePaper").innerHTML = renderFullExamPaper(state.sequence, "sequence", "scoreSequenceBottom");
     $("scoreSequenceBottom").addEventListener("click", () => scoreFullExam(state.sequence, "sequence", "sequenceFeedback", "sequenceMode"));
     bindDynamicControls();
-    resetSequenceTimer();
+    state.sequenceTotal = restoredState.total;
+    state.sequenceSeconds = restoredState.seconds;
+    stopSequenceTimer({ persist: false });
+    restoreExamSessionValues(restored);
+    if (state.sequenceReport?.feedback) {
+      setFeedback("sequenceFeedback", state.sequenceReport.feedback, "sequenceMode", state.sequenceReport.mode || "local");
+    }
+    if (restoredState.running && !restoredState.submitted && state.sequenceSeconds > 0) startSequenceTimer();
+    else persistExamSession("sequence");
     return;
   }
   const sets = sequenceSets();
   const book = filterValue("sequenceBookFilter");
   const test = filterValue("sequenceTestFilter");
+  if (book === "all" || test === "all") {
+    state.sequence = null;
+    $("sequencePaper").innerHTML = `<section class="panel notice">Choose a specific Cambridge book and test. No paper has been selected.</section>`;
+    renderSequenceSelectionStatus();
+    return;
+  }
   const candidates = sets.filter((set) =>
     (book === "all" || String(itemBook(set.listening)) === book)
     && (test === "all" || String(itemTest(set.listening)) === test),
   );
-  const pickedSet = candidates[0] || sets[0];
+  const pickedSet = candidates.length === 1 ? candidates[0] : null;
   if (!pickedSet) {
     $("sequencePaper").innerHTML = `<section class="panel notice">No complete same-test Cambridge set is available.</section>`;
     return;
@@ -16872,23 +18642,45 @@ function buildSequence(savedBundle = null) {
     reading: normalizeItem(pickedSet.reading),
     writingTasks: [normalizeItem(pickedSet.task1), normalizeItem(pickedSet.task2)],
     writing: normalizeItem(pickedSet.task1),
-    speaking: normalizeItem(pick(mergedItems("speaking"))),
+    speaking: normalizeItem(pickedSet.speaking),
   };
+  state.sequence.examMetadata = examMetadataForBundle(state.sequence, {
+    context: "same-test",
+    seed: pickedSet.key,
+    sourceSetId: pickedSet.key,
+    generatorVersion: sameTestGeneratorVersion,
+  });
+  primeObjectiveExam(state.sequence, "same-test");
+  primeObjectiveAttempt(state.sequence.listening, "listening", "same-test");
+  primeObjectiveAttempt(state.sequence.reading, "reading", "same-test");
   $("sequencePaper").innerHTML = renderFullExamPaper(state.sequence, "sequence", "scoreSequenceBottom");
   $("scoreSequenceBottom").addEventListener("click", () => scoreFullExam(state.sequence, "sequence", "sequenceFeedback", "sequenceMode"));
   bindDynamicControls();
   resetSequenceTimer();
+  state.sequenceSubmitted = false;
+  state.sequenceReport = null;
+  persistExamSession("sequence");
 }
 
 async function submitSingle() {
   const moduleName = state.activeModule;
+  let objectiveCompleted = false;
   setFeedback("singleFeedback", "Scoring...", "singleMode", "");
   try {
     if (moduleName === "listening" || moduleName === "reading") {
       const item = singlePracticeItemForMode(moduleName, state.activeSingle);
       saveSingleAnswersToState();
-      const json = await postJson(`/api/${moduleName}/score`, objectiveScorePayload(item, state.singleAnswers || {}));
-      rememberObjectiveResult(moduleName, normalizeItem(state.activeSingle), json);
+      const submission = await objectiveSubmissionPayload(item, moduleName, "single", state.singleAnswers || {});
+      let json = await postJson(`/api/${moduleName}/score`, submission);
+      markObjectiveAttemptSubmitted(json.attemptId || submission.attemptId);
+      await completeActivePracticeSession();
+      objectiveCompleted = true;
+      try {
+        json = mergeObjectiveReview(json, await fetchObjectiveAttemptReview(submission));
+      } catch {
+        json = { ...json, reviewError: "Correct-answer review is temporarily unavailable. Retry this submission to reopen the same result." };
+      }
+      rememberObjectiveResult(moduleName, item, json);
       setFeedbackHtml("singleFeedback", renderObjectiveFeedbackHtml(json, moduleName), "singleMode", json.mode);
     } else if (moduleName === "writing") {
       setFeedback("singleFeedback", "Writing feedback is being generated. Estimated time: 1-10 min.", "singleMode", "");
@@ -16904,7 +18696,7 @@ async function submitSingle() {
       const item = normalizeItem(state.activeSingle);
       await scoreSpeakingText("single", item.title || "Speaking", "singleFeedback", "singleMode");
     }
-    await completeActivePracticeSession();
+    if (!objectiveCompleted) await completeActivePracticeSession();
     if (moduleName !== "speaking") {
       exitImmersiveMode();
       window.setTimeout(() => $("singleFeedback")?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
@@ -16950,7 +18742,8 @@ function formatObjectiveFeedback(json, moduleName = state.activeModule) {
     const reviewCue = moduleName === "listening"
       ? "check audio evidence, distractor, spelling/plural/number format"
       : "find passage evidence, paraphrase link and why the wrong answer fails";
-    lines.push(`${status} ${item.text} | your answer: ${item.actual || "(blank)"} | expected: ${item.expected}${item.correct ? "" : ` | ${reviewCue}`}`);
+    const canonical = item.correct ? "" : item.canonicalAnswer || "review temporarily unavailable";
+    lines.push(`${status} ${item.text} | your answer: ${item.actual || "(blank)"}${item.correct ? "" : ` | correct answer: ${canonical} | ${reviewCue}`}`);
   }
   lines.push("", objectiveRetestHint(moduleName), "Use AI Coach: Explain in Chinese / Show evidence / Save weak area / Retest this skill.");
   return lines.join("\n");
@@ -16978,13 +18771,14 @@ function renderObjectiveFeedbackHtml(json, moduleName = state.activeModule) {
       <div><span class="eyebrow">${escapeHtml(singleModeLabel(moduleName))}</span><h3>${escapeHtml(moduleName === "listening" ? "Listening evidence review" : "Reading evidence review")}</h3></div>
       <div class="objective-review-score"><strong>${correct}/${total}</strong><span>${wrong.length} to review</span></div>
     </header>
+    ${json?.reviewError ? `<p class="notice">${escapeHtml(json.reviewError)}</p>` : ""}
     <div class="objective-review-loop" aria-label="Review loop"><span>Score</span><i></i><span>Explain</span><i></i><span>Save rule</span><i></i><span>Retest</span></div>
     ${wrong.length ? `<div class="objective-review-list">${wrong.map((item, index) => {
       const number = objectiveDetailNumber(item, index);
       return `<section class="objective-review-item" data-qid="${escapeHtml(item.id || `q${number}`)}">
         <div class="objective-review-number">${number}</div>
         <div class="objective-review-answer"><span>Your answer</span><strong>${escapeHtml(item.actual || "Blank")}</strong></div>
-        <div class="objective-review-answer correct"><span>Correct answer</span><strong>${escapeHtml(item.expected || "-")}</strong></div>
+        <div class="objective-review-answer correct"><span>Correct answer</span><strong>${escapeHtml(item.canonicalAnswer || "Review unavailable")}</strong></div>
         <div class="objective-review-evidence"><span>${escapeHtml(evidenceLabel)}</span><p>${escapeHtml(moduleName === "listening" ? "Open the matching section and ask AI Coach for the exact phrase, distractor and answer-format signal." : "Ask AI Coach for the location, evidence sentence and keyword-paraphrase chain.")}</p></div>
         <div class="objective-review-actions">
           <button class="primary small-button" type="button" data-objective-action="explain" data-module="${escapeHtml(moduleName)}" data-qid="${escapeHtml(item.id || `q${number}`)}">Explain</button>
@@ -17013,7 +18807,7 @@ function setObjectiveCoachFocus(moduleName, qid) {
 function saveObjectiveWeakArea(moduleName, detail) {
   if (!detail) return;
   const number = objectiveDetailNumber(detail);
-  const summary = `${moduleDisplayName(moduleName)} Q${number}: ${detail.actual || "blank"} -> ${detail.expected || "review"}`;
+  const summary = `${moduleDisplayName(moduleName)} Q${number}: ${detail.actual || "blank"} -> ${detail.canonicalAnswer || "review"}`;
   const areas = readWeakAreas().filter((entry) => entry.summary !== summary);
   areas.unshift({
     id: `weak-${Date.now()}`,
@@ -17022,7 +18816,7 @@ function saveObjectiveWeakArea(moduleName, detail) {
     summary,
     questionId: detail.id || `q${number}`,
     sourceAttemptId: latestObjectiveResult(moduleName)?.attemptId || "",
-    evidence: { actual: detail.actual || "", expected: detail.expected || "" },
+    evidence: { actual: detail.actual || "", canonicalAnswer: detail.canonicalAnswer || "" },
     createdAt: new Date().toISOString(),
   });
   writeWeakAreas(areas);
@@ -17076,65 +18870,67 @@ function bindObjectiveReviewActions(root = document) {
   });
 }
 
-async function scoreExam() {
-  if (!state.exam) buildExam();
-  setFeedback("examFeedback", "Generating full report...", "examMode", "");
-  try {
-    const payload = {
-      listening: objectiveScorePayload(state.exam.listening, collectAnswers("exam-listening")),
-      reading: objectiveScorePayload(state.exam.reading, collectAnswers("exam-reading")),
-      writing: {
-        tasks: (state.exam.writingTasks || [state.exam.writing]).filter(Boolean).map((task, index) => ({
-          type: task.type || `Task ${index + 1}`,
-          title: task.title || `Writing Task ${index + 1}`,
-          prompt: [task.prompt, task.data].filter(Boolean).join("\n\nData: "),
-          essay: $(`exam-task${index + 1}-writing`)?.value || "",
-        })),
-      },
-      speaking: {
-        title: state.exam.speaking?.title || "Speaking",
-        selfReportedBand: $("exam-speaking-score")?.value || "",
-        notes: $("exam-speaking")?.value || "",
-      },
-    };
-    const json = await postJson("/api/exam/report", payload);
-    setFeedback("examFeedback", json.feedback, "examMode", json.mode);
-  } catch (error) {
-    setFeedback("examFeedback", `Generation failed: ${error.message}`, "examMode", "error");
-  }
-}
-
 async function scoreFullExam(bundle, prefixRoot, feedbackId, modeId) {
   if (!bundle) return;
   setFeedback(feedbackId, "Scoring in progress. Estimated time: 10 min.", modeId, "");
   try {
+    const examContext = prefixRoot === "sequence" ? "same-test" : "random-exam";
+    const parentExam = await ensureObjectiveExam(bundle, examContext, { reuseSubmitted: true });
+    const [listeningSubmission, readingSubmission] = await Promise.all([
+      objectiveSubmissionPayload(bundle.listening, "listening", examContext, collectAnswers(`${prefixRoot}-listening`)),
+      objectiveSubmissionPayload(bundle.reading, "reading", examContext, collectAnswers(`${prefixRoot}-reading`)),
+    ]);
     const payload = {
-      listening: objectiveScorePayload(bundle.listening, collectAnswers(`${prefixRoot}-listening`)),
-      reading: objectiveScorePayload(bundle.reading, collectAnswers(`${prefixRoot}-reading`)),
+      examContext: prefixRoot === "sequence" ? "same-test" : "random-exam",
+      fullExamManifest: parentExam?.manifest || normalizedExamMetadata(bundle.examMetadata),
+      listening: listeningSubmission,
+      reading: readingSubmission,
       writing: {
         tasks: (bundle.writingTasks || [bundle.writing]).filter(Boolean).map((task, index) => ({
           type: task.type || `Task ${index + 1}`,
-          title: task.title || `Writing Task ${index + 1}`,
+        title: task.title || `Writing Task ${index + 1}`,
+          sourceId: examSourceId(task),
           prompt: [task.prompt, task.data].filter(Boolean).join("\n\nData: "),
           essay: $(`${prefixRoot}-task${index + 1}-writing`)?.value || "",
         })),
       },
       speaking: {
+        sourceId: examSourceId(bundle.speaking),
         title: bundle.speaking?.title || "Speaking",
         selfReportedBand: $(`${prefixRoot}-speaking-score`)?.value || "",
         notes: $(`${prefixRoot}-speaking`)?.value || "",
       },
     };
     const json = await postJson("/api/exam/report", payload);
+    markObjectiveAttemptSubmitted(listeningSubmission.attemptId);
+    markObjectiveAttemptSubmitted(readingSubmission.attemptId);
+    markObjectiveExamSubmitted(bundle, examContext, parentExam?.examId || "");
+    const [listeningReview, readingReview] = await Promise.allSettled([
+      fetchObjectiveAttemptReview(listeningSubmission),
+      fetchObjectiveAttemptReview(readingSubmission),
+    ]);
+    rememberObjectiveResult("listening", bundle.listening, mergeObjectiveReview(
+      { attemptId: listeningSubmission.attemptId, result: json.listening || {} },
+      listeningReview.status === "fulfilled" ? listeningReview.value : { wrongAnswers: [] },
+    ));
+    rememberObjectiveResult("reading", bundle.reading, mergeObjectiveReview(
+      { attemptId: readingSubmission.attemptId, result: json.reading || {} },
+      readingReview.status === "fulfilled" ? readingReview.value : { wrongAnswers: [] },
+    ));
     setFeedbackHtml(feedbackId, feedbackWithPdfHtml(json.feedback, json, "ielts-full-exam-report.pdf"), modeId, json.mode);
     if (prefixRoot === "exam") {
       state.examSubmitted = true;
+      state.examReport = { feedback: json.feedback || "", mode: json.mode || "local" };
       document.querySelectorAll('#examPaper [data-reading-mark], #examPaper [data-reading-hint]').forEach((button) => {
         button.disabled = false;
         button.removeAttribute("aria-label");
       });
       refreshGlobalCoachPanelIfOpen();
+    } else {
+      state.sequenceSubmitted = true;
+      state.sequenceReport = { feedback: json.feedback || "", mode: json.mode || "local" };
     }
+    persistExamSession(prefixRoot);
   } catch (error) {
     setFeedback(feedbackId, `Generation failed: ${error.message}`, modeId, "error");
   }
@@ -17211,9 +19007,9 @@ function writingTimerElapsedSeconds() {
   return Math.max(0, Number(state.writingTimerElapsed || 0) + live);
 }
 
-function saveWritingTimerState(running = Boolean(state.writingTimerStartedAt)) {
+function saveWritingTimerState(running = Boolean(state.writingTimerStartedAt), owner = state.localDataOwner) {
   try {
-    localStorage.setItem(writingTimerStoreKey, JSON.stringify({
+    writeOwnerStoredJson(writingTimerStoreKey, {
       setId: state.pendingWritingSetId || (state.uploadWritingTasks?.[0] ? `writing-task${writingTaskNumber(state.uploadWritingTasks[0]) || 2}:${state.uploadWritingTasks[0].id || "current"}` : "custom"),
       workspaceMode: state.writingWorkspaceMode,
       setupMode: state.writingSetupMode,
@@ -17221,23 +19017,27 @@ function saveWritingTimerState(running = Boolean(state.writingTimerStartedAt)) {
       duration: state.writingTimerDuration,
       running,
       savedAt: Date.now(),
-    }));
+    }, owner);
   } catch {}
 }
 
-function restoreWritingTimerState(expectedSetId = "") {
-  let saved = null;
-  try { saved = JSON.parse(localStorage.getItem(writingTimerStoreKey) || "null"); } catch {}
+function restoreWritingTimerState(expectedSetId = "", owner = state.localDataOwner) {
+  const saved = ownerStoredJson(writingTimerStoreKey, null, owner);
+  return restoreWritingTimerSnapshot(saved, expectedSetId);
+}
+
+function restoreWritingTimerSnapshot(saved, expectedSetId = "") {
   if (!saved || (expectedSetId && saved.setId && saved.setId !== expectedSetId)) return false;
   const offlineElapsed = saved.running ? Math.max(0, Math.floor((Date.now() - Number(saved.savedAt || Date.now())) / 1000)) : 0;
   state.writingTimerElapsed = Math.max(0, Number(saved.elapsed || 0) + offlineElapsed);
   state.writingTimerDuration = Math.max(1, Number(saved.duration || 60 * 60));
   state.writingSetupMode = saved.setupMode === "exam" ? "exam" : "coach";
   state.writingTimerStartedAt = saved.running ? Date.now() : 0;
+  state.writingTimerLastPersisted = -1;
   return true;
 }
 
-function renderWritingTimer() {
+function renderWritingTimer({ persist = true } = {}) {
   const elapsed = writingTimerElapsedSeconds();
   const value = state.writingWorkspaceMode === "cambridge"
     ? Math.max(0, state.writingTimerDuration - elapsed)
@@ -17247,7 +19047,7 @@ function renderWritingTimer() {
     node.textContent = text;
     node.dataset.timerDirection = state.writingWorkspaceMode === "cambridge" ? "countdown" : "elapsed";
   });
-  if (elapsed % 5 === 0 && state.writingTimerLastPersisted !== elapsed) {
+  if (persist && elapsed % 5 === 0 && state.writingTimerLastPersisted !== elapsed) {
     state.writingTimerLastPersisted = elapsed;
     saveWritingTimerState(true);
   }
@@ -17272,13 +19072,13 @@ function startWritingTimer({ reset = false, durationSeconds = 0 } = {}) {
   renderWritingTimer();
 }
 
-function stopWritingTimer({ pause = true } = {}) {
+function stopWritingTimer({ pause = true, persist = true } = {}) {
   if (pause && state.writingTimerStartedAt) state.writingTimerElapsed = writingTimerElapsedSeconds();
   state.writingTimerStartedAt = 0;
   if (state.writingTimerId) clearInterval(state.writingTimerId);
   state.writingTimerId = null;
-  saveWritingTimerState(false);
-  renderWritingTimer();
+  if (persist) saveWritingTimerState(false);
+  renderWritingTimer({ persist });
 }
 
 function currentWritingUploadCoachContext() {
@@ -17310,7 +19110,7 @@ function currentWritingUploadCoachContext() {
   };
 }
 
-function setWritingWorkspaceMode(mode = "entry") {
+function setWritingWorkspaceMode(mode = "entry", { preserveStoredTimer = false } = {}) {
   const next = ["entry", "cambridge", "custom"].includes(mode) ? mode : "entry";
   const entry = $("writingEntry");
   const workspace = $("writingWorkspace");
@@ -17328,7 +19128,7 @@ function setWritingWorkspaceMode(mode = "entry") {
     system.hidden = true;
     state.writingPromptCollapsed = false;
     workspace.classList.remove("prompt-collapsed");
-    stopWritingTimer();
+    stopWritingTimer({ persist: !preserveStoredTimer });
     return;
   }
   entry.hidden = true;
@@ -18465,11 +20265,11 @@ function renderWritingUploadHub() {
   $("startSelectedWriting")?.toggleAttribute("disabled", !fullTests.length);
 }
 
-function saveWritingUploadSessionPointer(setId = "", task1Id = "", task2Id = "") {
+function saveWritingUploadSessionPointer(setId = "", task1Id = "", task2Id = "", owner = state.localDataOwner) {
   const resolvedSetId = setId || state.pendingWritingSetId || "";
   if (!resolvedSetId) return;
   try {
-    localStorage.setItem(writingUploadSessionStoreKey, JSON.stringify({
+    writeOwnerStoredJson(writingUploadSessionStoreKey, {
       setId: resolvedSetId,
       task1Id: task1Id || state.selectedWritingTask1Id || writingUploadTaskByNumber(1)?.id || "",
       task2Id: task2Id || state.selectedWritingTask2Id || writingUploadTaskByNumber(2)?.id || "",
@@ -18477,7 +20277,7 @@ function saveWritingUploadSessionPointer(setId = "", task1Id = "", task2Id = "")
       practiceKind: state.pendingWritingKind || "topic",
       setupMode: state.writingSetupMode,
       updatedAt: new Date().toISOString(),
-    }));
+    }, owner);
   } catch {}
 }
 
@@ -18560,12 +20360,9 @@ function startWritingSystemPractice(mode = "recommended", config = {}) {
   if (config.scroll !== false) content.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-function restoreWritingUploadSessionAfterData() {
-  if (location.hash !== "#writing-upload") return false;
-  let session = null;
-  try {
-    session = JSON.parse(localStorage.getItem(writingUploadSessionStoreKey) || "null");
-  } catch {}
+function restoreWritingUploadSessionAfterData(options = {}) {
+  if (!options.force && location.hash !== "#writing-upload") return false;
+  const session = ownerStoredJson(writingUploadSessionStoreKey, null);
   const setId = String(session?.setId || "");
   const task1Id = String(session?.task1Id || "");
   const task2Id = String(session?.task2Id || "");
@@ -18962,6 +20759,11 @@ function bindListeningCaptionPlayers() {
     audio.controls = rule.canPause;
     audio.setAttribute("controlslist", rule.canSeek ? "nodownload" : "nodownload noplaybackrate");
     audio.disablePictureInPicture = true;
+    const players = [...document.querySelectorAll(`.listening-player[data-prefix="${CSS.escape(prefix)}"]`)].filter((item) => item.getAttribute("src"));
+    const statusSection = document.querySelector(`[data-listening-status][data-prefix="${CSS.escape(prefix)}"]`)?.dataset.section || "";
+    const isPrimaryPlayer = statusSection
+      ? String(audio.dataset.section || "") === String(statusSection)
+      : audio === players[0];
     let lastAllowedTime = Number(audio.currentTime || 0);
     const sync = async ({ restart = false } = {}) => {
       const prefix = audio.dataset.prefix || "single";
@@ -18989,25 +20791,32 @@ function bindListeningCaptionPlayers() {
     };
     audio.addEventListener("loadstart", () => {
       const record = listeningPlaybackRecord(audio.dataset.prefix || "single");
-      if (String(record.section || "") === String(audio.dataset.section || "")) setListeningPlaybackStatus(audio, "loading", "Loading");
+      if (record.loadRequested && String(record.section || "") === String(audio.dataset.section || "")) {
+        setListeningPlaybackStatus(audio, "loading", "Loading audio");
+      } else if (isPrimaryPlayer && audio.paused && !audio.ended) {
+        setListeningPlaybackStatus(audio, "ready", "Ready to play");
+      }
     });
     audio.addEventListener("play", () => {
       const prefix = audio.dataset.prefix || "single";
       if (prefix === "single" && state.activeModule === "listening" && !state.singleTimerId) startSingleTimer();
-      setListeningPlaybackStatus(audio, "playing", "Playing");
+      setListeningPlaybackStatus(audio, audio.readyState >= 3 ? "playing" : "loading", audio.readyState >= 3 ? "Playing" : "Loading audio");
       sync({ restart: true });
     });
     audio.addEventListener("playing", () => {
+      settleListeningLoadRequest(audio);
       setListeningPlaybackStatus(audio, "playing", "Playing");
       sync({ restart: true });
     });
     audio.addEventListener("canplay", () => {
+      settleListeningLoadRequest(audio);
       if (audio.paused && !audio.ended) setListeningPlaybackStatus(audio, "ready", "Ready to play");
       sync({ restart: false });
     });
     audio.addEventListener("timeupdate", () => sync({ restart: false }));
     audio.addEventListener("pause", () => {
       const prefix = audio.dataset.prefix || "single";
+      settleListeningLoadRequest(audio);
       if (!audio.seeking) stopTimedListeningCaptionLoop(prefix, audio.dataset.section || "");
       if (prefix === "single" && state.activeModule === "listening" && currentSinglePracticeMode("listening") !== "exam" && state.singleTimerId) stopSingleTimer();
       if (!audio.ended) setListeningPlaybackStatus(audio, "paused", "Paused");
@@ -19022,11 +20831,15 @@ function bindListeningCaptionPlayers() {
       sync({ restart: true });
     });
     audio.addEventListener("loadedmetadata", () => {
+      settleListeningLoadRequest(audio);
       lastAllowedTime = Number(audio.currentTime || 0);
-      setListeningPlaybackStatus(audio, "ready", "Ready to play");
+      if (audio.paused && !audio.ended) setListeningPlaybackStatus(audio, "ready", "Ready to play");
       sync({ restart: false });
     });
-    audio.addEventListener("error", () => setListeningPlaybackStatus(audio, "failed", "Playback failed"));
+    audio.addEventListener("error", () => {
+      settleListeningLoadRequest(audio);
+      setListeningPlaybackStatus(audio, "failed", "Playback failed");
+    });
     audio.addEventListener("ended", () => {
       const prefix = audio.dataset.prefix || "single";
       const section = audio.dataset.section || "";
@@ -19038,7 +20851,32 @@ function bindListeningCaptionPlayers() {
     audio.addEventListener("timeupdate", () => {
       if (!audio.seeking) lastAllowedTime = Number(audio.currentTime || 0);
     });
+    if (isPrimaryPlayer && audio.paused && !audio.ended) {
+      const record = listeningPlaybackRecord(prefix);
+      record.loadRequested = false;
+      setListeningPlaybackStatus(audio, audio.error ? "failed" : "ready", audio.error ? "Playback failed" : "Ready to play");
+    }
   });
+}
+
+function settleListeningLoadRequest(audio) {
+  if (!audio) return;
+  const record = listeningPlaybackRecord(audio.dataset.prefix || "single");
+  record.loadRequested = false;
+  delete audio.dataset.loadRequestId;
+}
+
+function armListeningLoadTimeout(audio) {
+  if (!audio) return;
+  const requestId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  audio.dataset.loadRequestId = requestId;
+  window.setTimeout(() => {
+    if (!audio.isConnected || audio.dataset.loadRequestId !== requestId) return;
+    const record = listeningPlaybackRecord(audio.dataset.prefix || "single");
+    if (!record.loadRequested || !["loading", "playing"].includes(record.status)) return;
+    settleListeningLoadRequest(audio);
+    setListeningPlaybackStatus(audio, "failed", "Audio did not load. Tap retry.");
+  }, 12000);
 }
 
 function bindListeningPlaybackControls() {
@@ -19056,12 +20894,17 @@ function bindListeningPlaybackControls() {
       document.querySelectorAll(`.listening-player[data-prefix="${prefix}"]`).forEach((other) => {
         if (other !== audio && !other.paused) other.pause();
       });
+      const record = listeningPlaybackRecord(prefix);
+      record.loadRequested = true;
+      record.section = audio.dataset.section || section;
+      armListeningLoadTimeout(audio);
       setListeningPlaybackStatus(audio, audio.readyState >= 3 ? "ready" : "loading", audio.readyState >= 3 ? "Ready to play" : "Loading");
       try {
         if (audio.readyState === 0) audio.load();
         if (prefix === "single" && state.activeModule === "listening" && !state.singleTimerId) startSingleTimer();
         await audio.play();
       } catch {
+        settleListeningLoadRequest(audio);
         if (prefix === "single" && state.activeModule === "listening" && state.singleTimerId) stopSingleTimer();
         setListeningPlaybackStatus(audio, "failed", "Playback failed");
       }
@@ -19231,7 +21074,7 @@ function focusReadingQuestion(number) {
     const questionImage = questionPageNode.querySelector("img");
     if (questionImage && !questionImage.complete) questionImage.addEventListener("load", syncQuestionPage, { once: true });
   }
-  target?.querySelector("input")?.focus({ preventScroll: true });
+  target?.querySelector(".objective-answer-control, input:not([type='hidden']), select, textarea")?.focus({ preventScroll: true });
   if (answerScroll) {
     requestAnimationFrame(() => {
       const rect = answerScroll.getBoundingClientRect();
@@ -19349,12 +21192,28 @@ function bindReadingWorkspaceControls() {
   });
 }
 
+function bindExamSessionPersistence() {
+  ["exam", "sequence"].forEach((prefixRoot) => {
+    const root = $(prefixRoot === "exam" ? "examPaper" : "sequencePaper");
+    if (!root) return;
+    root.querySelectorAll("textarea, input, select").forEach((field) => {
+      if (field.dataset.examSessionBound === "1") return;
+      field.dataset.examSessionBound = "1";
+      const persist = () => persistExamSession(prefixRoot);
+      field.addEventListener("input", persist);
+      field.addEventListener("change", persist);
+    });
+  });
+}
+
 function bindDynamicControls() {
   bindHelpControls();
   bindPdfAnnotations();
+  bindObjectiveAnswerControls();
   bindListeningCaptionPlayers();
   bindListeningPlaybackControls();
   bindReadingWorkspaceControls();
+  bindExamSessionPersistence();
   ensureAccessibleSelectLabels();
   bindWritingTaskTabs();
   document.querySelectorAll(".back-submit-button").forEach((button) => {
@@ -19541,29 +21400,22 @@ function bindDynamicControls() {
 }
 
 function loadBank() {
-  try {
-    state.userBank = JSON.parse(localStorage.getItem(storeKey) || "[]");
-  } catch {
-    state.userBank = [];
-  }
+  const value = ownerStoredJson(storeKey, []);
+  state.userBank = Array.isArray(value) ? value : [];
 }
 
 function saveBank() {
-  localStorage.setItem(storeKey, JSON.stringify(state.userBank));
+  writeOwnerStoredJson(storeKey, state.userBank);
   renderBankList();
 }
 
 function readLikedTopicIds() {
-  try {
-    const ids = JSON.parse(localStorage.getItem(likedTopicStoreKey) || "[]");
-    return Array.isArray(ids) ? ids.filter(Boolean) : [];
-  } catch {
-    return [];
-  }
+  const ids = ownerStoredJson(likedTopicStoreKey, []);
+  return Array.isArray(ids) ? ids.filter(Boolean) : [];
 }
 
 function writeLikedTopicIds(ids) {
-  localStorage.setItem(likedTopicStoreKey, JSON.stringify([...new Set(ids.filter(Boolean))].slice(0, 500)));
+  writeOwnerStoredJson(likedTopicStoreKey, [...new Set(ids.filter(Boolean))].slice(0, 500));
 }
 
 function isTopicLiked(id) {
@@ -20339,10 +22191,16 @@ function activateView(viewId, updateHash = false, options = {}) {
     }
   }
   if (viewId === "writing-upload") {
-    setWritingWorkspaceMode("entry");
+    setWritingWorkspaceMode("entry", { preserveStoredTimer: true });
     renderWritingUploadHub();
+    restoreWritingUploadSessionAfterData({ force: true });
   }
   if (viewId === "bank") renderBankList();
+  if (viewId === "sequence" && !state.sequence) {
+    // Render the explicit All/All state on first entry. buildSequence() stops
+    // before generating a paper until the student chooses both controls.
+    buildSequence();
+  }
   if (viewId === "vocabulary") {
     if (previousView !== "vocabulary" && vocabularyRouteContextFromLocation().from !== "stem") state.vocabularyReview.page = "hub";
     renderVocabularyTrainer();
@@ -20356,6 +22214,9 @@ function activateView(viewId, updateHash = false, options = {}) {
     applySidebarState(true);
   }
   if (updateHash) history.replaceState(null, "", "#" + viewId);
+  // Recompute after the route has settled so the STEM handoff returns to this view,
+  // while canonicalProductReturnUrl still removes any bridge parameters.
+  updateStemProductSwitchLinks();
 }
 
 function applyInitialHash() {
@@ -20447,7 +22308,11 @@ function bindEvents() {
     }
   });
   window.addEventListener("hashchange", applyInitialHash);
-  window.addEventListener("beforeunload", savePracticeSession);
+  window.addEventListener("beforeunload", () => {
+    persistExamSession("exam");
+    persistExamSession("sequence");
+    savePracticeSession();
+  });
   document.addEventListener("click", (event) => {
     const transcriptClose = event.target.closest?.("#captionTranscriptClose");
     if (transcriptClose) {
@@ -20663,12 +22528,26 @@ async function fetchTaskDataWithRetry(attempts = 3) {
   throw lastError || new Error("Task library could not be loaded");
 }
 
+function bindLocalOwnerStorageSync() {
+  window.addEventListener("storage", (event) => {
+    if (![authStoreKey, localDataOwnerStoreKey].includes(event.key)) return;
+    cancelOwnerBoundWork();
+    resetOwnerVisibleState();
+    window.location.reload();
+  });
+}
+
 async function init() {
+  state.authBridge = captureStemAuthBridgeFromLocation();
   bindEvents();
+  bindLocalOwnerStorageSync();
   window.addEventListener("pagehide", () => {
+    persistExamSession("exam");
+    persistExamSession("sequence");
     if (state.writingWorkspaceMode !== "entry") saveWritingTimerState(Boolean(state.writingTimerStartedAt));
   });
   state.authToken = localStorage.getItem(authStoreKey) || "";
+  await initializeLocalDataOwner();
   loadBank();
   loadCoreVocabularyKnown();
   state.data = await fetchTaskDataWithRetry();
@@ -20689,6 +22568,10 @@ async function init() {
   renderVocabularyTrainer();
   void ensureIeltsCoreVocabularyLoaded();
   renderWritingUploadHub();
+  applyInitialHash();
+  restoreWritingUploadSessionAfterData();
+  const restoredRandomExam = restoreExamSessionAfterData("exam");
+  const restoredSameTest = restoreExamSessionAfterData("sequence");
   window.lucide?.createIcons?.({ attrs: { "stroke-width": 1.8 } });
   renderCoach();
   refreshMineData();
@@ -20696,8 +22579,11 @@ async function init() {
   ensureAccessibleSelectLabels();
   document.querySelectorAll(".module-btn").forEach((item) => item.classList.toggle("active", item.dataset.module === state.activeModule));
   bindHomeControls(document);
-  $("examPaper").innerHTML = `<section class="panel notice">Click Generate random exam to load a full paper.</section>`;
-  $("sequencePaper").innerHTML = `<section class="panel notice">Choose a Cambridge test, then click Generate same-test paper.</section>`;
+  if (!restoredRandomExam) $("examPaper").innerHTML = `<section class="panel notice">Click Generate random exam to load a full paper.</section>`;
+  if (!restoredSameTest) {
+    if (activeViewId() === "sequence") buildSequence();
+    else $("sequencePaper").innerHTML = `<section class="panel notice">Choose a Cambridge test, then click Generate same-test paper.</section>`;
+  }
   renderExamTimer();
   renderSequenceTimer();
   if (restoredPractice) renderSingleTimer();
@@ -20708,9 +22594,8 @@ async function init() {
   singleActions.innerHTML = `<button id="submitSingle" class="primary">Submit single module</button>`;
   $("singleContent").after(singleActions);
   $("submitSingle").addEventListener("click", submitSingle);
-  applyInitialHash();
-  restoreWritingUploadSessionAfterData();
   if (restoredPractice && location.hash === "#single") setSingleImmersive(state.activeModule);
+  await processStemAuthBridge();
 }
 
 init().catch((error) => {

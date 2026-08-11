@@ -58,6 +58,7 @@ try {
   const desktop = await browser.newPage({ viewport: { width: 1280, height: 720 } });
   await desktop.goto(`${baseUrl}/?unified=desktop#writing-upload`, { waitUntil: "networkidle" });
   await desktop.waitForFunction(() => !/Loading recommendation/i.test(document.querySelector("#writingRecommendedReason")?.textContent || ""));
+  assert.equal(await desktop.locator("button button").count(), 0, "Writing/Speaking library DOM must not nest interactive buttons");
   assert.equal(await desktop.locator('[data-writing-scope="full"]').getAttribute("aria-selected"), "true", "Full test must be the default Writing scope");
   const fullTestCard = desktop.locator(".writing-full-test-card[data-writing-full-test-id]").first();
   assert.ok(await fullTestCard.count(), "P0: Writing Full test cards must survive refresh");
@@ -92,7 +93,7 @@ try {
   await desktop.locator('[data-writing-task-tab="2"]').click();
   await desktop.locator("#upload-system-task2-writing").fill(task2Draft);
   await desktop.waitForTimeout(900);
-  const fullSessionBeforeReload = await desktop.evaluate(() => JSON.parse(localStorage.getItem("ieltsistWritingUploadSessionV1") || "null"));
+  const fullSessionBeforeReload = await desktop.evaluate(() => ownerStoredJson(writingUploadSessionStoreKey, null));
   assert.deepEqual(
     {
       setId: fullSessionBeforeReload?.setId,
@@ -124,6 +125,36 @@ try {
   assert.equal(await desktop.locator("#upload-system-task1-writing").inputValue(), task1Draft, "Full test refresh lost the Task 1 draft");
   assert.equal(await desktop.locator("#upload-system-task2-writing").inputValue(), task2Draft, "Full test refresh lost the Task 2 draft");
   assert.match(await desktop.locator("[data-writing-timer]").innerText(), /^(?:60:00|59:5\d|59:4\d)$/, "Full test refresh must restore the running 60-minute timer");
+
+  await desktop.waitForTimeout(900);
+  const restoreContractBefore = await desktop.evaluate(() => ({
+    count: readLocalDrafts().length,
+    key: latestWritingDraft()?.key || "",
+    remaining: Math.max(0, state.writingTimerDuration - writingTimerElapsedSeconds()),
+  }));
+  assert.ok(restoreContractBefore.key, "Full test must expose one stable restorable draft key");
+  for (let restoreIndex = 0; restoreIndex < 5; restoreIndex += 1) {
+    await desktop.evaluate(() => {
+      activateView("mine", true);
+      renderMine();
+    });
+    await desktop.locator(`.restore-draft[data-draft-key="${restoreContractBefore.key}"]`).click();
+    await desktop.locator(".writing-practice-shell").waitFor({ state: "visible" });
+    assert.equal(await desktop.locator(".writing-practice-shell textarea").count(), 2, `Restore ${restoreIndex + 1} lost full-test scope`);
+    assert.equal(await desktop.locator("#upload-system-task1-writing").inputValue(), task1Draft, `Restore ${restoreIndex + 1} lost Task 1`);
+    assert.equal(await desktop.locator("#upload-system-task2-writing").inputValue(), task2Draft, `Restore ${restoreIndex + 1} lost Task 2`);
+  }
+  const restoreContractAfter = await desktop.evaluate(() => ({
+    count: readLocalDrafts().length,
+    remaining: Math.max(0, state.writingTimerDuration - writingTimerElapsedSeconds()),
+    kind: state.pendingWritingKind,
+  }));
+  assert.equal(restoreContractAfter.count, restoreContractBefore.count, "Five Restore actions must not duplicate a Writing draft");
+  assert.equal(restoreContractAfter.kind, "full-test", "Restore must preserve Task 1 + Task 2 scope");
+  assert.ok(
+    restoreContractAfter.remaining <= restoreContractBefore.remaining && restoreContractAfter.remaining >= restoreContractBefore.remaining - 20,
+    `Restore must preserve the running timer instead of resetting it (${restoreContractBefore.remaining} -> ${restoreContractAfter.remaining})`,
+  );
 
   await desktop.locator("#changeWritingTask").click();
   await desktop.locator("#openCustomWriting").click();

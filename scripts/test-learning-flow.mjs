@@ -296,14 +296,14 @@ check("Home", "Homepage exposes a resumable local practice session", ({ app }) =
   const restore = functionSource(app, "restorePracticeSessionAfterData");
   assert.match(restore, /readPracticeSession\(\)/);
   assert.match(restore, /state\.singleStarted\s*=\s*true/);
-  assert.match(dashboard, /readPracticeSession\(\)|practiceSessionStoreKey/,
-    "Dashboard must inspect the saved practice session");
+  assert.match(dashboard, /readPracticeSessions?\(\)|practiceSessionStoreKey/,
+    "Dashboard must inspect saved practice sessions");
   assert.match(dashboard, /Continue(?:\s+last)?\s+practice|Resume(?:\s+practice)?/i,
     "Dashboard must render an explicit Continue/Resume action");
   assert.match(dashboard, /resume-practice:\$\{resumableSession\.module\}:\$\{encodeURIComponent\(resumableSession\.itemId\)\}/,
     "The resume button must bind the same module and paper shown on its card");
-  assert.match(restore, /hasExpectedTarget\s*&&\s*!sessionMatchesTarget/,
-    "Resume must reject a stale saved session from another module");
+  assert.match(restore, /readPracticeSession\(expectedModule,\s*expectedItemId\)/,
+    "Resume must select the requested module and paper instead of a different saved session");
   assert.match(restore, /session\.module\s*===\s*["']speaking["']/,
     "PDF practice must restore pane scroll without restoring a page offset under the sticky header");
 });
@@ -344,8 +344,8 @@ check("Home", "Dashboard keeps compact score and AI Coach history", ({ app }) =>
   assert.match(history, /readCoachHistoryThreads\(\)/,
     "Dashboard Coach history must come from persisted threads");
   assert.match(readThreads, /coachHistoryStoreKey/);
-  assert.match(persistThread, /localStorage\.setItem\(coachHistoryStoreKey/,
-    "Coach turns must survive refreshes");
+  assert.match(persistThread, /writeOwnerStoredJson\(coachHistoryStoreKey/,
+    "Coach turns must survive refreshes inside the active account namespace");
   assert.match(rebind, /restoreCoachThread\(next\)/,
     "Switching context must restore the matching Coach thread");
 });
@@ -395,11 +395,11 @@ check("Reading", "Question navigation is a top horizontal strip", ({ app }) => {
 
 check("Reading", "Question navigation synchronizes passage, question paper and answer row", ({ app }) => {
   const split = functionSource(app, "renderReadingSplitPages");
-  const answerGroup = functionSource(app, "renderAnswerGroup");
+  const answerEntries = functionSource(app, "renderObjectiveAnswerEntries");
   const focus = functionSource(app, "focusReadingQuestion");
   assert.match(split, /readingPassagePageByQuestion/,
     "Reading split layout must map every question to its passage start page");
-  assert.match(answerGroup, /data-reading-passage-page/,
+  assert.match(answerEntries, /data-reading-passage-page/,
     "Each answer row must carry its matching passage page");
   assert.match(focus, /\.reading-passage-pane/,
     "Question navigation must scroll the passage pane");

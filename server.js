@@ -21,11 +21,17 @@ loadEnvFile(path.join(__dirname, ".env"));
 loadEnvFile(path.join(__dirname, "..", ".env"));
 
 const PORT = Number(process.env.PORT || 4321);
+const SERVER_HOST = process.env.NODE_ENV === "production"
+  ? "127.0.0.1"
+  : String(process.env.IELTSIST_BIND_HOST || "0.0.0.0").trim() || "0.0.0.0";
 const STARTED_AT = Date.now();
 const PUBLIC_DIR = path.join(__dirname, "public");
 const APP_DB_PATH = process.env.IELTSIST_DB_PATH || path.join(__dirname, "data", "ieltsist.sqlite");
 // Session cookies are only sent over HTTPS by default; set this to 0 for an explicitly HTTP-only local setup.
 const SESSION_COOKIE_SECURE = String(process.env.SESSION_COOKIE_SECURE || "1").trim() !== "0";
+const OBJECTIVE_GUEST_COOKIE = "ieltsist_objective_guest";
+const OBJECTIVE_ATTEMPT_TTL_MS = 24 * 60 * 60 * 1000;
+const OBJECTIVE_GUEST_DAILY_SUBMISSION_LIMIT = Math.max(1, Math.min(200, Number.parseInt(process.env.OBJECTIVE_GUEST_DAILY_SUBMISSION_LIMIT || "12", 10) || 12));
 const ADMIN_API_SECRET = process.env.ADMIN_API_SECRET || "";
 const USER_ROLE_ORDER = ["student", "teacher", "school_admin", "school_owner", "staff"];
 const VALID_USER_ROLES = new Set(USER_ROLE_ORDER);
@@ -77,6 +83,9 @@ const STEM_MARKING_AI_BASE_URL = STEM_MARKING_AI_DISABLED ? "" : (process.env.ST
 const STEM_MARKING_AI_API_KEY = STEM_MARKING_AI_DISABLED ? "" : (process.env.STEM_MARKING_AI_API_KEY || COACH_AI_API_KEY);
 const STEM_MARKING_QUEUE_DISABLED = process.env.STEM_MARKING_QUEUE_DISABLED === "1";
 const STEM_MARKING_TRUSTED_MANIFEST_PATH = String(process.env.STEM_MARKING_TRUSTED_MANIFEST_PATH || "").trim();
+const STEM_MARKING_MANIFEST_SCHEMA_VERSION = "stem-marking-manifest.v2";
+const STEM_MARKING_REVIEW_SCHEMA_VERSION = "stem-source-review.v1";
+const STEM_MARKING_REVIEW_STATUSES = new Set(["approved", "unreviewed", "quarantined", "stale"]);
 const SPEAKING_AUDIO_AI_MODEL = process.env.SPEAKING_AUDIO_AI_MODEL || process.env.QWEN_SPEAKING_AUDIO_MODEL || "qwen3.5-omni-flash";
 const SPEAKING_AUDIO_AI_BASE_URL = (process.env.SPEAKING_AUDIO_AI_BASE_URL || process.env.QWEN_SPEAKING_AUDIO_BASE_URL || DASHSCOPE_COMPAT_BASE_URL).replace(/\/+$/, "");
 const SPEAKING_AUDIO_AI_API_KEY = process.env.SPEAKING_AUDIO_AI_API_KEY || process.env.QWEN_SPEAKING_AUDIO_API_KEY || DASHSCOPE_API_KEY;
@@ -523,6 +532,11 @@ function slimQuestions(questions, metadata = new Map()) {
           type: question.type || meta.type || "unknown",
           typeLabel: question.typeLabel || meta.typeLabel || "Question",
           questionPage: question.questionPage || meta.questionPage || null,
+          options: Array.isArray(question.options) && question.options.length
+            ? question.options
+            : Array.isArray(meta.options) ? meta.options : [],
+          selectionLimit: Number(question.selectionLimit || meta.selectionLimit || 1),
+          optionGroupId: String(question.optionGroupId || meta.optionGroupId || ""),
         };
       })
     : [];
@@ -641,6 +655,80 @@ function listeningTypeConfidence(type) {
   return 0;
 }
 
+function objectiveFixedOptions(type) {
+  if (type === "true_false_not_given") {
+    return ["TRUE", "FALSE", "NOT GIVEN"].map((value) => ({ value, label: value }));
+  }
+  if (type === "yes_no_not_given") {
+    return ["YES", "NO", "NOT GIVEN"].map((value) => ({ value, label: value }));
+  }
+  return [];
+}
+
+function objectiveSelectionLimit(instructions) {
+  const words = { two: 2, three: 3, four: 4, five: 5, six: 6 };
+  const match = String(instructions || "").match(/choose\s+(two|three|four|five|six|[2-6])\s+(?:letters|answers)/i);
+  if (!match) return 1;
+  return Number(words[String(match[1]).toLowerCase()] || match[1]) || 1;
+}
+
+function objectiveOptionLines(text) {
+  const seen = new Set();
+  return String(text || "")
+    .split(/\r?\n/)
+    .map((line) => line.replace(/^[^A-Za-z0-9]+/, "").replace(/\s+/g, " ").trim())
+    .map((line) => line.match(/^([A-I])(?:\s*[.)€©]?\s+)(.{1,220})$/))
+    .filter(Boolean)
+    .map((match) => ({ value: match[1].toUpperCase(), label: match[2].trim() }))
+    .filter((option) => option.label && !seen.has(option.value) && seen.add(option.value));
+}
+
+function objectiveOptionsByQuestion(instructions, type, start, end) {
+  const fixed = objectiveFixedOptions(type);
+  if (fixed.length) return new Map(Array.from({ length: end - start + 1 }, (_, index) => [start + index, fixed]));
+  const lines = String(instructions || "").split(/\r?\n/);
+  const questionLineIndex = new Map();
+  for (let number = start; number <= end; number += 1) {
+    const pattern = new RegExp(`^\\D*${number}(?:\\s|[.)])`);
+    const index = lines.findIndex((line) => pattern.test(line));
+    if (index >= 0) questionLineIndex.set(number, index);
+  }
+  const result = new Map();
+  if (type === "multiple_choice") {
+    for (let number = start; number <= end; number += 1) {
+      const from = questionLineIndex.get(number);
+      if (from === undefined) continue;
+      const later = [...questionLineIndex.entries()].filter(([candidate, index]) => candidate > number && index > from).sort((a, b) => a[1] - b[1])[0];
+      const options = objectiveOptionLines(lines.slice(from + 1, later?.[1] ?? lines.length).join("\n"));
+      if (options.length >= 2) result.set(number, options);
+    }
+    return result;
+  }
+  if (["multiple_choice_multiple", "matching", "matching_headings", "matching_information", "matching_features", "map_plan_labelling"].includes(type)) {
+    const options = objectiveOptionLines(instructions);
+    if (options.length >= 2) {
+      for (let number = start; number <= end; number += 1) result.set(number, options);
+    }
+  }
+  return result;
+}
+
+function enrichObjectiveQuestionMetadata({ type, typeLabel, questionPage, instructions, start, end, number }) {
+  const options = objectiveOptionsByQuestion(instructions, type, start, end).get(number)
+    || (["unknown", "matching", "matching_headings", "matching_information", "matching_features", "map_plan_labelling"].includes(type)
+      ? objectiveOptionLines(instructions)
+      : []);
+  const selectionLimit = type === "multiple_choice_multiple" ? objectiveSelectionLimit(instructions) : 1;
+  return {
+    type,
+    typeLabel,
+    questionPage,
+    options,
+    selectionLimit,
+    optionGroupId: type === "multiple_choice_multiple" ? `q${start}-q${end}` : "",
+  };
+}
+
 function readingQuestionMetadata(paper) {
   const metadata = new Map();
   for (const [page, text] of parseReadingPaperPages(paper)) {
@@ -654,10 +742,10 @@ function readingQuestionMetadata(paper) {
       const end = Number(heading[2]);
       if (start < 1 || end > 40 || end < start) return;
       const nextIndex = headings[index + 1]?.index ?? String(text).length;
-      const instructions = String(text).slice(heading.index, Math.min(nextIndex, heading.index + 1000));
+      const instructions = String(text).slice(heading.index, Math.min(nextIndex, heading.index + 2600));
       const [type, typeLabel] = objectiveQuestionType(instructions);
       for (let number = start; number <= end; number += 1) {
-        metadata.set(number, { type, typeLabel, questionPage: page });
+        metadata.set(number, enrichObjectiveQuestionMetadata({ type, typeLabel, questionPage: page, instructions, start, end, number }));
       }
     });
   }
@@ -673,14 +761,25 @@ function listeningQuestionMetadata(paper) {
       const end = Number(String(heading[2]).replace(/\s+/g, ""));
       if (start < 1 || end > 40 || end < start) return;
       const nextIndex = headings[index + 1]?.index ?? String(text).length;
-      const instructions = String(text).slice(heading.index, Math.min(nextIndex, heading.index + 1200));
+      const instructions = String(text).slice(heading.index, Math.min(nextIndex, heading.index + 2600));
       const [type, typeLabel] = listeningQuestionType(instructions);
       const confidence = listeningTypeConfidence(type);
       const rangeSize = end - start + 1;
       for (let number = start; number <= end; number += 1) {
         const previous = metadata.get(number);
-        if (!previous || confidence > previous.confidence || (confidence === previous.confidence && rangeSize < previous.rangeSize)) {
-          metadata.set(number, { type, typeLabel, questionPage: page, confidence, rangeSize });
+        const enriched = enrichObjectiveQuestionMetadata({ type, typeLabel, questionPage: page, instructions, start, end, number });
+        const preserveTypeForRicherOptions = Boolean(previous && type === "unknown" && previous.type !== "unknown" && (enriched.options?.length || 0) > (previous.options?.length || 0));
+        const candidate = preserveTypeForRicherOptions ? { ...previous, options: enriched.options } : enriched;
+        const richerOptions = (candidate.options?.length || 0) > (previous?.options?.length || 0);
+        if (!previous
+          || confidence > previous.confidence
+          || (confidence === previous.confidence && rangeSize < previous.rangeSize)
+          || richerOptions) {
+          metadata.set(number, {
+            ...candidate,
+            confidence: candidate.confidence ?? confidence,
+            rangeSize: candidate.rangeSize ?? rangeSize,
+          });
         }
       }
     });
@@ -993,7 +1092,9 @@ function loadEnvFile(filePath) {
     if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
       value = value.slice(1, -1);
     }
-    process.env[key] = value;
+    // Explicit process configuration must win over local defaults. This keeps
+    // production, test and one-off provider overrides from being silently replaced.
+    if (process.env[key] === undefined) process.env[key] = value;
   }
 }
 
@@ -1390,10 +1491,48 @@ async function resolveListeningScripts(test, pageImageUrls = [], options = {}) {
   return value;
 }
 
+const SPEAKING_OCR_CORRECTIONS = Object.freeze({
+  // Cambridge 21 Test 3's source image is valid, but its OCR included the
+  // cue-card note panel in the prompt. Keep the imported source and image,
+  // while showing the paper wording rather than the corrupted overlay.
+  "cam21-s-test3": {
+    title: "Interesting garden or park",
+    part2: [
+      "Describe an interesting garden or park.",
+      "You should say:",
+      "where this garden or park is",
+      "how big it is",
+      "what you saw in this garden or park",
+      "and explain why you think this garden or park is interesting.",
+    ].join("\n"),
+  },
+});
+
+function correctedSpeakingSet(set) {
+  if (!set || typeof set !== "object") return null;
+  const correction = SPEAKING_OCR_CORRECTIONS[String(set.id || "")] || null;
+  return correction ? { ...set, ...correction } : { ...set };
+}
+
+function speakingSetQualityIssue(set) {
+  const title = String(set?.title || "").replace(/\s+/g, " ").trim();
+  const part1 = Array.isArray(set?.part1) ? set.part1.map((value) => String(value || "").trim()).filter(Boolean) : [];
+  const part2 = String(set?.part2 || "").replace(/\s+/g, " ").trim();
+  const part3 = Array.isArray(set?.part3) ? set.part3.map((value) => String(value || "").trim()).filter(Boolean) : [];
+  if (title.length < 8 || part1.length < 2 || part2.length < 60 || part3.length < 2) return "incomplete";
+  if (!/^(describe|talk about|tell me about)\b/i.test(part2) || !/you should say:/i.test(part2)) return "invalid_cue_card";
+  if (/\b(?:what you(?:'|')?re going to|you(?:'|')?re going to|notes to|for 1 to)\b/i.test(part2)) return "ocr_overlay";
+  const questionCount = [...part1, ...part3].filter((question) => /\?\s*$/.test(question)).length;
+  if (questionCount < Math.max(3, Math.floor((part1.length + part3.length) * 0.7))) return "truncated_questions";
+  return "";
+}
+
 function getSpeakingSets() {
   const bank = loadQuestionBank(SPEAKING_BANK_PATH);
   const sets = Array.isArray(bank.speakingSets) ? bank.speakingSets : [];
-  const visibleSets = sets.filter((set) => isEnabledCambridgeBook(set) && hasPageImages(set, "speakingPageImages"));
+  const visibleSets = sets
+    .map(correctedSpeakingSet)
+    .filter((set) => isEnabledCambridgeBook(set) && hasPageImages(set, "speakingPageImages") && !speakingSetQualityIssue(set));
   return visibleSets.length
     ? visibleSets
     : fallbackSpeakingSets;
@@ -1771,6 +1910,50 @@ function getAppDb() {
       submitted_at TEXT NOT NULL
     );
     CREATE INDEX IF NOT EXISTS idx_practice_attempts_user_submitted ON practice_attempts(user_id, submitted_at DESC);
+    CREATE TABLE IF NOT EXISTS objective_exam_attempts (
+      exam_id TEXT PRIMARY KEY,
+      client_exam_key TEXT NOT NULL,
+      owner_key TEXT NOT NULL,
+      user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      exam_token_hash TEXT NOT NULL,
+      context TEXT NOT NULL CHECK (context IN ('same-test', 'random-exam')),
+      listening_task_id TEXT NOT NULL,
+      reading_task_id TEXT NOT NULL,
+      manifest_json TEXT NOT NULL DEFAULT '{}',
+      status TEXT NOT NULL CHECK (status IN ('open', 'submitted')),
+      created_at TEXT NOT NULL,
+      expires_at TEXT NOT NULL,
+      submitted_at TEXT,
+      UNIQUE(owner_key, client_exam_key)
+    );
+    CREATE INDEX IF NOT EXISTS idx_objective_exam_attempts_owner_status ON objective_exam_attempts(owner_key, status, created_at DESC);
+    CREATE TABLE IF NOT EXISTS objective_attempts (
+      attempt_id TEXT PRIMARY KEY,
+      client_attempt_key TEXT NOT NULL,
+      owner_key TEXT NOT NULL,
+      user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      attempt_token_hash TEXT NOT NULL,
+      context TEXT NOT NULL CHECK (context IN ('single', 'same-test', 'random-exam')),
+      module TEXT NOT NULL CHECK (module IN ('listening', 'reading')),
+      task_id TEXT NOT NULL,
+      parent_exam_id TEXT REFERENCES objective_exam_attempts(exam_id) ON DELETE CASCADE,
+      question_ids_json TEXT NOT NULL,
+      status TEXT NOT NULL CHECK (status IN ('open', 'submitted')),
+      answers_digest TEXT,
+      result_json TEXT,
+      created_at TEXT NOT NULL,
+      expires_at TEXT NOT NULL,
+      submitted_at TEXT,
+      UNIQUE(owner_key, client_attempt_key, module)
+    );
+    CREATE INDEX IF NOT EXISTS idx_objective_attempts_owner_status ON objective_attempts(owner_key, status, created_at DESC);
+    CREATE TABLE IF NOT EXISTS objective_guest_submission_limits (
+      rate_key TEXT NOT NULL,
+      window_date TEXT NOT NULL,
+      submissions INTEGER NOT NULL DEFAULT 0,
+      updated_at TEXT NOT NULL,
+      PRIMARY KEY (rate_key, window_date)
+    );
     CREATE TABLE IF NOT EXISTS weak_areas (
       weak_area_id TEXT PRIMARY KEY,
       user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -1833,6 +2016,9 @@ function getAppDb() {
   `).run();
   const profileColumns = new Set(appDb.prepare("PRAGMA table_info(learner_profiles)").all().map((column) => column.name));
   if (!profileColumns.has("current_band")) appDb.exec("ALTER TABLE learner_profiles ADD COLUMN current_band REAL");
+  const objectiveAttemptColumns = new Set(appDb.prepare("PRAGMA table_info(objective_attempts)").all().map((column) => column.name));
+  if (!objectiveAttemptColumns.has("parent_exam_id")) appDb.exec("ALTER TABLE objective_attempts ADD COLUMN parent_exam_id TEXT REFERENCES objective_exam_attempts(exam_id) ON DELETE CASCADE");
+  appDb.exec("CREATE INDEX IF NOT EXISTS idx_objective_attempts_parent_exam ON objective_attempts(parent_exam_id, module)");
   return appDb;
 }
 
@@ -1908,6 +2094,31 @@ function requireUser(req) {
   }
   db.prepare("UPDATE sessions SET last_seen_at = ? WHERE token_hash = ?").run(nowIso(), tokenHash);
   return row;
+}
+
+function optionalUser(req) {
+  try {
+    return requireUser(req);
+  } catch (error) {
+    if (error.statusCode === 401) return null;
+    throw error;
+  }
+}
+
+function requestCookie(req, name) {
+  const cookie = String(req.headers.cookie || "");
+  const raw = cookie.split(/;\s*/).find((part) => part.startsWith(`${name}=`))?.slice(name.length + 1) || "";
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return "";
+  }
+}
+
+function appendResponseCookie(res, value) {
+  const existing = res.getHeader("Set-Cookie");
+  const values = Array.isArray(existing) ? existing : existing ? [existing] : [];
+  res.setHeader("Set-Cookie", [...values, value]);
 }
 
 function currentMembership(userId) {
@@ -2402,25 +2613,29 @@ async function handleLearningSession(req, res, sessionId) {
   assertLearningValue(/^[A-Za-z0-9_-]{8,100}$/.test(sessionId), "Invalid session id.");
   const payload = await readJsonBody(req);
   const db = getAppDb();
-  const existing = db.prepare("SELECT * FROM practice_sessions WHERE session_id = ? AND user_id = ?").get(sessionId, user.id);
+  const sessionOwner = db.prepare("SELECT * FROM practice_sessions WHERE session_id = ?").get(sessionId);
+  assertLearningValue(!sessionOwner || Number(sessionOwner.user_id) === Number(user.id), "Practice session id belongs to another account.", 409);
+  const existing = sessionOwner || null;
   if (existing) assertLearningValue(Number(payload.revision) === Number(existing.revision), "Practice session changed on another device.", 409);
   const moduleName = normalizeLearningModule(payload.module);
   const status = String(payload.status || "in_progress");
   assertLearningValue(PRACTICE_STATUSES.has(status), "Invalid practice session status.");
   const now = nowIso();
   const nextRevision = existing ? Number(existing.revision) + 1 : 1;
-  db.prepare(`
+  const write = db.prepare(`
     INSERT INTO practice_sessions (session_id, user_id, module, item_id, practice_kind, mode, status, state_json, origin_weak_area_id, revision, started_at, updated_at, completed_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(session_id) DO UPDATE SET module = excluded.module, item_id = excluded.item_id, practice_kind = excluded.practice_kind,
       mode = excluded.mode, status = excluded.status, state_json = excluded.state_json, origin_weak_area_id = excluded.origin_weak_area_id,
       revision = excluded.revision, updated_at = excluded.updated_at, completed_at = excluded.completed_at
+    WHERE practice_sessions.user_id = excluded.user_id
   `).run(
     sessionId, user.id, moduleName, String(payload.itemId || "").slice(0, 180), String(payload.practiceKind || "single").slice(0, 40),
     String(payload.mode || "practice").slice(0, 60), status, safeLearningJson(payload.state, "Practice state"),
     String(payload.originWeakAreaId || "").slice(0, 100) || null, nextRevision, existing?.started_at || now, now,
     status === "completed" ? existing?.completed_at || now : null,
   );
+  assertLearningValue(Number(write.changes) === 1, "Practice session id belongs to another account.", 409);
   const row = db.prepare("SELECT * FROM practice_sessions WHERE session_id = ? AND user_id = ?").get(sessionId, user.id);
   sendJson(res, 200, { session: publicPracticeSession(row) });
 }
@@ -2572,6 +2787,7 @@ async function handleLearningApi(req, res) {
     const user = requireUser(req);
     const db = getAppDb();
     const activeSession = db.prepare("SELECT * FROM practice_sessions WHERE user_id = ? AND status = 'in_progress' ORDER BY updated_at DESC LIMIT 1").get(user.id);
+    const activeSessions = db.prepare("SELECT * FROM practice_sessions WHERE user_id = ? AND status = 'in_progress' ORDER BY updated_at DESC LIMIT 100").all(user.id);
     const attempts = db.prepare("SELECT * FROM practice_attempts WHERE user_id = ? ORDER BY submitted_at DESC LIMIT 20").all(user.id);
     const completedItems = db.prepare(`
       WITH ranked_completions AS (
@@ -2592,7 +2808,7 @@ async function handleLearningApi(req, res) {
       score: parseStoredJson(row.score_json, {}),
     }));
     const weakAreas = db.prepare("SELECT * FROM weak_areas WHERE user_id = ? AND status != 'resolved' ORDER BY updated_at DESC LIMIT 50").all(user.id);
-    sendJson(res, 200, { profile: learnerProfileForUser(user.id), activeSession: publicPracticeSession(activeSession), attempts: attempts.map(publicPracticeAttempt), completedItems, weakAreas: weakAreas.map(publicWeakArea), todayPlan: todayPlanForUser(user.id) });
+    sendJson(res, 200, { profile: learnerProfileForUser(user.id), activeSession: publicPracticeSession(activeSession), activeSessions: activeSessions.map(publicPracticeSession), attempts: attempts.map(publicPracticeAttempt), completedItems, weakAreas: weakAreas.map(publicWeakArea), todayPlan: todayPlanForUser(user.id) });
     return;
   }
   if (url.pathname === "/api/learning/today-plan" && req.method === "GET") {
@@ -2664,7 +2880,7 @@ function loadTrustedStemMarkingManifest() {
   if (!STEM_MARKING_TRUSTED_MANIFEST_PATH) return { ready: false, entries: new Map() };
   try {
     const raw = JSON.parse(fs.readFileSync(path.resolve(STEM_MARKING_TRUSTED_MANIFEST_PATH), "utf8"));
-    if (raw?.schemaVersion !== "stem-marking-manifest.v1" || !Array.isArray(raw.questions) || !raw.questions.length) {
+    if (raw?.schemaVersion !== STEM_MARKING_MANIFEST_SCHEMA_VERSION || !Array.isArray(raw.questions) || !raw.questions.length) {
       throw new Error("Invalid trusted STEM marking manifest.");
     }
     const entries = new Map();
@@ -2675,10 +2891,22 @@ function loadTrustedStemMarkingManifest() {
       const specificationVersion = safeStemText(question.specificationVersion, 120);
       const paperId = stemManifestId(question.paperId, `questions[${index}].paperId`);
       const questionPartId = stemManifestId(question.questionPartId, `questions[${index}].questionPartId`);
+      const sourceQuestionId = stemManifestId(question.sourceQuestionId, `questions[${index}].sourceQuestionId`);
       const prompt = safeStemText(question.prompt, 12_000);
       const availableMarks = Number(question.availableMarks);
-      if (!qualification || !specificationVersion || !prompt || !Number.isFinite(availableMarks) || availableMarks <= 0 || availableMarks > 1000) {
+      const review = question.review && typeof question.review === "object" ? question.review : {};
+      const reviewStatus = safeStemText(review.status || question.reviewStatus, 40).toLowerCase();
+      const reviewSchemaVersion = safeStemText(review.schemaVersion || question.reviewSchemaVersion, 120);
+      const reviewVersion = safeStemText(review.version || question.reviewVersion, 160);
+      const sourceEvidence = safeStemEvidence(question.sourceEvidence || review.sourceEvidence, 900);
+      if (!qualification || !specificationVersion || !prompt || !sourceQuestionId
+        || !Number.isFinite(availableMarks) || availableMarks <= 0 || availableMarks > 1000
+        || !STEM_MARKING_REVIEW_STATUSES.has(reviewStatus)
+        || !reviewSchemaVersion || !reviewVersion || !sourceEvidence) {
         throw new Error("Trusted STEM marking question metadata is incomplete.");
+      }
+      if (reviewStatus === "approved" && reviewSchemaVersion !== STEM_MARKING_REVIEW_SCHEMA_VERSION) {
+        throw new Error("Trusted STEM marking review schema is invalid.");
       }
       const pointIds = new Set();
       const markSchemePoints = (Array.isArray(question.markSchemePoints) ? question.markSchemePoints.slice(0, 80) : []).map((point, pointIndex) => {
@@ -2707,7 +2935,22 @@ function loadTrustedStemMarkingManifest() {
           sourceEvidence: safeStemEvidence(asset?.sourceEvidence, 900),
         };
       });
-      const entry = { routeId, qualification, specificationVersion, paperId, questionPartId, prompt, availableMarks, markSchemePoints, assets };
+      const entry = {
+        routeId,
+        qualification,
+        specificationVersion,
+        paperId,
+        questionPartId,
+        sourceQuestionId,
+        prompt,
+        availableMarks,
+        markSchemePoints,
+        assets,
+        reviewStatus,
+        reviewSchemaVersion,
+        reviewVersion,
+        sourceEvidence,
+      };
       const key = stemManifestQuestionKey(entry);
       if (entries.has(key)) throw new Error("Duplicate trusted STEM marking question.");
       entries.set(key, entry);
@@ -2726,7 +2969,9 @@ function stemMarkingModelConfigured() {
 }
 
 function stemMarkingQueueAvailable() {
-  return Boolean(stemMarkingModelConfigured() && TRUSTED_STEM_MARKING_MANIFEST.ready && !STEM_MARKING_QUEUE_DISABLED);
+  const hasApprovedQuestion = TRUSTED_STEM_MARKING_MANIFEST.ready
+    && [...TRUSTED_STEM_MARKING_MANIFEST.entries.values()].some((entry) => entry.reviewStatus === "approved");
+  return Boolean(stemMarkingModelConfigured() && hasApprovedQuestion && !STEM_MARKING_QUEUE_DISABLED);
 }
 
 function sameStemMarkingPointSet(provided, canonical) {
@@ -2738,6 +2983,13 @@ function sameStemMarkingPointSet(provided, canonical) {
   });
 }
 
+function sameStemEvidence(provided, canonical) {
+  const left = safeStemEvidence(provided, 900);
+  const right = safeStemEvidence(canonical, 900);
+  if (!left || !right) return false;
+  return JSON.stringify(left) === JSON.stringify(right);
+}
+
 function canonicalizeStemMarkingQuestion(request, question) {
   const canonical = TRUSTED_STEM_MARKING_MANIFEST.entries.get(stemManifestQuestionKey({
     routeId: request.routeId,
@@ -2747,8 +2999,17 @@ function canonicalizeStemMarkingQuestion(request, question) {
   }));
   const issues = [...question.metadataIssues];
   if (!canonical) {
-    issues.push("trusted_manifest_question_missing");
+    issues.push("source_question_unknown");
     return { ...question, metadataIssues: [...new Set(issues)] };
+  }
+  if (canonical.reviewStatus === "quarantined") issues.push("source_question_quarantined");
+  else if (canonical.reviewStatus === "stale") issues.push("source_question_stale");
+  else if (canonical.reviewStatus !== "approved") issues.push("source_question_unreviewed");
+  if (question.sourceQuestionId !== canonical.sourceQuestionId) issues.push("source_question_id_mismatch");
+  if (question.reviewSchemaVersion !== canonical.reviewSchemaVersion
+    || question.reviewVersion !== canonical.reviewVersion
+    || !sameStemEvidence(question.sourceEvidence, canonical.sourceEvidence)) {
+    issues.push("source_review_mismatch");
   }
   if (question.prompt !== canonical.prompt
     || request.qualification !== canonical.qualification
@@ -2769,6 +3030,11 @@ function canonicalizeStemMarkingQuestion(request, question) {
     availableMarks: canonical.availableMarks,
     markSchemePoints: canonical.markSchemePoints,
     assets,
+    sourceQuestionId: canonical.sourceQuestionId,
+    reviewStatus: canonical.reviewStatus,
+    reviewSchemaVersion: canonical.reviewSchemaVersion,
+    reviewVersion: canonical.reviewVersion,
+    sourceEvidence: canonical.sourceEvidence,
     metadataIssues: [...new Set(issues)],
   };
 }
@@ -2830,6 +3096,18 @@ function normalizeStemMarkingQuestion(value, index) {
   const prompt = safeStemText(question.prompt, 12_000);
   const availableMarks = Number(question.availableMarks);
   const issues = [];
+  const sourceQuestionId = (() => {
+    try {
+      return stemManifestId(question.sourceQuestionId ?? question.source_question_id, `questions[${index}].sourceQuestionId`);
+    } catch {
+      issues.push("source_question_id_missing");
+      return "";
+    }
+  })();
+  const reviewSchemaVersion = safeStemText(question.reviewSchemaVersion ?? question.review_schema_version, 120);
+  const reviewVersion = safeStemText(question.reviewVersion ?? question.review_version, 160);
+  const sourceEvidence = safeStemEvidence(question.sourceEvidence ?? question.source_evidence, 900);
+  if (!reviewSchemaVersion || !reviewVersion || !sourceEvidence) issues.push("source_review_missing");
   if (!prompt) issues.push("question_prompt_missing");
   if (!Number.isFinite(availableMarks) || availableMarks <= 0 || availableMarks > 1000) issues.push("available_marks_missing");
   const rawPoints = Array.isArray(question.markSchemePoints) ? question.markSchemePoints.slice(0, 80) : [];
@@ -2880,6 +3158,12 @@ function normalizeStemMarkingQuestion(value, index) {
     answer: { typedText, handwritingImageDataUrl },
     answerAvailable: Boolean(typedText || handwritingImageDataUrl),
     assets,
+    // Client review flags are intentionally ignored. Only the configured manifest
+    // determines whether a source question is approved for AI-assisted marking.
+    sourceQuestionId,
+    reviewSchemaVersion,
+    reviewVersion,
+    sourceEvidence,
     metadataIssues: [...new Set(issues)],
   };
 }
@@ -2911,6 +3195,17 @@ function normalizeStemMarkingRequest(payload) {
   if (canonicalQualifications.size === 1) request.qualification = [...canonicalQualifications][0];
   request.metadataIssues = [...new Set(request.questions.flatMap((question) => question.metadataIssues))];
   return request;
+}
+
+function stemMetadataFailureCode(issues = []) {
+  const issueSet = new Set(issues.map((issue) => String(issue || "")));
+  if (issueSet.has("source_question_quarantined")) return "source_question_quarantined";
+  if (issueSet.has("source_question_stale")) return "source_question_stale";
+  if (issueSet.has("source_question_unreviewed")) return "source_question_unreviewed";
+  if (issueSet.has("source_question_unknown")) return "source_question_unknown";
+  if (issueSet.has("source_question_id_mismatch") || issueSet.has("source_review_mismatch")) return "source_provenance_mismatch";
+  if (issueSet.has("source_question_id_missing") || issueSet.has("source_review_missing")) return "source_provenance_missing";
+  return "missing_metadata";
 }
 
 function stemEmptyResult(request, status, failureCode = "") {
@@ -3287,24 +3582,33 @@ async function handleStemMarkingSubmissionCreate(req, res) {
     throw stemMarkingError("Submission id already exists.", 409);
   }
   const status = request.metadataIssues.length ? "missing_metadata" : "queued";
+  const metadataFailureCode = status === "missing_metadata" ? stemMetadataFailureCode(request.metadataIssues) : "";
   const timestamp = nowIso();
-  const result = stemEmptyResult(request, status, status === "missing_metadata" ? "missing_metadata" : "");
+  const result = stemEmptyResult(request, status, metadataFailureCode);
   db.prepare(`
     INSERT INTO stem_marking_submissions (submission_id, idempotency_key, user_id, organization_id, classroom_id, route_id, specification_version, paper_id, attempt_id, request_json, status, result_json, failure_code, created_at, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     request.submissionId, request.idempotencyKey, user.id, request.organizationId || null, request.classroomId || null,
     request.routeId, request.specificationVersion, request.paperId, request.attemptId, safeStemJson(request, "Marking request"), status,
-    safeStemJson(result, "Marking result", 2_000_000), status === "missing_metadata" ? "missing_metadata" : null, timestamp, timestamp,
+    safeStemJson(result, "Marking result", 2_000_000), metadataFailureCode || null, timestamp, timestamp,
   );
-  stemMarkingEvent(db, request.submissionId, status, status === "queued" ? "accepted_for_marking" : request.metadataIssues.join(","));
+  stemMarkingEvent(db, request.submissionId, status, status === "queued" ? "accepted_for_marking" : metadataFailureCode);
   const row = db.prepare("SELECT * FROM stem_marking_submissions WHERE submission_id = ?").get(request.submissionId);
   if (status === "queued") enqueueStemMarkingSubmission(request.submissionId);
   sendJson(res, status === "queued" ? 202 : 422, {
     submission: publicStemMarkingSubmission(row),
     idempotent: false,
+    code: metadataFailureCode || undefined,
     metadataIssues: request.metadataIssues,
   });
+}
+
+// The legacy STEM handwriting route is a compatibility alias, not a second
+// scoring system. It accepts only the same reviewed v2 submission contract.
+async function handleStemHandwritingMarking(req, res) {
+  applyStemMarkingCors(req, res);
+  return handleStemMarkingSubmissionCreate(req, res);
 }
 
 function handleStemMarkingSubmissionGet(req, res, submissionId) {
@@ -3321,7 +3625,11 @@ function handleStemMarkingRetry(req, res, submissionId) {
   const row = db.prepare("SELECT * FROM stem_marking_submissions WHERE submission_id = ?").get(submissionId);
   if (!row) throw stemMarkingError("STEM submission not found.", 404);
   if (Number(row.user_id) !== Number(user.id)) throw stemMarkingError("Only the submitting student can retry marking.", 403);
-  if (row.status === "missing_metadata") throw stemMarkingError("Mark allocation or mark scheme is missing; submit corrected metadata instead.", 409);
+  if (row.status === "missing_metadata") {
+    const error = stemMarkingError("This STEM question is not ready for AI-assisted marking. Refresh the reviewed source before retrying.", 409);
+    error.code = row.failure_code || "missing_metadata";
+    throw error;
+  }
   if (row.status === "completed") {
     sendJson(res, 200, { submission: publicStemMarkingSubmission(row), idempotent: true });
     return;
@@ -4935,15 +5243,55 @@ async function synthesizeFish(text, voice = "examiner") {
 
 function normalizeAnswer(value) {
   return String(value || "")
+    .normalize("NFKC")
     .trim()
     .toLowerCase()
     .replace(/[^\p{L}\p{N}\s]/gu, "")
-    .replace(/\s+/g, " ");
+    .replace(/\s+/g, " ")
+    .replace(/\bpractise\b/g, "practice")
+    .replace(/\blitres\b/g, "liters")
+    .replace(/\blitre\b/g, "liter");
+}
+
+function expandObjectiveOptionalGroups(value) {
+  let variants = [String(value || "")];
+  for (let pass = 0; pass < 6; pass += 1) {
+    let expanded = false;
+    const next = [];
+    variants.forEach((variant) => {
+      const match = variant.match(/\(([^()]*)\)/);
+      if (!match) {
+        next.push(variant);
+        return;
+      }
+      expanded = true;
+      const choices = String(match[1] || "").split(/\s*\/\s*/).map((choice) => choice.trim()).filter(Boolean);
+      ["", ...choices].forEach((replacement) => {
+        next.push(`${variant.slice(0, match.index)}${replacement}${variant.slice(match.index + match[0].length)}`);
+      });
+    });
+    variants = [...new Set(next)].slice(0, 64);
+    if (!expanded) break;
+  }
+  return variants;
+}
+
+function canonicalObjectiveAnswerVariants(value) {
+  const alternatives = String(value || "")
+    .split(/\s+\/\s+|\s+or\s+/i)
+    .map((answer) => answer.trim())
+    .filter(Boolean);
+  return [...new Set(alternatives.flatMap(expandObjectiveOptionalGroups).map(normalizeAnswer).filter(Boolean))];
+}
+
+function objectiveAnswerMatches(expected, actual) {
+  const normalizedActual = normalizeAnswer(actual);
+  return Boolean(normalizedActual && canonicalObjectiveAnswerVariants(expected).includes(normalizedActual));
 }
 
 function scoreObjective(questions, answers = {}) {
   let correct = 0;
-  const scorableQuestions = questions.filter((question) => normalizeAnswer(question.answer));
+  const scorableQuestions = questions.filter((question) => canonicalObjectiveAnswerVariants(question.answer).length);
   if (!scorableQuestions.length) {
     return {
       correct: 0,
@@ -4954,21 +5302,37 @@ function scoreObjective(questions, answers = {}) {
       details: questions.map((question) => ({
         id: question.id,
         text: question.text,
-        expected: question.answer || "Not imported",
         actual: answers[question.id] || "",
         correct: null,
       })),
     };
   }
+  const groupedAnswers = new Map();
+  questions.forEach((question) => {
+    if (!question.optionGroupId || Number(question.selectionLimit || 1) <= 1) return;
+    if (!groupedAnswers.has(question.optionGroupId)) groupedAnswers.set(question.optionGroupId, []);
+    groupedAnswers.get(question.optionGroupId).push(question);
+  });
+  const usedGroupedAnswers = new Map();
   const details = questions.map((question) => {
-    const expected = normalizeAnswer(question.answer);
+    const expected = canonicalObjectiveAnswerVariants(question.answer);
     const actual = normalizeAnswer(answers[question.id]);
-    if (!expected) {
-      return { id: question.id, text: question.text, expected: "Not imported", actual: answers[question.id] || "", correct: null };
+    if (!expected.length) {
+      return { id: question.id, text: question.text, actual: answers[question.id] || "", correct: null };
     }
-    const ok = actual && (actual === expected || expected.includes(actual) || actual.includes(expected));
+    let ok;
+    const group = groupedAnswers.get(question.optionGroupId);
+    if (group?.length) {
+      const expectedSet = new Set(group.flatMap((item) => canonicalObjectiveAnswerVariants(item.answer)));
+      const used = usedGroupedAnswers.get(question.optionGroupId) || new Set();
+      ok = Boolean(actual && expectedSet.has(actual) && !used.has(actual));
+      if (ok) used.add(actual);
+      usedGroupedAnswers.set(question.optionGroupId, used);
+    } else {
+      ok = objectiveAnswerMatches(question.answer, actual);
+    }
     if (ok) correct += 1;
-    return { id: question.id, text: question.text, expected: question.answer, actual: answers[question.id] || "", correct: Boolean(ok) };
+    return { id: question.id, text: question.text, actual: answers[question.id] || "", correct: ok };
   });
   const band = Math.max(3, Math.min(9, Math.round((3 + (correct / Math.max(scorableQuestions.length, 1)) * 6) * 2) / 2));
   return { correct, total: questions.length, scoredTotal: scorableQuestions.length, band, answerAvailable: true, details };
@@ -4977,6 +5341,14 @@ function scoreObjective(questions, answers = {}) {
 function objectiveScoreRequestError(message) {
   const error = new Error(message);
   error.statusCode = 400;
+  return error;
+}
+
+function objectiveAttemptError(message, statusCode, code, publicDetails = {}) {
+  const error = new Error(message);
+  error.statusCode = statusCode;
+  error.code = code;
+  error.publicDetails = publicDetails;
   return error;
 }
 
@@ -4990,7 +5362,13 @@ function canonicalObjectiveTest(moduleName, value) {
   return tests.find((test) => test.id === taskId) || null;
 }
 
-function objectiveQuestionsForSubmission(moduleName, payload = {}) {
+function sameObjectiveQuestionSet(first = [], second = []) {
+  if (first.length !== second.length) return false;
+  const expected = new Set(first.map((id) => String(id)));
+  return second.every((id) => expected.has(String(id)));
+}
+
+function objectiveQuestionsForSubmission(moduleName, payload = {}, { requireComplete = false } = {}) {
   const submittedTaskId = String(payload.taskId || payload.sourceTaskId || "").trim();
   if (!submittedTaskId) throw objectiveScoreRequestError("A task id is required for scoring.");
   const test = canonicalObjectiveTest(moduleName, submittedTaskId);
@@ -5002,19 +5380,746 @@ function objectiveQuestionsForSubmission(moduleName, payload = {}) {
     throw objectiveScoreRequestError("Select the task questions before submitting answers.");
   }
   const questionsById = new Map((test.questions || []).map((question) => [String(question.id || ""), question]));
-  const questions = questionIds.map((id) => questionsById.get(id));
+  const metadata = moduleName === "listening"
+    ? listeningQuestionMetadata(test.questionPaper)
+    : readingQuestionMetadata(test.readingPaper);
+  const enrichedQuestionsById = new Map([...questionsById.entries()].map(([id, question], index) => {
+    const number = Number(String(id || question.text || index + 1).match(/\d{1,2}/)?.[0] || index + 1);
+    return [id, { ...question, ...(metadata.get(number) || {}) }];
+  }));
+  const canonicalQuestionIds = [...questionsById.keys()].filter(Boolean);
+  if (requireComplete && !sameObjectiveQuestionSet(canonicalQuestionIds, questionIds)) {
+    throw objectiveAttemptError(
+      "Full IELTS exams must include the complete canonical question set.",
+      409,
+      "objective_attempt_incomplete",
+      { restartRequired: true },
+    );
+  }
+  const questions = questionIds.map((id) => enrichedQuestionsById.get(id));
   if (questions.some((question) => !question)) {
     throw objectiveScoreRequestError("One or more submitted questions do not belong to this IELTS task.");
   }
-  return questions;
+  return requireComplete ? canonicalQuestionIds.map((id) => enrichedQuestionsById.get(id)) : questions;
 }
 
-function scoreObjectiveSubmission(moduleName, payload = {}) {
-  const questions = objectiveQuestionsForSubmission(moduleName, payload);
+function objectiveAttemptActor(req, res, { createGuest = false } = {}) {
+  const user = optionalUser(req);
+  if (user) return { ownerKey: `user:${user.id}`, userId: user.id };
+  let guestToken = requestCookie(req, OBJECTIVE_GUEST_COOKIE);
+  if (!guestToken && createGuest) {
+    guestToken = crypto.randomBytes(32).toString("base64url");
+    const secure = SESSION_COOKIE_SECURE ? "; Secure" : "";
+    appendResponseCookie(
+      res,
+      `${OBJECTIVE_GUEST_COOKIE}=${encodeURIComponent(guestToken)}; Path=/; HttpOnly; SameSite=Lax${secure}; Max-Age=31536000`,
+    );
+  }
+  if (!guestToken) throw objectiveAttemptError("Start this practice before submitting it.", 409, "objective_attempt_required");
+  return { ownerKey: `guest:${hashToken(guestToken)}`, userId: null };
+}
+
+function objectiveAttemptActorCandidates(req) {
+  const user = optionalUser(req);
+  const guestToken = requestCookie(req, OBJECTIVE_GUEST_COOKIE);
+  return {
+    user,
+    userOwnerKey: user ? `user:${user.id}` : "",
+    guestOwnerKey: guestToken ? `guest:${hashToken(guestToken)}` : "",
+  };
+}
+
+function objectiveAttemptTokenMatches(row, token) {
+  const received = Buffer.from(hashToken(token));
+  const expected = Buffer.from(String(row?.attempt_token_hash || ""));
+  return received.length === expected.length && crypto.timingSafeEqual(received, expected);
+}
+
+function objectiveExamTokenMatches(row, token) {
+  const received = Buffer.from(hashToken(token));
+  const expected = Buffer.from(String(row?.exam_token_hash || ""));
+  return received.length === expected.length && crypto.timingSafeEqual(received, expected);
+}
+
+function objectiveAttemptPublic(row, attemptToken = "", idempotent = false) {
+  return {
+    attemptId: row.attempt_id,
+    ...(attemptToken ? { attemptToken } : {}),
+    context: row.context,
+    module: row.module,
+    taskId: row.task_id,
+    examId: row.parent_exam_id || "",
+    status: row.status,
+    expiresAt: row.expires_at,
+    submittedAt: row.submitted_at || "",
+    idempotent,
+  };
+}
+
+function objectiveExamPublic(row, examToken = "", idempotent = false) {
+  return {
+    examId: row.exam_id,
+    ...(examToken ? { examToken } : {}),
+    context: row.context,
+    listeningTaskId: row.listening_task_id,
+    readingTaskId: row.reading_task_id,
+    manifest: parseStoredJson(row.manifest_json, {}),
+    status: row.status,
+    expiresAt: row.expires_at,
+    submittedAt: row.submitted_at || "",
+    idempotent,
+  };
+}
+
+function objectiveCambridgeSetKey(taskId, moduleName) {
+  const moduleCode = moduleName === "listening" ? "l" : "r";
+  const match = canonicalObjectiveTaskId(taskId).match(new RegExp(`^cam(\\d+)-${moduleCode}-test(\\d+)$`, "i"));
+  return match ? `cam${Number(match[1])}-test${Number(match[2])}` : "";
+}
+
+function normalizeObjectiveExamManifest(payload = {}) {
+  const manifest = payload.manifest && typeof payload.manifest === "object" && !Array.isArray(payload.manifest)
+    ? payload.manifest
+    : {};
+  const clean = (value, max = 120) => String(value || "").trim().slice(0, max);
+  const writingSourceIds = Array.isArray(manifest.writingSourceIds)
+    ? manifest.writingSourceIds.map((value) => clean(value, 160)).filter(Boolean).slice(0, 2)
+    : [];
+  const cleanManifest = {
+    examId: clean(manifest.examId || payload.examIdLabel, 120),
+    seed: clean(manifest.seed, 120),
+    bankVersion: clean(manifest.bankVersion, 80),
+    generatorVersion: clean(manifest.generatorVersion, 80),
+    listeningSourceId: canonicalObjectiveTaskId(manifest.listeningSourceId || payload.listeningTaskId),
+    readingSourceId: canonicalObjectiveTaskId(manifest.readingSourceId || payload.readingTaskId),
+    writingSourceIds,
+    speakingSourceId: clean(manifest.speakingSourceId, 160),
+  };
+  cleanManifest.manifestDigest = objectiveExamManifestDigest(cleanManifest);
+  return cleanManifest;
+}
+
+function objectiveExamManifestDigest(manifest = {}) {
+  const comparable = {
+    examId: String(manifest.examId || ""),
+    seed: String(manifest.seed || ""),
+    bankVersion: String(manifest.bankVersion || ""),
+    generatorVersion: String(manifest.generatorVersion || ""),
+    listeningSourceId: canonicalObjectiveTaskId(manifest.listeningSourceId),
+    readingSourceId: canonicalObjectiveTaskId(manifest.readingSourceId),
+    writingSourceIds: Array.isArray(manifest.writingSourceIds)
+      ? manifest.writingSourceIds.map((value) => String(value || "").trim()).filter(Boolean).slice(0, 2)
+      : [],
+    speakingSourceId: String(manifest.speakingSourceId || "").trim(),
+  };
+  return crypto.createHash("sha256").update(JSON.stringify(comparable)).digest("hex");
+}
+
+function objectiveExamManifestMatches(first = {}, second = {}) {
+  return objectiveExamManifestDigest(first) === objectiveExamManifestDigest(second);
+}
+
+function objectiveExamManifestHasExtendedSources(manifest = {}) {
+  return Boolean(
+    (Array.isArray(manifest.writingSourceIds) && manifest.writingSourceIds.length)
+    || String(manifest.speakingSourceId || "").trim(),
+  );
+}
+
+function objectiveExamReportManifest(payload = {}, fallback = {}) {
+  const rawCandidate = payload.fullExamManifest || payload.manifest;
+  const raw = rawCandidate && typeof rawCandidate === "object" && !Array.isArray(rawCandidate)
+    ? rawCandidate
+    : {};
+  return normalizeObjectiveExamManifest({
+    ...payload,
+    ...fallback,
+    manifest: {
+      ...raw,
+      listeningSourceId: raw.listeningSourceId || fallback.listeningSourceId,
+      readingSourceId: raw.readingSourceId || fallback.readingSourceId,
+    },
+  });
+}
+
+function validateObjectiveExamManifestForReport(exam, payload, prepared) {
+  const stored = parseStoredJson(exam?.manifest_json, {});
+  if (!stored || !stored.manifestDigest) return;
+  const supplied = payload?.fullExamManifest || payload?.manifest;
+  if (!supplied || typeof supplied !== "object" || Array.isArray(supplied)) {
+    if (objectiveExamManifestHasExtendedSources(stored)) {
+      throw objectiveAttemptError("The full-exam source manifest is required for this submission.", 409, "objective_exam_mismatch");
+    }
+    return;
+  }
+  const incoming = objectiveExamReportManifest(payload, {
+    listeningSourceId: prepared.find((item) => item.moduleName === "listening")?.row.task_id,
+    readingSourceId: prepared.find((item) => item.moduleName === "reading")?.row.task_id,
+  });
+  if (!objectiveExamManifestMatches(stored, incoming)) {
+    throw objectiveAttemptError("The full-exam source manifest does not match this attempt.", 409, "objective_exam_mismatch");
+  }
+}
+
+function inspectObjectiveExam(req, examId, examToken, expectedContext = "", { deferGuestClaim = false } = {}) {
+  if (!/^objective_exam_[A-Za-z0-9_-]{16,}$/.test(String(examId || "")) || !String(examToken || "")) {
+    throw objectiveAttemptError("Start this full exam before opening its papers.", 409, "objective_exam_required");
+  }
+  const db = getAppDb();
+  let row = db.prepare("SELECT * FROM objective_exam_attempts WHERE exam_id = ?").get(examId);
+  if (!row || !objectiveExamTokenMatches(row, examToken)) {
+    throw objectiveAttemptError("This full exam is unavailable.", 403, "objective_exam_forbidden");
+  }
+  const actors = objectiveAttemptActorCandidates(req);
+  const ownedByUser = Boolean(actors.userOwnerKey && row.owner_key === actors.userOwnerKey);
+  const ownedByGuestCookie = Boolean(actors.guestOwnerKey && row.owner_key === actors.guestOwnerKey);
+  if (!ownedByUser && !ownedByGuestCookie) {
+    throw objectiveAttemptError("This full exam is unavailable.", 403, "objective_exam_forbidden");
+  }
+  let ownerClaim = null;
+  if (row.status === "open" && ownedByGuestCookie && actors.userOwnerKey) {
+    ownerClaim = {
+      userOwnerKey: actors.userOwnerKey,
+      userId: actors.user.id,
+      guestOwnerKey: actors.guestOwnerKey,
+    };
+    if (!deferGuestClaim) {
+      db.prepare(`
+        UPDATE OR IGNORE objective_exam_attempts
+        SET owner_key = ?, user_id = ?
+        WHERE exam_id = ? AND owner_key = ? AND status = 'open'
+      `).run(ownerClaim.userOwnerKey, ownerClaim.userId, row.exam_id, ownerClaim.guestOwnerKey);
+      row = db.prepare("SELECT * FROM objective_exam_attempts WHERE exam_id = ?").get(row.exam_id);
+      if (row.owner_key !== actors.userOwnerKey && row.owner_key !== actors.guestOwnerKey) {
+        throw objectiveAttemptError("This full exam is unavailable.", 403, "objective_exam_forbidden");
+      }
+      ownerClaim = null;
+    }
+  }
+  if (expectedContext && row.context !== expectedContext) {
+    throw objectiveAttemptError("This full exam belongs to another context.", 409, "objective_exam_mismatch");
+  }
+  if (row.status === "open" && Date.parse(row.expires_at) <= Date.now()) {
+    throw objectiveAttemptError(
+      "This full exam expired. Generate a new exam.",
+      410,
+      "objective_exam_expired",
+      { restartRequired: true },
+    );
+  }
+  return { row, ownerClaim };
+}
+
+async function handleObjectiveExamStart(req, res) {
+  const payload = await readJsonBody(req);
+  const clientExamKey = String(payload.clientExamKey || "").trim();
+  const requestedExamToken = String(payload.examToken || "").trim();
+  const context = String(payload.context || "").trim();
+  if (!/^[A-Za-z0-9_-]{8,120}$/.test(clientExamKey) || !["same-test", "random-exam"].includes(context)) {
+    throw objectiveAttemptError("A valid full-exam request is required.", 400, "invalid_objective_exam");
+  }
+  if (requestedExamToken && !/^[A-Za-z0-9_-]{32,128}$/.test(requestedExamToken)) {
+    throw objectiveAttemptError("Invalid full-exam capability.", 400, "invalid_objective_exam");
+  }
+  const listeningTaskId = canonicalObjectiveTaskId(payload.listeningTaskId);
+  const readingTaskId = canonicalObjectiveTaskId(payload.readingTaskId);
+  if (!canonicalObjectiveTest("listening", listeningTaskId) || !canonicalObjectiveTest("reading", readingTaskId)) {
+    throw objectiveAttemptError("One or more full-exam papers are unavailable.", 400, "invalid_objective_exam");
+  }
+  if (context === "same-test") {
+    const listeningSet = objectiveCambridgeSetKey(listeningTaskId, "listening");
+    const readingSet = objectiveCambridgeSetKey(readingTaskId, "reading");
+    if (!listeningSet || listeningSet !== readingSet) {
+      throw objectiveAttemptError("Same Test requires Listening and Reading from the same Cambridge test.", 409, "objective_exam_mismatch");
+    }
+  }
+  const requestedManifest = normalizeObjectiveExamManifest(payload);
+  if (requestedManifest.listeningSourceId !== listeningTaskId
+    || requestedManifest.readingSourceId !== readingTaskId) {
+    throw objectiveAttemptError("The full-exam source manifest does not match its Listening and Reading papers.", 409, "objective_exam_mismatch");
+  }
+  if (objectiveExamManifestHasExtendedSources(requestedManifest)
+    && (requestedManifest.writingSourceIds.length !== 2 || !requestedManifest.speakingSourceId)) {
+    throw objectiveAttemptError("The full-exam source manifest is incomplete.", 409, "objective_exam_mismatch");
+  }
+  const actor = objectiveAttemptActor(req, res, { createGuest: true });
+  const db = getAppDb();
+  let existing = db.prepare(`
+    SELECT * FROM objective_exam_attempts WHERE owner_key = ? AND client_exam_key = ?
+  `).get(actor.ownerKey, clientExamKey);
+  let retryingGuestAfterLogin = false;
+  if (!existing && actor.userId) {
+    const guestOwnerKey = objectiveAttemptActorCandidates(req).guestOwnerKey;
+    if (guestOwnerKey) {
+      existing = db.prepare(`SELECT * FROM objective_exam_attempts WHERE owner_key = ? AND client_exam_key = ?`)
+        .get(guestOwnerKey, clientExamKey);
+      retryingGuestAfterLogin = Boolean(existing);
+    }
+  }
+  if (existing) {
+    if (!requestedExamToken) {
+      throw objectiveAttemptError("Retry this full-exam start with its original capability.", 409, "objective_exam_retry_requires_capability", { retryable: true });
+    }
+    if (!objectiveExamTokenMatches(existing, requestedExamToken)) {
+      throw objectiveAttemptError("This full exam is unavailable.", 403, "objective_exam_forbidden");
+    }
+    if (existing.context !== context || existing.listening_task_id !== listeningTaskId || existing.reading_task_id !== readingTaskId) {
+      throw objectiveAttemptError("The retry does not match the original full exam.", 409, "objective_exam_mismatch", { restartRequired: true });
+    }
+    const existingManifest = parseStoredJson(existing.manifest_json, {});
+    if (!objectiveExamManifestMatches(existingManifest, requestedManifest)) {
+      throw objectiveAttemptError("The retry does not match the original full-exam source manifest.", 409, "objective_exam_mismatch", { restartRequired: true });
+    }
+    if (existing.status === "open" && Date.parse(existing.expires_at) <= Date.now()) {
+      throw objectiveAttemptError("This full exam expired. Generate a new exam.", 410, "objective_exam_expired", { restartRequired: true });
+    }
+    if (retryingGuestAfterLogin && existing.status === "open") {
+      db.prepare(`
+        UPDATE OR IGNORE objective_exam_attempts SET owner_key = ?, user_id = ?
+        WHERE exam_id = ? AND owner_key = ? AND status = 'open'
+      `).run(actor.ownerKey, actor.userId, existing.exam_id, existing.owner_key);
+      existing = db.prepare("SELECT * FROM objective_exam_attempts WHERE exam_id = ?").get(existing.exam_id);
+    }
+    sendJson(res, 200, objectiveExamPublic(existing, requestedExamToken, true));
+    return;
+  }
+  const examId = `objective_exam_${crypto.randomBytes(18).toString("base64url")}`;
+  const examToken = requestedExamToken || crypto.randomBytes(32).toString("base64url");
+  const createdAt = nowIso();
+  const expiresAt = new Date(Date.now() + OBJECTIVE_ATTEMPT_TTL_MS).toISOString();
+  db.prepare(`
+    INSERT INTO objective_exam_attempts (
+      exam_id, client_exam_key, owner_key, user_id, exam_token_hash, context,
+      listening_task_id, reading_task_id, manifest_json, status, created_at, expires_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?)
+  `).run(
+    examId,
+    clientExamKey,
+    actor.ownerKey,
+    actor.userId,
+    hashToken(examToken),
+    context,
+    listeningTaskId,
+    readingTaskId,
+    JSON.stringify(requestedManifest),
+    createdAt,
+    expiresAt,
+  );
+  sendJson(res, 201, objectiveExamPublic(db.prepare("SELECT * FROM objective_exam_attempts WHERE exam_id = ?").get(examId), examToken, false));
+}
+
+async function handleObjectiveAttemptStart(req, res) {
+  const payload = await readJsonBody(req);
+  const clientAttemptKey = String(payload.clientAttemptKey || "").trim();
+  if (!/^[A-Za-z0-9_-]{8,120}$/.test(clientAttemptKey)) {
+    throw objectiveAttemptError("A stable client attempt key is required.", 400, "invalid_objective_attempt");
+  }
+  const context = String(payload.context || "single").trim();
+  if (!["single", "same-test", "random-exam"].includes(context)) {
+    throw objectiveAttemptError("Invalid objective practice context.", 400, "invalid_objective_attempt");
+  }
+  const moduleName = String(payload.module || "").trim().toLowerCase();
+  if (!["listening", "reading"].includes(moduleName)) {
+    throw objectiveAttemptError("Objective attempts support Listening or Reading.", 400, "invalid_objective_attempt");
+  }
+  const requestedAttemptToken = String(payload.attemptToken || "").trim();
+  if (requestedAttemptToken && !/^[A-Za-z0-9_-]{32,128}$/.test(requestedAttemptToken)) {
+    throw objectiveAttemptError("Invalid objective attempt capability.", 400, "invalid_objective_attempt");
+  }
+  const questions = objectiveQuestionsForSubmission(moduleName, payload, { requireComplete: context !== "single" });
+  const actor = objectiveAttemptActor(req, res, { createGuest: true });
+  const db = getAppDb();
+  const requestedTaskId = canonicalObjectiveTaskId(payload.taskId || payload.sourceTaskId);
+  const parentExam = context === "single"
+    ? null
+    : inspectObjectiveExam(req, payload.examId, payload.examToken, context).row;
+  if (parentExam) {
+    const expectedTaskId = moduleName === "listening" ? parentExam.listening_task_id : parentExam.reading_task_id;
+    if (requestedTaskId !== expectedTaskId || parentExam.status !== "open") {
+      throw objectiveAttemptError("This paper does not belong to the active full exam.", 409, "objective_exam_mismatch");
+    }
+  }
+  let existing = db.prepare(`
+    SELECT * FROM objective_attempts
+    WHERE owner_key = ? AND client_attempt_key = ? AND module = ?
+  `).get(actor.ownerKey, clientAttemptKey, moduleName);
+  let retryingGuestAttemptAfterLogin = false;
+  if (!existing && actor.userId) {
+    const guestOwnerKey = objectiveAttemptActorCandidates(req).guestOwnerKey;
+    if (guestOwnerKey) {
+      existing = db.prepare(`
+        SELECT * FROM objective_attempts
+        WHERE owner_key = ? AND client_attempt_key = ? AND module = ?
+      `).get(guestOwnerKey, clientAttemptKey, moduleName);
+      retryingGuestAttemptAfterLogin = Boolean(existing);
+    }
+  }
+  if (existing) {
+    if (!requestedAttemptToken) {
+      throw objectiveAttemptError(
+        "Retry this start request with its original capability.",
+        409,
+        "objective_attempt_retry_requires_capability",
+        { retryable: true },
+      );
+    }
+    if (!objectiveAttemptTokenMatches(existing, requestedAttemptToken)) {
+      throw objectiveAttemptError("This objective attempt is unavailable.", 403, "objective_attempt_forbidden");
+    }
+    const requestedQuestionIds = questions.map((question) => String(question.id));
+    const existingQuestionIds = parseStoredJson(existing.question_ids_json, []);
+    if (existing.context !== context
+      || existing.task_id !== requestedTaskId
+      || String(existing.parent_exam_id || "") !== String(parentExam?.exam_id || "")
+      || !sameObjectiveQuestionSet(existingQuestionIds, requestedQuestionIds)) {
+      throw objectiveAttemptError(
+        "The retry does not match the original objective attempt.",
+        409,
+        "objective_attempt_mismatch",
+        { restartRequired: true },
+      );
+    }
+    if (existing.status === "open" && Date.parse(existing.expires_at) <= Date.now()) {
+      throw objectiveAttemptError(
+        "This objective attempt expired. Start a new practice with a new client attempt key.",
+        410,
+        "objective_attempt_expired",
+        { restartRequired: true },
+      );
+    }
+    if (retryingGuestAttemptAfterLogin && existing.status === "open") {
+      const claimed = db.prepare(`
+        UPDATE OR IGNORE objective_attempts
+        SET owner_key = ?, user_id = ?
+        WHERE attempt_id = ? AND owner_key = ? AND status = 'open'
+      `).run(actor.ownerKey, actor.userId, existing.attempt_id, existing.owner_key);
+      if (Number(claimed.changes) !== 1) {
+        throw objectiveAttemptError("This objective attempt is unavailable.", 403, "objective_attempt_forbidden");
+      }
+      existing = db.prepare("SELECT * FROM objective_attempts WHERE attempt_id = ?").get(existing.attempt_id);
+    }
+    sendJson(res, 200, objectiveAttemptPublic(existing, requestedAttemptToken, true));
+    return;
+  }
+  const attemptId = `objective_${crypto.randomBytes(18).toString("base64url")}`;
+  const attemptToken = requestedAttemptToken || crypto.randomBytes(32).toString("base64url");
+  const createdAt = nowIso();
+  const expiresAt = new Date(Date.now() + OBJECTIVE_ATTEMPT_TTL_MS).toISOString();
+  db.prepare(`
+    INSERT INTO objective_attempts (
+      attempt_id, client_attempt_key, owner_key, user_id, attempt_token_hash, context, module, task_id,
+      parent_exam_id, question_ids_json, status, created_at, expires_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?)
+  `).run(
+    attemptId,
+    clientAttemptKey,
+    actor.ownerKey,
+    actor.userId,
+    hashToken(attemptToken),
+    context,
+    moduleName,
+    requestedTaskId,
+    parentExam?.exam_id || null,
+    JSON.stringify(questions.map((question) => String(question.id))),
+    createdAt,
+    expiresAt,
+  );
+  const row = db.prepare("SELECT * FROM objective_attempts WHERE attempt_id = ?").get(attemptId);
+  sendJson(res, 201, objectiveAttemptPublic(row, attemptToken, false));
+}
+
+function inspectObjectiveAttempt(req, attemptId, attemptToken, expectedModule = "", { deferGuestClaim = false } = {}) {
+  if (!/^objective_[A-Za-z0-9_-]{16,}$/.test(String(attemptId || "")) || !String(attemptToken || "")) {
+    throw objectiveAttemptError("Start this practice before submitting it.", 409, "objective_attempt_required");
+  }
+  const db = getAppDb();
+  let row = db.prepare("SELECT * FROM objective_attempts WHERE attempt_id = ?").get(attemptId);
+  if (!row || !objectiveAttemptTokenMatches(row, attemptToken)) {
+    throw objectiveAttemptError("This objective attempt is unavailable.", 403, "objective_attempt_forbidden");
+  }
+  const actors = objectiveAttemptActorCandidates(req);
+  const ownedByUser = Boolean(actors.userOwnerKey && row.owner_key === actors.userOwnerKey);
+  const ownedByGuestCookie = Boolean(actors.guestOwnerKey && row.owner_key === actors.guestOwnerKey);
+  if (!ownedByUser && !ownedByGuestCookie) {
+    throw objectiveAttemptError("This objective attempt is unavailable.", 403, "objective_attempt_forbidden");
+  }
+  let ownerClaim = null;
+  if (row.status === "open" && ownedByGuestCookie && actors.userOwnerKey) {
+    ownerClaim = {
+      userOwnerKey: actors.userOwnerKey,
+      userId: actors.user.id,
+      guestOwnerKey: actors.guestOwnerKey,
+    };
+    if (!deferGuestClaim) {
+      db.prepare(`
+        UPDATE OR IGNORE objective_attempts
+        SET owner_key = ?, user_id = ?
+        WHERE attempt_id = ? AND owner_key = ? AND status = 'open'
+      `).run(ownerClaim.userOwnerKey, ownerClaim.userId, row.attempt_id, ownerClaim.guestOwnerKey);
+      row = db.prepare("SELECT * FROM objective_attempts WHERE attempt_id = ?").get(row.attempt_id);
+      if (row.owner_key !== actors.userOwnerKey && row.owner_key !== actors.guestOwnerKey) {
+        throw objectiveAttemptError("This objective attempt is unavailable.", 403, "objective_attempt_forbidden");
+      }
+      ownerClaim = null;
+    }
+  }
+  if (expectedModule && row.module !== expectedModule) {
+    throw objectiveAttemptError("This attempt belongs to another module.", 409, "objective_attempt_mismatch");
+  }
+  if (row.status === "open" && Date.parse(row.expires_at) <= Date.now()) {
+    throw objectiveAttemptError(
+      "This objective attempt expired. Start a new practice with a new client attempt key.",
+      410,
+      "objective_attempt_expired",
+      { restartRequired: true },
+    );
+  }
+  return { row, ownerClaim };
+}
+
+function requireObjectiveAttempt(req, res, attemptId, attemptToken, expectedModule = "") {
+  return inspectObjectiveAttempt(req, attemptId, attemptToken, expectedModule).row;
+}
+
+function objectiveAnswersDigest(questionIds, answers = {}) {
+  const canonical = questionIds.map((questionId) => [questionId, String(answers[questionId] || "")]);
+  return crypto.createHash("sha256").update(JSON.stringify(canonical)).digest("hex");
+}
+
+function objectiveGuestRateKey(req) {
+  const socketAddress = String(req?.socket?.remoteAddress || "").trim();
+  const fromLoopback = /^(?:127\.0\.0\.1|::1|::ffff:127\.0\.0\.1)$/.test(socketAddress);
+  const forwarded = fromLoopback ? String(req?.headers?.["x-forwarded-for"] || "").split(",", 1)[0].trim() : "";
+  const address = forwarded || socketAddress || "unknown";
+  return crypto.createHash("sha256").update(`objective-guest:${address}`).digest("hex");
+}
+
+function reserveObjectiveGuestSubmission(rateKey) {
+  const windowDate = new Date().toISOString().slice(0, 10);
+  const updatedAt = nowIso();
+  const update = getAppDb().prepare(`
+    INSERT INTO objective_guest_submission_limits (rate_key, window_date, submissions, updated_at)
+    VALUES (?, ?, 1, ?)
+    ON CONFLICT(rate_key, window_date) DO UPDATE SET
+      submissions = submissions + 1,
+      updated_at = excluded.updated_at
+    WHERE objective_guest_submission_limits.submissions < ?
+  `).run(rateKey, windowDate, updatedAt, OBJECTIVE_GUEST_DAILY_SUBMISSION_LIMIT);
+  if (Number(update.changes) !== 1) {
+    throw objectiveAttemptError(
+      "Guest review limit reached for today. Sign in to continue saved practice.",
+      429,
+      "objective_guest_limit_reached",
+      { retryable: true },
+    );
+  }
+}
+
+function objectiveSubmissionResponse(row, result, idempotent) {
+  const moduleLabel = row.module === "listening" ? "Listening" : "Reading";
+  const feedback = result.answerAvailable
+    ? `${moduleLabel} score: ${result.correct}/${result.scoredTotal}, estimated Band ${result.band.toFixed(1)}. Review wrong answers for keywords, paraphrasing, spelling and plural forms.`
+    : `${moduleLabel}: answers are not imported for this local Cambridge paper yet. Your responses remain on the page, but the app cannot score this test automatically.`;
+  return {
+    mode: "local",
+    module: row.module,
+    attemptId: row.attempt_id,
+    status: "submitted",
+    idempotent,
+    result,
+    feedback,
+    reviewAvailable: true,
+  };
+}
+
+function prepareObjectiveSubmission(req, res, moduleName, payload = {}, allowedContexts = ["single"]) {
+  const inspected = inspectObjectiveAttempt(
+    req,
+    payload.attemptId,
+    payload.attemptToken,
+    moduleName,
+    { deferGuestClaim: true },
+  );
+  const row = inspected.row;
+  if (!allowedContexts.includes(row.context)) {
+    throw objectiveAttemptError("This attempt belongs to another practice context.", 409, "objective_attempt_mismatch");
+  }
+  const questionIds = parseStoredJson(row.question_ids_json, []);
   const answers = payload.answers && typeof payload.answers === "object" && !Array.isArray(payload.answers)
     ? payload.answers
     : {};
-  return scoreObjective(questions, answers);
+  const answersDigest = objectiveAnswersDigest(questionIds, answers);
+  if (row.status === "submitted") {
+    if (row.answers_digest !== answersDigest) {
+      throw objectiveAttemptError("This attempt was already submitted and cannot be changed.", 409, "objective_attempt_locked");
+    }
+    return {
+      row,
+      moduleName,
+      payload,
+      result: parseStoredJson(row.result_json, {}),
+      answersDigest,
+      ownerClaim: inspected.ownerClaim,
+      idempotent: true,
+    };
+  }
+  const questions = objectiveQuestionsForSubmission(moduleName, {
+    taskId: row.task_id,
+    questionIds,
+  }, { requireComplete: row.context !== "single" });
+  return {
+    row,
+    moduleName,
+    payload,
+    result: scoreObjective(questions, answers),
+    answersDigest,
+    ownerClaim: inspected.ownerClaim,
+    guestRateKey: row.user_id || inspected.ownerClaim?.userId ? "" : objectiveGuestRateKey(req),
+    idempotent: false,
+  };
+}
+
+function commitObjectiveSubmission(prepared) {
+  let { row } = prepared;
+  const { result, answersDigest } = prepared;
+  if (prepared.idempotent) {
+    return objectiveSubmissionResponse(row, result, true);
+  }
+  if (prepared.guestRateKey) reserveObjectiveGuestSubmission(prepared.guestRateKey);
+  if (prepared.ownerClaim) {
+    const { userOwnerKey, userId, guestOwnerKey } = prepared.ownerClaim;
+    getAppDb().prepare(`
+      UPDATE OR IGNORE objective_attempts
+      SET owner_key = ?, user_id = ?
+      WHERE attempt_id = ? AND owner_key = ? AND status = 'open'
+    `).run(userOwnerKey, userId, row.attempt_id, guestOwnerKey);
+    row = getAppDb().prepare("SELECT * FROM objective_attempts WHERE attempt_id = ?").get(row.attempt_id);
+    if (row.owner_key !== userOwnerKey && row.owner_key !== guestOwnerKey) {
+      throw objectiveAttemptError("This objective attempt is unavailable.", 403, "objective_attempt_forbidden");
+    }
+  }
+  const submittedAt = nowIso();
+  const update = getAppDb().prepare(`
+    UPDATE objective_attempts
+    SET status = 'submitted', answers_digest = ?, result_json = ?, submitted_at = ?
+    WHERE attempt_id = ? AND status = 'open'
+  `).run(answersDigest, JSON.stringify(result), submittedAt, row.attempt_id);
+  if (Number(update.changes) !== 1) {
+    const latest = getAppDb().prepare("SELECT * FROM objective_attempts WHERE attempt_id = ?").get(row.attempt_id);
+    if (latest?.status === "submitted" && latest.answers_digest === answersDigest) {
+      return objectiveSubmissionResponse(latest, parseStoredJson(latest.result_json, {}), true);
+    }
+    throw objectiveAttemptError("This attempt was already submitted and cannot be changed.", 409, "objective_attempt_locked");
+  }
+  const submitted = getAppDb().prepare("SELECT * FROM objective_attempts WHERE attempt_id = ?").get(row.attempt_id);
+  return objectiveSubmissionResponse(submitted, result, false);
+}
+
+function submitObjectiveBatch(req, res, specifications, options = {}) {
+  const db = getAppDb();
+  db.exec("BEGIN IMMEDIATE");
+  try {
+    const prepared = specifications.map((specification) => prepareObjectiveSubmission(
+      req,
+      res,
+      specification.moduleName,
+      specification.payload,
+      specification.allowedContexts,
+    ));
+    const batchState = typeof options.validatePrepared === "function"
+      ? options.validatePrepared(prepared, db)
+      : null;
+    const submissions = prepared.map(commitObjectiveSubmission);
+    if (typeof options.afterCommit === "function") options.afterCommit(batchState, prepared, submissions, db);
+    db.exec("COMMIT");
+    return submissions;
+  } catch (error) {
+    try {
+      db.exec("ROLLBACK");
+    } catch {}
+    throw error;
+  }
+}
+
+function submitObjectiveAttempt(req, res, moduleName, payload = {}, allowedContexts = ["single"]) {
+  return submitObjectiveBatch(req, res, [{ moduleName, payload, allowedContexts }])[0];
+}
+
+function submitObjectiveAttemptPair(req, res, payload, examContext) {
+  const [listening, reading] = submitObjectiveBatch(req, res, [
+    { moduleName: "listening", payload: payload.listening || {}, allowedContexts: [examContext] },
+    { moduleName: "reading", payload: payload.reading || {}, allowedContexts: [examContext] },
+  ], {
+    validatePrepared(prepared, db) {
+      const [listeningPrepared, readingPrepared] = prepared;
+      const examId = String(listeningPrepared.row.parent_exam_id || "");
+      if (!examId || examId !== String(readingPrepared.row.parent_exam_id || "")) {
+        throw objectiveAttemptError("Listening and Reading must belong to the same full exam.", 409, "objective_exam_mismatch");
+      }
+      const exam = db.prepare("SELECT * FROM objective_exam_attempts WHERE exam_id = ?").get(examId);
+      if (!exam
+        || exam.context !== examContext
+        || exam.listening_task_id !== listeningPrepared.row.task_id
+        || exam.reading_task_id !== readingPrepared.row.task_id) {
+        throw objectiveAttemptError("The full-exam paper binding is invalid.", 409, "objective_exam_mismatch");
+      }
+      if (exam.status === "submitted" && (!listeningPrepared.idempotent || !readingPrepared.idempotent)) {
+        throw objectiveAttemptError("This full exam was already submitted.", 409, "objective_attempt_locked");
+      }
+      if (exam.status === "open" && Date.parse(exam.expires_at) <= Date.now()) {
+        throw objectiveAttemptError("This full exam expired. Generate a new exam.", 410, "objective_exam_expired", { restartRequired: true });
+      }
+      validateObjectiveExamManifestForReport(exam, payload, prepared);
+      return exam;
+    },
+    afterCommit(exam, prepared, submissions, db) {
+      if (!exam || exam.status === "submitted") return;
+      const submittedAt = nowIso();
+      const update = db.prepare(`
+        UPDATE objective_exam_attempts SET status = 'submitted', submitted_at = ?
+        WHERE exam_id = ? AND status = 'open'
+      `).run(submittedAt, exam.exam_id);
+      if (Number(update.changes) !== 1) {
+        throw objectiveAttemptError("This full exam could not be locked atomically.", 409, "objective_attempt_locked");
+      }
+      submissions.forEach((submission) => { submission.examId = exam.exam_id; });
+    },
+  });
+  return { listening, reading };
+}
+
+function handleObjectiveAttemptReview(req, res, attemptId) {
+  const attemptToken = String(req.headers["x-objective-attempt"] || "").trim();
+  const row = requireObjectiveAttempt(req, res, attemptId, attemptToken);
+  if (row.status !== "submitted") {
+    throw objectiveAttemptError("Submit this attempt before opening review.", 409, "objective_attempt_not_submitted");
+  }
+  const result = parseStoredJson(row.result_json, {});
+  const questionIds = parseStoredJson(row.question_ids_json, []);
+  const questions = objectiveQuestionsForSubmission(
+    row.module,
+    { taskId: row.task_id, questionIds },
+    { requireComplete: row.context !== "single" },
+  );
+  const questionById = new Map(questions.map((question) => [String(question.id), question]));
+  const wrongAnswers = (result.details || [])
+    .filter((detail) => detail.correct === false)
+    .map((detail) => {
+      const question = questionById.get(String(detail.id));
+      return {
+        questionId: String(detail.id),
+        questionText: String(question?.text || detail.text || ""),
+        studentAnswer: String(detail.actual || ""),
+        canonicalAnswer: String(question?.answer || ""),
+      };
+    });
+  sendJson(res, 200, {
+    attemptId: row.attempt_id,
+    status: row.status,
+    module: row.module,
+    taskId: row.task_id,
+    wrongAnswers,
+  });
 }
 
 function wordCount(text) {
@@ -5278,23 +6383,19 @@ async function handleSpeakingRecording(req, res) {
 
 async function handleObjective(req, res, moduleName) {
   const payload = JSON.parse((await readBody(req)) || "{}");
-  const result = scoreObjectiveSubmission(moduleName, payload);
-  const moduleLabel = moduleName === "listening" ? "Listening" : "Reading";
-  const feedback = result.answerAvailable
-    ? `${moduleLabel} score: ${result.correct}/${result.scoredTotal}, estimated Band ${result.band.toFixed(1)}. Review wrong answers for keywords, paraphrasing, spelling and plural forms.`
-    : `${moduleLabel}: answers are not imported for this local Cambridge paper yet. Your responses remain on the page, but the app cannot score this test automatically. Please check the local PDF or analysis file manually.`;
-  sendJson(res, 200, {
-    mode: "local",
-    module: moduleName,
-    result,
-    feedback,
-  });
+  if (!payload.attemptId || !payload.attemptToken) {
+    throw objectiveAttemptError("Start this practice before submitting it.", 409, "objective_attempt_required");
+  }
+  sendJson(res, 200, submitObjectiveAttempt(req, res, moduleName, payload));
 }
 
 async function handleLegacyFullExam(req, res) {
   const payload = JSON.parse((await readBody(req)) || "{}");
-  const listening = scoreObjectiveSubmission("listening", payload.listening || {});
-  const reading = scoreObjectiveSubmission("reading", payload.reading || {});
+  const examContext = ["same-test", "random-exam"].includes(payload.examContext) ? payload.examContext : "";
+  if (!examContext) throw objectiveAttemptError("A valid exam submission context is required.", 409, "objective_attempt_required");
+  const submissions = submitObjectiveAttemptPair(req, res, payload, examContext);
+  const listening = submissions.listening.result;
+  const reading = submissions.reading.result;
   const writingTasks = Array.isArray(payload.writing?.tasks)
     ? payload.writing.tasks.map((task, index) => ({
         type: String(task.type || `Task ${index + 1}`).trim(),
@@ -6052,8 +7153,13 @@ async function handleSpeaking(req, res) {
 
 async function handleFullExam(req, res) {
   const payload = JSON.parse((await readBody(req)) || "{}");
-  const listening = scoreObjectiveSubmission("listening", payload.listening || {});
-  const reading = scoreObjectiveSubmission("reading", payload.reading || {});
+  const examContext = ["same-test", "random-exam"].includes(payload.examContext) ? payload.examContext : "";
+  if (!examContext) throw objectiveAttemptError("A valid exam submission context is required.", 409, "objective_attempt_required");
+  const submissions = submitObjectiveAttemptPair(req, res, payload, examContext);
+  const listeningSubmission = submissions.listening;
+  const readingSubmission = submissions.reading;
+  const listening = listeningSubmission.result;
+  const reading = readingSubmission.result;
   const writingTasks = Array.isArray(payload.writing?.tasks)
     ? payload.writing.tasks.map((task, index) => ({
         type: String(task.type || `Task ${index + 1}`).trim(),
@@ -6124,6 +7230,10 @@ async function handleFullExam(req, res) {
     pdfFileName: "ielts-full-exam-report.pdf",
     listening,
     reading,
+    objectiveAttempts: {
+      listening: { attemptId: listeningSubmission.attemptId, status: listeningSubmission.status },
+      reading: { attemptId: readingSubmission.attemptId, status: readingSubmission.status },
+    },
     speaking,
     warning,
   }, "ielts-full-exam-report.pdf"));
@@ -6132,7 +7242,7 @@ async function handleFullExam(req, res) {
 const server = http.createServer(async (req, res) => {
   try {
     const requestPathname = new URL(req.url, `http://${req.headers.host || "localhost"}`).pathname;
-    if (req.method === "OPTIONS" && requestPathname.startsWith("/api/stem/marking/")) {
+    if (req.method === "OPTIONS" && (requestPathname.startsWith("/api/stem/marking/") || requestPathname === "/api/ai/mark-handwriting")) {
       if (!applyStemCors(req, res, "GET,POST,PUT,DELETE,OPTIONS")) {
         sendJson(res, 403, { error: "This origin is not allowed to access STEM marking." });
         return;
@@ -6188,6 +7298,10 @@ const server = http.createServer(async (req, res) => {
       await handleStemMarkingApi(req, res);
       return;
     }
+    if (req.method === "POST" && requestPathname === "/api/ai/mark-handwriting") {
+      await handleStemHandwritingMarking(req, res);
+      return;
+    }
     if (req.url.startsWith("/api/auth/") || req.url === "/api/me") {
       await handleAuthApi(req, res);
       return;
@@ -6215,6 +7329,19 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.url.startsWith("/api/learning/")) {
       await handleLearningApi(req, res);
+      return;
+    }
+    if (req.method === "POST" && requestPathname === "/api/objective/exams") {
+      await handleObjectiveExamStart(req, res);
+      return;
+    }
+    if (req.method === "POST" && requestPathname === "/api/objective/attempts") {
+      await handleObjectiveAttemptStart(req, res);
+      return;
+    }
+    const objectiveReviewMatch = requestPathname.match(/^\/api\/objective\/attempts\/([^/]+)\/review$/);
+    if (req.method === "GET" && objectiveReviewMatch) {
+      handleObjectiveAttemptReview(req, res, decodeURIComponent(objectiveReviewMatch[1]));
       return;
     }
     if ((req.method === "GET" || req.method === "HEAD") && req.url.startsWith("/api/tasks")) {
@@ -6337,7 +7464,11 @@ const server = http.createServer(async (req, res) => {
     }
     sendJson(res, 405, { error: "Method not allowed" });
   } catch (error) {
-    sendJson(res, error.statusCode || 500, { error: error.message || "Server error" });
+    sendJson(res, error.statusCode || 500, {
+      error: error.message || "Server error",
+      ...(error.code ? { code: error.code } : {}),
+      ...(error.publicDetails && typeof error.publicDetails === "object" ? error.publicDetails : {}),
+    });
   }
 });
 
@@ -7062,9 +8193,9 @@ function buildQwenSessionUpdate(config = {}) {
   };
 }
 
-server.listen(PORT, () => {
+server.listen(PORT, SERVER_HOST, () => {
   recoverStemMarkingJobs();
-  console.log(`IELTS-ist running at http://localhost:${PORT}`);
+  console.log(`IELTS-ist running at http://${SERVER_HOST}:${PORT}`);
   console.log(COACH_AI_API_KEY
     ? `AI Coach enabled with Qwen model ${COACH_AI_MODEL}`
     : OPENAI_API_KEY

@@ -172,8 +172,12 @@ async function installGuestState(page, session = null) {
     sessionStorage.setItem("lrScopeTestInitialized", "1");
     localStorage.removeItem("ieltsistAuthToken");
     localStorage.removeItem("ieltsistLearningLoopHistory");
+    localStorage.removeItem("ieltsistLearningLoopHistory::guest");
     if (savedSession) localStorage.setItem("ieltsistPracticeSessionV1", JSON.stringify(savedSession));
-    else localStorage.removeItem("ieltsistPracticeSessionV1");
+    else {
+      localStorage.removeItem("ieltsistPracticeSessionV1");
+      localStorage.removeItem("ieltsistPracticeSessionV1::guest");
+    }
   }, session);
 }
 
@@ -486,7 +490,7 @@ try {
       attemptId: completion.attemptId,
       impliedBy: itemId,
     };
-    localStorage.setItem("ieltsistCompletedItemsV1", JSON.stringify({
+    localStorage.setItem("ieltsistCompletedItemsV1::guest", JSON.stringify({
       version: 1,
       partitions: { guest: entries },
     }));
@@ -497,7 +501,7 @@ try {
   await page.locator('[data-single-scope="section"]').click();
   assert.match(await page.locator(".practice-unit-card .practice-status-badge").first().innerText(), /✓ Completed · 2026-07-31/, "An implied Section completion must keep the date without borrowing the full-paper score");
   assert.equal(await page.locator('.practice-status-badge[role="status"], .practice-status-badge[aria-live]').count(), 0, "Repeated completion badges must not be live regions");
-  await page.evaluate(() => localStorage.removeItem("ieltsistCompletedItemsV1"));
+  await page.evaluate(() => localStorage.removeItem("ieltsistCompletedItemsV1::guest"));
   await page.locator("#singleCompletionFilter").selectOption("all");
   await page.locator('[data-single-scope="paper"]').click();
   await page.locator("#singleCompletionFilter").selectOption("completed");
@@ -547,10 +551,10 @@ try {
   assert.ok(await page.locator('#singleCaptionLine [class*="caption-voice-"]').count() > 0, "Rendered captions must retain speaker voice classes");
   console.log(`PASS REQUIRED ASR assertion executed: ${cached.timedWords.length} timed words, ${cached.speakers.length} speakers, rendered caption bubbles`);
 
-  const q1 = page.locator('.answer-input[data-prefix="single"][data-qid="q1"]');
+  const q1 = page.locator('.objective-answer-control[data-prefix="single"][data-qid="q1"]');
   await q1.fill("Jamieson");
   await page.waitForTimeout(700);
-  let savedSession = await page.evaluate(() => JSON.parse(localStorage.getItem("ieltsistPracticeSessionV1")));
+  let savedSession = await page.evaluate(() => JSON.parse(localStorage.getItem("ieltsistPracticeSessionV1::guest")));
   assert.equal(savedSession.itemId, "cam15-l-test1::section::1");
   assert.equal(savedSession.scopes.listening, "section");
   assert.equal(savedSession.answerItemId, "cam15-l-test1::section::1");
@@ -559,7 +563,7 @@ try {
   assert.equal(await q1.inputValue(), "Jamieson", "Scoped answers must restore after refresh");
   await page.locator("#submitSingle").click();
   await page.waitForFunction(() => document.querySelector('[data-objective-module="listening"]'));
-  const scopedResult = await page.evaluate(() => JSON.parse(localStorage.getItem("ieltsistLearningLoopHistory")).objectiveItems["cam15-l-test1::section::1"]);
+  const scopedResult = await page.evaluate(() => JSON.parse(localStorage.getItem("ieltsistLearningLoopHistory::guest")).objectiveItems["cam15-l-test1::section::1"]);
   assert.equal(scopedResult.itemId, "cam15-l-test1::section::1");
   assert.equal(scopedResult.total, 10);
   assert.equal(scopedResult.band, null, "A 10-question Section score must not be presented as an official IELTS Band");
@@ -619,7 +623,7 @@ try {
   assert.equal(await page.locator('[data-active-practice-unit="cam15-r-test1::section::2"]').count(), 1);
   await page.locator("#submitSingle").click();
   await page.waitForFunction(() => document.querySelector('[data-objective-module="reading"]'));
-  const passageResult = await page.evaluate(() => JSON.parse(localStorage.getItem("ieltsistLearningLoopHistory")).objectiveItems["cam15-r-test1::section::2"]);
+  const passageResult = await page.evaluate(() => JSON.parse(localStorage.getItem("ieltsistLearningLoopHistory::guest")).objectiveItems["cam15-r-test1::section::2"]);
   assert.equal(passageResult.total, 13);
   assert.equal(passageResult.band, null, "A Passage score must remain raw correct/total rather than an official IELTS Band");
   console.log("PASS Reading Passage identity, question range, timer and independent raw score history");
@@ -698,11 +702,11 @@ try {
   await perfPage.goto(`${baseUrl}/?test=lr-scope-completion-perf#home`, { waitUntil: "networkidle" });
   await activateModule(perfPage, "listening");
   await perfPage.evaluate((entries) => {
-    localStorage.setItem("ieltsistCompletedItemsV1", JSON.stringify({ version: 1, partitions: { guest: entries } }));
+    localStorage.setItem("ieltsistCompletedItemsV1::guest", JSON.stringify({ version: 1, partitions: { guest: entries } }));
     const nativeGetItem = Storage.prototype.getItem;
     window.__completionStoreReads = 0;
     Storage.prototype.getItem = function instrumentedGetItem(key) {
-      if (key === "ieltsistCompletedItemsV1") window.__completionStoreReads += 1;
+      if (key === "ieltsistCompletedItemsV1::guest") window.__completionStoreReads += 1;
       return nativeGetItem.call(this, key);
     };
   }, objectiveCompletionEntries);
@@ -717,7 +721,7 @@ try {
   assert.match(await perfPage.locator(".practice-status-badge").first().innerText(), /✓ Completed · 2026-07-30/);
   assert.equal(await perfPage.locator('.practice-status-badge[role="status"], .practice-status-badge[aria-live]').count(), 0);
   console.log(`PASS ${expectedListeningTopicGroups}-group Topic directory reuses completion snapshot for 504 completion records`);
-  await perfPage.evaluate(() => localStorage.removeItem("ieltsistCompletedItemsV1"));
+  await perfPage.evaluate(() => localStorage.removeItem("ieltsistCompletedItemsV1::guest"));
   assertPerfPageClean();
   await perfPage.close();
 
@@ -742,7 +746,12 @@ try {
   await legacyPage.goto(`${baseUrl}/?test=lr-scope-legacy#single`, { waitUntil: "networkidle" });
   await legacyPage.waitForFunction(() => document.querySelector('[data-active-practice-unit="cam15-l-test1::section::2"]'));
   assert.equal(await legacyPage.locator('.answer-input[data-qid="q11"]').inputValue(), "B");
-  assert.equal(await legacyPage.evaluate(() => JSON.parse(localStorage.getItem("ieltsistPracticeSessionV1")).itemId), "cam15-l-test1", "Legacy storage must not be destructively rewritten during restore");
+  const migratedLegacySession = await legacyPage.evaluate(() => ({
+    legacy: localStorage.getItem("ieltsistPracticeSessionV1"),
+    guest: JSON.parse(localStorage.getItem("ieltsistPracticeSessionV1::guest") || "null"),
+  }));
+  assert.equal(migratedLegacySession.legacy, null, "Legacy session data must be consumed once to prevent a second owner merge.");
+  assert.equal(migratedLegacySession.guest?.itemId, "cam15-l-test1", "The owner-scoped session must retain the legacy source paper identity.");
   console.log("PASS legacy Listening Training session maps to the Section library");
   assertLegacyPageClean();
   await legacyPage.close();

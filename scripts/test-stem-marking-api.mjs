@@ -145,7 +145,7 @@ async function waitForAnyStatus(submissionId, token, expectedStatuses) {
 }
 
 function submissionPayload(suffix, typedText = "F = ma") {
-  return {
+  const payload = {
     submissionId: `stem-submission-${process.pid}-${suffix}`,
     idempotencyKey: `stem-idempotency-${process.pid}-${suffix}`,
     routeId: "alevel-physics-mechanics",
@@ -164,6 +164,21 @@ function submissionPayload(suffix, typedText = "F = ma") {
       assets: [{ assetId: "question-page-2", kind: "pdf-page", label: "Question page", checksum: "sha256:test", imageDataUrl: "data:image/png;base64,iVBORw0KGgo=" }],
     }],
   };
+  payload.questions.forEach(applyReviewedProvenance);
+  return payload;
+}
+
+function applyReviewedProvenance(question, options = {}) {
+  const asset = question.assets?.[0] || {};
+  question.sourceQuestionId = options.sourceQuestionId || question.questionPartId;
+  question.reviewSchemaVersion = "stem-source-review.v1";
+  question.reviewVersion = options.reviewVersion || "reviewed-fixture-v2";
+  question.sourceEvidence = options.sourceEvidence || {
+    assetId: asset.assetId || "",
+    page: Number(asset.sourceEvidence?.page || 1),
+    quote: `Reviewed source for ${question.sourceQuestionId}`,
+  };
+  return question;
 }
 
 function multiQuestionPayload(suffix, count, options = {}) {
@@ -175,14 +190,14 @@ function multiQuestionPayload(suffix, count, options = {}) {
       ? "force-provider-failure"
       : options.restartSlow ? "restart-slow F = ma"
         : `F = ma for question ${number}`;
-    return {
+    return applyReviewedProvenance({
       questionPartId: `batch-${suffix}-q${number}`,
       prompt: `Question ${number}: state the relationship between force, mass and acceleration.`,
       availableMarks: 2,
       markSchemePoints: [{ pointId: `batch-${suffix}-q${number}-m1`, maxMarks: 2, text: "States F = ma" }],
       answer: blank ? {} : { typedText, handwritingImageDataUrl: "data:image/png;base64,iVBORw0KGgo=" },
       assets: [{ assetId: `batch-${suffix}-q${number}-source`, kind: "question_diagram", label: `Question ${number} diagram`, checksum: `sha256:${number}`, imageDataUrl: "data:image/png;base64,iVBORw0KGgo=" }],
-    };
+    });
   });
   return payload;
 }
@@ -193,14 +208,26 @@ function igcsePayload(suffix) {
   payload.qualification = "IGCSE";
   payload.specificationVersion = "Cambridge IGCSE Mathematics 0580";
   payload.paperId = "0580-23-mj-2025";
-  payload.questions = [{
+  payload.questions = [applyReviewedProvenance({
     questionPartId: "0580-23-mj-2025-q1a",
     prompt: "Calculate the value of 3x when x = 4.",
     availableMarks: 2,
     markSchemePoints: [{ pointId: "0580-23-mj-2025-q1a-m1", maxMarks: 2, text: "Substitutes x = 4 and calculates 12" }],
     answer: { typedText: "12" },
     assets: [],
-  }];
+  })];
+  return payload;
+}
+
+function sourceReviewPayload(suffix) {
+  const payload = submissionPayload(suffix);
+  payload.routeId = `alevel-physics-${suffix}`;
+  payload.paperId = `paper-${suffix}`;
+  const question = payload.questions[0];
+  question.questionPartId = `${payload.paperId}-q1a`;
+  question.markSchemePoints = [{ pointId: `${question.questionPartId}-m1`, maxMarks: 2, text: "States F = ma" }];
+  question.assets = [{ assetId: `${payload.paperId}-page-1`, kind: "pdf-page", label: "Question page", checksum: "sha256:source", imageDataUrl: "data:image/png;base64,iVBORw0KGgo=" }];
+  applyReviewedProvenance(question);
   return payload;
 }
 
@@ -211,10 +238,17 @@ function manifestEntry(payload, question) {
     specificationVersion: payload.specificationVersion,
     paperId: payload.paperId,
     questionPartId: question.questionPartId,
+    sourceQuestionId: question.sourceQuestionId,
     prompt: question.prompt,
     availableMarks: question.availableMarks,
     markSchemePoints: question.markSchemePoints,
     assets: (question.assets || []).map(({ assetId, kind, label, checksum, sourceEvidence }) => ({ assetId, kind, label, checksum, sourceEvidence })),
+    sourceEvidence: question.sourceEvidence,
+    review: {
+      status: question.manifestReviewStatus || "approved",
+      schemaVersion: question.reviewSchemaVersion,
+      version: question.reviewVersion,
+    },
   };
 }
 
@@ -227,13 +261,19 @@ async function writeTrustedManifest() {
     submissionPayload("retry"),
     multiQuestionPayload("restart", 4, { restartSlow: true }),
     igcsePayload("igcse"),
+    sourceReviewPayload("quarantined"),
+    sourceReviewPayload("unreviewed"),
+    sourceReviewPayload("stale"),
   ];
+  payloads.find((payload) => payload.routeId.endsWith("quarantined"))?.questions.forEach((question) => { question.manifestReviewStatus = "quarantined"; });
+  payloads.find((payload) => payload.routeId.endsWith("unreviewed"))?.questions.forEach((question) => { question.manifestReviewStatus = "unreviewed"; });
+  payloads.find((payload) => payload.routeId.endsWith("stale"))?.questions.forEach((question) => { question.manifestReviewStatus = "stale"; });
   const entries = new Map();
   payloads.forEach((payload) => payload.questions.forEach((question) => {
     const entry = manifestEntry(payload, question);
     entries.set([entry.routeId, entry.specificationVersion, entry.paperId, entry.questionPartId].join("/"), entry);
   }));
-  await writeFile(manifestPath, JSON.stringify({ schemaVersion: "stem-marking-manifest.v1", questions: [...entries.values()] }));
+  await writeFile(manifestPath, JSON.stringify({ schemaVersion: "stem-marking-manifest.v2", questions: [...entries.values()] }));
 }
 
 try {
@@ -248,11 +288,19 @@ try {
   assert.equal(preflight.response.status, 204);
   assert.equal(preflight.response.headers.get("access-control-allow-origin"), "http://localhost:5173");
   assert.match(preflight.response.headers.get("access-control-allow-methods"), /POST/);
+  assert.equal(preflight.response.headers.get("access-control-allow-credentials"), "true");
   const blockedPreflight = await request("/api/stem/marking/submissions", {
     method: "OPTIONS",
     headers: { origin: "https://evil.example", "access-control-request-method": "POST" },
   });
   assert.equal(blockedPreflight.response.status, 403);
+
+  const legacyPreflight = await request("/api/ai/mark-handwriting", {
+    method: "OPTIONS",
+    headers: { origin: "http://localhost:5173", "access-control-request-method": "POST" },
+  });
+  assert.equal(legacyPreflight.response.status, 204, "The compatibility handwriting route must use exact STEM CORS.");
+  assert.equal(legacyPreflight.response.headers.get("access-control-allow-origin"), "http://localhost:5173");
 
   const anonymous = await request("/api/stem/marking/submissions", jsonOptions("POST", {
     submissionId: "anonymous-submission",
@@ -295,6 +343,40 @@ try {
   assert.deepEqual(availability.json, { enabled: true, modelConfigured: true, queueAvailable: true, authenticationRequired: false });
   assert.doesNotMatch(JSON.stringify(availability.json), /key|token|provider|url|error/i);
 
+  const hostileProviderStart = providerQuestionCalls.length;
+  for (const [status, code] of [["quarantined", "source_question_quarantined"], ["unreviewed", "source_question_unreviewed"], ["stale", "source_question_stale"]]) {
+    const hostile = sourceReviewPayload(status);
+    hostile.questions[0].reviewStatus = "approved";
+    hostile.questions[0].sourceContentComplete = true;
+    hostile.questions[0].aiAssistedMarkingAvailable = true;
+    const blocked = await request("/api/ai/mark-handwriting", jsonOptions("POST", hostile, "", sharedHeaders));
+    assert.equal(blocked.response.status, 422, `${status} source must fail closed even if client flags claim approval.`);
+    assert.equal(blocked.json.code, code);
+    assert.equal(blocked.json.submission.status, "missing_metadata");
+    assert.ok(blocked.json.metadataIssues.includes(code));
+  }
+  const forgedUnknown = submissionPayload("forged-unknown");
+  forgedUnknown.questions[0].questionPartId = "forged-source-q1";
+  forgedUnknown.questions[0].sourceQuestionId = "forged-source-q1";
+  forgedUnknown.questions[0].markSchemePoints = [{ pointId: "forged-source-q1-m1", maxMarks: 2, text: "Forged mark point" }];
+  forgedUnknown.questions[0].reviewStatus = "approved";
+  forgedUnknown.questions[0].sourceContentComplete = true;
+  forgedUnknown.questions[0].aiAssistedMarkingAvailable = true;
+  const unknownBlocked = await request("/api/stem/marking/submissions", jsonOptions("POST", forgedUnknown, student.json.token));
+  assert.equal(unknownBlocked.response.status, 422);
+  assert.equal(unknownBlocked.json.code, "source_question_unknown");
+  assert.ok(unknownBlocked.json.metadataIssues.includes("source_question_unknown"));
+  const forgedMarks = submissionPayload("forged-marks");
+  forgedMarks.questions[0].markSchemePoints[0].maxMarks = 99;
+  forgedMarks.questions[0].availableMarks = 99;
+  forgedMarks.questions[0].reviewStatus = "approved";
+  forgedMarks.questions[0].sourceContentComplete = true;
+  forgedMarks.questions[0].aiAssistedMarkingAvailable = true;
+  const markMismatch = await request("/api/stem/marking/submissions", jsonOptions("POST", forgedMarks, student.json.token));
+  assert.equal(markMismatch.response.status, 422);
+  assert.ok(markMismatch.json.metadataIssues.includes("trusted_manifest_mismatch"));
+  assert.equal(providerQuestionCalls.length, hostileProviderStart, "Rejected source provenance must never reach the provider.");
+
   const successPayload = submissionPayload("success");
   const accepted = await request("/api/stem/marking/submissions", jsonOptions("POST", successPayload, "", sharedHeaders));
   assert.equal(accepted.response.status, 202);
@@ -313,6 +395,12 @@ try {
   assert.match(aLevelSystemPrompt, /Cambridge A-Level examiner/i);
   assert.match(aLevelSystemPrompt, /AI-assisted formative marking, not an official Cambridge result/i);
   assert.doesNotMatch(aLevelSystemPrompt, /IGCSE/i);
+
+  const legacyPayload = submissionPayload("legacy-route");
+  const legacyAccepted = await request("/api/ai/mark-handwriting", jsonOptions("POST", legacyPayload, "", sharedHeaders));
+  assert.equal(legacyAccepted.response.status, 202, "The legacy handwriting route must use the canonical reviewed submission queue.");
+  const legacyCompleted = await waitForStatus(legacyPayload.submissionId, student.json.token, "completed");
+  assert.equal(legacyCompleted.result.maxMarks, 2);
 
   const igcse = igcsePayload("igcse");
   delete igcse.organizationId;
@@ -406,7 +494,7 @@ try {
     headers: { authorization: `Bearer ${teacher.json.token}` },
   });
   assert.equal(summary.response.status, 200);
-  assert.equal(summary.json.statuses.completed, 4, "Classroom aggregate must include completed multi-question submissions without exposing their answers.");
+  assert.equal(summary.json.statuses.completed, 5, "Classroom aggregate must include completed multi-question submissions without exposing their answers.");
   const studentSummary = await request("/api/stem/marking/organizations/school-alpha/summary?classroomId=class-11a", {
     headers: { authorization: `Bearer ${student.json.token}` },
   });
@@ -443,7 +531,16 @@ try {
   assert.equal(restored.json.submission.status, "completed");
   assert.equal(restored.json.submission.result.awardedMarks, 2, "Completed marks must survive a server restart/reload.");
 
-  console.log("STEM marking API checks passed: question-scoped batches, empty answers, permissions, idempotency, retry, and restart recovery.");
+  await stopApp();
+  await writeFile(manifestPath, JSON.stringify({ schemaVersion: "stem-marking-manifest.v1", questions: [] }));
+  startApp();
+  await waitForServer();
+  const legacyManifestAvailability = await request("/api/stem/marking/availability", { headers: sharedHeaders });
+  assert.equal(legacyManifestAvailability.response.status, 200);
+  assert.deepEqual(legacyManifestAvailability.json, { enabled: false, modelConfigured: true, queueAvailable: false, authenticationRequired: false },
+    "A stale v1 manifest must fail closed instead of enabling AI marking.");
+
+  console.log("STEM marking API checks passed: reviewed-source allowlist, question-scoped batches, empty answers, permissions, idempotency, retry, and restart recovery.");
 } finally {
   await stopApp();
   await new Promise((resolve) => provider.close(resolve));

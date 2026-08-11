@@ -112,6 +112,17 @@ try {
   assert.equal(markingPreflight.response.status, 204);
   assertAllowedCors(markingPreflight.response, /POST/);
 
+  const handwritingPreflight = await request("/api/ai/mark-handwriting", {
+    method: "OPTIONS",
+    headers: {
+      origin: stemOrigin,
+      "access-control-request-method": "POST",
+      "access-control-request-headers": "content-type, x-stem-identity",
+    },
+  });
+  assert.equal(handwritingPreflight.response.status, 204);
+  assertAllowedCors(handwritingPreflight.response, /POST/);
+
   const availabilityPreflight = await request("/api/stem/marking/availability", {
     method: "OPTIONS",
     headers: {
@@ -174,6 +185,19 @@ try {
   assertAllowedCors(unavailable.response, /POST/);
   assert.equal(unavailable.json.code, "marking_unavailable");
   assert.doesNotMatch(JSON.stringify(unavailable.json), /key|token|provider|queued|processing/i);
+
+  const legacyUnavailable = await request("/api/ai/mark-handwriting", {
+    method: "POST",
+    headers: {
+      origin: stemOrigin,
+      "content-type": "application/json",
+      "x-stem-identity": identity.json.accessToken,
+    },
+    body: JSON.stringify(unavailablePayload),
+  });
+  assert.equal(legacyUnavailable.response.status, 503);
+  assertAllowedCors(legacyUnavailable.response, /POST/);
+  assert.equal(legacyUnavailable.json.code, "marking_unavailable");
 
   const notPersisted = await request(`/api/stem/marking/submissions/${unavailablePayload.submissionId}`, {
     headers: { origin: stemOrigin, "x-stem-identity": identity.json.accessToken },

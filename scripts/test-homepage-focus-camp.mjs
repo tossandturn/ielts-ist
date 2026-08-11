@@ -132,7 +132,7 @@ async function installApiFixture(page, fixture = learningState) {
   await page.route("**/api/me", (route) => route.fulfill({
     status: 200,
     contentType: "application/json",
-    body: JSON.stringify({ user: { username: "Amber", membership: { plan: "month", active: true } } }),
+    body: JSON.stringify({ user: { id: 101, username: "Amber", membership: { plan: "month", active: true } } }),
   }));
   await page.route("**/api/drafts", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ drafts: [] }) }));
   await page.route("**/api/vocabulary", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ items: [{ id: "v1", term: "paraphrase" }] }) }));
@@ -149,8 +149,11 @@ try {
   for (const size of sizes) {
     const page = await browser.newPage({ viewport: { width: size.width, height: size.height } });
     await installApiFixture(page);
-    await page.goto(`${baseUrl}/?visual=focus-camp-${size.name}#home`, { waitUntil: "networkidle" });
-    await page.waitForFunction(() => document.querySelector("#dashboardContent")?.textContent?.includes("Amber"));
+    await page.goto(`${baseUrl}/?visual=focus-camp-${size.name}#home`, { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => (
+      state.currentUser?.username === "Amber"
+      && state.learningState?.attempts?.length === 5
+    ));
 
     const layout = await page.evaluate(() => {
       const rect = (selector) => {
@@ -212,8 +215,10 @@ try {
     ],
   };
   await installApiFixture(independentPage, independentWritingState);
-  await independentPage.goto(`${baseUrl}/?visual=focus-camp-independent-writing#home`, { waitUntil: "networkidle" });
-  await independentPage.waitForFunction(() => document.querySelector("#dashboardContent")?.textContent?.includes("Amber"));
+  await independentPage.goto(`${baseUrl}/?visual=focus-camp-independent-writing#home`, { waitUntil: "domcontentloaded" });
+  await independentPage.waitForFunction(() => (
+    state.currentUser?.username === "Amber" && state.learningState?.attempts?.length === 2
+  ));
   const mockText = await independentPage.locator(".dashboard-focus-mock").innerText();
   assert.match(mockText, /No full mock yet/i);
   assert.doesNotMatch(mockText, /6\.25|Overall Band 6/i, "Independent Task 1 and Task 2 must not create an overall Band");
@@ -229,7 +234,8 @@ try {
     todayPlan: { kind: "onboarding", task: null, reason: { text: "Set a goal before the first diagnostic." } },
     activeSession: null,
   });
-  await onboardingPage.goto(`${baseUrl}/?visual=focus-camp-onboarding#home`, { waitUntil: "networkidle" });
+  await onboardingPage.goto(`${baseUrl}/?visual=focus-camp-onboarding#home`, { waitUntil: "domcontentloaded" });
+  await onboardingPage.waitForFunction(() => state.learningState?.todayPlan?.kind === "onboarding");
   await onboardingPage.locator("#learningProfileForm").waitFor({ state: "visible" });
   const onboarding = await onboardingPage.evaluate(() => {
     const button = document.querySelector('.dashboard-focus-hero .primary')?.getBoundingClientRect();

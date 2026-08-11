@@ -34,6 +34,7 @@ try {
   await page.addInitScript(() => {
     localStorage.removeItem("ieltsistAuthToken");
     localStorage.removeItem("ieltsistLocalVocabularyNotebookV1");
+    localStorage.removeItem("ieltsistLocalVocabularyNotebookV1::guest");
     localStorage.removeItem("ieltsistCoreVocabularyKnown");
   });
   await page.goto(`${baseUrl}/?test=vocabulary-notebook#vocabulary`, { waitUntil: "networkidle" });
@@ -44,9 +45,13 @@ try {
   await page.locator("#vocabReveal").click();
   await page.locator("#vocabNotebook").click();
   await page.locator("#vocabNotebook").getByText("Saved to Notebook").waitFor();
-  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("ieltsistLocalVocabularyNotebookV1") || "[]"));
-  assert.equal(saved.length, 1, "Saving a vocabulary card must create one local Notebook item");
-  assert.equal(saved[0].term, word, "Notebook must preserve the saved term identity");
+  const saved = await page.evaluate(() => ({
+    legacy: localStorage.getItem("ieltsistLocalVocabularyNotebookV1"),
+    guest: JSON.parse(localStorage.getItem("ieltsistLocalVocabularyNotebookV1::guest") || "[]"),
+  }));
+  assert.equal(saved.legacy, null, "Notebook data must not fall back to an unscoped localStorage key");
+  assert.equal(saved.guest.length, 1, "Saving a vocabulary card must create one owner-scoped local Notebook item");
+  assert.equal(saved.guest[0].term, word, "Notebook must preserve the saved term identity");
 
   const notebookMode = page.locator('[data-vocab-mode="notebook"]');
   await notebookMode.click();

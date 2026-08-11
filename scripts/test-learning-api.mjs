@@ -41,6 +41,60 @@ async function waitForServer() {
   throw new Error(`Learning API server did not start. ${stderr}`);
 }
 
+function childHasExited(childProcess) {
+  return childProcess.exitCode !== null || childProcess.signalCode !== null;
+}
+
+function waitForChildExit(childProcess, timeoutMs = 4_000) {
+  if (childHasExited(childProcess)) {
+    return Promise.resolve({ exited: true, timedOut: false });
+  }
+  return new Promise((resolve) => {
+    let settled = false;
+    let timeoutId = null;
+    const finish = (result) => {
+      if (settled) return;
+      settled = true;
+      if (timeoutId) clearTimeout(timeoutId);
+      childProcess.removeListener("exit", onExit);
+      childProcess.removeListener("close", onClose);
+      resolve(result);
+    };
+    const onExit = () => finish({ exited: true, timedOut: false });
+    const onClose = () => finish({ exited: true, timedOut: false });
+    childProcess.once("exit", onExit);
+    childProcess.once("close", onClose);
+    // The process can exit between the first check and listener installation.
+    if (childHasExited(childProcess)) {
+      finish({ exited: true, timedOut: false });
+      return;
+    }
+    timeoutId = setTimeout(() => finish({ exited: false, timedOut: true }), timeoutMs);
+  });
+}
+
+async function stopTestServer(childProcess) {
+  if (childHasExited(childProcess)) return { alreadyExited: true, forced: false };
+  const gracefulExit = waitForChildExit(childProcess);
+  try {
+    childProcess.kill();
+  } catch {}
+  const gracefulResult = await gracefulExit;
+  if (!gracefulResult.timedOut || childHasExited(childProcess)) {
+    return { alreadyExited: false, forced: false };
+  }
+
+  const forcedExit = waitForChildExit(childProcess, 2_000);
+  try {
+    childProcess.kill("SIGKILL");
+  } catch {}
+  const forcedResult = await forcedExit;
+  if (forcedResult.timedOut && !childHasExited(childProcess)) {
+    throw new Error("Learning API test server did not exit after forced cleanup.");
+  }
+  return { alreadyExited: false, forced: true };
+}
+
 function jsonOptions(method, body, token = "") {
   return {
     method,
@@ -49,6 +103,7 @@ function jsonOptions(method, body, token = "") {
   };
 }
 
+let testFailure = null;
 try {
   await waitForServer();
   const readingContext = await request("/api/reading/context?id=cam15-r-test1&question=1");
@@ -107,6 +162,7 @@ try {
   const initialState = await request("/api/learning/state", { headers: { authorization: `Bearer ${tokenA}` } });
   assert.equal(initialState.json.todayPlan.kind, "onboarding");
   assert.equal(initialState.json.activeSession, null);
+  assert.deepEqual(initialState.json.activeSessions, []);
 
   const profile = await request("/api/learning/profile", jsonOptions("PATCH", {
     targetBand: 7.5,
@@ -148,6 +204,27 @@ try {
   }, tokenA));
   assert.equal(conflict.response.status, 409);
 
+  const listeningSessionId = `session_${process.pid}_listening`;
+  const createdListeningSession = await request(`/api/learning/sessions/${listeningSessionId}`, jsonOptions("PUT", {
+    revision: 0,
+    module: "listening",
+    itemId: "cam16-l-test1",
+    practiceKind: "single",
+    mode: "exam",
+    status: "in_progress",
+    state: { answers: { q2: "museum" }, seconds: 1540, total: 1800, playback: { section: 1, policy: "paused-on-restore" } },
+  }, tokenA));
+  assert.equal(createdListeningSession.response.status, 200);
+
+  const isolatedSessions = await request("/api/learning/state", { headers: { authorization: `Bearer ${tokenA}` } });
+  assert.equal(isolatedSessions.json.activeSessions.length, 2, "Listening and Reading must remain separate resumable sessions");
+  const readingSession = isolatedSessions.json.activeSessions.find((session) => session.sessionId === sessionId);
+  const listeningSession = isolatedSessions.json.activeSessions.find((session) => session.sessionId === listeningSessionId);
+  assert.deepEqual(readingSession.state.answers, { q1: "TRUE" });
+  assert.equal(readingSession.state.seconds, 3200);
+  assert.deepEqual(listeningSession.state.answers, { q2: "museum" });
+  assert.equal(listeningSession.state.seconds, 1540);
+
   const attemptId = `attempt_${process.pid}_one`;
   const attemptPayload = {
     attemptId,
@@ -188,6 +265,17 @@ try {
   }, tokenA));
   assert.equal(completedSession.json.session.revision, 2);
 
+  const completedListeningSession = await request(`/api/learning/sessions/${listeningSessionId}`, jsonOptions("PUT", {
+    revision: 1,
+    module: "listening",
+    itemId: "cam16-l-test1",
+    practiceKind: "single",
+    mode: "exam",
+    status: "completed",
+    state: { answers: { q2: "museum" }, seconds: 1540, total: 1800, playback: { section: 1, policy: "paused-on-restore" } },
+  }, tokenA));
+  assert.equal(completedListeningSession.json.session.revision, 2);
+
   const retestPlan = await request("/api/learning/today-plan", { headers: { authorization: `Bearer ${tokenA}` } });
   assert.equal(retestPlan.json.plan.kind, "retest");
   assert.ok(retestPlan.json.plan.reason.sourceIds.includes(weakAreaId));
@@ -207,10 +295,44 @@ try {
 
   const usernameB = `learner_b_${process.pid}`.slice(0, 24);
   const registeredB = await request("/api/auth/register", jsonOptions("POST", { username: usernameB, password: "testing123" }));
+  assert.equal(registeredB.response.status, 200);
+  const tokenB = registeredB.json.token;
   const stateB = await request("/api/learning/state", { headers: { authorization: `Bearer ${registeredB.json.token}` } });
   assert.equal(stateB.json.activeSession, null);
   assert.deepEqual(stateB.json.attempts, []);
   assert.deepEqual(stateB.json.weakAreas, []);
+
+  const sharedSessionId = `session_${process.pid}_owner_race`;
+  const ownerPayload = (owner) => ({
+    revision: 0,
+    module: "reading",
+    itemId: `cam16-r-${owner}`,
+    practiceKind: "single",
+    mode: "evidence",
+    status: "in_progress",
+    state: { owner, answers: { q1: owner }, seconds: owner === "A" ? 3100 : 3200 },
+  });
+  const [ownerAWrite, ownerBWrite] = await Promise.all([
+    request(`/api/learning/sessions/${sharedSessionId}`, jsonOptions("PUT", ownerPayload("A"), tokenA)),
+    request(`/api/learning/sessions/${sharedSessionId}`, jsonOptions("PUT", ownerPayload("B"), tokenB)),
+  ]);
+  assert.deepEqual(
+    [ownerAWrite.response.status, ownerBWrite.response.status].sort((a, b) => a - b),
+    [200, 409],
+    "A globally colliding session id must have exactly one owner",
+  );
+  const winningOwner = ownerAWrite.response.status === 200 ? "A" : "B";
+  const winnerToken = winningOwner === "A" ? tokenA : tokenB;
+  const loserToken = winningOwner === "A" ? tokenB : tokenA;
+  const winnerState = await request("/api/learning/state", { headers: { authorization: `Bearer ${winnerToken}` } });
+  const loserState = await request("/api/learning/state", { headers: { authorization: `Bearer ${loserToken}` } });
+  const winningSession = winnerState.json.activeSessions.find((session) => session.sessionId === sharedSessionId);
+  assert.equal(winningSession?.state?.owner, winningOwner, "The winning account must retain its own session payload");
+  assert.equal(
+    loserState.json.activeSessions.some((session) => session.sessionId === sharedSessionId),
+    false,
+    "The losing account must not read or overwrite another owner's session",
+  );
 
   const loggedOut = await request("/api/auth/logout", jsonOptions("POST", {}, registeredA.json.token));
   assert.equal(loggedOut.response.status, 200);
@@ -220,12 +342,30 @@ try {
   assert.equal(expired.response.status, 401);
 
   console.log("Learning profile API regression checks passed.");
+} catch (error) {
+  testFailure = error;
+  throw error;
 } finally {
-  child.kill();
-  await new Promise((resolve) => child.once("exit", resolve));
-  await Promise.all([
-    rm(databasePath, { force: true }),
-    rm(`${databasePath}-shm`, { force: true }),
-    rm(`${databasePath}-wal`, { force: true }),
-  ]);
+  let cleanupError = null;
+  try {
+    await stopTestServer(child);
+  } catch (error) {
+    cleanupError = error;
+  }
+  try {
+    await Promise.all([
+      rm(databasePath, { force: true }),
+      rm(`${databasePath}-shm`, { force: true }),
+      rm(`${databasePath}-wal`, { force: true }),
+    ]);
+  } catch (error) {
+    cleanupError ||= error;
+  }
+  if (cleanupError) {
+    if (testFailure) {
+      console.error(`Learning API test cleanup failed after the primary test failure: ${cleanupError.message}`);
+    } else {
+      throw cleanupError;
+    }
+  }
 }

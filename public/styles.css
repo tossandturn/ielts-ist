@@ -17439,6 +17439,24 @@ body.sidebar-is-collapsed .focus-page > .view-head::before {
   white-space: nowrap;
 }
 
+/* An iPad cannot keep an exam workspace and a 390px Coach rail usable side by
+   side. Treat Coach as a clear modal surface there; Close returns to the
+   unchanged paper instead of leaving controls visible but blocked underneath. */
+@media (max-width: 1100px) {
+  body.coach-dock-open .help-chat-panel {
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    max-height: none !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  body.coach-dock-open .app-shell main {
+    visibility: hidden;
+  }
+}
+
 /* Final shell override: legacy sidebar rules must not wash out the shared navy rail. */
 body.focus-camp-system .sidebar,
 body.focus-camp-system .app-shell.sidebar-collapsed .sidebar {
@@ -17446,4 +17464,405 @@ body.focus-camp-system .app-shell.sidebar-collapsed .sidebar {
   border-right-color: rgba(255, 255, 255, .08) !important;
   box-shadow: none !important;
   color: #f7f8ff !important;
+}
+
+/* Writing and Speaking do not render a PDF canvas; keep their annotation
+   controls hidden after the tablet header layout rules above. */
+body.single-immersive-mode:is([data-immersive-module="writing"], [data-immersive-module="speaking"]) #annotationToolbar,
+body.immersive-mode:is([data-immersive-module="writing"], [data-immersive-module="speaking"]) #annotationToolbar {
+  display: none !important;
+}
+
+/* Semantic objective controls share the existing saved-answer contract through
+   hidden proxies. Visible controls stay compact enough for PDF workspaces. */
+.objective-answer-shell {
+  display: block;
+  min-width: 0;
+}
+
+.objective-answer-radio fieldset,
+.objective-multiple-answer-group fieldset {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.objective-answer-radio label,
+.objective-multiple-answer-group fieldset > label {
+  display: grid;
+  grid-template-columns: auto 18px minmax(0, 1fr);
+  align-items: start;
+  gap: 6px;
+  min-height: 28px;
+  color: #344054;
+  font-size: 12px;
+  line-height: 1.35;
+  cursor: pointer;
+}
+
+.objective-answer-radio input,
+.objective-multiple-answer-group input {
+  width: 16px;
+  height: 16px;
+  margin: 1px 0 0;
+  accent-color: var(--accent);
+}
+
+.objective-answer-radio strong,
+.objective-multiple-answer-group strong {
+  color: #252d48;
+  font-size: 12px;
+}
+
+.objective-answer-select select {
+  min-height: 36px;
+  font-size: 12px;
+}
+
+.objective-content-gap {
+  display: block;
+  margin-top: 4px;
+  color: #667085;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.paper-answer-row.objective-multiple-answer-group {
+  grid-template-columns: minmax(72px, .75fr) minmax(0, 1fr) !important;
+  align-items: start;
+  min-height: auto;
+}
+
+.objective-multiple-answer-group .objective-group-status {
+  display: block;
+  width: auto;
+  height: auto;
+  margin-top: 2px;
+  border-radius: 0;
+  background: transparent;
+  color: #667085;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.objective-multiple-answer-group .objective-group-choice:disabled + strong,
+.objective-multiple-answer-group .objective-group-choice:disabled ~ span {
+  color: #98a2b3;
+}
+
+/* Source evidence is part of an exam, not another promotional card. Keep the
+   generation controls and manifest compact, readable, and easy to audit. */
+.exam-generation-controls {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+  margin: 12px 0 0;
+}
+
+.exam-generation-controls label {
+  display: grid;
+  gap: 5px;
+  min-width: min(340px, 100%);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.sequence-selection-status {
+  max-width: 880px;
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.sequence-selection-status[data-state="ready"] {
+  color: #176b58;
+}
+
+.sequence-selection-status[data-state="error"] {
+  color: #a44322;
+}
+
+.exam-source-manifest {
+  margin: 0 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.exam-source-manifest > summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 38px;
+  padding: 9px 12px;
+  cursor: pointer;
+  color: var(--text);
+  font-size: 13px;
+}
+
+.exam-source-manifest > summary strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.exam-source-summary {
+  display: grid;
+  grid-template-columns: minmax(180px, .6fr) minmax(0, 1.4fr);
+  gap: 12px;
+  padding: 0 12px 12px;
+  border-top: 1px solid var(--line);
+}
+
+.exam-source-summary dl {
+  display: grid;
+  gap: 6px;
+  margin: 10px 0 0;
+}
+
+.exam-source-summary dl > div {
+  display: grid;
+  gap: 1px;
+}
+
+.exam-source-summary dt {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.exam-source-summary dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 11px;
+}
+
+.exam-source-summary table {
+  width: 100%;
+  margin-top: 10px;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.exam-source-summary th,
+.exam-source-summary td {
+  padding: 5px 0;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.exam-source-summary th {
+  width: 110px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.exam-source-summary td {
+  overflow-wrap: anywhere;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 11px;
+}
+
+/* Membership is an operational account surface. Do not imply a checkout when
+   this deployment only supports fulfilment codes and administrator access. */
+body.focus-camp-system .subscription-card {
+  gap: 14px;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+body.focus-camp-system .subscription-card.featured {
+  border-color: #b6a8f3;
+  background: #faf9ff;
+  box-shadow: none;
+}
+
+.subscription-commerce-note,
+.subscription-policy-note {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 4px;
+  border-left: 3px solid var(--accent);
+  padding: 10px 12px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.subscription-commerce-note strong,
+.subscription-policy-note strong {
+  color: var(--text);
+}
+
+.subscription-commerce-note p {
+  margin: 0;
+}
+
+.subscription-policy-note {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-left-color: #8aa4c8;
+}
+
+.subscription-card-note {
+  min-height: 38px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.subscription-card button[disabled] {
+  cursor: not-allowed;
+  opacity: .62;
+}
+
+.legal-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  align-items: center;
+  min-height: 46px;
+  padding: 12px max(18px, calc((100vw - 1200px) / 2));
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.legal-footer > span {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.legal-footer a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.legal-footer a:hover,
+.legal-footer a:focus-visible {
+  color: var(--accent-dark);
+  text-decoration: underline;
+}
+
+.legal-page {
+  width: min(880px, calc(100% - 32px));
+  margin: 40px auto 56px;
+}
+
+.legal-page-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: baseline;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.legal-page-header a {
+  color: var(--accent-dark);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.legal-page h1 {
+  margin: 0;
+  color: var(--text);
+  font-size: 28px;
+}
+
+.legal-page .legal-updated {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.legal-page section {
+  padding: 18px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.legal-page h2 {
+  margin: 0 0 8px;
+  color: var(--text);
+  font-size: 18px;
+}
+
+.legal-page p,
+.legal-page li {
+  color: #475467;
+  line-height: 1.62;
+}
+
+.legal-page p {
+  margin: 0;
+}
+
+.legal-page ul {
+  margin: 8px 0 0;
+  padding-left: 20px;
+}
+
+@media (max-width: 600px) {
+  .objective-answer-radio label,
+  .objective-multiple-answer-group fieldset > label {
+    grid-template-columns: auto 17px minmax(0, 1fr);
+    font-size: 11px;
+  }
+
+  .paper-answer-row.objective-multiple-answer-group {
+    grid-template-columns: minmax(58px, .55fr) minmax(0, 1.45fr) !important;
+  }
+
+  .exam-generation-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .exam-generation-controls label,
+  .exam-generation-controls .primary {
+    width: 100%;
+  }
+
+  .exam-source-manifest > summary {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .exam-source-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .subscription-policy-note {
+    grid-template-columns: 1fr;
+  }
+
+  .legal-page {
+    width: min(100% - 24px, 880px);
+    margin-top: 24px;
+  }
+
+  .legal-page-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
 }

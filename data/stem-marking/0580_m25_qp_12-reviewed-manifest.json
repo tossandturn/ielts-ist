@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "stem-marking-manifest.v1",
+  "schemaVersion": "stem-marking-manifest.v2",
   "generatedAt": "2026-08-10T09:52:46.526Z",
   "source": {
     "reviewedSet": "cie-0580-0580_m25_qp_12.json",
@@ -39,7 +39,18 @@
             "quote": "Question paper Q1"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q1:part-a",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-3",
+        "page": 3,
+        "quote": "Question paper Q1"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -71,7 +82,18 @@
             "quote": "Question paper Q2(a)"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q2:part-a",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-3",
+        "page": 3,
+        "quote": "Question paper Q2(a)"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -103,7 +125,18 @@
             "quote": "Question paper Q2(b)"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q2:part-b",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-3",
+        "page": 3,
+        "quote": "Question paper Q2(b)"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -135,7 +168,18 @@
             "quote": "Question paper Q2(c)"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q2:part-c",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-3",
+        "page": 3,
+        "quote": "Question paper Q2(c)"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -167,7 +211,18 @@
             "quote": "Question paper Q3"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q3:part-a",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-3",
+        "page": 3,
+        "quote": "Question paper Q3"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -199,7 +254,18 @@
             "quote": "Question paper Q4(a)"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q4:part-a",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-3",
+        "page": 3,
+        "quote": "Question paper Q4(a)"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -231,7 +297,18 @@
             "quote": "Question paper Q4(b)"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q4:part-b",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-3",
+        "page": 3,
+        "quote": "Question paper Q4(b)"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -263,7 +340,18 @@
             "quote": "Question paper Q4(c)"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q4:part-c",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-3",
+        "page": 3,
+        "quote": "Question paper Q4(c)"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -295,7 +383,18 @@
             "quote": "Question paper Q5(a)"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q5:part-a",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-4",
+        "page": 4,
+        "quote": "Question paper Q5(a)"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -327,7 +426,18 @@
             "quote": "Question paper Q5(b)"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q5:part-b",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-4",
+        "page": 4,
+        "quote": "Question paper Q5(b)"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -359,7 +469,18 @@
             "quote": "Question paper Q6"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q6:part-a",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-4",
+        "page": 4,
+        "quote": "Question paper Q6"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -391,7 +512,18 @@
             "quote": "Question paper Q7"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q7:part-a",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-5",
+        "page": 5,
+        "quote": "Question paper Q7"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -423,7 +555,18 @@
             "quote": "Question paper Q8"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q8:part-a",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-5",
+        "page": 5,
+        "quote": "Question paper Q8"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -455,7 +598,18 @@
             "quote": "Question paper Q9"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q9:part-a",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-5",
+        "page": 5,
+        "quote": "Question paper Q9"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -487,7 +641,18 @@
             "quote": "Question paper Q10(a)"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q10:part-a",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-6",
+        "page": 6,
+        "quote": "Question paper Q10(a)"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -519,7 +684,18 @@
             "quote": "Question paper Q10(b)"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q10:part-b",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-6",
+        "page": 6,
+        "quote": "Question paper Q10(b)"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -551,7 +727,18 @@
             "quote": "Question paper Q11(a)"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q11:part-a",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-6",
+        "page": 6,
+        "quote": "Question paper Q11(a)"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -583,7 +770,18 @@
             "quote": "Question paper Q11(b)"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q11:part-b",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-6",
+        "page": 6,
+        "quote": "Question paper Q11(b)"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -615,7 +813,18 @@
             "quote": "Question paper Q12(a)"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q12:part-a",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-7",
+        "page": 7,
+        "quote": "Question paper Q12(a)"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -647,7 +856,18 @@
             "quote": "Question paper Q12(b)"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q12:part-b",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-7",
+        "page": 7,
+        "quote": "Question paper Q12(b)"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -679,7 +899,18 @@
             "quote": "Question paper Q13"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q13:part-a",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-8",
+        "page": 8,
+        "quote": "Question paper Q13"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -711,7 +942,18 @@
             "quote": "Question paper Q14(a)"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q14:part-a",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-8",
+        "page": 8,
+        "quote": "Question paper Q14(a)"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -743,7 +985,18 @@
             "quote": "Question paper Q14(b)"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q14:part-b",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-8",
+        "page": 8,
+        "quote": "Question paper Q14(b)"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -775,7 +1028,18 @@
             "quote": "Question paper Q14(c)"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q14:part-c",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-9",
+        "page": 9,
+        "quote": "Question paper Q14(c)"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -807,7 +1071,18 @@
             "quote": "Question paper Q15(a)"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q15:part-a",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-10",
+        "page": 10,
+        "quote": "Question paper Q15(a)"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -839,7 +1114,18 @@
             "quote": "Question paper Q15(b)"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q15:part-b",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-10",
+        "page": 10,
+        "quote": "Question paper Q15(b)"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -871,7 +1157,18 @@
             "quote": "Question paper Q16(a)"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q16:part-a",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-11",
+        "page": 11,
+        "quote": "Question paper Q16(a)"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -903,7 +1200,18 @@
             "quote": "Question paper Q16(b)"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q16:part-b",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-11",
+        "page": 11,
+        "quote": "Question paper Q16(b)"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -935,7 +1243,18 @@
             "quote": "Question paper Q17(a)"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q17:part-a",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-12",
+        "page": 12,
+        "quote": "Question paper Q17(a)"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -967,7 +1286,18 @@
             "quote": "Question paper Q17(b)"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q17:part-b",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-12",
+        "page": 12,
+        "quote": "Question paper Q17(b)"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -999,7 +1329,18 @@
             "quote": "Question paper Q18(a)"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q18:part-a",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-13",
+        "page": 13,
+        "quote": "Question paper Q18(a)"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -1031,7 +1372,18 @@
             "quote": "Question paper Q18(b)"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q18:part-b",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-13",
+        "page": 13,
+        "quote": "Question paper Q18(b)"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -1063,7 +1415,18 @@
             "quote": "Question paper Q18(c)"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q18:part-c",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-13",
+        "page": 13,
+        "quote": "Question paper Q18(c)"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -1095,7 +1458,18 @@
             "quote": "Question paper Q18(d)"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q18:part-d",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-13",
+        "page": 13,
+        "quote": "Question paper Q18(d)"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -1127,7 +1501,18 @@
             "quote": "Question paper Q19(a)"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q19:part-a",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-14",
+        "page": 14,
+        "quote": "Question paper Q19(a)"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -1159,7 +1544,18 @@
             "quote": "Question paper Q19(b)"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q19:part-b",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-14",
+        "page": 14,
+        "quote": "Question paper Q19(b)"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -1191,7 +1587,18 @@
             "quote": "Question paper Q20"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q20:part-a",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-14",
+        "page": 14,
+        "quote": "Question paper Q20"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -1223,7 +1630,18 @@
             "quote": "Question paper Q21(a)"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q21:part-a",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-15",
+        "page": 15,
+        "quote": "Question paper Q21(a)"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -1255,7 +1673,18 @@
             "quote": "Question paper Q21(b)"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q21:part-b",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-15",
+        "page": 15,
+        "quote": "Question paper Q21(b)"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -1287,7 +1716,18 @@
             "quote": "Question paper Q22"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q22:part-a",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-15",
+        "page": 15,
+        "quote": "Question paper Q22"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -1319,7 +1759,18 @@
             "quote": "Question paper Q23(a)"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q23:part-a",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-16",
+        "page": 16,
+        "quote": "Question paper Q23(a)"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -1351,7 +1802,18 @@
             "quote": "Question paper Q23(b)"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q23:part-b",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-16",
+        "page": 16,
+        "quote": "Question paper Q23(b)"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -1383,7 +1845,18 @@
             "quote": "Question paper Q23(c)"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q23:part-c",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-16",
+        "page": 16,
+        "quote": "Question paper Q23(c)"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -1415,7 +1888,18 @@
             "quote": "Question paper Q24"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q24:part-a",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-17",
+        "page": 17,
+        "quote": "Question paper Q24"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -1447,7 +1931,18 @@
             "quote": "Question paper Q25"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q25:part-a",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-17",
+        "page": 17,
+        "quote": "Question paper Q25"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     },
     {
       "routeId": "cie-0580-igcse-mathematics",
@@ -1479,7 +1974,18 @@
             "quote": "Question paper Q26"
           }
         }
-      ]
+      ],
+      "sourceQuestionId": "cie-0580-0580_m25_qp_12:q26:part-a",
+      "sourceEvidence": {
+        "assetId": "cie-0580-0580_m25_qp_12:page-18",
+        "page": 18,
+        "quote": "Question paper Q26"
+      },
+      "review": {
+        "status": "approved",
+        "schemaVersion": "stem-source-review.v1",
+        "version": "reviewed:05a757df48c803d657c6edd9ce415695792907f45e63521b6533465d7e1d8e30"
+      }
     }
   ]
 }
