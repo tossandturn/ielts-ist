@@ -34,13 +34,20 @@ async function waitForServer() {
 function stemVocabularyUrl(returnTo) {
   const params = new URLSearchParams({
     from: "STEM",
+    contractVersion: "stem-vocabulary-context-v1",
+    family: "exam",
+    taxonomyId: term.topicId,
     routeId: term.routeId,
     specificationVersion: term.specificationVersion,
+    subjectCode: term.subject,
     topicId: term.topicId,
     questionPartId: `vocabulary:${term.termId}`,
     termId: term.termId,
     attemptId: "physics-attempt-42",
     returnTo,
+    source: "stem-reviewed-glossary",
+    sourceStatus: "pending",
+    termInventoryStatus: "not-imported",
     stage: term.stage.toLowerCase(),
   });
   return `${baseUrl}/?${params.toString()}`;
@@ -59,19 +66,27 @@ try {
   assert.equal((await page.locator(".vocab-word-face h3").textContent()).trim(), term.word, "The requested STEM term must be focused");
   assert.equal(await page.locator(".vocab-route-context").count(), 1, "STEM context must remain visible");
   assert.match(await page.locator(".vocab-route-context").textContent(), /progress stays on each site/i, "The UI must not claim cross-site score or progress sync");
+  assert.match(await page.locator(".vocab-route-context").textContent(), /IELTSist glossary sync pending/i);
   assert.equal(await page.locator(".vocab-route-context a").getAttribute("href"), returnTo, "Return must use the validated STEM attempt URL");
 
   await page.locator("#vocabReveal").click();
   const outbound = new URL(await page.locator(".vocab-cross-link").getAttribute("href"));
   assert.equal(outbound.origin, "https://stem.ieltsist.com");
   assert.equal(outbound.searchParams.get("from"), "ieltsist");
+  assert.equal(outbound.searchParams.get("contractVersion"), "stem-vocabulary-context-v1");
+  assert.equal(outbound.searchParams.get("family"), "exam");
+  assert.equal(outbound.searchParams.get("taxonomyId"), term.topicId);
   assert.equal(outbound.searchParams.get("routeId"), term.routeId);
   assert.equal(outbound.searchParams.get("specificationVersion"), term.specificationVersion);
+  assert.equal(outbound.searchParams.get("subjectCode"), term.subject);
   assert.equal(outbound.searchParams.get("topicId"), term.topicId);
   assert.equal(outbound.searchParams.get("questionPartId"), `vocabulary:${term.termId}`);
   assert.equal(outbound.searchParams.get("termId"), term.termId);
   assert.equal(outbound.searchParams.get("attemptId"), "physics-attempt-42");
   assert.equal(outbound.searchParams.get("returnTo"), returnTo, "A continued STEM link must preserve the original return target");
+  assert.equal(outbound.searchParams.get("sourceStatus"), "pending");
+  assert.equal(outbound.searchParams.get("termInventoryStatus"), "not-imported");
+  assert.equal(outbound.searchParams.has("availableCount"), false, "Pending source-backed glossary must not claim a term count");
 
   const unknownParams = new URL(stemVocabularyUrl(returnTo));
   unknownParams.searchParams.set("termId", "physics-unknown-term");
@@ -84,6 +99,9 @@ try {
 
   const staleParams = new URL(stemVocabularyUrl(returnTo));
   staleParams.searchParams.set("specificationVersion", "A-Level STEM 2024");
+  staleParams.searchParams.set("sourceStatus", "source-backed");
+  staleParams.searchParams.set("termInventoryStatus", "imported");
+  staleParams.searchParams.set("availableCount", "1");
   const stale = await browser.newPage({ viewport: { width: 1280, height: 720 } });
   await stale.goto(staleParams.toString(), { waitUntil: "networkidle" });
   await stale.locator(".vocab-route-context [role='alert']").waitFor();

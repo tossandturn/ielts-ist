@@ -176,14 +176,22 @@
   vocabularyRouteContext: {
     applied: false,
     key: "",
+    contractVersion: "",
     from: "",
+    family: "",
+    taxonomyId: "",
     routeId: "",
     specificationVersion: "",
+    subjectCode: "",
     topicId: "",
     questionPartId: "",
     termIds: [],
     attemptId: "",
     returnTo: "",
+    source: "",
+    sourceStatus: "",
+    termInventoryStatus: "",
+    availableCount: null,
     focus: "",
     stage: "",
   },
@@ -4120,6 +4128,10 @@ function normalizeVocabularyMetadata(item, index = 0) {
   return {
     ...item,
     id: item.id || termId,
+    contractVersion: String(item.contractVersion || "stem-vocabulary-context-v1"),
+    family: String(item.family || "exam"),
+    taxonomyId: String(item.taxonomyId || topicId),
+    subjectCode: String(item.subjectCode || subject),
     termId,
     routeId,
     specificationVersion,
@@ -4128,6 +4140,10 @@ function normalizeVocabularyMetadata(item, index = 0) {
     questionPartId: String(item.questionPartId || item.relatedQuestionPartIds?.[0] || `vocabulary:${termId}`),
     attemptId: String(item.attemptId || ""),
     returnTo: String(item.returnTo || ""),
+    source: String(item.source || ""),
+    sourceStatus: String(item.sourceStatus || ""),
+    termInventoryStatus: String(item.termInventoryStatus || ""),
+    availableCount: Number.isFinite(Number(item.availableCount)) ? Number(item.availableCount) : null,
     relatedQuestionPartIds: Array.isArray(item.relatedQuestionPartIds) ? item.relatedQuestionPartIds : [],
     aliases: [...new Set(aliases.map((value) => String(value).trim()).filter(Boolean))],
     formula: String(item.formula || ""),
@@ -4148,15 +4164,28 @@ function vocabularyRouteContextFromLocation() {
     .flatMap((value) => String(value).split(","))
     .map((value) => value.trim())
     .filter(Boolean);
+  const sourceStatus = String(value("sourceStatus", "source_status")).trim().toLowerCase();
+  const termInventoryStatus = String(value("termInventoryStatus", "term_inventory_status")).trim().toLowerCase();
+  const availableCountValue = Number(value("availableCount", "available_count"));
   return {
     from: String(params.get("from") || "").trim().toLowerCase(),
+    contractVersion: String(value("contractVersion", "contract_version") || "").trim(),
+    family: String(params.get("family") || "").trim().toLowerCase(),
+    taxonomyId: String(value("taxonomyId", "taxonomy_id")).trim(),
     routeId: String(value("routeId", "route_id")).trim(),
     specificationVersion: String(value("specificationVersion", "specification_version")).trim(),
+    subjectCode: String(value("subjectCode", "subject_code")).trim(),
     topicId: String(value("topicId", "topic_id")).trim(),
     questionPartId: String(value("questionPartId", "question_part_id")).trim(),
     termIds: [...new Set(termIds)],
     attemptId: String(value("attemptId", "attempt_id")).trim(),
     returnTo: String(value("returnTo", "return_to")).trim(),
+    source: String(params.get("source") || "").trim(),
+    sourceStatus,
+    termInventoryStatus,
+    availableCount: sourceStatus === "source-backed" && Number.isFinite(availableCountValue) && availableCountValue >= 0
+      ? Math.floor(availableCountValue)
+      : null,
     focus: String(params.get("focus") || "").trim().toLowerCase(),
     stage: String(params.get("stage") || "").trim().toUpperCase(),
   };
@@ -4164,19 +4193,30 @@ function vocabularyRouteContextFromLocation() {
 
 function vocabularyRouteContextKey(context) {
   return JSON.stringify([
-    context.from, context.routeId, context.specificationVersion, context.topicId,
+    context.contractVersion, context.from, context.family, context.taxonomyId, context.routeId,
+    context.specificationVersion, context.subjectCode, context.topicId,
     context.questionPartId, context.termIds, context.attemptId, context.returnTo,
+    context.source, context.sourceStatus, context.termInventoryStatus, context.availableCount,
     context.focus, context.stage,
   ]);
 }
 
 function routeContextSubject(context, items) {
-  const focusMap = { physics: "physics", mathematics: "mathematics", chemistry: "chemistry", economics: "economics" };
-  if (focusMap[context.focus]) return focusMap[context.focus];
-  const termMatch = items.find((item) => context.termIds.includes(item.termId));
-  if (termMatch) return termMatch.subject;
-  const routeText = `${context.routeId} ${context.topicId}`.toLowerCase();
-  return Object.keys(focusMap).find((subject) => routeText.includes(subject)) || "all";
+  const exactMatches = items.filter((item) =>
+    (context.termIds || []).includes(item.termId)
+    && (!context.routeId || item.routeId === context.routeId)
+    && (!context.taxonomyId || item.taxonomyId === context.taxonomyId)
+    && (!context.topicId || item.topicId === context.topicId)
+    && (!context.subjectCode || item.subjectCode === context.subjectCode),
+  );
+  if (exactMatches.length) return exactMatches[0].subject;
+  const routeMatch = items.find((item) =>
+    (!context.routeId || item.routeId === context.routeId)
+    && (!context.taxonomyId || item.taxonomyId === context.taxonomyId)
+    && (!context.topicId || item.topicId === context.topicId)
+    && (!context.subjectCode || item.subjectCode === context.subjectCode),
+  );
+  return routeMatch?.subject || "all";
 }
 
 function applyVocabularyRouteContext(allItems) {
@@ -4197,7 +4237,12 @@ function applyVocabularyRouteContext(allItems) {
   const subject = routeContextSubject(context, allItems);
   if (subject !== "all" && (!alreadyApplied || state.vocabularyReview.subject === "all")) state.vocabularyReview.subject = subject;
   const subjectItems = allItems.filter((item) => subject === "all" || item.subject === subject);
-  const topicMatch = subjectItems.find((item) => item.topicId === context.topicId || item.topic === context.topicId || item.topicId.endsWith(`:${context.topicId}`));
+  const topicMatch = subjectItems.find((item) =>
+    (!context.taxonomyId || item.taxonomyId === context.taxonomyId)
+    && (!context.topicId || item.topicId === context.topicId || item.topic === context.topicId)
+    && (!context.routeId || item.routeId === context.routeId)
+    && (!context.subjectCode || item.subjectCode === context.subjectCode),
+  );
   if (topicMatch && (!alreadyApplied || state.vocabularyReview.topic === "all")) state.vocabularyReview.topic = topicMatch.topic;
   if (context.stage && ["IGCSE", "AS", "A2"].includes(context.stage.toUpperCase())) {
     if (!alreadyApplied || state.vocabularyReview.stage === "all") state.vocabularyReview.stage = context.stage.toUpperCase();
@@ -4215,8 +4260,12 @@ function buildVocabularyStemUrl(item) {
   const returnTo = vocabularyReturnToStemUrl() || canonicalProductReturnUrl(window.location.href);
   const params = new URLSearchParams({
     from: "ieltsist",
+    contractVersion: state.vocabularyRouteContext.contractVersion || "stem-vocabulary-context-v1",
+    family: state.vocabularyRouteContext.family || item.family || "exam",
+    taxonomyId: state.vocabularyRouteContext.taxonomyId || item.taxonomyId || item.topicId || "",
     routeId: item.routeId,
     specificationVersion: item.specificationVersion,
+    subjectCode: state.vocabularyRouteContext.subjectCode || item.subjectCode || item.subject || "",
     topicId: item.topicId,
     questionPartId,
     termId: item.termId,
@@ -4225,6 +4274,12 @@ function buildVocabularyStemUrl(item) {
     returnTo,
   });
   if (item.stage) params.set("stage", item.stage);
+  if (state.vocabularyRouteContext.source) params.set("source", state.vocabularyRouteContext.source);
+  if (state.vocabularyRouteContext.sourceStatus) params.set("sourceStatus", state.vocabularyRouteContext.sourceStatus);
+  if (state.vocabularyRouteContext.termInventoryStatus) params.set("termInventoryStatus", state.vocabularyRouteContext.termInventoryStatus);
+  if (state.vocabularyRouteContext.availableCount !== null && state.vocabularyRouteContext.sourceStatus === "source-backed") {
+    params.set("availableCount", String(state.vocabularyRouteContext.availableCount));
+  }
   return `https://stem.ieltsist.com/?${params.toString()}`;
 }
 
@@ -4264,13 +4319,19 @@ function vocabularyReturnToStemUrl() {
 }
 
 function vocabularyRouteContextWarning(context, allItems) {
-  if (!state.vocabularyReview.loaded || context.from !== "stem" || !context.termIds.length) return "";
+  if (context.from !== "stem") return "";
+  if (context.termInventoryStatus === "pending" || context.sourceStatus === "pending" || context.termInventoryStatus === "not-imported") {
+    return "IELTSist glossary sync pending";
+  }
+  if (!state.vocabularyReview.loaded || !context.termIds.length) return "";
   const termItems = allItems.filter((item) => context.termIds.includes(item.termId));
   if (!termItems.length) return "";
   const mismatched = termItems.some((item) =>
-    (context.routeId && item.routeId !== context.routeId)
+    (context.taxonomyId && item.taxonomyId !== context.taxonomyId)
+    || (context.routeId && item.routeId !== context.routeId)
     || (context.specificationVersion && item.specificationVersion !== context.specificationVersion)
     || (context.topicId && item.topicId !== context.topicId)
+    || (context.subjectCode && item.subjectCode !== context.subjectCode)
     || (context.questionPartId.startsWith("vocabulary:") && item.questionPartId !== context.questionPartId));
   return mismatched ? "This STEM link uses older route metadata. The requested term is shown, but check its subject and topic before continuing." : "";
 }
@@ -7500,10 +7561,30 @@ function closeHelpPanel() {
   document.body.classList.remove("coach-dock-open");
 }
 
+function safeCoachMarkdownHref(value) {
+  const raw = String(value || "").replace(/&amp;/gi, "&").trim();
+  if (!raw || raw.length > 2_000) return "";
+  if (/(?:^|[?&#])(?:api[_-]?key|authorization|access[_-]?token|id[_-]?token|refresh[_-]?token|token|code|state|session)=/i.test(raw)) return "";
+  if (/^\/(?![\\/])/.test(raw)) return raw.replace(/[\u0000-\u001f\s]/g, "");
+  try {
+    const url = new URL(raw);
+    if (!/^https?:$/i.test(url.protocol) || url.username || url.password) return "";
+    return url.href;
+  } catch {
+    return "";
+  }
+}
+
 function renderHelpInline(text) {
-  return escapeHtml(text)
+  const escaped = escapeHtml(text)
     .replace(/\*\*\s*(.+?)\s*\*\*/g, "<strong>$1</strong>")
     .replace(/`([^`]+)`/g, "<code>$1</code>");
+  return escaped.replace(/\[([^\]\r\n]{1,240})\]\(([^)\s]{1,2200})\)/g, (match, label, destination) => {
+    const href = safeCoachMarkdownHref(destination);
+    if (!href) return label;
+    const external = !href.startsWith("/");
+    return `<a href="${escapeHtml(href)}"${external ? ' target="_blank" rel="noopener noreferrer"' : ""}>${label}</a>`;
+  });
 }
 
 function renderHelpRichText(text) {

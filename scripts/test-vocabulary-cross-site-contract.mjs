@@ -17,7 +17,14 @@ for (const item of catalog.items) {
 }
 
 assert.match(app, /function vocabularyRouteContextFromLocation\(\)/);
+assert.match(app, /stem-vocabulary-context-v1/);
 assert.match(app, /from !== "stem"/);
+assert.match(app, /contractVersion: String\(value\("contractVersion", "contract_version"\)/);
+assert.match(app, /taxonomyId: String\(value\("taxonomyId", "taxonomy_id"\)/);
+assert.match(app, /subjectCode: String\(value\("subjectCode", "subject_code"\)/);
+assert.match(app, /sourceStatus/);
+assert.match(app, /termInventoryStatus/);
+assert.match(app, /availableCount: sourceStatus === "source-backed"/);
 assert.match(app, /function vocabularyReturnToStemUrl\(\)/);
 assert.match(app, /new URL\(canonical\)\.origin === "https:\/\/stem\.ieltsist\.com"/);
 assert.match(app, /routeId: item\.routeId/);
@@ -42,7 +49,10 @@ assert.match(app, /activateView\("vocabulary", true\)/);
 assert.match(app, /Vocabulary support only; progress stays on each site/);
 assert.match(app, /clearVocabularyRouteTermScope/);
 assert.match(app, /function vocabularyRouteContextWarning\(context, allItems\)/);
+assert.match(app, /IELTSist glossary sync pending/);
 assert.match(app, /older route metadata/);
+assert.match(app, /item\.taxonomyId === context\.taxonomyId/);
+assert.doesNotMatch(app, /item\.topicId\.endsWith/);
 assert.match(app, /const miniWindowSize = 36/);
 assert.doesNotMatch(app, /item\.termId, item\.topicId, item\.stage,/);
 assert.match(app, /state\.examSubmitted = restoredState\.submitted/,

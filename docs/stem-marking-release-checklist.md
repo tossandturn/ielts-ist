@@ -15,6 +15,13 @@ the IELTSist migration, shared-session CORS contract, and provider safety checks
 8. With `STEM_MARKING_AI_DISABLED=1` or no trusted manifest, verify availability is disabled and a valid create request returns `503 marking_unavailable` without a queued job. Then enable the configured manifest/provider and verify one question-level submission, reload recovery, retry behaviour, and no raw provider diagnostic in the result.
 9. Verify authorization: a student can read only their own individual submission; a teacher/school account sees organization/classroom aggregate totals only, never other students' answer images, typed answers, or point evidence.
 
+## AI Coach Gateway
+
+1. Configure `AI_GATEWAY_BASE_URL`, `AI_GATEWAY_API_KEY`, `AI_GATEWAY_MODEL=gpt-5.5`, and `AI_GATEWAY_REASONING_EFFORT=xhigh` only in the IELTSist server environment. Do not copy the key to STEM, the browser, Git, or logs.
+2. `/api/tasks` may report the configured Coach model/base URL/reasoning status, but never the key. The browser must call `/api/help/chat` on IELTSist; it must not call `ai.ieltsist.com` directly.
+3. The gateway receives only the fixed Coach tool allowlist. Tool calls are local, bounded, audited without student content, and fall back to the safe local explanation when the provider or a tool times out/fails.
+4. Verify valid Markdown links render as clickable safe links. Reject `javascript:`, `data:`, credential-bearing, and token-bearing destinations before the response reaches the student.
+
 ## STEM Second
 
 1. Deploy STEM only after the IELTSist checks above pass.

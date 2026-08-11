@@ -73,6 +73,16 @@ const DASHSCOPE_COMPAT_BASE_URL = (process.env.DASHSCOPE_COMPAT_BASE_URL || DEFA
 const WRITING_AI_MODEL = process.env.WRITING_AI_MODEL || process.env.QWEN_WRITING_MODEL || "qwen3.7-max";
 const WRITING_AI_BASE_URL = (process.env.WRITING_AI_BASE_URL || process.env.QWEN_WRITING_BASE_URL || DASHSCOPE_COMPAT_BASE_URL).replace(/\/+$/, "");
 const WRITING_AI_API_KEY = process.env.WRITING_AI_API_KEY || process.env.QWEN_WRITING_API_KEY || DASHSCOPE_API_KEY;
+// The public AI gateway is intentionally server-only. Do not expose this key in
+// /api/tasks, logs, client bundles, or provider error messages.
+const AI_GATEWAY_BASE_URL = (process.env.AI_GATEWAY_BASE_URL || "https://ai.ieltsist.com/v1").replace(/\/+$/, "");
+const AI_GATEWAY_API_KEY = process.env.AI_GATEWAY_API_KEY || "";
+const AI_GATEWAY_MODEL = process.env.AI_GATEWAY_MODEL || "gpt-5.5";
+const AI_GATEWAY_REASONING_EFFORT = ["low", "medium", "high", "xhigh"].includes(String(process.env.AI_GATEWAY_REASONING_EFFORT || "xhigh").toLowerCase())
+  ? String(process.env.AI_GATEWAY_REASONING_EFFORT || "xhigh").toLowerCase()
+  : "xhigh";
+const AI_GATEWAY_TIMEOUT_MS = Math.max(5_000, Math.min(90_000, Number(process.env.AI_GATEWAY_TIMEOUT_MS || 45_000)));
+const COACH_AGENT_TOOL_TIMEOUT_MS = Math.max(250, Math.min(5_000, Number(process.env.COACH_AGENT_TOOL_TIMEOUT_MS || 1_500)));
 const COACH_AI_MODEL = process.env.COACH_AI_MODEL || process.env.QWEN_COACH_MODEL || "qwen3.7-max";
 const COACH_AI_BASE_URL = (process.env.COACH_AI_BASE_URL || process.env.QWEN_COACH_BASE_URL || DASHSCOPE_COMPAT_BASE_URL).replace(/\/+$/, "");
 const COACH_AI_API_KEY = process.env.COACH_AI_API_KEY || process.env.QWEN_COACH_API_KEY || DASHSCOPE_API_KEY;
@@ -1059,11 +1069,23 @@ function slimWritingTask(task) {
 }
 
 function tasksPayload() {
-  const coachAiEnabled = Boolean(COACH_AI_API_KEY || OPENAI_API_KEY);
+  const coachAiEnabled = Boolean(AI_GATEWAY_API_KEY || COACH_AI_API_KEY || OPENAI_API_KEY);
+  const coachProvider = AI_GATEWAY_API_KEY
+    ? { name: "IELTSist AI Gateway", model: AI_GATEWAY_MODEL, baseUrl: AI_GATEWAY_BASE_URL, reasoningEffort: AI_GATEWAY_REASONING_EFFORT, agentEnabled: true }
+    : COACH_AI_API_KEY
+      ? { name: "Coach provider", model: COACH_AI_MODEL, baseUrl: COACH_AI_BASE_URL, reasoningEffort: null, agentEnabled: false }
+      : OPENAI_API_KEY
+        ? { name: "Legacy provider", model: MODEL, baseUrl: OPENAI_BASE_URL, reasoningEffort: null, agentEnabled: false }
+        : null;
   return {
     aiEnabled: coachAiEnabled,
-    model: coachAiEnabled ? (COACH_AI_API_KEY ? COACH_AI_MODEL : MODEL) : null,
-    aiBaseUrl: coachAiEnabled ? (COACH_AI_API_KEY ? COACH_AI_BASE_URL : OPENAI_BASE_URL) : null,
+    model: coachProvider?.model || null,
+    aiBaseUrl: coachProvider?.baseUrl || null,
+    coachModel: coachProvider?.model || null,
+    coachBaseUrl: coachProvider?.baseUrl || null,
+    coachReasoningEffort: coachProvider?.reasoningEffort || null,
+    coachAgentEnabled: Boolean(coachProvider?.agentEnabled),
+    coachProvider: coachProvider?.name || null,
     writingAiEnabled: Boolean(WRITING_AI_API_KEY),
     writingModel: WRITING_AI_API_KEY ? WRITING_AI_MODEL : null,
     writingAiBaseUrl: WRITING_AI_API_KEY ? WRITING_AI_BASE_URL : null,
@@ -4178,32 +4200,120 @@ function resolvePortableLocalFilePath(filePath) {
   return filePath;
 }
 
-async function callOpenAI({ system, user, temperature = 0.3, apiKey = OPENAI_API_KEY, baseUrl = OPENAI_BASE_URL, model = MODEL, allowResponsesFallback = true }) {
+async function callOpenAI({
+  system,
+  user,
+  temperature = 0.3,
+  apiKey = OPENAI_API_KEY,
+  baseUrl = OPENAI_BASE_URL,
+  model = MODEL,
+  allowResponsesFallback = true,
+  reasoningEffort = "",
+  agentTools = [],
+  toolExecutor = null,
+  maxToolRounds = 2,
+}) {
   if (!apiKey) return null;
   const normalizedBaseUrl = String(baseUrl || "").replace(/\/+$/, "");
-  const chatResponse = await fetch(`${normalizedBaseUrl}/chat/completions`, {
+  const messages = [
+    { role: "system", content: system },
+    { role: "user", content: user },
+  ];
+  const supportsReasoning = Boolean(reasoningEffort) && /^gpt-5(?:\.\d+)?(?:-|$)/i.test(String(model || ""));
+  const buildBody = (mode) => {
+    const body = mode === "responses"
+      ? {
+          model,
+          input: messages,
+        }
+      : {
+          model,
+          messages,
+        };
+    // GPT-5.5 gateways reject sampling temperature. Use the reasoning control
+    // instead, while preserving temperature for the existing Qwen/OpenAI paths.
+    if (supportsReasoning) body.reasoning_effort = reasoningEffort;
+    else if (Number.isFinite(temperature)) body.temperature = temperature;
+    if (mode === "chat" && Array.isArray(agentTools) && agentTools.length) {
+      body.tools = agentTools;
+      body.tool_choice = "auto";
+    }
+    return body;
+  };
+
+  let chatResponse = await fetch(`${normalizedBaseUrl}/chat/completions`, {
     method: "POST",
     headers: {
       authorization: `Bearer ${apiKey}`,
       "content-type": "application/json",
     },
-    body: JSON.stringify({
-      model,
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: user },
-      ],
-      temperature,
-    }),
+    body: JSON.stringify(buildBody("chat")),
   });
-
-  if (chatResponse.ok) {
-    const json = await chatResponse.json();
-    const text = json.choices?.[0]?.message?.content || json.choices?.[0]?.text || "";
-    if (text.trim()) return text.trim();
+  let chatJson = null;
+  let chatError = "";
+  try {
+    chatJson = await chatResponse.json();
+  } catch {
+    chatError = await chatResponse.text().catch(() => "");
   }
 
-  const chatError = await chatResponse.text();
+  if (chatResponse.ok) {
+    const choice = chatJson?.choices?.[0];
+    const toolCalls = Array.isArray(choice?.message?.tool_calls) ? choice.message.tool_calls : [];
+    if (toolCalls.length && typeof toolExecutor === "function") {
+      for (let round = 0; round < Math.max(1, maxToolRounds) && toolCalls.length; round += 1) {
+        messages.push(choice.message);
+        for (const toolCall of toolCalls.slice(0, 4)) {
+          const toolName = String(toolCall?.function?.name || "");
+          let args = {};
+          try {
+            args = JSON.parse(toolCall?.function?.arguments || "{}");
+          } catch {}
+          let result;
+          try {
+            result = await Promise.race([
+              Promise.resolve(toolExecutor(toolName, args)),
+              new Promise((_, reject) => setTimeout(() => reject(new Error("Coach tool timed out.")), COACH_AGENT_TOOL_TIMEOUT_MS)),
+            ]);
+          } catch {
+            result = { ok: false, error: "Tool unavailable. Continue without external data." };
+          }
+          messages.push({
+            role: "tool",
+            tool_call_id: String(toolCall.id || crypto.randomUUID()).slice(0, 120),
+            content: JSON.stringify(result || { ok: false, error: "Tool returned no data." }),
+          });
+        }
+        chatResponse = await fetch(`${normalizedBaseUrl}/chat/completions`, {
+          method: "POST",
+          headers: {
+            authorization: `Bearer ${apiKey}`,
+            "content-type": "application/json",
+          },
+          body: JSON.stringify(buildBody("chat")),
+        });
+        try {
+          chatJson = await chatResponse.json();
+        } catch {
+          chatJson = null;
+        }
+        if (!chatResponse.ok) break;
+        const nextChoice = chatJson?.choices?.[0];
+        const nextToolCalls = Array.isArray(nextChoice?.message?.tool_calls) ? nextChoice.message.tool_calls : [];
+        if (!nextToolCalls.length) {
+          const finalText = chatCompletionTextFromJson(chatJson);
+          if (finalText) return finalText;
+          break;
+        }
+        toolCalls.splice(0, toolCalls.length, ...nextToolCalls);
+        choice.message = nextChoice.message;
+      }
+    }
+    const text = chatCompletionTextFromJson(chatJson);
+    if (text) return text;
+  }
+
+  if (chatJson && !chatError) chatError = JSON.stringify(chatJson);
   if (!allowResponsesFallback) {
     throw new Error(`AI API failed. chat=${chatResponse.status}: ${chatError.slice(0, 500)}`);
   }
@@ -4213,14 +4323,7 @@ async function callOpenAI({ system, user, temperature = 0.3, apiKey = OPENAI_API
       authorization: `Bearer ${apiKey}`,
       "content-type": "application/json",
     },
-    body: JSON.stringify({
-      model,
-      input: [
-        { role: "system", content: system },
-        { role: "user", content: user },
-      ],
-      temperature,
-    }),
+    body: JSON.stringify(buildBody("responses")),
   });
 
   if (!response.ok) {
@@ -4353,13 +4456,102 @@ async function callWritingAI({ system, user, temperature = 0.25 }) {
   });
 }
 
+const COACH_AGENT_TOOL_DEFINITIONS = [
+  {
+    type: "function",
+    function: {
+      name: "get_current_ielts_context",
+      description: "Read the current IELTSist practice surface and focused question context already supplied by the app.",
+      parameters: { type: "object", properties: {}, additionalProperties: false },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_shared_account_policy",
+      description: "Explain the verified IELTSist/STEM shared-account and data-boundary policy.",
+      parameters: { type: "object", properties: {}, additionalProperties: false },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "suggest_ielts_next_step",
+      description: "Choose one safe, allowlisted IELTSist practice destination based on the student's request.",
+      parameters: {
+        type: "object",
+        properties: {
+          module: { type: "string", enum: ["listening", "reading", "writing", "speaking", "practice", "sequence", "exam", "vocabulary", "mine"] },
+        },
+        required: ["module"],
+        additionalProperties: false,
+      },
+    },
+  },
+];
+
+const COACH_AGENT_ALLOWLIST = new Set(COACH_AGENT_TOOL_DEFINITIONS.map((item) => item.function.name));
+const coachAgentAudit = [];
+
+function coachAgentToolExecutor(toolName, args, context = {}) {
+  if (!COACH_AGENT_ALLOWLIST.has(toolName)) {
+    coachAgentAudit.push({ tool: "blocked", status: "blocked", at: Date.now() });
+    return { ok: false, error: "Tool is not available." };
+  }
+  const auditEvent = { tool: toolName, status: "started", at: Date.now() };
+  coachAgentAudit.push(auditEvent);
+  while (coachAgentAudit.length > 500) coachAgentAudit.shift();
+  const finish = (result) => {
+    auditEvent.status = result?.ok === false ? "failed" : "completed";
+    return result;
+  };
+  if (toolName === "get_shared_account_policy") {
+    return finish({
+      ok: true,
+      facts: sharedAccountProductFacts(),
+      boundary: "Identity is shared; IELTS and STEM learning records remain product-scoped and are not automatically copied.",
+    });
+  }
+  if (toolName === "get_current_ielts_context") {
+    return finish({
+      ok: true,
+      module: String(context.helpContext?.activeModule || "").slice(0, 40),
+      surface: String(context.helpContext?.surface || context.helpContext?.viewLabel || "").slice(0, 120),
+      question: String(context.helpContext?.focusedQuestion?.number || "").slice(0, 12),
+      evidenceAvailable: Boolean(context.helpContext?.reading || context.helpContext?.listening || context.contextText),
+    });
+  }
+  const module = String(args?.module || "").toLowerCase();
+  if (!["listening", "reading", "writing", "speaking", "practice", "sequence", "exam", "vocabulary", "mine"].includes(module)) {
+    return finish({ ok: false, error: "That destination is not available." });
+  }
+  return finish({
+    ok: true,
+    action: module,
+    instruction: `Use the IELTSist ${module} practice surface. Do not claim that it was opened unless the browser confirms the navigation.`,
+  });
+}
+
 function coachAiProviders() {
+  if (AI_GATEWAY_API_KEY) {
+    return [{
+      apiKey: AI_GATEWAY_API_KEY,
+      baseUrl: AI_GATEWAY_BASE_URL,
+      model: AI_GATEWAY_MODEL,
+      reasoningEffort: AI_GATEWAY_REASONING_EFFORT,
+      timeoutMs: AI_GATEWAY_TIMEOUT_MS,
+      allowResponsesFallback: false,
+      agentic: true,
+    }];
+  }
   if (COACH_AI_API_KEY) {
     return [{
       apiKey: COACH_AI_API_KEY,
       baseUrl: COACH_AI_BASE_URL,
       model: COACH_AI_MODEL,
+      timeoutMs: COACH_AI_TIMEOUT_MS,
       allowResponsesFallback: false,
+      agentic: false,
     }];
   }
   if (OPENAI_API_KEY) {
@@ -4367,21 +4559,32 @@ function coachAiProviders() {
       apiKey: OPENAI_API_KEY,
       baseUrl: OPENAI_BASE_URL,
       model: MODEL,
+      timeoutMs: COACH_AI_TIMEOUT_MS,
       allowResponsesFallback: true,
+      agentic: false,
     }];
   }
   return [];
 }
 
-async function callCoachAI({ system, user, temperature = 0.25 }) {
+async function callCoachAI({ system, user, temperature = 0.25, helpContext = null, contextText = "" }) {
   const providers = coachAiProviders();
   if (!providers.length) return null;
   let lastError = null;
   for (const provider of providers) {
     try {
       const answer = await Promise.race([
-        callOpenAI({ system, user, temperature, ...provider }),
-        new Promise((_, reject) => setTimeout(() => reject(new Error("AI Coach request timed out.")), COACH_AI_TIMEOUT_MS)),
+        callOpenAI({
+          system,
+          user,
+          temperature,
+          ...provider,
+          agentTools: provider.agentic ? COACH_AGENT_TOOL_DEFINITIONS : [],
+          toolExecutor: provider.agentic
+            ? (toolName, args) => coachAgentToolExecutor(toolName, args, { helpContext, contextText })
+            : null,
+        }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("AI Coach request timed out.")), provider.timeoutMs || COACH_AI_TIMEOUT_MS)),
       ]);
       const safeAnswer = sanitizeCoachStudentOutput(answer);
       if (safeAnswer) return safeAnswer;
@@ -4401,6 +4604,29 @@ function coachProviderWarning(error) {
   return "AI Coach is temporarily unavailable. Please retry in a moment.";
 }
 
+function sanitizeCoachMarkdownLinkDestination(value) {
+  const destination = String(value || "").trim().replace(/^<|>$/g, "");
+  if (!destination || destination.length > 2_000) return "";
+  if (/(?:^|[?&#])(?:api[_-]?key|authorization|access[_-]?token|id[_-]?token|refresh[_-]?token|token|code|state|session)=/i.test(destination)) return "";
+  if (/^\/(?![\\/])/.test(destination)) {
+    return destination.replace(/[\u0000-\u001f\s]/g, "");
+  }
+  try {
+    const url = new URL(destination);
+    if (!/^https?:$/i.test(url.protocol) || url.username || url.password) return "";
+    return url.toString();
+  } catch {
+    return "";
+  }
+}
+
+function sanitizeCoachMarkdownLinks(value) {
+  return String(value || "").replace(/\[([^\]\r\n]{1,240})\]\(([^)\s]{1,2200})\)/g, (match, label, destination) => {
+    const safeDestination = sanitizeCoachMarkdownLinkDestination(destination);
+    return safeDestination ? `[${label}](${safeDestination})` : label;
+  });
+}
+
 function sanitizeCoachStudentOutput(value) {
   const protectedContent = /(?:system|developer|internal)\s*(?:prompt|instruction|message)|ignore\s+(?:all|previous|above)\s+instructions|api[_ -]?key|authorization\s*:/i;
   return String(value || "")
@@ -4410,10 +4636,15 @@ function sanitizeCoachStudentOutput(value) {
     .replace(/\$\$([\s\S]*?)\$\$/g, "$1")
     .replace(/\$([^$\n]{1,500})\$/g, "$1")
     .replace(/```[\s\S]*?```/g, "")
+    .replace(/\b(?:Bearer|sk-[A-Za-z0-9_-]{10,}|AIza[A-Za-z0-9_-]{20,})\b/gi, "[redacted]")
     .replace(/\r\n?/g, "\n")
     .split("\n")
     .filter((line) => !protectedContent.test(line))
     .join("\n")
+    .replace(/\[([^\]\r\n]{1,240})\]\(([^)\s]{1,2200})\)/g, (match, label, destination) => {
+      const safeDestination = sanitizeCoachMarkdownLinkDestination(destination);
+      return safeDestination ? `[${label}](${safeDestination})` : label;
+    })
     .replace(/\n{3,}/g, "\n\n")
     .trim()
     .slice(0, 12_000);
@@ -5127,6 +5358,8 @@ async function handleHelpChat(req, res) {
         `Student question: ${message}`,
       ].join("\n"),
       temperature: 0.25,
+      helpContext,
+      contextText,
     });
   } catch (error) {
     warning = coachProviderWarning(error);
@@ -7261,13 +7494,10 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     if (req.method === "OPTIONS") {
-      res.writeHead(204, {
-        "access-control-allow-origin": "*",
-        "access-control-allow-methods": "GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS",
-        "access-control-allow-headers": "content-type,authorization",
-        "access-control-max-age": "86400",
-      });
-      res.end();
+      // Only the explicit STEM routes above are cross-site. All other APIs,
+      // including the AI Coach proxy, are same-origin and must not advertise
+      // wildcard CORS to arbitrary websites.
+      sendJson(res, 403, { error: "Cross-origin requests are not enabled for this route." });
       return;
     }
     if (req.method === "GET" && req.url === "/healthz") {
@@ -8196,10 +8426,12 @@ function buildQwenSessionUpdate(config = {}) {
 server.listen(PORT, SERVER_HOST, () => {
   recoverStemMarkingJobs();
   console.log(`IELTS-ist running at http://${SERVER_HOST}:${PORT}`);
-  console.log(COACH_AI_API_KEY
+  console.log(AI_GATEWAY_API_KEY
+    ? `AI Coach enabled with IELTSist AI Gateway model ${AI_GATEWAY_MODEL} reasoning=${AI_GATEWAY_REASONING_EFFORT}`
+    : COACH_AI_API_KEY
     ? `AI Coach enabled with Qwen model ${COACH_AI_MODEL}`
     : OPENAI_API_KEY
       ? `AI Coach using legacy model ${MODEL}`
-      : "AI Coach local fallback mode. Set DASHSCOPE_API_KEY to enable Qwen.");
+      : "AI Coach local fallback mode. Set AI_GATEWAY_API_KEY or DASHSCOPE_API_KEY to enable AI.");
   console.log(DASHSCOPE_API_KEY && DASHSCOPE_WORKSPACE_ID ? "Qwen realtime speaking enabled." : "Qwen realtime speaking disabled. Set DASHSCOPE_API_KEY and DASHSCOPE_WORKSPACE_ID.");
 });
