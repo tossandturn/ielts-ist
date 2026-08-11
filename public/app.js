@@ -4164,13 +4164,18 @@ function vocabularyRouteContextFromLocation() {
     .flatMap((value) => String(value).split(","))
     .map((value) => value.trim())
     .filter(Boolean);
-  const sourceStatus = String(value("sourceStatus", "source_status")).trim().toLowerCase();
-  const termInventoryStatus = String(value("termInventoryStatus", "term_inventory_status")).trim().toLowerCase();
+  const rawFamily = String(params.get("family") || "").trim().toLowerCase();
+  const family = ["exam", "competition", "admissions"].includes(rawFamily) ? rawFamily : "";
+  const rawSourceStatus = String(value("sourceStatus", "source_status")).trim().toLowerCase();
+  const sourceStatus = ["taxonomy-mapped", "source-backed", "pending"].includes(rawSourceStatus) ? rawSourceStatus : "";
+  const rawTermInventoryStatus = String(value("termInventoryStatus", "term_inventory_status")).trim().toLowerCase();
+  const termInventoryStatus = rawTermInventoryStatus === "ieltsist glossary sync pending" ? "not-imported"
+    : ["not-imported", "imported", "pending"].includes(rawTermInventoryStatus) ? rawTermInventoryStatus : "";
   const availableCountValue = Number(value("availableCount", "available_count"));
   return {
     from: String(params.get("from") || "").trim().toLowerCase(),
     contractVersion: String(value("contractVersion", "contract_version") || "").trim(),
-    family: String(params.get("family") || "").trim().toLowerCase(),
+    family,
     taxonomyId: String(value("taxonomyId", "taxonomy_id")).trim(),
     routeId: String(value("routeId", "route_id")).trim(),
     specificationVersion: String(value("specificationVersion", "specification_version")).trim(),
@@ -4204,6 +4209,7 @@ function vocabularyRouteContextKey(context) {
 function routeContextSubject(context, items) {
   const exactMatches = items.filter((item) =>
     (context.termIds || []).includes(item.termId)
+    && (!context.family || item.family === context.family)
     && (!context.routeId || item.routeId === context.routeId)
     && (!context.taxonomyId || item.taxonomyId === context.taxonomyId)
     && (!context.topicId || item.topicId === context.topicId)
@@ -4211,7 +4217,8 @@ function routeContextSubject(context, items) {
   );
   if (exactMatches.length) return exactMatches[0].subject;
   const routeMatch = items.find((item) =>
-    (!context.routeId || item.routeId === context.routeId)
+    (!context.family || item.family === context.family)
+    && (!context.routeId || item.routeId === context.routeId)
     && (!context.taxonomyId || item.taxonomyId === context.taxonomyId)
     && (!context.topicId || item.topicId === context.topicId)
     && (!context.subjectCode || item.subjectCode === context.subjectCode),
@@ -4238,7 +4245,8 @@ function applyVocabularyRouteContext(allItems) {
   if (subject !== "all" && (!alreadyApplied || state.vocabularyReview.subject === "all")) state.vocabularyReview.subject = subject;
   const subjectItems = allItems.filter((item) => subject === "all" || item.subject === subject);
   const topicMatch = subjectItems.find((item) =>
-    (!context.taxonomyId || item.taxonomyId === context.taxonomyId)
+    (!context.family || item.family === context.family)
+    && (!context.taxonomyId || item.taxonomyId === context.taxonomyId)
     && (!context.topicId || item.topicId === context.topicId || item.topic === context.topicId)
     && (!context.routeId || item.routeId === context.routeId)
     && (!context.subjectCode || item.subjectCode === context.subjectCode),
@@ -4320,14 +4328,15 @@ function vocabularyReturnToStemUrl() {
 
 function vocabularyRouteContextWarning(context, allItems) {
   if (context.from !== "stem") return "";
-  if (context.termInventoryStatus === "pending" || context.sourceStatus === "pending" || context.termInventoryStatus === "not-imported") {
+  if (context.termInventoryStatus === "pending" || context.sourceStatus === "pending" || context.termInventoryStatus === "not-imported" || (context.sourceStatus === "taxonomy-mapped" && context.termInventoryStatus !== "imported")) {
     return "IELTSist glossary sync pending";
   }
   if (!state.vocabularyReview.loaded || !context.termIds.length) return "";
   const termItems = allItems.filter((item) => context.termIds.includes(item.termId));
   if (!termItems.length) return "";
   const mismatched = termItems.some((item) =>
-    (context.taxonomyId && item.taxonomyId !== context.taxonomyId)
+    (context.family && item.family !== context.family)
+    || (context.taxonomyId && item.taxonomyId !== context.taxonomyId)
     || (context.routeId && item.routeId !== context.routeId)
     || (context.specificationVersion && item.specificationVersion !== context.specificationVersion)
     || (context.topicId && item.topicId !== context.topicId)
