@@ -7575,16 +7575,30 @@ function safeCoachMarkdownHref(value) {
   }
 }
 
+function coachLinkAnchor(href, label = href) {
+  const external = !href.startsWith("/");
+  return `<a href="${escapeHtml(href)}"${external ? ' target="_blank" rel="noopener noreferrer"' : ""}>${label}</a>`;
+}
+
 function renderHelpInline(text) {
-  const escaped = escapeHtml(text)
+  const tokens = [];
+  const hold = (html) => `\u0000coach-link-${tokens.push(html) - 1}\u0000`;
+  let escaped = escapeHtml(text)
     .replace(/\*\*\s*(.+?)\s*\*\*/g, "<strong>$1</strong>")
-    .replace(/`([^`]+)`/g, "<code>$1</code>");
-  return escaped.replace(/\[([^\]\r\n]{1,240})\]\(([^)\s]{1,2200})\)/g, (match, label, destination) => {
+  escaped = escaped.replace(/\[([^\]\r\n]{1,240})\]\(([^)\s]{1,2200})\)/g, (match, label, destination) => {
     const href = safeCoachMarkdownHref(destination);
-    if (!href) return label;
-    const external = !href.startsWith("/");
-    return `<a href="${escapeHtml(href)}"${external ? ' target="_blank" rel="noopener noreferrer"' : ""}>${label}</a>`;
+    return href ? hold(coachLinkAnchor(href, label)) : label;
   });
+  escaped = escaped.replace(/`([^`]+)`/g, (match, code) => {
+    const href = safeCoachMarkdownHref(code);
+    return href ? hold(coachLinkAnchor(href, code)) : `<code>${code}</code>`;
+  });
+  escaped = escaped.replace(/https?:\/\/[A-Za-z0-9][A-Za-z0-9._~:/?#[\]@!$&'()*+,;=%-]*/gi, (match) => {
+    const candidate = match.replace(/[.,!?;:，。！？；：]+$/u, "");
+    const href = safeCoachMarkdownHref(candidate);
+    return href ? `${hold(coachLinkAnchor(href, candidate))}${match.slice(candidate.length)}` : match;
+  });
+  return escaped.replace(/\u0000coach-link-(\d+)\u0000/g, (_, index) => tokens[Number(index)] || "");
 }
 
 function renderHelpRichText(text) {
