@@ -38,6 +38,8 @@ const VALID_USER_ROLES = new Set(USER_ROLE_ORDER);
 const STEM_MARKING_STATUSES = new Set(["queued", "processing", "completed", "failed", "missing_metadata"]);
 const STEM_ORGANIZATION_ROLES = new Set(["student", "teacher", "school_admin", "school_owner"]);
 const STEM_IDENTITY_SIGNING_KEY = process.env.STEM_IDENTITY_SIGNING_KEY || "";
+const STEM_INTERNAL_AUTH_KEY = process.env.STEM_INTERNAL_AUTH_KEY || STEM_IDENTITY_SIGNING_KEY;
+const STEM_INTERNAL_AUTH_WINDOW_MS = 60_000;
 const STEM_ALLOWED_ORIGINS = new Set([
   "https://stem.ieltsist.com",
   "http://127.0.0.1:5173",
@@ -507,16 +509,96 @@ function isEnabledCambridgeBook(item) {
   return !match || Number(match[1]) >= 4;
 }
 
+const CONTENT_LIFECYCLE = Object.freeze({
+  extracted: "extracted",
+  validated: "validated",
+  humanReviewed: "human_reviewed",
+  active: "active",
+  quarantined: "quarantined",
+});
+
+function contentChecksum(value) {
+  return `sha256:${crypto.createHash("sha256").update(JSON.stringify(value)).digest("hex")}`;
+}
+
+function suspiciousOcrTextIssue(value, options = {}) {
+  const text = String(value || "").replace(/\s+/g, " ").trim();
+  if (!text) return "missing_text";
+  if (/(?:^|\s)\|(?:\s|$)/.test(text)) return "isolated_pipe";
+  if (/\b(?:ltled|lntled|Itallowed|Itcaused|cornplete|Wite|Waite|lranslation|carpicces)\b/i.test(text)) return "ocr_character_confusion";
+  if (/\b(?:Plays|Collections)\s+\d{2,3}\b/i.test(text) || /\.\s+\d{2,3}$/.test(text)) return "page_marker_pollution";
+  if (options.option && /\b(?:a|an|the|of|to|in|on|at|for|from|with|by|and|or|but|that|which|who|when|where|why|how)\.?$/i.test(text)) return "truncated_option";
+  if (options.question && /\b(?:intere|thei|expl|wish)\.?$/i.test(text)) return "truncated_question";
+  return "";
+}
+
+function validObjectiveOption(option) {
+  const value = String(option?.value || "").trim().toUpperCase();
+  const label = String(option?.label || "").replace(/\s+/g, " ").trim();
+  return (/^[A-I]$/.test(value) || ["TRUE", "FALSE", "NOT GIVEN", "YES", "NO"].includes(value))
+    && label.length >= 4
+    && !suspiciousOcrTextIssue(label, { option: true });
+}
+
+function validatedObjectiveOptions(options) {
+  const seen = new Set();
+  const valid = (Array.isArray(options) ? options : [])
+    .map((option) => ({
+      value: String(option?.value || "").trim().toUpperCase(),
+      label: String(option?.label || "").replace(/\s+/g, " ").trim(),
+    }))
+    .filter((option) => validObjectiveOption(option) && !seen.has(option.value) && seen.add(option.value));
+  return valid.length >= 2 ? valid : [];
+}
+
+function objectiveTestQualityIssue(test, moduleName) {
+  if (!test || typeof test !== "object") return "invalid_record";
+  if (!hasQuestionSlots(test)) return "missing_question_slots";
+  if (!hasPageImages(test, moduleName === "listening" ? "questionPageImages" : "readingPageImages")) return "missing_source_pages";
+  const duplicateIds = new Set();
+  for (const question of test.questions || []) {
+    const id = String(question?.id || "").trim();
+    if (!id || duplicateIds.has(id)) return "invalid_question_ids";
+    duplicateIds.add(id);
+    const issue = suspiciousOcrTextIssue(question?.text, { question: true });
+    if (issue && !/^Question\s+\d+$/i.test(String(question?.text || ""))) return issue;
+  }
+  return "";
+}
+
+function objectiveContentDescriptor(test, moduleName) {
+  const issue = objectiveTestQualityIssue(test, moduleName);
+  const payload = {
+    module: moduleName,
+    id: test?.id || "",
+    title: test?.title || "",
+    minutes: test?.minutes || 0,
+    questionIds: (test?.questions || []).map((question) => String(question?.id || "")),
+    pageImages: slimPageImages(moduleName === "listening" ? test?.questionPageImages : test?.readingPageImages),
+    audioUrls: moduleName === "listening" ? (test?.audioUrls || []) : [],
+  };
+  return {
+    lifecycle: issue ? CONTENT_LIFECYCLE.quarantined : CONTENT_LIFECYCLE.validated,
+    // Structural validation makes a source safe to render beside its original
+    // PDF. It is not a substitute for the separate PDF-verbatim human review
+    // required before content can be labelled human-reviewed / active.
+    publicationStatus: issue ? CONTENT_LIFECYCLE.quarantined : CONTENT_LIFECYCLE.validated,
+    humanReviewStatus: "pending",
+    issue,
+    contentVersion: contentChecksum(payload),
+  };
+}
+
 function realListeningTests() {
   return IMPORTED_BANKS
     .flatMap((bank) => bank.listeningTests || [])
-    .filter((test) => isEnabledCambridgeBook(test) && hasPageImages(test, "questionPageImages") && hasQuestionSlots(test));
+    .filter((test) => isEnabledCambridgeBook(test) && !objectiveTestQualityIssue(test, "listening"));
 }
 
 function realReadingTests() {
   return IMPORTED_BANKS
     .flatMap((bank) => bank.readingTests || [])
-    .filter((test) => isEnabledCambridgeBook(test) && hasPageImages(test, "readingPageImages") && hasQuestionSlots(test));
+    .filter((test) => isEnabledCambridgeBook(test) && !objectiveTestQualityIssue(test, "reading"));
 }
 
 function realWritingTasks() {
@@ -536,15 +618,19 @@ function slimQuestions(questions, metadata = new Map()) {
     ? questions.map((question, index) => {
         const number = Number(String(question.id || question.text || index + 1).match(/\d{1,2}/)?.[0] || index + 1);
         const meta = metadata.get(number) || {};
+        const suppliedOptions = Array.isArray(question.options) && question.options.length
+          ? question.options
+          : Array.isArray(meta.options) ? meta.options : [];
         return {
           id: question.id || `q${index + 1}`,
           text: question.text || `Question ${index + 1}`,
           type: question.type || meta.type || "unknown",
           typeLabel: question.typeLabel || meta.typeLabel || "Question",
           questionPage: question.questionPage || meta.questionPage || null,
-          options: Array.isArray(question.options) && question.options.length
-            ? question.options
-            : Array.isArray(meta.options) ? meta.options : [],
+          // OCR is only a metadata helper. If an option cannot pass structural
+          // validation, do not render a potentially truncated choice beside the
+          // official PDF page; the client safely falls back to a text response.
+          options: validatedObjectiveOptions(suppliedOptions),
           selectionLimit: Number(question.selectionLimit || meta.selectionLimit || 1),
           optionGroupId: String(question.optionGroupId || meta.optionGroupId || ""),
         };
@@ -684,13 +770,32 @@ function objectiveSelectionLimit(instructions) {
 
 function objectiveOptionLines(text) {
   const seen = new Set();
-  return String(text || "")
+  const entries = [];
+  for (const rawLine of String(text || "")
     .split(/\r?\n/)
     .map((line) => line.replace(/^[^A-Za-z0-9]+/, "").replace(/\s+/g, " ").trim())
-    .map((line) => line.match(/^([A-I])(?:\s*[.)€©]?\s+)(.{1,220})$/))
-    .filter(Boolean)
-    .map((match) => ({ value: match[1].toUpperCase(), label: match[2].trim() }))
-    .filter((option) => option.label && !seen.has(option.value) && seen.add(option.value));
+    .filter(Boolean)) {
+    const option = rawLine.match(/^([A-I])(?:\s*[.)€©]?\s+)(.{1,220})$/);
+    if (option) {
+      entries.push({ value: option[1].toUpperCase(), label: option[2].trim() });
+      continue;
+    }
+    const previous = entries.at(-1);
+    // PDF extraction commonly wraps a long choice onto the next line. Merge
+    // only a lowercase plain continuation, never another heading, question,
+    // instruction, option, or page/footer marker. This keeps real wrapped
+    // phrases such as "members of the" + "public" while quarantining OCR
+    // pollution such as "Collections 82" and "Plays 81 ee".
+    if (previous
+      && rawLine.length >= 2
+      && rawLine.length <= 220
+      && /^[a-z]/.test(rawLine)
+      && !/^(?:Questions?|Write\b|Choose\b|In boxes\b|\d{1,2}(?:[.)]|\s))/i.test(rawLine)
+      && !/^[A-I](?:\s*[.)€©]?\s+)/.test(rawLine)) {
+      previous.label = `${previous.label} ${rawLine}`.replace(/\s+/g, " ").trim();
+    }
+  }
+  return entries.filter((option) => option.label && !seen.has(option.value) && seen.add(option.value));
 }
 
 function objectiveOptionsByQuestion(instructions, type, start, end) {
@@ -799,6 +904,7 @@ function listeningQuestionMetadata(paper) {
 
 function slimListeningTest(test) {
   const questionMetadata = listeningQuestionMetadata(test.questionPaper);
+  const content = objectiveContentDescriptor(test, "listening");
   return {
     id: test.id,
     module: test.module,
@@ -812,6 +918,9 @@ function slimListeningTest(test) {
     questionPageImages: slimPageImages(test.questionPageImages),
     questions: slimQuestions(test.questions, questionMetadata),
     contentTopics: contentTopicsForPaper(test, 4),
+    contentVersion: content.contentVersion,
+    contentLifecycle: content.lifecycle,
+    humanReviewStatus: content.humanReviewStatus,
   };
 }
 
@@ -819,6 +928,7 @@ function slimReadingTest(test) {
   const pageRoles = readingPageRoles(test.readingPageImages, test.readingPaper);
   const questionMetadata = readingQuestionMetadata(test.readingPaper);
   const passageStartPages = Object.fromEntries(readingPassageStartPages(test));
+  const content = objectiveContentDescriptor(test, "reading");
   return {
     id: test.id,
     module: test.module,
@@ -834,6 +944,9 @@ function slimReadingTest(test) {
     readingPassageStartPages: passageStartPages,
     questions: slimQuestions(test.questions, questionMetadata),
     contentTopics: contentTopicsForPaper(test, 3),
+    contentVersion: content.contentVersion,
+    contentLifecycle: content.lifecycle,
+    humanReviewStatus: content.humanReviewStatus,
   };
 }
 
@@ -1539,14 +1652,59 @@ function correctedSpeakingSet(set) {
 function speakingSetQualityIssue(set) {
   const title = String(set?.title || "").replace(/\s+/g, " ").trim();
   const part1 = Array.isArray(set?.part1) ? set.part1.map((value) => String(value || "").trim()).filter(Boolean) : [];
-  const part2 = String(set?.part2 || "").replace(/\s+/g, " ").trim();
+  const rawPart2 = String(set?.part2 || "").replace(/\r\n?/g, "\n").trim();
+  const part2 = rawPart2.replace(/\s+/g, " ").trim();
   const part3 = Array.isArray(set?.part3) ? set.part3.map((value) => String(value || "").trim()).filter(Boolean) : [];
   if (title.length < 8 || part1.length < 2 || part2.length < 60 || part3.length < 2) return "incomplete";
   if (!/^(describe|talk about|tell me about)\b/i.test(part2) || !/you should say:/i.test(part2)) return "invalid_cue_card";
+  if (/\bwhat\s+you should say:\s*(?:wish|when|what)\b/i.test(part2)
+    || /\b(?:intere|thei|expl)\b/i.test(part2)
+    || /\bdescribe\b[^.!?\n]{0,180}\bwhat\s+you should say:/i.test(part2)) return "truncated_cue_card";
+  const cueLines = rawPart2.split("\n").map((line) => line.trim()).filter(Boolean);
+  const cueIndex = cueLines.findIndex((line) => /^you should say:/i.test(line));
+  if (cueIndex < 1) return "invalid_cue_card_structure";
+  const cueTitle = cueLines.slice(0, cueIndex).join(" ").replace(/\s+/g, " ").trim();
+  const cueBullets = cueLines.slice(cueIndex + 1);
+  if (!/[.!?]$/.test(cueTitle)
+    || /\b(?:which|who|when|where|why|how|that|to|for|have|wish|minutes)\.?$/i.test(cueTitle)) {
+    return "truncated_cue_card_title";
+  }
+  if (cueBullets.length < 3) return "incomplete_cue_card_bullets";
+  if (cueBullets.some((line) => {
+    const words = line.replace(/[^\p{L}\p{N}'’-]+/gu, " ").trim().split(/\s+/).filter(Boolean);
+    return words.length < 3
+      || line.length < 8
+      || /\b(?:what you(?:'|')?re going to|you(?:'|')?re going to|minutes\.?\s*you|make some notes|what vor|you wish|a(?:ie|y)\b|ee\b|fe\b)\b/i.test(line);
+  })) {
+    return "truncated_cue_card_bullet";
+  }
+  const finalBullet = cueBullets.at(-1) || "";
+  if (!/^and explain\b/i.test(finalBullet) || !/[.!?]$/.test(finalBullet) || finalBullet.split(/\s+/).length < 6) {
+    return "incomplete_cue_card_explanation";
+  }
   if (/\b(?:what you(?:'|')?re going to|you(?:'|')?re going to|notes to|for 1 to)\b/i.test(part2)) return "ocr_overlay";
   const questionCount = [...part1, ...part3].filter((question) => /\?\s*$/.test(question)).length;
   if (questionCount < Math.max(3, Math.floor((part1.length + part3.length) * 0.7))) return "truncated_questions";
   return "";
+}
+
+function speakingContentDescriptor(set) {
+  const issue = speakingSetQualityIssue(set);
+  const payload = {
+    id: set?.id || "",
+    title: set?.title || "",
+    part1: set?.part1 || [],
+    part2: set?.part2 || "",
+    part3: set?.part3 || [],
+    images: slimPageImages(set?.speakingPageImages),
+  };
+  return {
+    lifecycle: issue ? CONTENT_LIFECYCLE.quarantined : CONTENT_LIFECYCLE.validated,
+    publicationStatus: issue ? CONTENT_LIFECYCLE.quarantined : CONTENT_LIFECYCLE.validated,
+    humanReviewStatus: "pending",
+    issue,
+    contentVersion: contentChecksum(payload),
+  };
 }
 
 function getSpeakingSets() {
@@ -1554,7 +1712,16 @@ function getSpeakingSets() {
   const sets = Array.isArray(bank.speakingSets) ? bank.speakingSets : [];
   const visibleSets = sets
     .map(correctedSpeakingSet)
-    .filter((set) => isEnabledCambridgeBook(set) && hasPageImages(set, "speakingPageImages") && !speakingSetQualityIssue(set));
+    .filter((set) => isEnabledCambridgeBook(set) && hasPageImages(set, "speakingPageImages") && !speakingSetQualityIssue(set))
+    .map((set) => {
+      const content = speakingContentDescriptor(set);
+      return {
+        ...set,
+        contentVersion: content.contentVersion,
+        contentLifecycle: content.lifecycle,
+        humanReviewStatus: content.humanReviewStatus,
+      };
+    });
   return visibleSets.length
     ? visibleSets
     : fallbackSpeakingSets;
@@ -2197,6 +2364,73 @@ function signStemIdentity(payload) {
   const body = base64urlJson(payload);
   const signature = crypto.createHmac("sha256", STEM_IDENTITY_SIGNING_KEY).update(`${header}.${body}`).digest("base64url");
   return `${header}.${body}.${signature}`;
+}
+
+function signedStemInternalRequest(req, body) {
+  if (!STEM_INTERNAL_AUTH_KEY) return false;
+  const timestamp = String(req.headers["x-stem-auth-timestamp"] || "");
+  const signature = String(req.headers["x-stem-auth-signature"] || "");
+  if (!/^\d{13}$/.test(timestamp) || !/^[A-Za-z0-9_-]{20,200}$/.test(signature)) return false;
+  if (Math.abs(Date.now() - Number(timestamp)) > STEM_INTERNAL_AUTH_WINDOW_MS) return false;
+  const digest = crypto.createHash("sha256").update(body).digest("hex");
+  const expected = crypto.createHmac("sha256", STEM_INTERNAL_AUTH_KEY).update(`${timestamp}.${digest}`).digest("base64url");
+  const receivedBuffer = Buffer.from(signature);
+  const expectedBuffer = Buffer.from(expected);
+  return receivedBuffer.length === expectedBuffer.length && crypto.timingSafeEqual(receivedBuffer, expectedBuffer);
+}
+
+function stemInternalIdentity(user) {
+  const roles = getUserRoles(user.id);
+  return {
+    id: `ielts:${user.id}`,
+    username: user.username,
+    avatarDataUrl: user.avatar_data_url || "",
+    roles,
+    workspaceRoles: roles,
+  };
+}
+
+async function handleStemInternalAuthenticate(req, res) {
+  const rawBody = await readBody(req);
+  if (!signedStemInternalRequest(req, rawBody)) {
+    sendJson(res, 403, { error: "STEM account authentication is not authorised." });
+    return;
+  }
+  let payload;
+  try {
+    payload = JSON.parse(rawBody || "{}");
+  } catch {
+    sendJson(res, 400, { error: "Account request must be valid JSON." });
+    return;
+  }
+  const mode = payload.mode === "register" ? "register" : payload.mode === "login" ? "login" : "";
+  const username = normalizeUsername(payload.username);
+  const password = String(payload.password || "");
+  if (!mode || !validateUsername(username)) {
+    sendJson(res, 400, { error: "Username must be 3-24 characters: lowercase letters, numbers, or underscore." });
+    return;
+  }
+  if (password.length < 6 || password.length > 72) {
+    sendJson(res, 400, { error: "Password must be 6-72 characters." });
+    return;
+  }
+  const db = getAppDb();
+  let user = db.prepare("SELECT * FROM users WHERE username = ?").get(username);
+  if (mode === "register") {
+    if (user) {
+      sendJson(res, 409, { error: "Username already exists." });
+      return;
+    }
+    const createdAt = nowIso();
+    const { salt, passwordHash } = hashPassword(password);
+    const result = db.prepare("INSERT INTO users (username, password_hash, salt, created_at, updated_at) VALUES (?, ?, ?, ?, ?)")
+      .run(username, passwordHash, salt, createdAt, createdAt);
+    user = db.prepare("SELECT * FROM users WHERE id = ?").get(Number(result.lastInsertRowid));
+  } else if (!user || !verifyPassword(password, user.salt, user.password_hash)) {
+    sendJson(res, 401, { error: "Invalid username or password." });
+    return;
+  }
+  sendJson(res, 200, { identity: stemInternalIdentity(user) });
 }
 
 function applyStemCors(req, res, methods = "GET,OPTIONS") {
@@ -7522,6 +7756,10 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.method === "GET" && requestPathname === "/api/stem/identity") {
       handleStemIdentity(req, res);
+      return;
+    }
+    if (req.method === "POST" && requestPathname === "/api/stem/internal/authenticate") {
+      await handleStemInternalAuthenticate(req, res);
       return;
     }
     if (req.url.startsWith("/api/stem/marking/")) {

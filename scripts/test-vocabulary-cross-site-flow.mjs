@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
+import net from "node:net";
 
 const require = createRequire(import.meta.url);
 const { chromium } = require("C:/Users/10604/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright");
@@ -10,7 +11,16 @@ const catalog = JSON.parse(await readFile(new URL("../public/data/alevel-stem-vo
 const term = catalog.items.find((item) => item.subject === "physics" && item.stage === "AS");
 assert.ok(term, "A representative Physics AS term is required for the cross-site flow");
 
-const port = 6500 + (process.pid % 300);
+const port = await new Promise((resolve, reject) => {
+  const probe = net.createServer();
+  probe.unref();
+  probe.once("error", reject);
+  probe.listen(0, "127.0.0.1", () => {
+    const address = probe.address();
+    const selectedPort = typeof address === "object" && address ? address.port : 0;
+    probe.close((error) => error ? reject(error) : resolve(selectedPort));
+  });
+});
 const baseUrl = `http://127.0.0.1:${port}`;
 const child = spawn(process.execPath, ["server.js"], {
   cwd: root,

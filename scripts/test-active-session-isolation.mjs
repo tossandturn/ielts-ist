@@ -1,11 +1,24 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
+import net from "node:net";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
 const { chromium } = require("C:/Users/10604/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright");
 const root = new URL("../", import.meta.url);
-const port = 6700 + (process.pid % 300);
+async function reservePort() {
+  return new Promise((resolve, reject) => {
+    const server = net.createServer();
+    server.unref();
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", () => {
+      const address = server.address();
+      const port = typeof address === "object" && address ? address.port : 0;
+      server.close((error) => error ? reject(error) : resolve(port));
+    });
+  });
+}
+const port = await reservePort();
 const baseUrl = `http://127.0.0.1:${port}`;
 const child = spawn(process.execPath, ["server.js"], {
   cwd: root,
@@ -26,6 +39,28 @@ async function waitForServer() {
     await new Promise((resolve) => setTimeout(resolve, 150));
   }
   throw new Error(`Session isolation server did not start. ${stderr}`);
+}
+
+async function waitForExit(processHandle, timeoutMs = 3_000) {
+  if (!processHandle || processHandle.exitCode !== null || processHandle.signalCode !== null) return;
+  await new Promise((resolve) => {
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      processHandle.off("exit", finish);
+      processHandle.off("close", finish);
+      resolve();
+    };
+    const timer = setTimeout(() => {
+      if (processHandle.exitCode === null && processHandle.signalCode === null) processHandle.kill("SIGKILL");
+      finish();
+    }, timeoutMs);
+    processHandle.once("exit", finish);
+    processHandle.once("close", finish);
+    if (processHandle.exitCode !== null || processHandle.signalCode !== null) finish();
+  });
 }
 
 let browser;
@@ -151,7 +186,10 @@ try {
   assert.equal(beforeLibraryReturn.answer, "qa-listening-library-resume");
   assert.ok(beforeLibraryReturn.seconds < 600 && beforeLibraryReturn.seconds > 590, `Listening timer did not advance: ${beforeLibraryReturn.seconds}`);
 
-  await page.locator('[data-module-target="reading"]').evaluate((node) => node.click());
+  await page.locator("#globalSidebarToggle").click();
+  await page.locator('[data-module-target="reading"]').click();
+  await page.locator("#practiceLeaveDialog").waitFor({ state: "visible" });
+  await page.locator("#practiceLeaveSave").click();
   await page.waitForFunction(() => state.activeModule === "reading" && state.singleStarted === false);
   await page.locator('[data-module-target="listening"]').evaluate((node) => node.click());
   await page.waitForFunction(() => state.activeModule === "listening" && state.singleStarted === false);
@@ -203,6 +241,6 @@ try {
   console.log(`PASS Listening library card restored ${sectionId} with Section 4 status/audio/PDF/questions aligned, session ${afterLibraryReturn.sessionId}, timer ${afterLibraryReturn.timer}, audio readyState ${afterLibraryReturn.audio.readyState}.`);
 } finally {
   await browser?.close();
-  child.kill();
-  await new Promise((resolve) => child.once("exit", resolve));
+  if (child.exitCode === null && child.signalCode === null) child.kill();
+  await waitForExit(child);
 }

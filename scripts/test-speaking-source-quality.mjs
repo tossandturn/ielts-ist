@@ -35,7 +35,7 @@ try {
   const response = await waitForServer();
   const payload = await response.json();
   const sets = payload.speakingSets || [];
-  assert.ok(sets.length >= 12, "The quality gate must not collapse the usable Speaking bank");
+  assert.ok(sets.length >= 3, "The quality gate must retain every structurally complete source set without reintroducing damaged OCR");
   for (const set of sets) {
     const text = `${set.title || ""}\n${set.part2 || ""}`;
     assert.doesNotMatch(text, /what you(?:'|')?re going to|notes to|for 1 to|garden or pak/i, `No OCR overlay or typo may reach students (${set.id})`);
@@ -47,7 +47,8 @@ try {
   assert.equal(corrected.title, "Interesting garden or park");
   assert.match(corrected.part2, /what you saw in this garden or park/i);
   assert.match(corrected.part2, /why you think this garden or park is interesting/i);
-  console.log(`PASS speaking source quality: ${sets.length} student-visible sets have complete prompts and no OCR overlays.`);
+  assert.ok(sets.every((set) => set.contentLifecycle === "validated" && set.humanReviewStatus === "pending"), "Structured source validation must not be mislabelled as human PDF-verbatim review.");
+  console.log(`PASS speaking source quality: ${sets.length} structurally validated student-visible sets have complete prompts and no OCR overlays; human PDF-verbatim review remains pending.`);
 } finally {
   if (child.exitCode === null) {
     const exited = new Promise((resolve) => child.once("exit", resolve));

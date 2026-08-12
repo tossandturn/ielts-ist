@@ -96,6 +96,10 @@
   learningState: null,
   learningSyncTimers: {},
   practiceSessionCompleted: false,
+  practiceRestoreIssue: null,
+  practiceSaveState: "saved",
+  singleCurrentQuestion: "",
+  practicePendingNavigation: null,
   serverDrafts: [],
   vocabItems: [],
   draftSaveTimer: null,
@@ -4430,11 +4434,46 @@ function vocabularySubjectLabel(subject) {
   return {
     all: "All subjects",
     ielts: "IELTS Core",
-    physics: "A-Level Physics",
-    mathematics: "A-Level Mathematics",
-    chemistry: "A-Level Chemistry",
-    economics: "A-Level Economics",
-    biology: "A-Level Biology",
+    physics: "IG + A-Level Physics",
+    mathematics: "IG + A-Level Mathematics",
+    chemistry: "IG + A-Level Chemistry",
+    economics: "IG + A-Level Economics",
+    biology: "IG + A-Level Biology",
+    "computer-science": "IG + A-Level Computer Science",
+    business: "IG + A-Level Business",
+    geography: "IG + A-Level Geography",
+    accounting: "IG + A-Level Accounting",
+    psychology: "IG + A-Level Psychology",
+    law: "IG + A-Level Law",
+    sociology: "IG + A-Level Sociology",
+    politics: "A-Level Politics",
+    history: "IG + A-Level History",
+    "environmental-management": "IG + A-Level Environmental Management",
+    "design-technology": "IG + A-Level Design & Technology",
+    "english-language": "A-Level English Language",
+    "english-literature": "A-Level English Literature",
+    "media-studies": "A-Level Media Studies",
+    "physical-education": "IG + A-Level Physical Education",
+    "art-design": "IG + A-Level Art & Design",
+    drama: "IG + A-Level Drama",
+    music: "IG + A-Level Music",
+    "religious-studies": "A-Level Religious Studies",
+    "information-technology": "IG + A-Level Information Technology",
+    "travel-tourism": "IG + A-Level Travel & Tourism",
+    "global-perspectives": "IGCSE Global Perspectives",
+    "marine-science": "A-Level Marine Science",
+    "food-nutrition": "IGCSE Food & Nutrition",
+    "modern-languages": "IGCSE Modern Languages",
+    enterprise: "IGCSE Enterprise",
+    agriculture: "IGCSE Agriculture",
+    "child-development": "IGCSE Child Development",
+    "english-second-language": "IGCSE English as a Second Language",
+    "chinese-language": "IGCSE Chinese Language",
+    "islamic-studies": "IGCSE Islamic Studies",
+    "biblical-studies": "A-Level Biblical Studies",
+    "thinking-skills": "A-Level Thinking Skills",
+    "digital-media-design": "A-Level Digital Media & Design",
+    "world-literature": "IGCSE World Literature",
     "exam-language": "Exam Language",
   }[subject] || "Core vocabulary";
 }
@@ -4448,6 +4487,17 @@ function vocabularyExampleLabel(item) {
   if (item?.type === "command") return "Exam instruction / 题目要求";
   if (item?.subject && item.subject !== "ielts") return "Understanding check / 理解检查";
   return "Example sentence / 例句";
+}
+
+function vocabularySearchRank(item, query) {
+  if (!query) return 0;
+  const word = String(item.word || "").trim().toLowerCase();
+  const aliases = (item.aliases || []).map((alias) => String(alias || "").trim().toLowerCase()).filter(Boolean);
+  if (word === query || aliases.includes(query)) return 0;
+  if (word.includes(query) || aliases.some((alias) => alias.includes(query))) return 1;
+  const identity = [item.termId, item.topicId, ...(item.collocations || [])].join(" ").toLowerCase();
+  if (identity.includes(query)) return 2;
+  return 3;
 }
 
 function filteredCoreVocabulary() {
@@ -4471,6 +4521,10 @@ function filteredCoreVocabulary() {
       .join(" ")
       .toLowerCase()
       .includes(query);
+  }).sort((left, right) => {
+    const rankDelta = vocabularySearchRank(left, query) - vocabularySearchRank(right, query);
+    if (rankDelta) return rankDelta;
+    return String(left.word || "").localeCompare(String(right.word || ""));
   });
 }
 
@@ -4490,7 +4544,7 @@ async function ensureAlevelVocabularyLoaded() {
   if (alevelVocabularyLoadPromise) return alevelVocabularyLoadPromise;
   state.vocabularyReview.loading = true;
   state.vocabularyReview.error = "";
-  alevelVocabularyLoadPromise = fetch("/data/alevel-stem-vocabulary.json?v=20260808-knowledge-v3", { cache: "no-cache" })
+  alevelVocabularyLoadPromise = fetch("/data/alevel-stem-vocabulary.json?v=20260812-ig-alevel-knowledge-v5", { cache: "no-cache" })
     .then(async (response) => {
       if (!response.ok) throw new Error(`Vocabulary catalog returned ${response.status}`);
       const payload = await response.json();
@@ -4504,7 +4558,7 @@ async function ensureAlevelVocabularyLoaded() {
       return alevelStemVocabulary;
     })
     .catch((error) => {
-      state.vocabularyReview.error = error.message || "A-Level vocabulary could not load";
+      state.vocabularyReview.error = error.message || "IG + A-Level vocabulary could not load";
       return [];
     })
     .finally(() => {
@@ -4523,7 +4577,7 @@ function currentCoreVocabularyItem() {
 }
 
 function renderVocabularyImportPanel() {
-  const importSubjects = ["mathematics", "physics", "chemistry", "economics", "exam-language"];
+  const importSubjects = ["mathematics", "physics", "chemistry", "biology", "economics", "computer-science", "business", "geography", "accounting", "psychology", "law", "sociology", "politics", "history", "environmental-management", "design-technology", "english-language", "english-literature", "media-studies", "physical-education", "art-design", "drama", "music", "religious-studies", "information-technology", "travel-tourism", "global-perspectives", "marine-science", "food-nutrition", "modern-languages", "enterprise", "agriculture", "child-development", "english-second-language", "chinese-language", "islamic-studies", "biblical-studies", "thinking-skills", "digital-media-design", "world-literature", "exam-language"];
   const selectedSubject = importSubjects.includes(state.vocabularyReview.subject) ? state.vocabularyReview.subject : "chemistry";
   const selectedTopic = state.vocabularyReview.topic && state.vocabularyReview.topic !== "all" ? state.vocabularyReview.topic : "uploaded-terms";
   return `<section class="vocab-import-panel" aria-label="Upload professional vocabulary">
@@ -4553,8 +4607,14 @@ function renderVocabularyImportPanel() {
 }
 
 function renderVocabularyHub(allItems, subjectCounts) {
-  const loadedLabel = alevelStemVocabulary.length ? `${alevelStemVocabulary.length} A-Level entries loaded` : "Loading vocabulary catalog...";
+  const loadedLabel = alevelStemVocabulary.length ? `${alevelStemVocabulary.length} IG + A-Level entries loaded` : "Loading vocabulary catalog...";
   const fromStem = new URLSearchParams(window.location.search).get("from") === "stem";
+  const subjectDirectory = [
+    ["STEM & applied science", ["physics", "mathematics", "chemistry", "biology", "computer-science", "information-technology", "environmental-management", "design-technology", "marine-science", "food-nutrition", "agriculture"]],
+    ["Business, society & global issues", ["economics", "business", "accounting", "geography", "law", "sociology", "politics", "psychology", "travel-tourism", "enterprise", "global-perspectives", "child-development"]],
+    ["Humanities, languages & reasoning", ["history", "english-language", "english-literature", "english-second-language", "chinese-language", "modern-languages", "world-literature", "religious-studies", "islamic-studies", "biblical-studies", "thinking-skills"]],
+    ["Creative & performance", ["media-studies", "digital-media-design", "art-design", "drama", "music", "physical-education"]],
+  ];
   return `<section class="vocab-hub-shell">
     <header class="vocab-hub-head">
       <div>
@@ -4567,7 +4627,7 @@ function renderVocabularyHub(allItems, subjectCounts) {
     <div class="vocab-hub-grid">
       <button class="vocab-hub-card" type="button" data-vocab-page="review">
         <strong>Review deck</strong>
-        <span>IELTS Core + A-Level mathematics, physics, chemistry, economics and exam-language</span>
+        <span>IELTS Core + 40 IG/A-Level subject packs, plus exam-language support, including STEM, applied science, business, humanities, faith, creative and language studies</span>
         <em>${allItems.length} items · filters, search and spaced review</em>
       </button>
       <button class="vocab-hub-card" type="button" data-vocab-page="import">
@@ -4586,11 +4646,27 @@ function renderVocabularyHub(allItems, subjectCounts) {
       <span>Physics <strong>${subjectCounts.physics || 0}</strong></span>
       <span>Mathematics <strong>${subjectCounts.mathematics || 0}</strong></span>
       <span>Chemistry <strong>${subjectCounts.chemistry || 0}</strong></span>
+      <span>Biology <strong>${subjectCounts.biology || 0}</strong></span>
       <span>Economics <strong>${subjectCounts.economics || 0}</strong></span>
+      <span>CS <strong>${subjectCounts["computer-science"] || 0}</strong></span>
     </div>
+    <section class="vocab-subject-directory" aria-labelledby="vocabSubjectDirectoryTitle">
+      <div class="vocab-subject-directory-head">
+        <div><span class="eyebrow">Subject packs</span><h4 id="vocabSubjectDirectoryTitle">Choose your course</h4></div>
+        <span>${subjectDirectory.flatMap(([, subjects]) => subjects).length} subjects · IGCSE / AS / A2</span>
+      </div>
+      <div class="vocab-subject-groups">
+        ${subjectDirectory.map(([groupLabel, subjects]) => `<section class="vocab-subject-group" aria-label="${escapeHtml(groupLabel)}"><h5>${escapeHtml(groupLabel)}</h5><div>${subjects.map((subject) => {
+          const count = subjectCounts[subject] || 0;
+          if (!count) return "";
+          const stages = [...new Set(allItems.filter((item) => item.subject === subject).map((item) => item.stage))].join(" / ");
+          return `<button type="button" class="vocab-subject-row" data-vocab-subject="${escapeHtml(subject)}"><strong>${escapeHtml(vocabularySubjectLabel(subject))}</strong><span>${count} terms · ${escapeHtml(stages)}</span></button>`;
+        }).join("")}</div></section>`).join("")}
+      </div>
+    </section>
     <aside class="product-bridge-band" aria-label="STEM Campus connection">
       <span class="product-bridge-icon" aria-hidden="true">STEM</span>
-      <div><strong>${fromStem ? "Back from STEM Campus? Keep the language edge." : "Need the subject knowledge behind the terms?"}</strong><p>Open STEM Campus for A-Level Physics, Mathematics, Chemistry and Economics practice, then return here for IELTS question language and academic expression.</p></div>
+      <div><strong>${fromStem ? "Back from STEM Campus? Keep the language edge." : "Need the subject knowledge behind the terms?"}</strong><p>Open STEM Campus for IG and A-Level Physics, Mathematics, Chemistry, Biology, Economics and Computer Science practice, then return here for question language and academic expression.</p></div>
       <a class="secondary small-button" href="https://stem.ieltsist.com/?from=ieltsist&focus=syllabus" target="_blank" rel="noreferrer">Open STEM Campus ↗</a>
     </aside>
   </section>`;
@@ -4601,7 +4677,7 @@ function renderVocabularyMeaning(item) {
   const methodSteps = Array.isArray(item.methodSteps) ? item.methodSteps.filter(Boolean) : [];
   const workedExample = item.workedExample && typeof item.workedExample === "object" ? item.workedExample : null;
   const workedSteps = Array.isArray(workedExample?.steps) ? workedExample.steps.filter(Boolean) : [];
-  const stemSubject = ["physics", "mathematics", "chemistry", "economics", "biology"].includes(item?.subject) ? item.subject : "";
+  const stemSubject = ["physics", "mathematics", "chemistry", "economics", "biology", "computer-science", "business", "geography", "accounting", "psychology"].includes(item?.subject) ? item.subject : "";
   const stemHref = stemSubject ? buildVocabularyStemUrl(item) : "";
   return `
     <strong class="vocab-meaning-title">${escapeHtml(item.meaning)}</strong>
@@ -4713,7 +4789,7 @@ function renderVocabularyTrainer() {
   const revealed = Boolean(state.vocabularyReview.revealed);
   const deckPosition = item ? `${state.vocabularyReview.index + 1} / ${deck.length}` : `0 / ${deck.length}`;
   const subjectCounts = allItems.reduce((counts, entry) => ({ ...counts, [entry.subject]: (counts[entry.subject] || 0) + 1 }), {});
-  const subjects = ["all", "ielts", "physics", "mathematics", "chemistry", "economics", "biology", "exam-language"];
+  const subjects = ["all", "ielts", "physics", "mathematics", "chemistry", "biology", "economics", "computer-science", "business", "geography", "accounting", "psychology", "law", "sociology", "politics", "history", "environmental-management", "design-technology", "english-language", "english-literature", "media-studies", "physical-education", "art-design", "drama", "music", "religious-studies", "information-technology", "travel-tourism", "global-perspectives", "marine-science", "food-nutrition", "modern-languages", "enterprise", "agriculture", "child-development", "english-second-language", "chinese-language", "islamic-studies", "biblical-studies", "thinking-skills", "digital-media-design", "world-literature", "exam-language"];
   const availableTopics = [...new Map(allItems
     .filter((entry) => (state.vocabularyReview.subject === "all" || entry.subject === state.vocabularyReview.subject)
       && (state.vocabularyReview.stage === "all" || entry.stage === state.vocabularyReview.stage))
@@ -4726,10 +4802,10 @@ function renderVocabularyTrainer() {
   const miniStart = Math.max(0, Math.min(Math.max(0, deck.length - miniWindowSize), state.vocabularyReview.index - Math.floor(miniWindowSize / 2)));
   const miniItems = deck.slice(miniStart, miniStart + miniWindowSize);
   const catalogStatus = state.vocabularyReview.loading
-    ? `<span class="vocab-catalog-status">Loading A-Level catalog...</span>`
+    ? `<span class="vocab-catalog-status">Loading IG + A-Level catalog...</span>`
     : state.vocabularyReview.error
       ? `<button class="vocab-catalog-status is-error" type="button" data-vocab-retry>${escapeHtml(state.vocabularyReview.error)} · Retry</button>`
-      : `<span class="vocab-catalog-status">${alevelStemVocabulary.length} A-Level entries loaded</span>`;
+      : `<span class="vocab-catalog-status">${alevelStemVocabulary.length} IG + A-Level entries loaded</span>`;
   if (state.vocabularyReview.page === "import") {
     node.innerHTML = renderVocabularyImportPage();
     bindVocabularyControls();
@@ -4770,6 +4846,20 @@ function setVocabularyMode(mode) {
   renderVocabularyTrainer();
 }
 
+function openVocabularySubjectPack(subject) {
+  if (!subject) return;
+  state.vocabularyReview.subject = subject;
+  state.vocabularyReview.stage = "all";
+  state.vocabularyReview.topic = "all";
+  state.vocabularyReview.type = "all";
+  state.vocabularyReview.query = "";
+  state.vocabularyReview.page = "review";
+  state.vocabularyReview.index = 0;
+  state.vocabularyReview.revealed = false;
+  state.vocabularyReview.notice = "";
+  renderVocabularyTrainer();
+}
+
 function openVocabularyNotebookEntry(key) {
   const item = normalizedCoreVocabularyItems().find((entry) => notebookIdentity(entry) === key);
   if (!item) {
@@ -4803,6 +4893,9 @@ function bindVocabularyControls() {
   });
   document.querySelectorAll("[data-vocab-back]").forEach((button) => {
     button.onclick = () => setVocabularyPage("hub");
+  });
+  document.querySelectorAll("[data-vocab-subject]").forEach((button) => {
+    button.onclick = () => openVocabularySubjectPack(button.dataset.vocabSubject || "");
   });
   document.querySelectorAll("[data-vocab-mine]").forEach((button) => {
     button.onclick = () => {
@@ -4888,8 +4981,7 @@ function bindVocabularyControls() {
   $("vocabSearch")?.addEventListener("input", (event) => {
     const value = event.target.value || "";
     window.clearTimeout(state.vocabularyReview.searchTimer);
-    state.vocabularyReview.searchTimer = window.setTimeout(() => {
-      state.vocabularyReview.query = value;
+    state.vocabularyReview.query = value;
     state.vocabularyReview.index = 0;
     state.vocabularyReview.revealed = false;
     state.vocabularyReview.page = "review";
@@ -4897,7 +4989,6 @@ function bindVocabularyControls() {
     const input = $("vocabSearch");
     input?.focus({ preventScroll: true });
     if (input) input.setSelectionRange(input.value.length, input.value.length);
-    }, 180);
   });
   document.querySelector("[data-vocab-clear]")?.addEventListener("click", () => {
     clearVocabularyRouteTermScope();
@@ -4987,8 +5078,48 @@ function renderSubscription() {
   bindHomeControls(node);
 }
 
-function activateSingleModule(moduleName, updateHash = true) {
+function unfinishedSinglePractice() {
+  return activeViewId() === "single"
+    && state.singleStarted
+    && state.activeSingle?.id
+    && !state.practiceSessionCompleted;
+}
+
+function closePracticeLeaveDialog() {
+  const dialog = $("practiceLeaveDialog");
+  if (dialog?.open) dialog.close();
+  state.practicePendingNavigation = null;
+}
+
+function requestPracticeLeave(next) {
+  if (!unfinishedSinglePractice()) {
+    next();
+    return true;
+  }
+  saveSingleAnswersToState();
+  savePracticeSession();
+  const dialog = $("practiceLeaveDialog");
+  state.practicePendingNavigation = next;
+  if (dialog?.showModal) dialog.showModal();
+  else {
+    // A native dialog is supported by the target browsers. This is only a
+    // conservative fallback for an older embedded web view: the draft is
+    // saved locally before any route change.
+    if (confirm("Your practice is saved locally. Leave this practice?")) {
+      const pending = state.practicePendingNavigation;
+      state.practicePendingNavigation = null;
+      pending?.();
+    }
+  }
+  return false;
+}
+
+function activateSingleModule(moduleName, updateHash = true, options = {}) {
   if (!["listening", "reading", "writing", "speaking"].includes(moduleName)) return;
+  if (options.confirmLeave === true && !options.force && moduleName !== state.activeModule && unfinishedSinglePractice()) {
+    requestPracticeLeave(() => activateSingleModule(moduleName, updateHash, { force: true }));
+    return false;
+  }
   syncCurrentDraftNow();
   savePracticeSession();
   if (state.activeModule === "speaking" && moduleName !== "speaking" && state.qwenSpeaking?.single) disconnectQwenSpeaking("single");
@@ -4999,6 +5130,7 @@ function activateSingleModule(moduleName, updateHash = true) {
   resetSingleTimer(moduleName);
   renderSingle();
   activateView("single", updateHash);
+  return true;
 }
 
 function runHomeAction(action) {
@@ -7342,6 +7474,53 @@ function renderSingleTimer() {
   document.querySelectorAll("#singleTimerToggle").forEach((toggle) => {
     toggle.textContent = state.singleTimerId ? "Pause" : "Start";
   });
+}
+
+function canonicalPracticeDurationMs(moduleName, item = state.activeSingle) {
+  const scoped = item?.practiceScope && item.practiceScope !== "paper";
+  if (scoped && Number.isFinite(Number(item?.minutes)) && Number(item.minutes) > 0) {
+    return Number(item.minutes) * 60 * 1000;
+  }
+  return ({
+    listening: 30,
+    reading: 60,
+    writing: 60,
+    speaking: 15,
+  }[moduleName] || 30) * 60 * 1000;
+}
+
+function practiceResponseMap(answers = {}) {
+  return Object.fromEntries(Object.entries(answers || {})
+    .map(([key, value]) => [String(key), String(value ?? "").trim()])
+    .filter(([, value]) => value));
+}
+
+function practiceAnsweredCount(answers = {}) {
+  return Object.keys(practiceResponseMap(answers)).length;
+}
+
+function practiceQuestionIds(item) {
+  return (item?.questions || []).map((question) => String(question?.id || "")).filter(Boolean);
+}
+
+function validatePracticeSessionFacts(session, item) {
+  if (!session || !item) return { valid: false, reason: "draft_target_missing" };
+  const moduleName = String(session.module || "");
+  if (!["listening", "reading", "writing", "speaking"].includes(moduleName)) return { valid: false, reason: "draft_module_invalid" };
+  const expectedIds = practiceQuestionIds(item);
+  const savedIds = Object.keys(session.responseMap || session.answers || {});
+  if (expectedIds.length && savedIds.some((id) => !expectedIds.includes(id))) return { valid: false, reason: "draft_answers_do_not_match_question_set" };
+  const durationMs = Number(session.durationMs);
+  const canonicalDurationMs = canonicalPracticeDurationMs(moduleName, item);
+  if (Number.isFinite(durationMs) && durationMs !== canonicalDurationMs) return { valid: false, reason: "draft_duration_mismatch" };
+  const currentSection = Number(session.currentSection || session.sections?.[moduleName] || 1);
+  if (moduleName === "listening" && (!Number.isInteger(currentSection) || currentSection < 1 || currentSection > 4)) return { valid: false, reason: "draft_section_invalid" };
+  const currentQuestion = String(session.currentQuestion || "");
+  if (currentQuestion && expectedIds.length && !expectedIds.includes(currentQuestion)) return { valid: false, reason: "draft_question_invalid" };
+  const contentVersion = String(item.contentVersion || "");
+  if (contentVersion && !session.contentVersion) return { valid: false, reason: "draft_content_version_unknown" };
+  if (session.contentVersion && contentVersion && session.contentVersion !== contentVersion) return { valid: false, reason: "draft_content_version_changed" };
+  return { valid: true, durationMs: canonicalDurationMs, currentSection, currentQuestion };
 }
 
 function stopSingleTimer() {
@@ -10579,9 +10758,15 @@ function bindObjectiveAnswerControls() {
   document.querySelectorAll(".objective-answer-control").forEach((control) => {
     if (control.dataset.objectiveBound) return;
     control.dataset.objectiveBound = "true";
-    const update = () => setObjectiveProxyValue(objectiveProxyForControl(control), control.value || (control.checked ? control.value : ""));
+    const update = () => {
+      if (control.dataset.prefix === "single") state.singleCurrentQuestion = String(control.dataset.qid || "");
+      setObjectiveProxyValue(objectiveProxyForControl(control), control.value || (control.checked ? control.value : ""));
+    };
     control.addEventListener("input", update);
     control.addEventListener("change", update);
+    control.addEventListener("focus", () => {
+      if (control.dataset.prefix === "single") state.singleCurrentQuestion = String(control.dataset.qid || "");
+    });
   });
   document.querySelectorAll(".objective-multiple-answer-group").forEach((group) => {
     if (group.dataset.objectiveBound) { syncObjectiveMultipleChoiceGroup(group); return; }
@@ -10619,11 +10804,23 @@ function practiceSessionRemotePayload(session, status = "in_progress") {
     mode: session.modes?.[session.module] || "practice",
     status,
     state: {
-      answers: session.answers || {},
-      seconds: session.seconds,
-      total: session.total,
+      attemptId: session.attemptId || session.sessionId || "",
+      paperId: session.paperId || session.itemId || "",
+      durationMs: session.durationMs,
+      startedAt: session.startedAt || "",
+      pausedAt: session.pausedAt || "",
+      remainingMs: session.remainingMs,
+      responseMap: session.responseMap || session.answers || {},
+      currentSection: session.currentSection || 1,
+      currentQuestion: session.currentQuestion || "",
+      contentVersion: session.contentVersion || "",
+      // Legacy aliases are kept only for one release window so a signed-in
+      // device on the previous UI can still read its own server-side draft.
+      answers: session.responseMap || session.answers || {},
+      seconds: Math.ceil(Math.max(0, Number(session.remainingMs ?? (Number(session.seconds) * 1000))) / 1000),
+      total: Math.ceil(Math.max(0, Number(session.durationMs ?? (Number(session.total) * 1000))) / 1000),
       scopes: session.scopes || {},
-      sections: session.sections || {},
+      sections: { ...(session.sections || {}), [session.module]: session.currentSection || 1 },
       readingPane: session.readingPane || "passage",
       readingQuestionType: session.readingQuestionType || "",
       readingReviewMarks: session.readingReviewMarks || {},
@@ -10638,6 +10835,7 @@ function scheduleRemotePracticeSessionSync(session, options = {}) {
   const owner = options.owner || state.localDataOwner;
   const authToken = Object.prototype.hasOwnProperty.call(options, "authToken") ? options.authToken : state.authToken;
   if (!authToken || !session?.sessionId) return;
+  setPracticeSaveState("syncing");
   if (state.learningSyncTimers[session.sessionId]) clearTimeout(state.learningSyncTimers[session.sessionId]);
   state.learningSyncTimers[session.sessionId] = setTimeout(async () => {
     delete state.learningSyncTimers[session.sessionId];
@@ -10653,12 +10851,48 @@ function scheduleRemotePracticeSessionSync(session, options = {}) {
       const activeSessions = (state.learningState?.activeSessions || []).filter((item) => item.sessionId !== session.sessionId);
       if (json.session?.status === "in_progress") activeSessions.push(json.session);
       state.learningState = { ...(state.learningState || {}), activeSession: json.session || null, activeSessions };
+      setPracticeSaveState("saved-account");
     } catch (error) {
       if (/another device/i.test(error.message)) {
         state.learningState = { ...(state.learningState || {}), syncConflict: true };
       }
+      setPracticeSaveState("backup");
     }
   }, 500);
+}
+
+function practiceCurrentQuestionId(item, responseMap = state.singleAnswers) {
+  const active = String(state.singleCurrentQuestion || "").trim();
+  const ids = practiceQuestionIds(item);
+  if (active && ids.includes(active)) return active;
+  return Object.keys(practiceResponseMap(responseMap))[0] || "";
+}
+
+function practiceCurrentSection(moduleName, item, responseMap = state.singleAnswers) {
+  if (moduleName !== "listening") return Number(state.singlePracticeSections?.[moduleName] || 1) || 1;
+  if (item?.practiceScope === "section" && Number(item.practiceSection)) return Number(item.practiceSection);
+  const runtimeSection = Number(state.singlePracticeSections?.listening);
+  if (Number.isInteger(runtimeSection) && runtimeSection >= 1 && runtimeSection <= 4) return runtimeSection;
+  const id = practiceCurrentQuestionId(item, responseMap);
+  const number = Number(String(id).match(/\d{1,2}/)?.[0] || 0);
+  return number ? Math.max(1, Math.min(4, Math.ceil(number / 10))) : 1;
+}
+
+function setPracticeSaveState(next = "saved") {
+  state.practiceSaveState = next;
+  const labels = {
+    saved: "Saved locally",
+    syncing: "Syncing to account…",
+    "saved-account": "Saved to account",
+    backup: "Offline backup pending",
+  };
+  document.querySelectorAll("[data-practice-save-state]").forEach((node) => {
+    node.dataset.state = next;
+    const label = node.querySelector("[data-practice-save-label]");
+    if (label) label.textContent = labels[next] || labels.saved;
+    const retry = node.querySelector("[data-practice-save-retry]");
+    if (retry) retry.hidden = next !== "backup";
+  });
 }
 
 function savePracticeSession(options = {}) {
@@ -10669,31 +10903,48 @@ function savePracticeSession(options = {}) {
   state.practiceWritingDrafts = { ...state.practiceWritingDrafts, ...collectSingleWritingDrafts() };
   const previous = readPracticeSession(state.activeModule, state.activeSingle.id, owner);
   const sameSession = previous?.module === state.activeModule && previous?.itemId === state.activeSingle.id;
+  const responseMap = practiceResponseMap(state.singleAnswers);
+  const durationMs = canonicalPracticeDurationMs(state.activeModule, state.activeSingle);
+  const remainingMs = Math.max(0, Math.min(durationMs, Math.round(Number(state.singleSeconds || 0) * 1000)));
+  const currentQuestion = practiceCurrentQuestionId(state.activeSingle, responseMap);
+  const currentSection = practiceCurrentSection(state.activeModule, state.activeSingle, responseMap);
+  const now = new Date().toISOString();
   const session = {
-    version: 1,
+    version: 2,
     sessionId: sameSession ? previous.sessionId || learningEntityId("session") : learningEntityId("session"),
+    attemptId: sameSession ? previous.attemptId || previous.sessionId || learningEntityId("attempt") : learningEntityId("attempt"),
     revision: sameSession ? Number(previous.revision) || 0 : 0,
     view: "single",
     module: state.activeModule,
     itemId: state.activeSingle.id,
+    paperId: practiceUnitBaseId(state.activeSingle),
     started: true,
+    startedAt: sameSession ? previous.startedAt || previous.updatedAt || now : now,
+    pausedAt: state.singleTimerId ? "" : now,
+    durationMs,
+    remainingMs,
+    responseMap,
+    currentSection,
+    currentQuestion,
+    contentVersion: String(state.activeSingle.contentVersion || ""),
     modes: state.singlePracticeModes,
     scopes: state.singlePracticeScopes,
-    sections: state.singlePracticeSections,
-    answers: state.singleAnswers,
+    sections: { ...state.singlePracticeSections, [state.activeModule]: currentSection },
+    answers: responseMap,
     answerItemId: state.singleAnswerItemId,
-    seconds: state.singleSeconds,
-    total: state.singleTotal,
+    seconds: Math.ceil(remainingMs / 1000),
+    total: Math.ceil(durationMs / 1000),
     readingPane: state.readingMobilePane,
     readingQuestionType: state.readingQuestionType,
     readingReviewMarks: state.readingReviewMarks,
     readingPaneScroll: state.readingPaneScroll,
     writingDrafts: state.practiceWritingDrafts,
     pageScrollY: window.scrollY,
-    updatedAt: new Date().toISOString(),
+    updatedAt: now,
   };
   try {
     upsertPracticeSession(session, owner);
+    setPracticeSaveState(authToken ? "syncing" : "saved");
   } catch {}
   if (options.scheduleRemote !== false) scheduleRemotePracticeSessionSync(session, { owner, authToken });
 }
@@ -10760,8 +11011,9 @@ function importRemotePracticeSession(remote) {
   if (existing && String(existing.updatedAt || "") >= String(remote.updatedAt || "")) return false;
   const sessionState = remote.state || {};
   const session = {
-    version: 1,
+    version: 2,
     sessionId: remote.sessionId,
+    attemptId: sessionState.attemptId || remote.sessionId,
     revision: Number(remote.revision) || 0,
     view: "single",
     module: remote.module,
@@ -10769,11 +11021,24 @@ function importRemotePracticeSession(remote) {
     started: remote.status === "in_progress",
     modes: { ...state.singlePracticeModes, [remote.module]: remote.mode || state.singlePracticeModes[remote.module] },
     scopes: { ...state.singlePracticeScopes, ...(sessionState.scopes || {}) },
-    sections: { ...state.singlePracticeSections, ...(sessionState.sections || {}) },
-    answers: sessionState.answers || {},
+    sections: { ...state.singlePracticeSections, ...(sessionState.sections || {}), [remote.module]: Number(sessionState.currentSection || sessionState.sections?.[remote.module] || 1) || 1 },
+    answers: practiceResponseMap(sessionState.responseMap || sessionState.answers || {}),
+    responseMap: practiceResponseMap(sessionState.responseMap || sessionState.answers || {}),
     answerItemId: remote.itemId,
-    seconds: Number(sessionState.seconds),
-    total: Number(sessionState.total),
+    paperId: sessionState.paperId || remote.itemId,
+    startedAt: sessionState.startedAt || remote.startedAt || remote.updatedAt || new Date().toISOString(),
+    pausedAt: sessionState.pausedAt || remote.updatedAt || "",
+    durationMs: sessionState.durationMs !== undefined && sessionState.durationMs !== null
+      ? Number(sessionState.durationMs)
+      : Math.max(0, Number(sessionState.total || 0) * 1000),
+    remainingMs: sessionState.remainingMs !== undefined && sessionState.remainingMs !== null
+      ? Number(sessionState.remainingMs)
+      : Math.max(0, Number(sessionState.seconds || 0) * 1000),
+    currentSection: Number(sessionState.currentSection || sessionState.sections?.[remote.module] || 1) || 1,
+    currentQuestion: String(sessionState.currentQuestion || ""),
+    contentVersion: String(sessionState.contentVersion || ""),
+    seconds: Math.ceil(Math.max(0, Number(sessionState.remainingMs ?? (Number(sessionState.seconds) * 1000))) / 1000),
+    total: Math.ceil(Math.max(0, Number(sessionState.durationMs ?? (Number(sessionState.total) * 1000))) / 1000),
     readingPane: sessionState.readingPane || "passage",
     readingQuestionType: sessionState.readingQuestionType || "",
     readingReviewMarks: sessionState.readingReviewMarks || {},
@@ -10796,31 +11061,13 @@ function restorePracticeSessionAfterData(expectedModule = "", expectedItemId = "
   const savedSession = hasExpectedTarget
     ? readPracticeSession(expectedModule, expectedItemId)
     : readPracticeSession();
-  const session = hasExpectedTarget && !savedSession
-    ? {
-        version: 1,
-        started: true,
-        module: expectedModule,
-        itemId: expectedItemId,
-        modes: state.singlePracticeModes,
-        scopes: state.singlePracticeScopes,
-        sections: state.singlePracticeSections,
-        answers: {},
-        answerItemId: expectedItemId,
-        seconds: singleModuleTotal(expectedModule),
-        total: singleModuleTotal(expectedModule),
-        readingPane: "passage",
-        readingQuestionType: "",
-        readingReviewMarks: {},
-        readingPaneScroll: { passage: 0, questionPaper: 0, answers: 0 },
-        writingDrafts: {},
-        pageScrollY: 0,
-      }
-    : savedSession;
+  const session = savedSession;
+  if (hasExpectedTarget && !savedSession) {
+    state.practiceRestoreIssue = null;
+    return false;
+  }
   if (!session || !["listening", "reading", "writing", "speaking"].includes(session.module)) return false;
-  state.singlePracticeModes = { ...state.singlePracticeModes, ...(session.modes || {}) };
-  state.singlePracticeScopes = { ...state.singlePracticeScopes, ...(session.scopes || {}) };
-  state.singlePracticeSections = { ...state.singlePracticeSections, ...(session.sections || {}) };
+  state.practiceRestoreIssue = null;
   const baseItem = mergedItems(session.module).map(normalizeItem).find((candidate) => candidate.id === session.itemId) || null;
   const canonicalUnitMatch = String(session.itemId || "").match(/^(.+)::section::([1-9]\d*)$/);
   const canonicalUnitBase = canonicalUnitMatch
@@ -10839,21 +11086,38 @@ function restorePracticeSessionAfterData(expectedModule = "", expectedItemId = "
   } else if (item?.practiceScope) {
     setSinglePracticeScope(session.module, item.practiceScope);
   }
-  if (!item) return false;
+  if (!item) {
+    state.practiceRestoreIssue = { sessionId: session.sessionId || "", reason: "draft_source_missing", module: session.module, itemId: session.itemId };
+    return false;
+  }
+  const facts = validatePracticeSessionFacts(session, item);
+  if (!facts.valid) {
+    state.practiceRestoreIssue = { sessionId: session.sessionId || "", reason: facts.reason, module: session.module, itemId: session.itemId };
+    return false;
+  }
+  state.singlePracticeModes = { ...state.singlePracticeModes, ...(session.modes || {}) };
+  state.singlePracticeScopes = { ...state.singlePracticeScopes, ...(session.scopes || {}) };
+  state.singlePracticeSections = { ...state.singlePracticeSections, [session.module]: facts.currentSection };
   state.activeModule = session.module;
   state.practiceSessionCompleted = false;
   state.activeSingle = item;
   state.singleStarted = true;
-  state.singleAnswers = { ...(session.answers || {}) };
+  state.singleAnswers = practiceResponseMap(session.responseMap || session.answers || {});
   state.singleAnswerItemId = session.answerItemId || item.id;
-  state.singleSeconds = Number.isFinite(Number(session.seconds)) ? Number(session.seconds) : singleModuleTotal(session.module);
-  state.singleTotal = Number.isFinite(Number(session.total)) ? Number(session.total) : singleModuleTotal(session.module);
+  state.singleCurrentQuestion = facts.currentQuestion || practiceCurrentQuestionId(item, state.singleAnswers);
+  state.singleTotal = Math.ceil(facts.durationMs / 1000);
+  const rawRemainingMs = session.remainingMs !== undefined && session.remainingMs !== null
+    ? Number(session.remainingMs)
+    : Number(session.seconds) * 1000;
+  const remainingMs = Number.isFinite(rawRemainingMs) ? rawRemainingMs : facts.durationMs;
+  state.singleSeconds = Math.max(0, Math.min(state.singleTotal, Math.ceil(remainingMs / 1000)));
   state.readingMobilePane = ["passage", "questions"].includes(session.readingPane) ? session.readingPane : "passage";
   state.readingQuestionType = session.readingQuestionType || "";
   state.readingReviewMarks = { ...(session.readingReviewMarks || {}) };
   state.readingPaneScroll = { passage: 0, questionPaper: 0, answers: 0, ...(session.readingPaneScroll || {}) };
   state.practiceWritingDrafts = { ...(session.writingDrafts || {}) };
   state.restoredPracticeScrollY = session.module === "speaking" ? Number(session.pageScrollY) || 0 : 0;
+  setPracticeSaveState(state.authToken ? "saved-account" : "saved");
   return true;
 }
 
@@ -11773,8 +12037,8 @@ function renderListening(test, prefix = "single") {
   }
   const activeSection = prefix === "single" && item.practiceScope === "section"
     ? Number(item.practiceSection) || state.singlePracticeSections.listening
-    : prefix === "single" && practiceMode === "training" && !item.practiceScope
-      ? state.singlePracticeSections.listening
+    : prefix === "single" && Number(state.singlePracticeSections.listening) >= 1 && Number(state.singlePracticeSections.listening) <= 4
+      ? Number(state.singlePracticeSections.listening)
       : "";
   const questionIds = (item.questions || []).map((question) => String(question.id || "")).filter(Boolean);
   const playbackRule = listeningPlaybackRule(practiceMode);
@@ -17316,7 +17580,15 @@ function readingPassageImagesForQuestionSubset(images, paper, selectedQuestions,
 }
 
 function saveSingleAnswersToState() {
-  state.singleAnswers = { ...(state.singleAnswers || {}), ...collectAnswers("single") };
+  const renderedAnswers = collectAnswers("single");
+  const renderedIds = new Set(Object.keys(renderedAnswers));
+  const merged = { ...(state.singleAnswers || {}) };
+  renderedIds.forEach((id) => {
+    const value = String(renderedAnswers[id] || "").trim();
+    if (value) merged[id] = value;
+    else delete merged[id];
+  });
+  state.singleAnswers = practiceResponseMap(merged);
 }
 
 function restoreSingleAnswersFromState() {
@@ -17477,8 +17749,36 @@ function practiceCompletionGroupSummary(moduleName, items = [], completionIndex 
 }
 
 function storedPracticeSession(value) {
-  if (!value || value.version !== 1 || !value.started || !value.itemId || !value.sessionId) return null;
-  return value;
+  if (!value || ![1, 2].includes(Number(value.version)) || !value.started || !value.itemId || !value.sessionId) return null;
+  if (Number(value.version) === 1) {
+    const answers = practiceResponseMap(value.responseMap || value.answers || {});
+    const durationMs = value.durationMs !== undefined && value.durationMs !== null
+      ? Number(value.durationMs)
+      : Math.max(0, Number(value.total || 0) * 1000);
+    const remainingMs = value.remainingMs !== undefined && value.remainingMs !== null
+      ? Number(value.remainingMs)
+      : Math.max(0, Number(value.seconds || 0) * 1000);
+    return {
+      ...value,
+      version: 2,
+      attemptId: value.attemptId || value.sessionId,
+      paperId: value.paperId || value.itemId,
+      durationMs,
+      remainingMs,
+      startedAt: value.startedAt || value.updatedAt || "",
+      pausedAt: value.pausedAt || value.updatedAt || "",
+      responseMap: answers,
+      answers,
+      currentSection: Number(value.currentSection || value.sections?.[value.module] || 1) || 1,
+      currentQuestion: String(value.currentQuestion || Object.keys(answers)[0] || ""),
+      contentVersion: String(value.contentVersion || ""),
+    };
+  }
+  return {
+    ...value,
+    responseMap: practiceResponseMap(value.responseMap || value.answers || {}),
+    answers: practiceResponseMap(value.responseMap || value.answers || {}),
+  };
 }
 
 function readPracticeSessions(owner = state.localDataOwner) {
@@ -18122,6 +18422,36 @@ function renderSingleModeWorkspaceIntro(moduleName, mode = currentSinglePractice
     </div>
     <ul>${introHints.map((hint) => `<li>${escapeHtml(hint)}</li>`).join("")}</ul>
     ${renderSingleRuntimeControls(moduleName, mode)}
+    <div class="practice-save-state" data-practice-save-state data-state="${escapeHtml(state.practiceSaveState || "saved")}" role="status">
+      <span data-practice-save-label>${escapeHtml({
+        saved: "Saved locally",
+        syncing: "Syncing to account…",
+        "saved-account": "Saved to account",
+        backup: "Offline backup pending",
+      }[state.practiceSaveState] || "Saved locally")}</span>
+      <button class="text-button" type="button" data-practice-save-retry${state.practiceSaveState === "backup" ? "" : " hidden"}>Retry</button>
+    </div>
+  </section>`;
+}
+
+function renderPracticeRepairNotice(issue = state.practiceRestoreIssue) {
+  if (!issue) return "";
+  const messages = {
+    draft_target_missing: "The original paper is no longer available on this device.",
+    draft_duration_mismatch: "The saved time does not match this paper’s official practice duration.",
+    draft_section_invalid: "The saved Listening section is outside this paper’s valid range.",
+    draft_question_invalid: "The saved current question is not part of this paper.",
+    draft_answers_do_not_match_question_set: "The saved answers belong to a different question set.",
+    draft_content_version_unknown: "This draft predates the validated content version.",
+    draft_content_version_changed: "This paper was corrected after the draft was saved.",
+    draft_module_invalid: "The saved module is invalid.",
+  };
+  return `<section class="practice-repair-notice" role="alert">
+    <div><strong>Draft needs repair</strong><p>${escapeHtml(messages[issue.reason] || "This saved draft cannot be safely restored.")} Your local snapshot is preserved; it has not been silently replaced.</p></div>
+    <div class="actions">
+      <button class="secondary" type="button" data-practice-repair-keep>Keep snapshot</button>
+      <button class="primary" type="button" data-practice-repair-restart>Start a fresh validated paper</button>
+    </div>
   </section>`;
 }
 
@@ -18410,7 +18740,7 @@ function renderSingle() {
     if (!state.singleStarted && ["listening", "reading"].includes(moduleName)) {
       $("singleTitle").textContent = moduleDisplayName(moduleName);
       $("singleSelect").innerHTML = "";
-      $("singleContent").innerHTML = renderSingleLaunch(moduleName, [], completionIndex);
+      $("singleContent").innerHTML = `${renderPracticeRepairNotice()}${renderSingleLaunch(moduleName, [], completionIndex)}`;
       bindDynamicControls();
       return;
     }
@@ -18431,7 +18761,7 @@ function renderSingle() {
   $("singleSelect").innerHTML = options.map((item) => `<option value="${escapeHtml(item.id)}">${escapeHtml(singleOptionLabel(item, moduleName, completionIndex))}</option>`).join("");
   $("singleSelect").value = state.activeSingle.id;
   if (!state.singleStarted) {
-    $("singleContent").innerHTML = renderSingleLaunch(moduleName, options, completionIndex);
+    $("singleContent").innerHTML = `${renderPracticeRepairNotice()}${renderSingleLaunch(moduleName, options, completionIndex)}`;
     bindDynamicControls();
     return;
   }
@@ -18462,9 +18792,10 @@ function renderSingle() {
         : moduleName === "writing"
           ? `${modeIntro}${renderWritingExamTwoColumn(state.activeSingle.writingTasks || [], prefix)}`
           : `${modeIntro}${renderSpeaking(state.activeSingle, prefix)}`;
-  bindDynamicControls();
   restoreSingleAnswersFromState();
+  bindDynamicControls();
   restoreSingleWritingDrafts();
+  renderSingleTimer();
   if (state.restoredPracticeScrollY) {
     const scrollY = state.restoredPracticeScrollY;
     state.restoredPracticeScrollY = 0;
@@ -20911,7 +21242,12 @@ function bindListeningCaptionPlayers() {
     });
     audio.addEventListener("play", () => {
       const prefix = audio.dataset.prefix || "single";
-      if (prefix === "single" && state.activeModule === "listening" && !state.singleTimerId) startSingleTimer();
+      if (prefix === "single" && state.activeModule === "listening") {
+        const section = Number(audio.dataset.section || 0);
+        if (section >= 1 && section <= 4) state.singlePracticeSections.listening = section;
+        if (!state.singleTimerId) startSingleTimer();
+        schedulePracticeSessionSave();
+      }
       setListeningPlaybackStatus(audio, audio.readyState >= 3 ? "playing" : "loading", audio.readyState >= 3 ? "Playing" : "Loading audio");
       sync({ restart: true });
     });
@@ -21372,6 +21708,33 @@ function bindDynamicControls() {
       beginSinglePracticeUnit(item);
     };
   });
+  document.querySelectorAll("[data-practice-save-retry]").forEach((button) => {
+    button.onclick = () => {
+      savePracticeSession();
+      const session = readPracticeSession(state.activeModule, state.activeSingle?.id || "");
+      if (session) scheduleRemotePracticeSessionSync(session);
+    };
+  });
+  document.querySelectorAll("[data-practice-repair-keep]").forEach((button) => {
+    button.onclick = () => {
+      state.practiceRestoreIssue = null;
+      renderSingle();
+    };
+  });
+  document.querySelectorAll("[data-practice-repair-restart]").forEach((button) => {
+    button.onclick = () => {
+      const issue = state.practiceRestoreIssue;
+      const item = issue?.itemId ? findItemById(issue.module, issue.itemId) : null;
+      if (issue?.sessionId) removePracticeSession(issue.sessionId);
+      state.practiceRestoreIssue = null;
+      if (item) {
+        state.activeModule = issue.module;
+        beginSinglePracticeUnit(item, { restart: true });
+      } else {
+        renderSingle();
+      }
+    };
+  });
   document.querySelectorAll("[data-single-section]").forEach((button) => {
     button.onclick = () => {
       const moduleName = button.dataset.module || state.activeModule;
@@ -21379,6 +21742,7 @@ function bindDynamicControls() {
       if (!["listening", "reading"].includes(moduleName) || !Number.isFinite(section)) return;
       saveSingleAnswersToState();
       state.singlePracticeSections[moduleName] = section;
+      state.singleCurrentQuestion = "";
       resetSingleTimer(moduleName);
       renderSingle();
       setSingleImmersive(moduleName);
@@ -22386,6 +22750,24 @@ function bindEvents() {
     if (input) input.value = "";
     await sendHelpChatMessage(message);
   });
+  $("practiceLeaveContinue")?.addEventListener("click", () => {
+    closePracticeLeaveDialog();
+    const active = document.querySelector(".objective-answer-control[data-prefix='single']");
+    active?.focus({ preventScroll: true });
+  });
+  $("practiceLeaveSave")?.addEventListener("click", () => {
+    savePracticeSession();
+    const pending = state.practicePendingNavigation;
+    closePracticeLeaveDialog();
+    pending?.();
+  });
+  $("practiceLeaveDiscard")?.addEventListener("click", () => {
+    const session = readPracticeSession(state.activeModule, state.activeSingle?.id || "");
+    if (session?.sessionId) removePracticeSession(session.sessionId);
+    const pending = state.practicePendingNavigation;
+    closePracticeLeaveDialog();
+    pending?.();
+  });
   const helpOverlay = $("helpCaptureOverlay");
   if (helpOverlay) {
     helpOverlay.addEventListener("mousedown", beginHelpSelection);
@@ -22421,10 +22803,14 @@ function bindEvents() {
     }
   });
   window.addEventListener("hashchange", applyInitialHash);
-  window.addEventListener("beforeunload", () => {
+  window.addEventListener("beforeunload", (event) => {
     persistExamSession("exam");
     persistExamSession("sequence");
     savePracticeSession();
+    if (state.practiceSaveState === "syncing") {
+      event.preventDefault();
+      event.returnValue = "";
+    }
   });
   document.addEventListener("click", (event) => {
     const transcriptClose = event.target.closest?.("#captionTranscriptClose");
@@ -22451,7 +22837,8 @@ function bindEvents() {
       syncCurrentDraftNow();
       setImmersivePractice("", "");
       if (button.dataset.moduleTarget) {
-        activateSingleModule(button.dataset.moduleTarget, true);
+        const changed = activateSingleModule(button.dataset.moduleTarget, true, { confirmLeave: true });
+        if (!changed) return;
         renderMine();
         renderDashboard();
         renderCoach();
@@ -22467,7 +22854,7 @@ function bindEvents() {
   });
   document.querySelectorAll(".module-btn").forEach((button) => {
     button.addEventListener("click", () => {
-      activateSingleModule(button.dataset.module, true);
+      activateSingleModule(button.dataset.module, true, { confirmLeave: true });
     });
   });
   $("singleSelect").addEventListener("change", (event) => {
@@ -22657,6 +23044,7 @@ async function init() {
   window.addEventListener("pagehide", () => {
     persistExamSession("exam");
     persistExamSession("sequence");
+    savePracticeSession({ scheduleRemote: false });
     if (state.writingWorkspaceMode !== "entry") saveWritingTimerState(Boolean(state.writingTimerStartedAt));
   });
   state.authToken = localStorage.getItem(authStoreKey) || "";

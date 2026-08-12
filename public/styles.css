@@ -10807,6 +10807,99 @@ body.immersive-mode[data-immersive-module="speaking"] .exam-section.focused-sect
   color: #101828;
 }
 
+.vocab-subject-directory {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #dfe4ef;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.vocab-subject-directory-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #eaecf0;
+}
+
+.vocab-subject-directory-head h4 {
+  margin: 2px 0 0;
+  color: #101828;
+  font-size: 17px;
+  line-height: 1.2;
+}
+
+.vocab-subject-directory-head > span {
+  color: #667085;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.vocab-subject-groups {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 18px;
+}
+
+.vocab-subject-group {
+  min-width: 0;
+}
+
+.vocab-subject-group h5 {
+  margin: 0 0 7px;
+  color: #475467;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.vocab-subject-group > div {
+  display: grid;
+  gap: 4px;
+}
+
+.vocab-subject-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 10px;
+  width: 100%;
+  padding: 7px 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: #344054;
+  cursor: pointer;
+  text-align: left;
+}
+
+.vocab-subject-row:hover,
+.vocab-subject-row:focus-visible {
+  border-color: #d9d2ff;
+  background: #f7f5ff;
+  outline: none;
+}
+
+.vocab-subject-row strong {
+  min-width: 0;
+  color: #1d2939;
+  font-size: 13px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.vocab-subject-row span {
+  color: #667085;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .product-bridge-band {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -11416,6 +11509,10 @@ button.vocab-catalog-status.is-error {
     grid-template-columns: 1fr;
   }
 
+  .vocab-subject-groups {
+    grid-template-columns: 1fr;
+  }
+
   .product-bridge-band {
     grid-template-columns: auto minmax(0, 1fr);
   }
@@ -11445,6 +11542,25 @@ button.vocab-catalog-status.is-error {
   .vocab-hub-head,
   .vocab-secondary-head {
     flex-direction: column;
+  }
+
+  .vocab-subject-directory {
+    padding: 13px;
+  }
+
+  .vocab-subject-directory-head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .vocab-subject-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+
+  .vocab-subject-row span {
+    white-space: normal;
   }
 
   .vocab-word-face {
@@ -17820,6 +17936,119 @@ body.focus-camp-system .subscription-card.featured {
   padding-left: 20px;
 }
 
+.practice-save-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  width: fit-content;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.practice-save-state::before {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #5b9372;
+  content: "";
+}
+
+.practice-save-state[data-state="syncing"]::before {
+  background: var(--accent);
+}
+
+.practice-save-state[data-state="backup"] {
+  color: #9b5f00;
+}
+
+.practice-save-state[data-state="backup"]::before {
+  background: #c87c00;
+}
+
+.practice-save-state .text-button {
+  min-height: 26px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent-dark);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.practice-repair-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 0 14px;
+  border: 1px solid #edc985;
+  border-left: 4px solid #bc7500;
+  border-radius: 8px;
+  padding: 14px 16px;
+  background: #fffaf0;
+}
+
+.practice-repair-notice strong {
+  color: #713f12;
+}
+
+.practice-repair-notice p {
+  max-width: 680px;
+  margin: 4px 0 0;
+  color: #6b5a39;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.practice-leave-dialog {
+  width: min(460px, calc(100vw - 32px));
+  border: 0;
+  padding: 0;
+  border-radius: 8px;
+  box-shadow: 0 28px 88px rgba(15, 23, 42, .3);
+}
+
+.practice-leave-dialog::backdrop {
+  background: rgba(15, 23, 42, .45);
+}
+
+.practice-leave-card {
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+  background: var(--surface);
+}
+
+.practice-leave-card h2,
+.practice-leave-card p {
+  margin: 0;
+}
+
+.practice-leave-card h2 {
+  margin-top: 4px;
+  color: var(--text);
+  font-size: 22px;
+}
+
+.practice-leave-card p {
+  margin-top: 8px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.practice-leave-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.practice-leave-actions .danger-button {
+  grid-column: 1 / -1;
+}
+
 @media (max-width: 600px) {
   .objective-answer-radio label,
   .objective-multiple-answer-group fieldset > label {
@@ -17864,5 +18093,18 @@ body.focus-camp-system .subscription-card.featured {
     align-items: flex-start;
     flex-direction: column;
     gap: 6px;
+  }
+
+  .practice-repair-notice {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .practice-repair-notice .actions {
+    width: 100%;
+  }
+
+  .practice-repair-notice .actions > * {
+    flex: 1 1 100%;
   }
 }

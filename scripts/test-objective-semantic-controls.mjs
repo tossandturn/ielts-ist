@@ -51,6 +51,11 @@ assert.deepEqual(
   fixedChoiceQuestion.type === "true_false_not_given" ? ["TRUE", "FALSE", "NOT GIVEN"] : ["YES", "NO", "NOT GIVEN"],
   "Fixed-choice metadata must carry the canonical visible answer options",
 );
+const cambridge21Reading = publicTasks.readingTests.find((item) => item.id === "cam21-r-test4");
+assert.ok(cambridge21Reading, "Expected Cambridge 21 Test 4 Reading fixture from the reported student flow");
+const cambridge21Choice = cambridge21Reading.questions.find((question) => question.id === "q25");
+assert.equal(cambridge21Choice?.type, "multiple_choice");
+assert.equal(cambridge21Choice?.options?.length, 4, "Cambridge 21 Reading Q25 must retain its four visible options");
 
 const browser = await chromium.launch({ headless: true, executablePath: "C:/Program Files/Google/Chrome/Application/chrome.exe" });
 try {
@@ -103,7 +108,7 @@ try {
     return { answers: collectAnswers("single"), stateAnswers: { ...state.singleAnswers } };
   });
   assert.deepEqual({ q11: first.answers.q11, q17: first.answers.q17, q18: first.answers.q18, q27: first.answers.q27 }, { q11: "B", q17: "B", q18: "D", q27: "A" });
-  assert.deepEqual(first.stateAnswers, first.answers, "Visible controls must save through the existing single-session state");
+  assert.deepEqual(first.stateAnswers, { q11: "B", q17: "B", q18: "D", q27: "A" }, "Single-session responseMap must persist only actual answers, never 36 empty placeholders");
 
   await page.evaluate(() => renderSingle());
   const restored = await page.evaluate(() => ({
@@ -129,8 +134,77 @@ try {
   });
   assert.deepEqual(scored.map((detail) => detail.correct), [true, true], "Reversed multi-select values must score as the same option set");
   assert.equal(Object.hasOwn(scored[0], "canonicalAnswer"), false, "Score response must not leak canonical answers before dedicated review");
+
+  for (const viewport of [
+    { name: "desktop", width: 1280, height: 800 },
+    { name: "ipad-landscape", width: 1024, height: 768 },
+    { name: "ipad-portrait", width: 768, height: 1024 },
+    { name: "mobile", width: 390, height: 844 },
+  ]) {
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+    await page.evaluate(() => {
+      stopSingleTimer();
+      const item = normalizeItem(state.data.readingTests.find((candidate) => candidate.id === "cam21-r-test4"));
+      state.activeModule = "reading";
+      state.activeSingle = item;
+      state.singleStarted = true;
+      state.singlePracticeModes.reading = "full";
+      state.singlePracticeScopes.reading = "paper";
+      state.singleAnswers = {};
+      state.practiceSessionCompleted = false;
+      state.readingMobilePane = "passage";
+      resetSingleTimer("reading");
+      renderSingle();
+      setSingleImmersive("reading");
+    });
+    if (viewport.width <= 820 && viewport.height > viewport.width) {
+      await page.locator('[data-reading-pane-target="questions"]').click();
+    }
+    const q25 = page.locator('.paper-answer-row[data-question-number="25"] .objective-answer-radio');
+    await q25.waitFor({ state: "visible" });
+    const layout = await q25.evaluate((host) => {
+      const rect = (node) => {
+        const value = node.getBoundingClientRect();
+        return { left: value.left, top: value.top, right: value.right, bottom: value.bottom, width: value.width, height: value.height };
+      };
+      const sheet = host.closest(".reading-answer-sheet");
+      return {
+        host: rect(host),
+        sheet: sheet ? rect(sheet) : null,
+        options: [...host.querySelectorAll("fieldset > label")].map((label) => ({
+          text: label.innerText.trim(),
+          display: getComputedStyle(label).display,
+          columns: getComputedStyle(label).gridTemplateColumns,
+          rect: rect(label),
+        })),
+        overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      };
+    });
+    assert.equal(layout.options.length, 4, `${viewport.name}: Q25 must show all four answer choices`);
+    assert.ok(layout.sheet, `${viewport.name}: Q25 is outside its answer sheet`);
+    assert.ok(layout.overflow <= 1, `${viewport.name}: Q25 creates ${layout.overflow}px horizontal page overflow`);
+    layout.options.forEach((option, index) => {
+      assert.equal(option.display, "grid", `${viewport.name}: Q25 option ${index + 1} is not a readable grid row`);
+      assert.notEqual(option.columns, "none", `${viewport.name}: Q25 option ${index + 1} lost its option columns`);
+      assert.ok(option.text.length > 8, `${viewport.name}: Q25 option ${index + 1} has no readable option text`);
+      assert.ok(option.rect.width >= 70, `${viewport.name}: Q25 option ${index + 1} is compressed to ${option.rect.width}px`);
+      assert.ok(option.rect.left >= layout.sheet.left - 1 && option.rect.right <= layout.sheet.right + 1,
+        `${viewport.name}: Q25 option ${index + 1} exceeds the answer sheet`);
+    });
+    for (let index = 1; index < layout.options.length; index += 1) {
+      const previous = layout.options[index - 1].rect;
+      const current = layout.options[index].rect;
+      assert.ok(previous.bottom <= current.top + 1 || current.bottom <= previous.top + 1,
+        `${viewport.name}: Q25 options ${index} and ${index + 1} overlap`);
+    }
+    const q25Choice = q25.locator('input[type="radio"][value="B"]');
+    await q25Choice.check();
+    await page.evaluate(() => renderSingle());
+    assert.equal(await page.locator('.paper-answer-row[data-question-number="25"] input[type="radio"][value="B"]').isChecked(), true,
+      `${viewport.name}: Q25 selection is lost after rerender`);
+  }
   assert.equal(pageErrors.length, 0, `Browser page errors: ${pageErrors.join(" | ")}`);
-  console.log("PASS semantic objective controls: public metadata, radio, choose-two, matching, restore and strict review boundary.");
+  console.log("PASS semantic objective controls: public metadata, radio, choose-two, matching, restore, Cambridge 21 Q25 layout, and strict review boundary.");
 } finally {
   await browser.close();
   child.kill();

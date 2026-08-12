@@ -151,6 +151,10 @@ function expectedQuestionIds(item, predicate) {
 
 async function activateModule(page, moduleName) {
   await page.locator(`[data-view="single"][data-module-target="${moduleName}"]`).evaluate((node) => node.click());
+  const leaveDialog = page.locator("#practiceLeaveDialog");
+  if (await leaveDialog.isVisible().catch(() => false)) {
+    await page.locator("#practiceLeaveSave").click();
+  }
   await page.waitForFunction((module) => document.querySelector("#single")?.classList.contains("active")
     && document.querySelector("#singleTitle")?.textContent?.toLowerCase().includes(module), moduleName);
   assert.equal(await page.locator("[data-single-scope]").count(), 4, `${moduleName} must expose four scope tabs`);
@@ -744,15 +748,16 @@ try {
     updatedAt: new Date().toISOString(),
   });
   await legacyPage.goto(`${baseUrl}/?test=lr-scope-legacy#single`, { waitUntil: "networkidle" });
-  await legacyPage.waitForFunction(() => document.querySelector('[data-active-practice-unit="cam15-l-test1::section::2"]'));
-  assert.equal(await legacyPage.locator('.answer-input[data-qid="q11"]').inputValue(), "B");
+  await legacyPage.waitForFunction(() => document.querySelector(".practice-repair-notice")?.textContent?.includes("Draft needs repair"));
+  assert.match(await legacyPage.locator(".practice-repair-notice").innerText(), /predates the validated content version/i);
   const migratedLegacySession = await legacyPage.evaluate(() => ({
     legacy: localStorage.getItem("ieltsistPracticeSessionV1"),
     guest: JSON.parse(localStorage.getItem("ieltsistPracticeSessionV1::guest") || "null"),
   }));
   assert.equal(migratedLegacySession.legacy, null, "Legacy session data must be consumed once to prevent a second owner merge.");
   assert.equal(migratedLegacySession.guest?.itemId, "cam15-l-test1", "The owner-scoped session must retain the legacy source paper identity.");
-  console.log("PASS legacy Listening Training session maps to the Section library");
+  assert.equal(migratedLegacySession.guest?.answers?.q11, "B", "A pre-version answer snapshot must remain recoverable without entering corrected content.");
+  console.log("PASS legacy Listening snapshot is preserved and blocked from silently mixing with a validated content version");
   assertLegacyPageClean();
   await legacyPage.close();
 
@@ -778,9 +783,11 @@ try {
     updatedAt: new Date().toISOString(),
   });
   await legacyTopicPage.goto(`${baseUrl}/?test=lr-scope-legacy-topic#single`, { waitUntil: "networkidle" });
-  await legacyTopicPage.waitForFunction((id) => document.querySelector(`[data-active-practice-unit="${id}"]`), `cam15-r-test1::topic::${legacyTopicType}`);
-  assert.deepEqual(await renderedQuestionIds(legacyTopicPage), expectedQuestionIds(readingPaper, (question) => question.type === legacyTopicType));
-  console.log("PASS old question-type Topic session remains restorable without new UI generation");
+  await legacyTopicPage.waitForFunction(() => document.querySelector(".practice-repair-notice")?.textContent?.includes("Draft needs repair"));
+  assert.match(await legacyTopicPage.locator(".practice-repair-notice").innerText(), /predates the validated content version/i);
+  const migratedLegacyTopicSession = await legacyTopicPage.evaluate(() => JSON.parse(localStorage.getItem("ieltsistPracticeSessionV1::guest") || "null"));
+  assert.equal(migratedLegacyTopicSession?.itemId, `cam15-r-test1::topic::${legacyTopicType}`);
+  console.log("PASS old question-type Topic snapshot is preserved and blocked from silently mixing with corrected content");
   assertLegacyTopicPageClean();
   await legacyTopicPage.close();
 

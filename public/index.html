@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>IELTS-ist</title>
-    <link rel="stylesheet" href="/styles.css?v=20260811-stem-bridge-v3" />
+    <link rel="stylesheet" href="/styles.css?v=20260813-p0-drafts-v1" />
   </head>
   <body class="focus-camp-system">
     <div class="app-shell">
@@ -287,7 +287,7 @@
           <div class="view-head">
             <div>
               <h2>Vocabulary</h2>
-              <p>Review IELTS core words plus 700+ A-Level Mathematics, Physics, Chemistry, Economics and exam-language entries.</p>
+              <p>Review IELTS core words plus 2,900+ IG and A-Level terms across STEM, business, humanities, creative and English studies.</p>
             </div>
           </div>
           <div id="vocabularyContent" class="vocabulary-trainer"></div>
@@ -433,12 +433,26 @@
         <button class="primary" type="submit">Send</button>
       </form>
     </aside>
+    <dialog id="practiceLeaveDialog" class="practice-leave-dialog" aria-labelledby="practiceLeaveTitle" aria-describedby="practiceLeaveDescription">
+      <form method="dialog" class="practice-leave-card">
+        <header>
+          <span class="eyebrow">Practice saved</span>
+          <h2 id="practiceLeaveTitle">Leave this practice?</h2>
+          <p id="practiceLeaveDescription">Your answers and remaining time are stored locally before you change module. Choose how to continue.</p>
+        </header>
+        <div class="practice-leave-actions">
+          <button id="practiceLeaveContinue" class="secondary" type="button">Continue practice</button>
+          <button id="practiceLeaveSave" class="primary" type="button">Save and leave</button>
+          <button id="practiceLeaveDiscard" class="danger-button" type="button">Discard and leave</button>
+        </div>
+      </form>
+    </dialog>
     <div id="annotationToolbar" class="annotation-toolbar" aria-label="PDF annotation tools">
       <button id="toggleAnnotation" class="icon-btn" type="button" aria-pressed="false">Draw</button>
       <button id="toggleEraser" class="icon-btn" type="button" aria-pressed="false">Erase</button>
       <button id="clearAnnotation" class="icon-btn" type="button">Clear paper</button>
     </div>
-  <script src="/vendor/lucide.min.js?v=20260730-1"></script>
-  <script src="/app.js?v=20260811-stem-bridge-v3"></script>
+  <script src="/vendor/lucide.min.js?v=20260813-p0-drafts-v1"></script>
+  <script src="/app.js?v=20260813-p0-drafts-v1"></script>
   </body>
 </html>
