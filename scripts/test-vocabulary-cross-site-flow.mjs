@@ -69,6 +69,28 @@ try {
   assert.match(await page.locator(".vocab-route-context").textContent(), /IELTSist glossary sync pending/i);
   assert.equal(await page.locator(".vocab-route-context a").getAttribute("href"), returnTo, "Return must use the validated STEM attempt URL");
 
+  const hashRouted = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+  const hashParams = new URLSearchParams({
+    from: "stem",
+    contractVersion: "stem-vocabulary-context-v1",
+    family: "exam",
+    taxonomyId: term.taxonomyId || term.topicId,
+    routeId: term.routeId,
+    subjectCode: term.subject,
+    stage: term.stage,
+    sourceStatus: "taxonomy-mapped",
+    termInventoryStatus: "not-imported",
+    returnTo,
+  });
+  hashParams.append("termIds[]", term.termId);
+  await hashRouted.goto(`${baseUrl}/#vocabulary?${hashParams.toString()}`, { waitUntil: "networkidle" });
+  await hashRouted.locator("#vocabulary.active .vocab-review-card").waitFor();
+  assert.equal((await hashRouted.locator(".vocab-word-face h3").textContent()).trim(), term.word,
+    "Hash-routed canonical termIds[] context must focus the requested STEM term");
+  assert.match(await hashRouted.locator(".vocab-route-context").textContent(), /IELTSist glossary sync pending/i,
+    "Hash-routed pending inventory must not fall back to IELTS Core");
+  await hashRouted.close();
+
   await page.locator("#vocabReveal").click();
   const outbound = new URL(await page.locator(".vocab-cross-link").getAttribute("href"));
   assert.equal(outbound.origin, "https://stem.ieltsist.com");

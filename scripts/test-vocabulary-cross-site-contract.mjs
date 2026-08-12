@@ -43,7 +43,11 @@ for (const [camel, snake] of [
   assert.ok(app.includes(`value("${camel}", "${snake}")`), `${camel} must accept legacy ${snake}`);
 }
 assert.match(app, /params\.getAll\("term_id"\)/);
+assert.match(app, /params\.getAll\("termIds\[\]"\)/);
 assert.match(app, /value\("termIds", "term_ids"\)/);
+assert.match(app, /const hashQueryIndex = rawHash\.indexOf\("\?"\)/);
+assert.match(app, /if \(!params\.has\(key\)\) params\.append\(key, value\)/);
+assert.match(app, /const hashRoute = hash\.split\("\?", 1\)\[0\]/);
 assert.match(app, /if \(vocabularyRouteContextFromLocation\(\)\.from === "stem"\)/);
 assert.match(app, /activateView\("vocabulary", true\)/);
 assert.match(app, /Vocabulary support only; progress stays on each site/);

@@ -4155,10 +4155,18 @@ function normalizeVocabularyMetadata(item, index = 0) {
 
 function vocabularyRouteContextFromLocation() {
   const params = new URLSearchParams(window.location.search);
+  const rawHash = String(window.location.hash || "").replace(/^#/, "");
+  const hashQueryIndex = rawHash.indexOf("?");
+  const hashParams = new URLSearchParams(hashQueryIndex >= 0 ? rawHash.slice(hashQueryIndex + 1) : "");
+  for (const [key, value] of hashParams) {
+    if (!params.has(key)) params.append(key, value);
+  }
   const value = (camel, snake = "") => params.get(camel) || (snake ? params.get(snake) : "") || "";
   const termIds = [
     ...params.getAll("termId"),
     ...params.getAll("term_id"),
+    ...params.getAll("termIds[]"),
+    ...params.getAll("term_ids[]"),
     value("termIds", "term_ids"),
   ]
     .flatMap((value) => String(value).split(","))
@@ -22325,6 +22333,7 @@ function activateView(viewId, updateHash = false, options = {}) {
 
 function applyInitialHash() {
   const hash = location.hash.replace("#", "");
+  const hashRoute = hash.split("?", 1)[0];
   if (!hash) {
     if (vocabularyRouteContextFromLocation().from === "stem") {
       activateView("vocabulary", true);
@@ -22333,14 +22342,14 @@ function applyInitialHash() {
     activateView("home", false);
     return;
   }
-  const sectionMatch = hash.match(/^(exam|sequence)-(listening|reading|writing|speaking)-section$/);
+  const sectionMatch = hashRoute.match(/^(exam|sequence)-(listening|reading|writing|speaking)-section$/);
   if (sectionMatch) {
     activateView(sectionMatch[1], false);
     setImmersivePractice(sectionMatch[2], hash);
     scrollToExamSection(hash);
     return;
   }
-  const viewId = hash === "coach" ? "home" : hash;
+  const viewId = hashRoute === "coach" ? "home" : hashRoute;
   activateView(viewId, false);
   if (viewId === "single" && state.singleStarted) setSingleImmersive(state.activeModule);
 }
