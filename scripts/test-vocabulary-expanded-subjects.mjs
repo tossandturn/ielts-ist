@@ -114,25 +114,34 @@ try {
     if (message.type() === "error") errors.push(message.text());
   });
   await page.goto(`${baseUrl}/?test=vocabulary-expanded#vocabulary`, { waitUntil: "networkidle" });
+  await page.locator(".vocab-review-card").waitFor();
+  assert.equal(await page.locator("#vocabSubjectFilter").inputValue(), "ielts", "A student opening Vocabulary must start in the IELTS Core deck, not a mixed all-subject deck");
+  assert.match((await page.locator(".vocab-word-face h3").textContent()) || "", /^[A-Za-z][A-Za-z -]*$/, "The default card must be an IELTS English word, never an arbitrary imported subject term");
+  assert.equal(await page.locator(".vocab-mini-list [data-vocab-index]").count(), 0, "The study workspace must not render a scrollable 36-word side list as a competing control");
+  await page.getByRole("button", { name: /change word pack/i }).click();
   await page.locator(".vocab-hub-shell").waitFor();
-  assert.equal(await page.locator("[data-vocab-subject]").count(), 40, "The subject directory must expose all professional subject packs");
+  await page.locator("[data-vocab-course='alevel']").click();
+  assert.equal(await page.locator(".vocab-subject-directory [data-vocab-subject]").count(), 40, "The subject directory must expose all professional subject packs");
   await page.locator("[data-vocab-subject='thinking-skills']").click();
   await page.locator(".vocab-word-face h3").waitFor();
   const thinkingEyebrow = await page.locator(".vocab-review-top .eyebrow").textContent();
   assert.match(thinkingEyebrow || "", /A-Level Thinking Skills/);
-  await page.getByRole("button", { name: /← Library/i }).click();
+  await page.getByRole("button", { name: /change word pack/i }).click();
   await page.locator(".vocab-hub-shell").waitFor();
+  await page.locator("[data-vocab-course='alevel']").click();
   await page.locator("[data-vocab-subject='law']").waitFor({ state: "visible" });
   await page.locator("[data-vocab-subject='law']").click();
   await page.locator(".vocab-word-face h3").waitFor();
   const lawEyebrow = await page.locator(".vocab-review-top .eyebrow").textContent();
   assert.match(lawEyebrow || "", /IG \+ A-Level Law/);
-  await page.getByRole("button", { name: /← Library/i }).click();
+  await page.getByRole("button", { name: /change word pack/i }).click();
   await page.locator(".vocab-hub-shell").waitFor();
-  await page.getByRole("button", { name: /Review deck/i }).click();
+  await page.getByRole("button", { name: /IELTS English/i }).click();
   await page.locator(".vocab-review-card").waitFor();
 
-  await page.locator("#vocabSubjectFilter").selectOption("computer-science");
+  await page.getByRole("button", { name: /change word pack/i }).click();
+  await page.locator("[data-vocab-course='igcse']").click();
+  await page.locator("[data-vocab-subject='computer-science']").click();
   await page.locator("#vocabSearch").fill("binary");
   await page.locator(".vocab-word-face h3").waitFor();
   assert.equal((await page.locator(".vocab-word-face h3").textContent()).trim(), "binary");
@@ -182,7 +191,9 @@ try {
     ["digital-media-design", "design brief", "design brief"],
     ["world-literature", "postcolonial reading", "postcolonial reading"],
   ]) {
-    await page.locator("#vocabSubjectFilter").selectOption(subject);
+    await page.getByRole("button", { name: /change word pack/i }).click();
+    await page.locator("[data-vocab-course='alevel']").click();
+    await page.locator(`[data-vocab-subject='${subject}']`).click();
     await page.locator("#vocabSearch").fill(query);
     await page.locator(".vocab-word-face h3").filter({ hasText: expected }).waitFor({ state: "visible", timeoutMs: 5000 });
     assert.equal((await page.locator(".vocab-word-face h3").textContent()).trim(), expected, `${subject} search should open ${expected}`);
@@ -193,11 +204,12 @@ try {
 
   const mobile = await browser.newPage({ viewport: { width: 390, height: 844 } });
   await mobile.goto(`${baseUrl}/?test=vocabulary-expanded-mobile#vocabulary`, { waitUntil: "networkidle" });
-  await mobile.locator(".vocab-hub-shell").waitFor();
+  await mobile.locator(".vocab-review-card").waitFor();
   let overflow = await mobile.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-  assert.ok(overflow <= 1, `Expanded vocabulary mobile subject directory overflow is ${overflow}px`);
-  await mobile.getByRole("button", { name: /Review deck/i }).click();
-  await mobile.locator("#vocabSubjectFilter").selectOption("computer-science");
+  assert.ok(overflow <= 1, `Expanded vocabulary mobile default deck overflow is ${overflow}px`);
+  await mobile.getByRole("button", { name: /change word pack/i }).click();
+  await mobile.locator("[data-vocab-course='igcse']").click();
+  await mobile.locator("[data-vocab-subject='computer-science']").click();
   await mobile.locator("#vocabSearch").fill("binary");
   await mobile.locator(".vocab-word-face h3").waitFor();
   overflow = await mobile.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);

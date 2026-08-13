@@ -48,13 +48,11 @@ try {
     localStorage.removeItem("ieltsistCoreVocabularyKnown");
   });
   await page.goto(`${baseUrl}/?test=vocabulary-notebook#vocabulary`, { waitUntil: "networkidle" });
-  await page.locator(".vocab-hub-shell").waitFor();
-  await page.getByRole("button", { name: /Review deck/i }).click();
   await page.locator(".vocab-review-card").waitFor();
   const word = (await page.locator(".vocab-word-face h3").textContent()).trim();
   await page.locator("#vocabReveal").click();
   await page.locator("#vocabNotebook").click();
-  await page.locator("#vocabNotebook").getByText("Saved to Notebook").waitFor();
+  await page.locator("#vocabNotebook").getByText("Saved").waitFor();
   const saved = await page.evaluate(() => ({
     legacy: localStorage.getItem("ieltsistLocalVocabularyNotebookV1"),
     guest: JSON.parse(localStorage.getItem("ieltsistLocalVocabularyNotebookV1::guest") || "[]"),
@@ -75,7 +73,7 @@ try {
 
   const mobile = await browser.newPage({ viewport: { width: 390, height: 844 } });
   await mobile.goto(`${baseUrl}/?test=vocabulary-notebook-mobile#vocabulary`, { waitUntil: "networkidle" });
-  await mobile.locator(".vocab-hub-shell").waitFor();
+  await mobile.locator(".vocab-review-card").waitFor();
   const overflow = await mobile.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   assert.ok(overflow <= 1, `Mobile Vocabulary overflow is ${overflow}px`);
   await mobile.close();

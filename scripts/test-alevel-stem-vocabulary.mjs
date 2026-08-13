@@ -168,6 +168,6 @@ assert.match(server, /STEM subject attempts and marking submissions stay in STEM
 assert.match(server, /Do not claim unrelated results,\s*progress,\s*notebooks,\s*or access tokens sync between products/i,
   "Product facts must not claim unrelated scores, tokens, or notebooks synchronize");
 assert.match(app, /vocabularyItemKey\(item\)/, "Known progress must use stable item keys");
-assert.match(html, /2,900\+ IG and A-Level terms across STEM, business, humanities, creative and English studies/);
+assert.match(html, /Build IELTS vocabulary first\.\s*Open a subject pack only when you need IGCSE or A-Level terminology\./);
 
 console.log(`IG + A-Level vocabulary checks passed: ${catalog.items.length} items (${counts.physics} Physics, ${counts.mathematics} Mathematics, ${counts.chemistry} Chemistry, ${counts.economics} Economics, ${counts.biology} Biology, ${counts["exam-language"]} exam-language).`);
