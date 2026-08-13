@@ -64,6 +64,7 @@ try {
     });
     await page.goto(`${baseUrl}/?test=vocabulary-student-${viewport.width}#vocabulary`, { waitUntil: "networkidle" });
     await page.locator("#vocabulary.active .vocab-review-card").waitFor();
+    await page.waitForFunction(() => document.querySelector(".vocab-review-top strong")?.textContent?.includes("/ 30"));
     assert.equal(await page.locator("#vocabSubjectFilter").inputValue(), "ielts", `${viewport.label} must default to IELTS English`);
     assert.match((await page.locator(".vocab-word-face h3").textContent()) || "", /^[A-Za-z][A-Za-z -]*$/, `${viewport.label} first card must be an IELTS English word`);
     assert.equal(await page.locator(".vocab-mini-list [data-vocab-index]").count(), 0, `${viewport.label} must not render a 3,000-word side list`);
