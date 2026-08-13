@@ -124,6 +124,9 @@ try {
   await subject.locator("#vocabTopicFilter").selectOption({ label: "Astrophysics" });
   await subject.locator(".vocab-word-face h3").waitFor();
   assert.match(await subject.locator(".vocab-review-top .eyebrow").innerText(), /Astrophysics/);
+  await subject.getByRole("button", { name: /full knowledge/i }).click();
+  assert.match(await subject.locator("#vocabMeaning").innerText(), /Formula & conditions|Exam use|Common mistake/i,
+    "A subject term must expose its definition, formula or conditions, exam use and common mistakes");
   await subject.locator("#vocabKnown").click();
   await subject.locator("#vocabNotebook").click();
   await subject.locator("#vocabNotebook").getByText("Saved").waitFor();
