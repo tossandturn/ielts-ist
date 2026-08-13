@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import http from "node:http";
+import net from "node:net";
 import { createRequire } from "node:module";
 import os from "node:os";
 import path from "node:path";
@@ -9,8 +10,20 @@ import { rm } from "node:fs/promises";
 const require = createRequire(import.meta.url);
 const { chromium } = require("C:/Users/10604/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright");
 const root = new URL("../", import.meta.url);
-const appPort = 6900 + (process.pid % 200);
-const gatewayPort = 7200 + (process.pid % 200);
+function findAvailablePort() {
+  return new Promise((resolve, reject) => {
+    const server = net.createServer();
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", () => {
+      const address = server.address();
+      const selectedPort = typeof address === "object" && address ? address.port : 0;
+      server.close((error) => error ? reject(error) : resolve(selectedPort));
+    });
+  });
+}
+
+const appPort = Number(process.env.IELTSIST_AI_TEST_PORT || await findAvailablePort());
+const gatewayPort = Number(process.env.IELTSIST_AI_GATEWAY_TEST_PORT || await findAvailablePort());
 const appBaseUrl = `http://127.0.0.1:${appPort}`;
 const gatewayRequests = [];
 const testDbPath = path.join(os.tmpdir(), `ieltsist-ai-gateway-${process.pid}.sqlite`);

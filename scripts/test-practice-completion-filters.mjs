@@ -86,6 +86,10 @@ function memoryStorage(seed = {}) {
   };
 }
 
+function ownerKey(baseKey, owner = "guest") {
+  return `${baseKey}::${encodeURIComponent(owner)}`;
+}
+
 function completionContext(storage, overrides = {}) {
   const state = {
     currentUser: null,
@@ -111,8 +115,59 @@ function completionContext(storage, overrides = {}) {
     completionStoreKey: "ieltsistCompletedItemsV1",
     pendingLearningAttemptsStoreKey: "ieltsistPendingLearningAttemptsV1",
     learningHistoryStoreKey: "ieltsistLearningLoopHistory",
+    localDataOwnerStoreKey: "ieltsistLocalDataOwnerV1",
+    validLocalDataOwner(owner) {
+      return owner === "guest" || /^user:[1-9]\d*$/.test(String(owner || ""));
+    },
+    localDataOwnerForUser(user) {
+      const userId = String(user?.id || "").trim();
+      return userId ? `user:${userId}` : "guest";
+    },
+    ownerStorageKey(baseKey, owner = state.currentUser?.id ? `user:${state.currentUser.id}` : "guest") {
+      if (!(owner === "guest" || /^user:[1-9]\d*$/.test(String(owner || "")))) return "";
+      return `${baseKey}::${encodeURIComponent(owner)}`;
+    },
+    readStoredJson(key, fallback = null) {
+      try {
+        const value = JSON.parse(storage.getItem(key) || "null");
+        return value === null ? fallback : value;
+      } catch {
+        return fallback;
+      }
+    },
+    writeStoredJson(key, value) {
+      storage.setItem(key, JSON.stringify(value));
+      return true;
+    },
+    removeStoredValue(key) {
+      storage.removeItem(key);
+    },
+    ownerStoredJson(baseKey, fallback = null, owner = state.currentUser?.id ? `user:${state.currentUser.id}` : "guest") {
+      if (!(owner === "guest" || /^user:[1-9]\d*$/.test(String(owner || "")))) return fallback;
+      const key = `${baseKey}::${encodeURIComponent(owner)}`;
+      try {
+        const raw = storage.getItem(key) || (owner === "guest" ? storage.getItem(baseKey) : null);
+        const value = JSON.parse(raw || "null");
+        return value === null ? fallback : value;
+      } catch {
+        return fallback;
+      }
+    },
+    writeOwnerStoredJson(baseKey, value, owner = state.currentUser?.id ? `user:${state.currentUser.id}` : "guest") {
+      if (!(owner === "guest" || /^user:[1-9]\d*$/.test(String(owner || "")))) return false;
+      storage.setItem(`${baseKey}::${encodeURIComponent(owner)}`, JSON.stringify(value));
+      return true;
+    },
+    removeOwnerStoredValue(baseKey, owner = state.currentUser?.id ? `user:${state.currentUser.id}` : "guest") {
+      if (owner === "guest" || /^user:[1-9]\d*$/.test(String(owner || ""))) {
+        storage.removeItem(`${baseKey}::${encodeURIComponent(owner)}`);
+      }
+    },
     readLearningLoopHistory() {
-      try { return JSON.parse(storage.getItem("ieltsistLearningLoopHistory") || "{}"); } catch { return {}; }
+      const owner = state.currentUser?.id ? `user:${state.currentUser.id}` : "guest";
+      try {
+        return JSON.parse(storage.getItem(ownerKey("ieltsistLearningLoopHistory", owner)) || (owner === "guest" ? storage.getItem("ieltsistLearningLoopHistory") : null) || "{}");
+      } catch { return {}; }
     },
     postJson: overrides.postJson || (async () => ({ attempt: null })),
     getJson: overrides.getJson || (async () => ({})),
@@ -168,7 +223,7 @@ const identity = completionContext(identityStorage, {
 });
 identity.api.rememberWritingAttempt({ itemId: "cam15-w-test1-task1", attemptId: "attempt_user_a", scores: { overall: 7 } });
 assert.equal(identity.api.practiceCompletionStatus("writing", { id: "cam15-w-test1-task1" }).completed, true);
-assert.equal(JSON.parse(identityStorage.getItem("ieltsistLearningLoopHistory")).writing.completionIdentity, "user:101", "Real persistence paths must stamp the creating identity on global history records");
+assert.equal(JSON.parse(identityStorage.getItem(ownerKey("ieltsistLearningLoopHistory", "user:101"))).writing.completionIdentity, "user:101", "Real persistence paths must stamp the creating identity on owner-scoped history records");
 identity.state.learningState = {
   completionIdentity: "user:101",
   completedItems: [{ module: "speaking", itemId: "cam15-s-test1", attemptId: "remote_user_a" }],
@@ -218,7 +273,7 @@ assert.deepEqual(
   ],
   "Real objective, Writing and Speaking persistence paths must archive exact canonical IDs",
 );
-const persistedCompletionPartition = JSON.parse(persistenceStorage.getItem("ieltsistCompletedItemsV1")).partitions["user:303"];
+const persistedCompletionPartition = JSON.parse(persistenceStorage.getItem(ownerKey("ieltsistCompletedItemsV1", "user:303"))).partitions["user:303"];
 for (const completionKey of ["reading:cam15-r-test1::section::2", "writing:cam15-w-test1-task1", "speaking:cam15-s-test1"]) {
   assert.ok(persistedCompletionPartition[completionKey], `Real persistence must write ${completionKey} to the owned local partition`);
 }
@@ -386,7 +441,7 @@ function deferred() {
 }
 
 function pendingPartition(storage, identity) {
-  return JSON.parse(storage.getItem("ieltsistPendingLearningAttemptsV1") || "{}").partitions?.[identity] || [];
+  return JSON.parse(storage.getItem(ownerKey("ieltsistPendingLearningAttemptsV1", identity)) || "{}").partitions?.[identity] || [];
 }
 
 const networkCalls = [];
@@ -579,6 +634,7 @@ try {
     executablePath: "C:/Program Files/Google/Chrome/Application/chrome.exe",
   });
   const completedAt = "2026-08-02T09:30:00.000Z";
+  const uiSpeakingTopicId = "cam4-s-test1";
   const completionSeed = {
     version: 1,
     partitions: {
@@ -586,7 +642,18 @@ try {
         "writing:cam15-w-test1-task1": { completedAt, attemptId: "ui-writing-task1" },
         "writing:cam15-w-test1-task2": { completedAt, attemptId: "ui-writing-task2" },
         "writing:writing-full-test:cam15-test1": { completedAt, attemptId: "ui-writing-full-test", band: 6.5 },
-        "speaking:cam15-s-test1": { completedAt, attemptId: "ui-speaking" },
+        [`speaking:${uiSpeakingTopicId}`]: { completedAt, attemptId: "ui-speaking" },
+      },
+    },
+  };
+  const ownerCompletionSeed = {
+    version: 1,
+    partitions: {
+      "user:1": {
+        "writing:cam15-w-test1-task1": { completedAt, attemptId: "ui-writing-task1" },
+        "writing:cam15-w-test1-task2": { completedAt, attemptId: "ui-writing-task2" },
+        "writing:writing-full-test:cam15-test1": { completedAt, attemptId: "ui-writing-full-test", band: 6.5 },
+        [`speaking:${uiSpeakingTopicId}`]: { completedAt, attemptId: "ui-speaking" },
       },
     },
   };
@@ -638,12 +705,18 @@ try {
   async function openSeededPage(viewport, hash) {
     const page = await browser.newPage({ viewport });
     page.on("pageerror", (error) => uiErrors.push(error.message));
-    await page.addInitScript(({ seed, writingHistory, writingWeakAreas }) => {
+    await page.addInitScript(({ seed, ownerCompletionSeed, writingHistory, writingWeakAreas }) => {
       localStorage.clear();
       localStorage.setItem("ieltsistCompletedItemsV1", JSON.stringify(seed));
       localStorage.setItem("ieltsistLearningLoopHistory", JSON.stringify(writingHistory));
       localStorage.setItem("ieltsistWeakAreas", JSON.stringify(writingWeakAreas));
-    }, { seed: completionSeed, writingHistory: writingHistorySeed, writingWeakAreas: writingWeakAreasSeed });
+      localStorage.setItem("ieltsistCompletedItemsV1::guest", JSON.stringify(seed));
+      localStorage.setItem("ieltsistLearningLoopHistory::guest", JSON.stringify(writingHistory));
+      localStorage.setItem("ieltsistWeakAreas::guest", JSON.stringify(writingWeakAreas));
+      localStorage.setItem("ieltsistCompletedItemsV1::user%3A1", JSON.stringify(ownerCompletionSeed));
+      localStorage.setItem("ieltsistLearningLoopHistory::user%3A1", JSON.stringify(writingHistory));
+      localStorage.setItem("ieltsistWeakAreas::user%3A1", JSON.stringify(writingWeakAreas));
+    }, { seed: completionSeed, ownerCompletionSeed, writingHistory: writingHistorySeed, writingWeakAreas: writingWeakAreasSeed });
     await page.goto(`http://127.0.0.1:${port}/${hash}`, { waitUntil: "networkidle" });
     return page;
   }
@@ -717,7 +790,7 @@ try {
   assert.equal(await desktop.locator(".unified-practice-setup").getAttribute("data-writing-task2-id"), null, "Legacy custom fallback must not claim an unrelated canonical Task 2 ID");
   await desktop.locator('[data-start-unified-practice="writing"]').click();
   assert.equal(await desktop.locator("#uploadPrompt").inputValue(), writingWeakAreasSeed[0].evidence.prompt, "Legacy fallback must restore the saved Writing prompt");
-  const savedTimer = await desktop.evaluate(() => JSON.parse(localStorage.getItem("ieltsistWritingTimerV1") || "{}"));
+  const savedTimer = await desktop.evaluate(() => ownerStoredJson(writingTimerStoreKey, {}));
   assert.equal(savedTimer.duration, 40 * 60, "Legacy Task 2 targeted practice must keep the 40-minute timer");
 
   await desktop.goto(`http://127.0.0.1:${port}/#bank`, { waitUntil: "networkidle" });
@@ -729,7 +802,7 @@ try {
   await desktop.locator(".practice-speaking-topic").click();
   const completedSpeakingRows = desktop.locator('.topic-set-chooser .topic-set-row[data-practice-status="completed"]');
   assert.equal(await completedSpeakingRows.count(), 1, "Completed Speaking chooser must re-filter individual set rows");
-  assert.equal(await completedSpeakingRows.first().getAttribute("data-speaking-topic-id"), "cam15-s-test1", "Speaking completion must use the exact topicId");
+  assert.equal(await completedSpeakingRows.first().getAttribute("data-speaking-topic-id"), uiSpeakingTopicId, "Speaking completion must use the exact active topicId");
   assert.match(await completedSpeakingRows.first().innerText(), /Completed · 2026-08-02/);
   await desktop.locator("#closeBankPractice").click();
   await desktop.locator("#bankCompletionFilter").selectOption("not-completed");

@@ -151,7 +151,10 @@ try {
 
   await resultPage.locator('[data-result-tab="improve"]').click();
   await resultPage.locator('[data-writing-result-action="save-weak"]').click();
-  assert.ok(await resultPage.evaluate(() => JSON.parse(localStorage.getItem("ieltsistWeakAreas") || "[]").some((item) => item.module === "writing" && item.sourceAttemptId)));
+  assert.ok(await resultPage.evaluate(() => {
+    const areas = ownerStoredJson(weakAreaStoreKey, []);
+    return Array.isArray(areas) && areas.some((item) => item.module === "writing" && item.sourceAttemptId);
+  }), "Writing weak areas must be saved under the active owner namespace");
 
   const coachRequestPromise = resultPage.waitForRequest((request) => request.url().includes("/api/help/chat"));
   await resultPage.locator('[data-writing-result-action="coach"]').click();

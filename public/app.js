@@ -4073,7 +4073,7 @@ async function syncLocalVocabularyNotebook() {
 
 async function ensureIeltsCoreVocabularyLoaded() {
   if (ieltsCoreVocabularyLoadPromise) return ieltsCoreVocabularyLoadPromise;
-  ieltsCoreVocabularyLoadPromise = fetch("/data/ielts-core-vocabulary.json?v=20260813-vocabulary-workspace-v2", { cache: "no-cache" })
+  ieltsCoreVocabularyLoadPromise = fetch("/data/ielts-core-vocabulary.json?v=20260813-vocabulary-workspace-v3", { cache: "no-cache" })
     .then(async (response) => {
       if (!response.ok) throw new Error(`Vocabulary catalog returned ${response.status}`);
       const payload = await response.json();
@@ -4588,7 +4588,7 @@ async function ensureAlevelVocabularyLoaded() {
   if (alevelVocabularyLoadPromise) return alevelVocabularyLoadPromise;
   state.vocabularyReview.loading = true;
   state.vocabularyReview.error = "";
-  alevelVocabularyLoadPromise = fetch("/data/alevel-stem-vocabulary.json?v=20260812-ig-alevel-knowledge-v5", { cache: "no-cache" })
+  alevelVocabularyLoadPromise = fetch("/data/alevel-stem-vocabulary.json?v=20260813-vocabulary-workspace-v3", { cache: "no-cache" })
     .then(async (response) => {
       if (!response.ok) throw new Error(`Vocabulary catalog returned ${response.status}`);
       const payload = await response.json();

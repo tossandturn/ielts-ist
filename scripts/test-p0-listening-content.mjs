@@ -1,11 +1,24 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
+import { createServer } from "node:net";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
 const { chromium } = require("C:/Users/10604/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright");
 const root = new URL("../", import.meta.url);
-const port = 6900 + (process.pid % 200);
+function findAvailablePort() {
+  return new Promise((resolve, reject) => {
+    const server = createServer();
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", () => {
+      const address = server.address();
+      const selectedPort = typeof address === "object" && address ? address.port : 0;
+      server.close((error) => error ? reject(error) : resolve(selectedPort));
+    });
+  });
+}
+
+const port = Number(process.env.IELTSIST_P0_TEST_PORT || await findAvailablePort());
 const baseUrl = `http://127.0.0.1:${port}`;
 const child = spawn(process.execPath, ["server.js"], {
   cwd: root,

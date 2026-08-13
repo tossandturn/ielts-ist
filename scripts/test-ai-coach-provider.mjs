@@ -1,10 +1,23 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import http from "node:http";
+import net from "node:net";
 
 const root = new URL("../", import.meta.url);
-const appPort = 6200 + (process.pid % 300);
-const providerPort = 6500 + (process.pid % 300);
+function findAvailablePort() {
+  return new Promise((resolve, reject) => {
+    const server = net.createServer();
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", () => {
+      const address = server.address();
+      const selectedPort = typeof address === "object" && address ? address.port : 0;
+      server.close((error) => error ? reject(error) : resolve(selectedPort));
+    });
+  });
+}
+
+const appPort = Number(process.env.IELTSIST_COACH_PROVIDER_TEST_PORT || await findAvailablePort());
+const providerPort = Number(process.env.IELTSIST_COACH_PROVIDER_MOCK_PORT || await findAvailablePort());
 const appBaseUrl = `http://127.0.0.1:${appPort}`;
 const providerRequests = [];
 
@@ -41,6 +54,10 @@ const child = spawn(process.execPath, ["server.js"], {
   env: {
     ...process.env,
     PORT: String(appPort),
+    AI_GATEWAY_API_KEY: "",
+    AI_GATEWAY_BASE_URL: "",
+    AI_GATEWAY_MODEL: "",
+    AI_GATEWAY_REASONING_EFFORT: "",
     COACH_AI_API_KEY: "test-coach-key",
     COACH_AI_BASE_URL: `http://127.0.0.1:${providerPort}/v1`,
     COACH_AI_MODEL: "qwen-coach-test",

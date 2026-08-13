@@ -68,8 +68,27 @@ try {
 
   await page.locator("#buildSequence").click();
   assert.equal(await page.evaluate(() => Boolean(state.sequence)), false, "All/All must remain an explicit waiting state");
-  await page.locator("#sequenceBookFilter").selectOption("15");
-  await page.locator("#sequenceTestFilter").selectOption("1");
+  const selectedSet = await page.evaluate(() => {
+    const first = sequenceSets()[0];
+    if (!first) throw new Error("No complete Same Test set is available");
+    return {
+      book: String(itemBook(first.listening)),
+      test: String(itemTest(first.listening)),
+      sourceIds: [
+        first.listening?.id,
+        first.reading?.id,
+        first.task1?.id,
+        first.task2?.id,
+        first.speaking?.id,
+      ],
+    };
+  });
+  await page.locator("#sequenceBookFilter").selectOption(selectedSet.book);
+  await page.waitForFunction((testValue) =>
+    [...document.querySelector("#sequenceTestFilter")?.options || []].some((option) => option.value === testValue),
+    selectedSet.test,
+  );
+  await page.locator("#sequenceTestFilter").selectOption(selectedSet.test);
   await page.waitForFunction(() => Boolean(state.sequence?.examMetadata?.examId));
   const beforeReload = await page.evaluate(() => {
     const input = [...document.querySelectorAll(".objective-answer-control[data-prefix='sequence-listening']")]
@@ -91,9 +110,7 @@ try {
       answer: input.value,
     };
   });
-  assert.deepEqual(beforeReload.sourceIds, [
-    "cam15-l-test1", "cam15-r-test1", "cam15-w-test1-task1", "cam15-w-test1-task2", "cam15-s-test1",
-  ]);
+  assert.deepEqual(beforeReload.sourceIds, selectedSet.sourceIds);
   await page.waitForTimeout(1_100);
   await page.reload({ waitUntil: "networkidle" });
   await page.waitForFunction(() => Boolean(state.sequence?.examMetadata?.examId));
@@ -112,7 +129,7 @@ try {
   assert.equal(restored.timerRunning, true, "Same Test timer must resume after direct-entry reload");
   assert.ok(restored.seconds <= beforeReload.seconds && restored.seconds >= beforeReload.seconds - 8);
   assert.deepEqual(pageErrors, [], `Browser errors: ${pageErrors.join(" | ")}`);
-  console.log(`PASS direct Same Test route: explicit filters, Cambridge 15 Test 1 sources, answer and timer restored (${restored.examId}).`);
+  console.log(`PASS direct Same Test route: explicit filters, Cambridge ${selectedSet.book} Test ${selectedSet.test} sources, answer and timer restored (${restored.examId}).`);
 } finally {
   await browser?.close();
   await stopServer();

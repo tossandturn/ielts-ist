@@ -50,7 +50,9 @@ for (const expected of [
 assert.match(app, /ensureIeltsCoreVocabularyLoaded/);
 assert.match(app, /\/data\/ielts-core-vocabulary\.json/);
 assert.match(app, /aria-controls="vocabMeaning"/);
-assert.match(app, /meaningFace\.hidden = !state\.vocabularyReview\.revealed/);
+assert.match(app, /id="vocabMeaning" class="vocab-meaning-face"/);
+assert.match(app, /vocabReveal/);
+assert.match(app, /renderVocabularyMeaning\(item, \{ expanded: revealed \}\)/);
 assert.match(app, /item\.topic \|\| "ielts-core"/);
 assert.match(app, /item\.conceptExplanation/);
 assert.match(app, /localVocabularyNotebookStoreKey/);
@@ -65,7 +67,7 @@ assert.match(app, /Opened from Notebook/);
 assert.match(app, /searchTimer/);
 const stylesVersion = html.match(/styles\.css\?v=([^"']+)/)?.[1] || "";
 const appVersion = html.match(/app\.js\?v=([^"']+)/)?.[1] || "";
-assert.match(appVersion, /^\d{8}-stem-bridge-v\d+$/, "Frontend assets need a dated STEM bridge cache version");
+assert.match(appVersion, /^\d{8}-[a-z0-9-]+-v\d+$/, "Frontend assets need a dated cache version");
 assert.equal(stylesVersion, appVersion, "CSS and JavaScript must use the same cache version");
 
 console.log(`IELTS Core vocabulary checks passed: ${catalog.items.length} items.`);

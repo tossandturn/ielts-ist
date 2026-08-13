@@ -1,11 +1,24 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { rm } from "node:fs/promises";
+import { createServer } from "node:net";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
-const port = 5100 + (process.pid % 500);
+function findAvailablePort() {
+  return new Promise((resolve, reject) => {
+    const server = createServer();
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", () => {
+      const address = server.address();
+      const selectedPort = typeof address === "object" && address ? address.port : 0;
+      server.close((error) => error ? reject(error) : resolve(selectedPort));
+    });
+  });
+}
+
+const port = Number(process.env.IELTSIST_TEST_PORT || await findAvailablePort());
 const baseUrl = `http://127.0.0.1:${port}`;
 const databasePath = path.join(root, "data", `learning-api-test-${process.pid}.sqlite`);
 const child = spawn(process.execPath, ["server.js"], {
