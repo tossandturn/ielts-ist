@@ -102,6 +102,7 @@ try {
   const desktopShot = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   await desktopShot.goto(`${baseUrl}/?test=vocabulary-student-screenshot#vocabulary`, { waitUntil: "networkidle" });
   await desktopShot.locator("#vocabulary.active .vocab-review-card").waitFor();
+  await desktopShot.waitForFunction(() => document.querySelector(".vocab-review-top strong")?.textContent?.includes("/ 30"));
   await desktopShot.screenshot({ path: "D:/CodexWork/qa-artifacts/vocabulary-default-fix-20260813-r3/desktop.png", fullPage: false });
   await desktopShot.close();
 
@@ -136,6 +137,7 @@ try {
   const phoneShot = await browser.newPage({ viewport: { width: 390, height: 844 } });
   await phoneShot.goto(`${baseUrl}/?test=vocabulary-student-phone-shot#vocabulary`, { waitUntil: "networkidle" });
   await phoneShot.locator("#vocabulary.active .vocab-review-card").waitFor();
+  await phoneShot.waitForFunction(() => document.querySelector(".vocab-review-top strong")?.textContent?.includes("/ 30"));
   await phoneShot.screenshot({ path: "D:/CodexWork/qa-artifacts/vocabulary-default-fix-20260813-r3/phone.png", fullPage: false });
   await phoneShot.close();
 
