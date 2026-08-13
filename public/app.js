@@ -4073,7 +4073,7 @@ async function syncLocalVocabularyNotebook() {
 
 async function ensureIeltsCoreVocabularyLoaded() {
   if (ieltsCoreVocabularyLoadPromise) return ieltsCoreVocabularyLoadPromise;
-  ieltsCoreVocabularyLoadPromise = fetch("/data/ielts-core-vocabulary.json?v=20260807-knowledge-v2", { cache: "no-cache" })
+  ieltsCoreVocabularyLoadPromise = fetch("/data/ielts-core-vocabulary.json?v=20260813-vocabulary-workspace-v1", { cache: "no-cache" })
     .then(async (response) => {
       if (!response.ok) throw new Error(`Vocabulary catalog returned ${response.status}`);
       const payload = await response.json();
