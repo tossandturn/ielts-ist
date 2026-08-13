@@ -99,11 +99,29 @@ try {
   assert.match(await responsive.locator(".vocab-review-top strong").innerText(), /2\s*\/\s*30/, "Phone Next word must advance the active card");
   await responsive.close();
 
+  const globalSearch = await browser.newPage({ viewport: { width: 1024, height: 768 } });
+  await globalSearch.goto(`${baseUrl}/?test=vocabulary-student-global-search#vocabulary`, { waitUntil: "networkidle" });
+  await globalSearch.locator(".vocab-review-card").waitFor();
+  await globalSearch.waitForFunction(() => document.querySelector(".vocab-review-top strong")?.textContent?.includes("/ 30"));
+  assert.equal(await globalSearch.locator("#vocabSubjectFilter").inputValue(), "ielts", "The default Word pack stays IELTS before a global search");
+  await globalSearch.locator("#vocabSearch").fill("absorption line");
+  await globalSearch.locator(".vocab-word-face h3").waitFor();
+  assert.equal((await globalSearch.locator(".vocab-word-face h3").innerText()).trim(), "absorption line",
+    "Search must find an A-Level Physics term even when the selected Word pack is IELTS English");
+  assert.match(await globalSearch.locator(".vocab-review-top .eyebrow").innerText(), /All vocabulary search · IG \+ A-Level Physics · Astrophysics/,
+    "Global search results must state the actual subject and topic");
+  await globalSearch.locator("#vocabSearch").fill("");
+  await globalSearch.waitForFunction(() => document.querySelector(".vocab-review-top strong")?.textContent?.includes("/ 30"));
+  assert.equal(await globalSearch.locator("#vocabSubjectFilter").inputValue(), "ielts", "Clearing a global search must retain the student's IELTS Word pack");
+  assert.match((await globalSearch.locator(".vocab-word-face h3").innerText()) || "", /^[A-Za-z][A-Za-z -]*$/,
+    "Clearing a global search must return to an IELTS English word");
+  await assertNoOverflow(globalSearch, "Global vocabulary search");
+  await globalSearch.close();
+
   const desktopShot = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   await desktopShot.goto(`${baseUrl}/?test=vocabulary-student-screenshot#vocabulary`, { waitUntil: "networkidle" });
   await desktopShot.locator("#vocabulary.active .vocab-review-card").waitFor();
   await desktopShot.waitForFunction(() => document.querySelector(".vocab-review-top strong")?.textContent?.includes("/ 30"));
-  await desktopShot.screenshot({ path: "D:/CodexWork/qa-artifacts/vocabulary-default-fix-20260813-r3/desktop.png", fullPage: false });
   await desktopShot.close();
 
   const subject = await browser.newPage({ viewport: { width: 1024, height: 768 } });

@@ -4073,7 +4073,7 @@ async function syncLocalVocabularyNotebook() {
 
 async function ensureIeltsCoreVocabularyLoaded() {
   if (ieltsCoreVocabularyLoadPromise) return ieltsCoreVocabularyLoadPromise;
-  ieltsCoreVocabularyLoadPromise = fetch("/data/ielts-core-vocabulary.json?v=20260813-vocabulary-workspace-v1", { cache: "no-cache" })
+  ieltsCoreVocabularyLoadPromise = fetch("/data/ielts-core-vocabulary.json?v=20260813-vocabulary-workspace-v2", { cache: "no-cache" })
     .then(async (response) => {
       if (!response.ok) throw new Error(`Vocabulary catalog returned ${response.status}`);
       const payload = await response.json();
@@ -4526,11 +4526,12 @@ function filteredCoreVocabulary() {
   const review = state.vocabularyReview;
   const query = String(review.query || "").trim().toLowerCase();
   const routeTermIds = new Set(state.vocabularyRouteContext.termIds || []);
+  const globalSearch = Boolean(query) && review.mode === "all" && state.vocabularyRouteContext.from !== "stem";
   return normalizedCoreVocabularyItems().filter((item) => {
-    if (review.subject !== "all" && item.subject !== review.subject) return false;
-    if (review.stage !== "all" && item.stage !== review.stage) return false;
-    if (review.topic !== "all" && item.topic !== review.topic) return false;
-    if (review.type !== "all" && item.type !== review.type) return false;
+    if (!globalSearch && review.subject !== "all" && item.subject !== review.subject) return false;
+    if (!globalSearch && review.stage !== "all" && item.stage !== review.stage) return false;
+    if (!globalSearch && review.topic !== "all" && item.topic !== review.topic) return false;
+    if (!globalSearch && review.type !== "all" && item.type !== review.type) return false;
     if (review.mode === "notebook" && !vocabularyIsSaved(item)) return false;
     if (review.mode === "due" && (!vocabularyIsSaved(item) || !vocabularyIsDue(item))) return false;
     if (routeTermIds.size && !routeTermIds.has(item.termId)) return false;
@@ -4749,13 +4750,17 @@ function renderVocabularyReviewPage(allItems, subjectCounts, deck, item, knownCo
   const routeContext = state.vocabularyRouteContext;
   const routeWarning = vocabularyRouteContextWarning(routeContext, allItems);
   const isStemRoute = routeContext.from === "stem";
+  const isGlobalSearch = Boolean(String(state.vocabularyReview.query || "").trim()) && state.vocabularyReview.mode === "all" && !isStemRoute;
   const studyLabel = isStemRoute
     ? "STEM term pack"
+    : isGlobalSearch
+      ? "All vocabulary search"
     : state.vocabularyReview.subject === "ielts"
       ? "IELTS Core Vocabulary"
       : vocabularySubjectLabel(state.vocabularyReview.subject);
+  const itemScopeLabel = item?.subject === "ielts" ? "IELTS Core Vocabulary" : vocabularySubjectLabel(item?.subject || "");
   const currentScopeLabel = item
-    ? `${studyLabel}${item.topicLabel || item.topic ? ` · ${item.topicLabel || item.topic}` : ""}`
+    ? `${isGlobalSearch ? `${studyLabel} · ${itemScopeLabel}` : studyLabel}${item.topicLabel || item.topic ? ` · ${item.topicLabel || item.topic}` : ""}`
     : studyLabel;
   return `<section class="vocab-trainer-shell${deck.length <= 1 ? " single-term-pack" : ""}">
     ${state.vocabularyReview.mode === "notebook" ? renderVocabularyNotebookStatus(allItems) : ""}
@@ -4771,7 +4776,7 @@ function renderVocabularyReviewPage(allItems, subjectCounts, deck, item, knownCo
         <option value="__subjects__" ${state.vocabularyReview.subject !== "ielts" && !isStemRoute ? "selected" : ""}>IGCSE & A-Level subjects…</option>
         ${isStemRoute && state.vocabularyReview.subject !== "ielts" ? `<option value="${escapeHtml(state.vocabularyReview.subject)}" selected>${escapeHtml(vocabularySubjectLabel(state.vocabularyReview.subject))}</option>` : ""}
       </select></label>
-      <label class="vocab-topic-search"><span>Find a word</span><input id="vocabSearch" type="search" value="${escapeHtml(state.vocabularyReview.query)}" placeholder="Search term, topic or IELTS expression" /></label>
+      <label class="vocab-topic-search"><span>Search all words</span><input id="vocabSearch" type="search" value="${escapeHtml(state.vocabularyReview.query)}" placeholder="Search IELTS, IGCSE or A-Level terms" /></label>
       <details class="vocab-more-filters" ${state.vocabularyReview.filtersOpen ? "open" : ""}><summary>Refine current pack</summary><div>
         <label><span>Topic</span><select id="vocabTopicFilter"><option value="all">All topics</option>${availableTopics.map(([topic, label]) => `<option value="${escapeHtml(topic)}" ${state.vocabularyReview.topic === topic ? "selected" : ""}>${escapeHtml(label)}</option>`).join("")}</select></label>
         ${state.vocabularyReview.subject !== "ielts" ? `<label><span>Stage</span><select id="vocabStageFilter">${["all", "IGCSE", "AS", "A2"].map((stage) => `<option value="${stage}" ${state.vocabularyReview.stage === stage ? "selected" : ""}>${stage === "all" ? "All stages" : stage}</option>`).join("")}</select></label>` : ""}
