@@ -87,6 +87,17 @@ try {
     await page.close();
   }
 
+  const responsive = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await responsive.goto(`${baseUrl}/?test=vocabulary-student-responsive#vocabulary`, { waitUntil: "networkidle" });
+  await responsive.locator("#vocabulary.active .vocab-review-card").waitFor();
+  await responsive.locator(".vocab-more-filters > summary").click();
+  assert.equal(await responsive.locator("#vocabTopicFilter").isVisible(), true, "Phone Refine control must expose Topic");
+  assert.equal(await responsive.locator("#vocabTypeFilter").isVisible(), true, "Phone Refine control must expose Content type");
+  await responsive.locator(".vocab-more-filters > summary").click();
+  await responsive.getByRole("button", { name: /next word/i }).click();
+  assert.match(await responsive.locator(".vocab-review-top strong").innerText(), /2\s*\/\s*30/, "Phone Next word must advance the active card");
+  await responsive.close();
+
   const desktopShot = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   await desktopShot.goto(`${baseUrl}/?test=vocabulary-student-screenshot#vocabulary`, { waitUntil: "networkidle" });
   await desktopShot.locator("#vocabulary.active .vocab-review-card").waitFor();
