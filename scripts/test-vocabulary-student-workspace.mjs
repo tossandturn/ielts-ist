@@ -134,15 +134,7 @@ try {
   await subject.getByRole("button", { name: /next word/i }).click();
   await assertNoOverflow(subject, "A-Level Physics filtered workspace");
   assert.deepEqual(subjectErrors, [], "A-Level Physics filtered workspace must not emit console errors");
-  await subject.screenshot({ path: "D:/CodexWork/qa-artifacts/vocabulary-default-fix-20260813-r3/ipad-landscape-physics.png", fullPage: false });
   await subject.close();
-
-  const phoneShot = await browser.newPage({ viewport: { width: 390, height: 844 } });
-  await phoneShot.goto(`${baseUrl}/?test=vocabulary-student-phone-shot#vocabulary`, { waitUntil: "networkidle" });
-  await phoneShot.locator("#vocabulary.active .vocab-review-card").waitFor();
-  await phoneShot.waitForFunction(() => document.querySelector(".vocab-review-top strong")?.textContent?.includes("/ 30"));
-  await phoneShot.screenshot({ path: "D:/CodexWork/qa-artifacts/vocabulary-default-fix-20260813-r3/phone.png", fullPage: false });
-  await phoneShot.close();
 
   const stem = await browser.newPage({ viewport: { width: 1024, height: 768 } });
   const stemErrors = [];
