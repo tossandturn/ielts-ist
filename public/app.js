@@ -180,6 +180,7 @@
     notice: "",
     searchTimer: null,
     filtersOpen: false,
+    fullDeck: false,
   },
   vocabularyRouteContext: {
     applied: false,
@@ -4620,6 +4621,7 @@ function vocabularyStudyDeck() {
     || review.stage !== "all"
     || (review.subject === "ielts" ? review.type !== "term" : review.type !== "all")
     || review.mode !== "all"
+    || review.fullDeck
     || resolvedStemTermPack,
   );
   // A normal first study session should never feel like the student has been
@@ -4812,6 +4814,14 @@ function renderVocabularyReviewPage(allItems, subjectCounts, deck, item, knownCo
   const isPendingStemFallback = isStemRoute && routeWarning === "IELTSist glossary sync pending" && !hasResolvedStemTermPack;
   const isStemCatalogLoading = state.vocabularyReview.loading && isStemRoute && state.vocabularyReview.subject !== "ielts" && !item;
   const isGlobalSearch = Boolean(String(state.vocabularyReview.query || "").trim()) && state.vocabularyReview.mode === "all" && !isStemRoute;
+  const isDefaultIeltsCore = !isStemRoute
+    && !isGlobalSearch
+    && state.vocabularyReview.subject === "ielts"
+    && state.vocabularyReview.stage === "all"
+    && state.vocabularyReview.topic === "all"
+    && (state.vocabularyReview.type === "term" || state.vocabularyReview.fullDeck)
+    && state.vocabularyReview.mode === "all";
+  const ieltsCoreCount = allItems.filter((entry) => entry.subject === "ielts").length;
   const studyLabel = isStemRoute && hasResolvedStemTermPack
     ? "STEM term pack"
     : isGlobalSearch
@@ -4875,6 +4885,7 @@ function renderVocabularyReviewPage(allItems, subjectCounts, deck, item, knownCo
         <strong>${knownCount} mastered</strong>
         <em>${Math.max(0, deck.length - knownCount)} to revisit · ${deck.length} words</em>
       </div>
+      ${isDefaultIeltsCore ? `<div class="vocab-catalog-summary"><strong>${ieltsCoreCount} IELTS Core words</strong><span>${state.vocabularyReview.fullDeck ? "Full core deck" : "30-word study session"}</span>${state.vocabularyReview.fullDeck ? "" : `<button class="secondary small-button" type="button" data-vocab-open-full-deck>Browse all ${ieltsCoreCount} core words</button>`}</div>` : ""}
       <div class="vocab-nav-actions">
         <button id="vocabPrev" class="secondary" type="button">Previous</button>
         <button id="vocabNext" class="primary" type="button">Next word</button>
@@ -5068,6 +5079,13 @@ function bindVocabularyControls() {
   });
   $("vocabPrev")?.addEventListener("click", () => setVocabularyIndex(state.vocabularyReview.index - 1));
   $("vocabNext")?.addEventListener("click", () => setVocabularyIndex(state.vocabularyReview.index + 1));
+  document.querySelector("[data-vocab-open-full-deck]")?.addEventListener("click", () => {
+    state.vocabularyReview.fullDeck = true;
+    state.vocabularyReview.type = "all";
+    state.vocabularyReview.index = 0;
+    state.vocabularyReview.revealed = false;
+    renderVocabularyTrainer();
+  });
   document.querySelectorAll("[data-vocab-index]").forEach((button) => {
     button.onclick = () => setVocabularyIndex(button.dataset.vocabIndex);
   });
@@ -5089,6 +5107,7 @@ function bindVocabularyControls() {
     state.vocabularyReview.topic = "all";
     state.vocabularyReview.index = 0;
     state.vocabularyReview.revealed = false;
+    state.vocabularyReview.fullDeck = false;
     renderVocabularyTrainer();
   });
   document.querySelector(".vocab-more-filters")?.addEventListener("toggle", (event) => {
@@ -5099,6 +5118,7 @@ function bindVocabularyControls() {
     state.vocabularyReview.topic = "all";
     state.vocabularyReview.index = 0;
     state.vocabularyReview.revealed = false;
+    state.vocabularyReview.fullDeck = false;
     state.vocabularyReview.filtersOpen = true;
     renderVocabularyTrainer();
   });
@@ -5106,6 +5126,7 @@ function bindVocabularyControls() {
     state.vocabularyReview.topic = event.target.value || "all";
     state.vocabularyReview.index = 0;
     state.vocabularyReview.revealed = false;
+    state.vocabularyReview.fullDeck = false;
     state.vocabularyReview.filtersOpen = true;
     renderVocabularyTrainer();
   });
@@ -5113,6 +5134,7 @@ function bindVocabularyControls() {
     state.vocabularyReview.type = event.target.value || "all";
     state.vocabularyReview.index = 0;
     state.vocabularyReview.revealed = false;
+    state.vocabularyReview.fullDeck = false;
     state.vocabularyReview.filtersOpen = true;
     renderVocabularyTrainer();
   });
@@ -5122,6 +5144,7 @@ function bindVocabularyControls() {
     state.vocabularyReview.query = value;
     state.vocabularyReview.index = 0;
     state.vocabularyReview.revealed = false;
+    state.vocabularyReview.fullDeck = false;
     state.vocabularyReview.page = "review";
     renderVocabularyTrainer();
     const input = $("vocabSearch");
@@ -5130,7 +5153,7 @@ function bindVocabularyControls() {
   });
   document.querySelector("[data-vocab-clear]")?.addEventListener("click", () => {
     clearVocabularyRouteTermScope();
-    Object.assign(state.vocabularyReview, { page: "review", subject: "all", stage: "all", topic: "all", type: "all", query: "", index: 0, revealed: false });
+    Object.assign(state.vocabularyReview, { page: "review", subject: "all", stage: "all", topic: "all", type: "all", query: "", index: 0, revealed: false, fullDeck: false });
     renderVocabularyTrainer();
   });
   document.querySelector("[data-vocab-retry]")?.addEventListener("click", () => {

@@ -11567,6 +11567,28 @@ button.vocab-catalog-status.is-error {
   line-height: 1.2;
 }
 
+.vocab-catalog-summary {
+  display: grid;
+  gap: 6px;
+  padding: 16px 18px;
+  border-top: 1px solid #e2e4ed;
+}
+
+.vocab-catalog-summary strong {
+  color: #1d2939;
+  font-size: 14px;
+}
+
+.vocab-catalog-summary span {
+  color: #667085;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.vocab-catalog-summary .small-button {
+  justify-self: start;
+}
+
 .vocab-mini-list {
   display: none;
 }

@@ -69,6 +69,10 @@ try {
     assert.match((await page.locator(".vocab-word-face h3").textContent()) || "", /^[A-Za-z][A-Za-z -]*$/, `${viewport.label} first card must be an IELTS English word`);
     assert.equal(await page.locator(".vocab-mini-list [data-vocab-index]").count(), 0, `${viewport.label} must not render a 3,000-word side list`);
     assert.match(await page.locator(".vocab-review-top strong").innerText(), /1\s*\/\s*30/, `${viewport.label} must present a 30-word study set`);
+    assert.match(await page.locator(".vocab-catalog-summary").innerText(), /304 IELTS Core words[\s\S]*30-word study session/i,
+      `${viewport.label} must distinguish the complete IELTS Core catalog from the first study session`);
+    assert.equal(await page.getByRole("button", { name: /browse all 304 core words/i }).isVisible(), true,
+      `${viewport.label} must let a student explicitly open the complete IELTS Core deck`);
     assert.equal(await page.locator("#vocabMeaning").isVisible(), true, `${viewport.label} must show the meaning without a blank flashcard state`);
     assert.equal(await page.getByRole("button", { name: /again/i }).isVisible(), true);
     assert.equal(await page.getByRole("button", { name: /know it/i }).isVisible(), true);
@@ -87,6 +91,16 @@ try {
     assert.deepEqual(errors, [], `${viewport.label} Vocabulary default must not emit console errors`);
     await page.close();
   }
+
+  const fullIeltsDeck = await browser.newPage({ viewport: { width: 1024, height: 768 } });
+  await fullIeltsDeck.goto(`${baseUrl}/?test=vocabulary-student-full-core#vocabulary`, { waitUntil: "networkidle" });
+  await fullIeltsDeck.locator("#vocabulary.active .vocab-review-card").waitFor();
+  await fullIeltsDeck.getByRole("button", { name: /browse all 304 core words/i }).click();
+  await fullIeltsDeck.waitForFunction(() => document.querySelector(".vocab-review-top strong")?.textContent?.includes("/ 304"));
+  assert.match(await fullIeltsDeck.locator(".vocab-catalog-summary").innerText(), /304 IELTS Core words[\s\S]*Full core deck/i,
+    "Opening the complete core deck must not require a search or subject change");
+  await assertNoOverflow(fullIeltsDeck, "Complete IELTS Core deck");
+  await fullIeltsDeck.close();
 
   const responsive = await browser.newPage({ viewport: { width: 390, height: 844 } });
   await responsive.goto(`${baseUrl}/?test=vocabulary-student-responsive#vocabulary`, { waitUntil: "networkidle" });
