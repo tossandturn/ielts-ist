@@ -60,9 +60,19 @@ try {
     testOptions: [...document.querySelector("#sequenceTestFilter").options].map((option) => ({ value: option.value, text: option.textContent })),
     status: document.querySelector("#sequenceSelectionStatus")?.textContent || "",
     hasSequence: Boolean(state.sequence),
+    catalog: {
+      totalSets: sequenceSets().length,
+      books: [...new Set(sequenceSets().map((set) => itemBook(set.listening)))],
+      playableSets: sequenceSets().filter((set) => set.speaking).length,
+    },
   }));
   assert.equal(initial.bookOptions[0]?.value, "all");
   assert.equal(initial.testOptions[0]?.value, "all");
+  assert.equal(initial.catalog.totalSets, 72, "Same Test must expose every complete Listening + Reading + Writing Cambridge set");
+  assert.equal(initial.catalog.books.length, 18, "Same Test must expose Cambridge 4–21 books with available core papers");
+  assert.ok(initial.catalog.playableSets >= 3, "Same Test must retain the reviewed Speaking-backed sets as playable");
+  assert.match(initial.bookOptions.map((option) => option.text).join(" | "), /Cambridge 10/);
+  assert.match(initial.testOptions.map((option) => option.text).join(" | "), /Test 1/);
   assert.match(initial.status, /Choose one Cambridge book and one test/i);
   assert.equal(initial.hasSequence, false, "Direct Same Test entry must not silently choose a paper");
 

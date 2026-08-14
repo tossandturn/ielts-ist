@@ -214,22 +214,25 @@ try {
     assert.equal(layout.options.length, 4, `${viewport.name}: Q25 must show all four answer choices`);
     assert.ok(layout.sheet, `${viewport.name}: Q25 is outside its answer sheet`);
     assert.ok(layout.overflow <= 1, `${viewport.name}: Q25 creates ${layout.overflow}px horizontal page overflow`);
+    const optionTop = Math.min(...layout.options.map((option) => option.rect.top));
+    const optionBottom = Math.max(...layout.options.map((option) => option.rect.bottom));
     layout.options.forEach((option, index) => {
-      assert.equal(option.display, "grid", `${viewport.name}: Q25 option ${index + 1} is not a readable grid row`);
-      assert.notEqual(option.columns, "none", `${viewport.name}: Q25 option ${index + 1} lost its option columns`);
+      assert.equal(option.display, "flex", `${viewport.name}: Q25 option ${index + 1} is not a horizontal choice`);
+      assert.ok(option.rect.top <= optionTop + 2 && option.rect.bottom >= optionBottom - 2,
+        `${viewport.name}: Q25 option ${index + 1} is not aligned on the same horizontal row`);
       assert.equal(option.text, ["A", "B", "C", "D"][index],
         `${viewport.name}: Q25 answer card must show only the source-paper letter`);
       assert.match(option.ariaLabel || "", new RegExp(`Question 25, choose ${["A", "B", "C", "D"][index]}`, "i"),
         `${viewport.name}: Q25 option ${index + 1} needs an accessible question-and-choice label`);
-      assert.ok(option.rect.width >= 70, `${viewport.name}: Q25 option ${index + 1} is compressed to ${option.rect.width}px`);
+      assert.ok(option.rect.width >= 44, `${viewport.name}: Q25 option ${index + 1} is below the touch minimum at ${option.rect.width}px`);
       assert.ok(option.rect.left >= layout.sheet.left - 1 && option.rect.right <= layout.sheet.right + 1,
         `${viewport.name}: Q25 option ${index + 1} exceeds the answer sheet`);
     });
     for (let index = 1; index < layout.options.length; index += 1) {
       const previous = layout.options[index - 1].rect;
       const current = layout.options[index].rect;
-      assert.ok(previous.bottom <= current.top + 1 || current.bottom <= previous.top + 1,
-        `${viewport.name}: Q25 options ${index} and ${index + 1} overlap`);
+      assert.ok(previous.right <= current.left + 1,
+        `${viewport.name}: Q25 options ${index} and ${index + 1} overlap horizontally`);
     }
     const q25Choice = q25.locator('input[type="radio"][value="B"]');
     await q25Choice.check();

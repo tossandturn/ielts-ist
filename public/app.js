@@ -6644,13 +6644,13 @@ function applySingleUnitFilters(items, moduleName, scope = currentSinglePractice
   });
 }
 
-function renderFilterOptions(id, values, label) {
+function renderFilterOptions(id, values, label, itemLabel = "") {
   const select = $(id);
   if (!select) return;
   const current = select.value || "all";
   const unique = [...new Set(values.filter((value) => value !== null && value !== undefined))]
     .sort((a, b) => Number(a) - Number(b));
-  const optionLabel = label.replace(/^All\s*/, "");
+  const optionLabel = itemLabel || label.replace(/^All\s*/, "");
   select.innerHTML = [
     `<option value="all">${label}</option>`,
     ...unique.map((value) => `<option value="${value}">${optionLabel} ${value}</option>`),
@@ -19270,16 +19270,19 @@ function sequenceSets() {
       .filter(([key]) => key),
   );
   return completeCambridgeExamSets(mergedItems("listening"), mergedItems("reading"), mergedItems("writing"))
-    .map((set) => ({ ...set, speaking: speakingBySet.get(set.key) || null }))
-    .filter((set) => set.speaking);
+    .map((set) => ({
+      ...set,
+      speaking: speakingBySet.get(set.key) || null,
+      speakingAvailability: speakingBySet.has(set.key) ? "reviewed" : "pending",
+    }));
 }
 
 function renderSequenceFilters() {
   const sets = sequenceSets();
-  renderFilterOptions("sequenceBookFilter", sets.map((set) => itemBook(set.listening)), "All Cambridge");
+  renderFilterOptions("sequenceBookFilter", sets.map((set) => itemBook(set.listening)), "All Cambridge", "Cambridge");
   const selectedBook = filterValue("sequenceBookFilter");
   const testSets = selectedBook === "all" ? sets : sets.filter((set) => String(itemBook(set.listening)) === selectedBook);
-  renderFilterOptions("sequenceTestFilter", testSets.map((set) => itemTest(set.listening)), "All tests");
+  renderFilterOptions("sequenceTestFilter", testSets.map((set) => itemTest(set.listening)), "All tests", "Test");
   renderSequenceSelectionStatus();
 }
 
@@ -19288,16 +19291,41 @@ function renderSequenceSelectionStatus() {
   if (!status) return;
   const book = filterValue("sequenceBookFilter");
   const test = filterValue("sequenceTestFilter");
+  const action = $("buildSequence");
   if (book === "all" || test === "all") {
     status.textContent = "Choose one Cambridge book and one test. IELTSist will not select a paper for you.";
     status.dataset.state = "waiting";
+    if (action) {
+      action.disabled = false;
+      action.textContent = "Open full test";
+    }
     return;
   }
   const selected = sequenceSets().find((set) => String(itemBook(set.listening)) === book && String(itemTest(set.listening)) === test);
-  status.textContent = selected
-    ? `Ready: Cambridge ${book} Test ${test} · ${selected.listening.id} · ${selected.reading.id} · ${selected.task1.id} + ${selected.task2.id} · ${selected.speaking.id}`
-    : "That full Cambridge set is unavailable. Choose another test.";
-  status.dataset.state = selected ? "ready" : "error";
+  if (!selected) {
+    status.textContent = "That Cambridge set is unavailable. Choose another test.";
+    status.dataset.state = "error";
+    if (action) {
+      action.disabled = true;
+      action.textContent = "Unavailable";
+    }
+    return;
+  }
+  if (!selected.speaking) {
+    status.textContent = `Cambridge ${book} Test ${test} is listed, but its reviewed Speaking source is still pending. Listening, Reading and Writing are ready; choose another test to open a complete full test.`;
+    status.dataset.state = "pending";
+    if (action) {
+      action.disabled = true;
+      action.textContent = "Speaking source pending";
+    }
+    return;
+  }
+  status.textContent = `Ready: Cambridge ${book} Test ${test} · ${selected.listening.id} · ${selected.reading.id} · ${selected.task1.id} + ${selected.task2.id} · ${selected.speaking.id}`;
+  status.dataset.state = "ready";
+  if (action) {
+    action.disabled = false;
+    action.textContent = "Open full test";
+  }
 }
 
 function buildSequence(savedBundle = null, options = {}) {
@@ -19340,8 +19368,14 @@ function buildSequence(savedBundle = null, options = {}) {
     && (test === "all" || String(itemTest(set.listening)) === test),
   );
   const pickedSet = candidates.length === 1 ? candidates[0] : null;
+  state.sequence = null;
+  state.sequenceSubmitted = false;
   if (!pickedSet) {
     $("sequencePaper").innerHTML = `<section class="panel notice">No complete same-test Cambridge set is available.</section>`;
+    return;
+  }
+  if (!pickedSet.speaking) {
+    $("sequencePaper").innerHTML = `<section class="panel notice">This Cambridge set is listed, but the reviewed Speaking source is still pending. Choose a test marked Ready to open the complete paper.</section>`;
     return;
   }
   state.sequence = {
