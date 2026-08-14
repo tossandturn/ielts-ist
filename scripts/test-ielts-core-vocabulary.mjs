@@ -71,7 +71,7 @@ assert.match(appVersion, /^\d{8}-[a-z0-9-]+-v\d+$/, "Frontend assets need a date
 assert.equal(stylesVersion, appVersion, "CSS and JavaScript must use the same cache version");
 assert.equal(
   appVersion,
-  "20260815-ielts-core-catalog-v13",
+  "20260815-ielts-core-catalog-v14",
   "A changed app bundle must receive a fresh cache version before production release",
 );
 

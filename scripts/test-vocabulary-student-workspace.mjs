@@ -96,9 +96,15 @@ try {
   await fullIeltsDeck.goto(`${baseUrl}/?test=vocabulary-student-full-core#vocabulary`, { waitUntil: "networkidle" });
   await fullIeltsDeck.locator("#vocabulary.active .vocab-review-card").waitFor();
   await fullIeltsDeck.getByRole("button", { name: /browse all 304 core words/i }).click();
-  await fullIeltsDeck.waitForFunction(() => document.querySelector(".vocab-review-top strong")?.textContent?.includes("/ 304"));
+  await fullIeltsDeck.waitForFunction(() => document.querySelector(".vocab-review-top strong")?.textContent?.trim() === "1 / 304");
   assert.match(await fullIeltsDeck.locator(".vocab-catalog-summary").innerText(), /304 IELTS Core words[\s\S]*Full core deck/i,
     "Opening the complete core deck must not require a search or subject change");
+  await fullIeltsDeck.locator("#vocabSearch").fill("sustainable");
+  await fullIeltsDeck.locator(".vocab-word-face h3").waitFor();
+  await fullIeltsDeck.locator("#vocabSearch").fill("");
+  await fullIeltsDeck.waitForFunction(() => document.querySelector(".vocab-review-top strong")?.textContent?.trim() === "1 / 30");
+  assert.match(await fullIeltsDeck.locator(".vocab-catalog-summary").innerText(), /304 IELTS Core words[\s\S]*30-word study session/i,
+    "Clearing a search after browsing the full deck must return to the default IELTS study set");
   await assertNoOverflow(fullIeltsDeck, "Complete IELTS Core deck");
   await fullIeltsDeck.close();
 

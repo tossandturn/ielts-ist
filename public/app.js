@@ -5141,10 +5141,17 @@ function bindVocabularyControls() {
   $("vocabSearch")?.addEventListener("input", (event) => {
     const value = event.target.value || "";
     window.clearTimeout(state.vocabularyReview.searchTimer);
+    const restoreIeltsStudySet = !value
+      && state.vocabularyReview.fullDeck
+      && state.vocabularyReview.subject === "ielts"
+      && state.vocabularyReview.mode === "all";
     state.vocabularyReview.query = value;
     state.vocabularyReview.index = 0;
     state.vocabularyReview.revealed = false;
-    state.vocabularyReview.fullDeck = false;
+    if (restoreIeltsStudySet) {
+      state.vocabularyReview.type = "term";
+      state.vocabularyReview.fullDeck = false;
+    }
     state.vocabularyReview.page = "review";
     renderVocabularyTrainer();
     const input = $("vocabSearch");
