@@ -4073,7 +4073,7 @@ async function syncLocalVocabularyNotebook() {
 
 async function ensureIeltsCoreVocabularyLoaded() {
   if (ieltsCoreVocabularyLoadPromise) return ieltsCoreVocabularyLoadPromise;
-  ieltsCoreVocabularyLoadPromise = fetch("/data/ielts-core-vocabulary.json?v=20260813-vocabulary-workspace-v3", { cache: "no-cache" })
+  ieltsCoreVocabularyLoadPromise = fetch("/data/ielts-core-vocabulary.json?v=20260814-vocabulary-answercard-v4", { cache: "no-cache" })
     .then(async (response) => {
       if (!response.ok) throw new Error(`Vocabulary catalog returned ${response.status}`);
       const payload = await response.json();
@@ -4242,6 +4242,12 @@ function routeContextSubject(context, items) {
   return routeMatch?.subject || "all";
 }
 
+function hasResolvedStemVocabularyTermPack(items = normalizedCoreVocabularyItems(), context = state.vocabularyRouteContext) {
+  if (context?.from !== "stem" || !Array.isArray(context.termIds) || !context.termIds.length) return false;
+  const requested = new Set(context.termIds);
+  return items.some((item) => requested.has(item.termId));
+}
+
 function applyVocabularyRouteContext(allItems) {
   const context = vocabularyRouteContextFromLocation();
   if (context.from !== "stem") {
@@ -4258,8 +4264,11 @@ function applyVocabularyRouteContext(allItems) {
     Object.assign(state.vocabularyReview, { subject: "all", stage: "all", topic: "all", type: "all", query: "", index: 0, revealed: false });
   }
   const subject = routeContextSubject(context, allItems);
-  if (subject !== "all" && (!alreadyApplied || state.vocabularyReview.subject === "all")) state.vocabularyReview.subject = subject;
-  const subjectItems = allItems.filter((item) => subject === "all" || item.subject === subject);
+  const selectedSubject = subject === "all"
+    ? (allItems.some((item) => item.subject !== "ielts") ? "ielts" : "all")
+    : subject;
+  if (!alreadyApplied || state.vocabularyReview.subject === "all") state.vocabularyReview.subject = selectedSubject;
+  const subjectItems = allItems.filter((item) => item.subject === selectedSubject);
   const topicMatch = subjectItems.find((item) =>
     (!context.family || item.family === context.family)
     && (!context.taxonomyId || item.taxonomyId === context.taxonomyId)
@@ -4527,14 +4536,16 @@ function filteredCoreVocabulary() {
   const query = String(review.query || "").trim().toLowerCase();
   const routeTermIds = new Set(state.vocabularyRouteContext.termIds || []);
   const globalSearch = Boolean(query) && review.mode === "all" && state.vocabularyRouteContext.from !== "stem";
-  return normalizedCoreVocabularyItems().filter((item) => {
+  const allItems = normalizedCoreVocabularyItems();
+  const resolvedStemTermPack = hasResolvedStemVocabularyTermPack(allItems);
+  return allItems.filter((item) => {
     if (!globalSearch && review.subject !== "all" && item.subject !== review.subject) return false;
     if (!globalSearch && review.stage !== "all" && item.stage !== review.stage) return false;
     if (!globalSearch && review.topic !== "all" && item.topic !== review.topic) return false;
     if (!globalSearch && review.type !== "all" && item.type !== review.type) return false;
     if (review.mode === "notebook" && !vocabularyIsSaved(item)) return false;
     if (review.mode === "due" && (!vocabularyIsSaved(item) || !vocabularyIsDue(item))) return false;
-    if (routeTermIds.size && !routeTermIds.has(item.termId)) return false;
+    if (resolvedStemTermPack && routeTermIds.size && !routeTermIds.has(item.termId)) return false;
     if (!query) return true;
     return [
       item.word, item.meaning, item.definition, item.cn, item.formula, item.formulaExplanation,
@@ -4556,13 +4567,14 @@ const vocabularyStudySetSize = 30;
 function vocabularyStudyDeck() {
   const deck = filteredCoreVocabulary();
   const review = state.vocabularyReview;
+  const resolvedStemTermPack = hasResolvedStemVocabularyTermPack();
   const hasExplicitScope = Boolean(
     String(review.query || "").trim()
     || review.topic !== "all"
     || review.stage !== "all"
     || (review.subject === "ielts" ? review.type !== "term" : review.type !== "all")
     || review.mode !== "all"
-    || state.vocabularyRouteContext.termIds?.length,
+    || resolvedStemTermPack,
   );
   // A normal first study session should never feel like the student has been
   // dropped into a 3,000-word database. Search, saved notes and STEM packs
@@ -4588,7 +4600,7 @@ async function ensureAlevelVocabularyLoaded() {
   if (alevelVocabularyLoadPromise) return alevelVocabularyLoadPromise;
   state.vocabularyReview.loading = true;
   state.vocabularyReview.error = "";
-  alevelVocabularyLoadPromise = fetch("/data/alevel-stem-vocabulary.json?v=20260813-vocabulary-workspace-v3", { cache: "no-cache" })
+  alevelVocabularyLoadPromise = fetch("/data/alevel-stem-vocabulary.json?v=20260814-vocabulary-answercard-v4", { cache: "no-cache" })
     .then(async (response) => {
       if (!response.ok) throw new Error(`Vocabulary catalog returned ${response.status}`);
       const payload = await response.json();
@@ -4750,8 +4762,10 @@ function renderVocabularyReviewPage(allItems, subjectCounts, deck, item, knownCo
   const routeContext = state.vocabularyRouteContext;
   const routeWarning = vocabularyRouteContextWarning(routeContext, allItems);
   const isStemRoute = routeContext.from === "stem";
+  const hasResolvedStemTermPack = hasResolvedStemVocabularyTermPack(allItems, routeContext);
+  const isPendingStemFallback = isStemRoute && routeContext.termIds.length && !hasResolvedStemTermPack;
   const isGlobalSearch = Boolean(String(state.vocabularyReview.query || "").trim()) && state.vocabularyReview.mode === "all" && !isStemRoute;
-  const studyLabel = isStemRoute
+  const studyLabel = isStemRoute && hasResolvedStemTermPack
     ? "STEM term pack"
     : isGlobalSearch
       ? "All vocabulary search"
@@ -4785,7 +4799,7 @@ function renderVocabularyReviewPage(allItems, subjectCounts, deck, item, knownCo
       <button class="secondary small-button vocab-pack-picker" type="button" data-vocab-back>Change word pack</button>
       ${catalogStatus}
     </div>
-    ${routeContext.from === "stem" ? `<aside class="vocab-route-context" aria-label="STEM learning context"><div><strong>STEM term pack</strong><span>${escapeHtml(vocabularySubjectLabel(state.vocabularyReview.subject))}${routeContext.topicId ? ` · ${escapeHtml(routeContext.topicId)}` : ""}${routeContext.attemptId ? ` · attempt ${escapeHtml(routeContext.attemptId)}` : ""} · Vocabulary support only; progress stays on each site.</span>${routeWarning ? `<em role="alert">${escapeHtml(routeWarning)}</em>` : ""}</div>${returnToStem ? `<a class="secondary small-button" href="${escapeHtml(returnToStem)}">Return to STEM attempt</a>` : ""}</aside>` : ""}
+    ${routeContext.from === "stem" ? `<aside class="vocab-route-context" aria-label="STEM learning context"><div><strong>${isPendingStemFallback ? "IELTSist glossary sync pending" : "STEM term pack"}</strong><span>${isPendingStemFallback ? `The requested STEM term pack is not available here yet. Continue with ${escapeHtml(vocabularySubjectLabel(state.vocabularyReview.subject))} while it syncs.` : `${escapeHtml(vocabularySubjectLabel(state.vocabularyReview.subject))}${routeContext.topicId ? ` · ${escapeHtml(routeContext.topicId)}` : ""}${routeContext.attemptId ? ` · attempt ${escapeHtml(routeContext.attemptId)}` : ""} · Vocabulary support only; progress stays on each site.`}</span>${routeWarning && !isPendingStemFallback ? `<em role="alert">${escapeHtml(routeWarning)}</em>` : ""}${isPendingStemFallback ? `<button class="secondary small-button" type="button" data-vocab-clear>Browse selected subject</button>` : ""}</div>${returnToStem ? `<a class="secondary small-button" href="${escapeHtml(returnToStem)}">Return to STEM attempt</a>` : ""}</aside>` : ""}
     ${item ? `<article class="vocab-review-card ${revealed ? "is-revealed" : ""}">
       <div class="vocab-review-top">
         <span class="eyebrow">${escapeHtml(currentScopeLabel)}</span>
@@ -9728,14 +9742,13 @@ function renderObjectiveAnswerControl(question, prefix, number) {
   if (kind === "radio" && !fallback) {
     return `<div class='objective-answer-shell objective-answer-radio' data-objective-qid='${escapeHtml(question.id)}'><fieldset><legend class='sr-only'>Question ${number} answer</legend>${visibleOptions.map((option) => {
       const id = `${controlId}-${option.value}`;
-      return `<label for='${id}'><input id='${id}' class='objective-answer-control' type='radio' name='${controlId}' value='${escapeHtml(option.value)}' data-prefix='${escapeHtml(prefix)}' data-qid='${escapeHtml(question.id)}' /> <strong>${escapeHtml(option.value)}</strong><span>${escapeHtml(option.label)}</span></label>`;
+      return `<label for='${id}' aria-label='Question ${number}, choose ${escapeHtml(option.value)}'><input id='${id}' class='objective-answer-control' type='radio' name='${controlId}' value='${escapeHtml(option.value)}' data-prefix='${escapeHtml(prefix)}' data-qid='${escapeHtml(question.id)}' /> <strong aria-hidden='true'>${escapeHtml(option.value)}</strong></label>`;
     }).join("")}</fieldset>${renderObjectiveAnswerProxy(prefix, question)}</div>`;
   }
   if (kind === "select" && !fallback) {
-    return `<label class='objective-answer-shell objective-answer-select' for='${controlId}'><span class='sr-only'>Question ${number} answer</span><select id='${controlId}' class='text-input objective-answer-control' data-prefix='${escapeHtml(prefix)}' data-qid='${escapeHtml(question.id)}'><option value=''>Choose an answer</option>${visibleOptions.map((option) => `<option value='${escapeHtml(option.value)}'>${escapeHtml(option.value)} · ${escapeHtml(option.label)}</option>`).join("")}</select>${renderObjectiveAnswerProxy(prefix, question)}</label>`;
+    return `<label class='objective-answer-shell objective-answer-select' for='${controlId}'><span class='sr-only'>Question ${number} answer</span><select id='${controlId}' class='text-input objective-answer-control' data-prefix='${escapeHtml(prefix)}' data-qid='${escapeHtml(question.id)}'><option value=''>Choose a letter</option>${visibleOptions.map((option) => `<option value='${escapeHtml(option.value)}'>${escapeHtml(option.value)}</option>`).join("")}</select>${renderObjectiveAnswerProxy(prefix, question)}</label>`;
   }
-  const contentGap = fallback ? `<span class='objective-content-gap'>Options are not imported for this question. Type the letter or answer shown on the paper.</span>` : "";
-  return `<label class='objective-answer-shell objective-answer-text' for='${controlId}'><span class='sr-only'>Question ${number} answer</span><input id='${controlId}' class='text-input objective-answer-control' data-prefix='${escapeHtml(prefix)}' data-qid='${escapeHtml(question.id)}' placeholder='${fallback ? "Letter or answer" : "Answer"}' />${renderObjectiveAnswerProxy(prefix, question)}${contentGap}</label>`;
+  return `<label class='objective-answer-shell objective-answer-text' for='${controlId}'><span class='sr-only'>Question ${number} answer</span><input id='${controlId}' class='text-input objective-answer-control' data-prefix='${escapeHtml(prefix)}' data-qid='${escapeHtml(question.id)}' placeholder='${fallback ? "Answer from paper" : "Answer"}' />${renderObjectiveAnswerProxy(prefix, question)}</label>`;
 }
 
 function renderObjectiveMultipleChoiceGroup(entries, prefix) {
@@ -9746,9 +9759,9 @@ function renderObjectiveMultipleChoiceGroup(entries, prefix) {
   const groupId = String(question?.optionGroupId || "");
   if (!groupId || visibleOptions.length < 2) return "";
   const numbers = entries.map(([number]) => number);
-  return `<div class='paper-answer-row objective-multiple-answer-group' data-question-number='${numbers[0]}' data-qid='${escapeHtml(entries.map(([, item]) => item.id).join(","))}' data-objective-group-id='${escapeHtml(groupId)}' data-selection-limit='${limit}'><div class='paper-answer-number'><strong>${escapeHtml(numbers.join(" / "))}</strong><span>Multiple choice · choose ${limit}</span></div><fieldset><legend>Choose ${limit} answers for Questions ${escapeHtml(numbers.join(" and "))}</legend>${visibleOptions.map((option) => {
+  return `<div class='paper-answer-row objective-multiple-answer-group' data-question-number='${numbers[0]}' data-qid='${escapeHtml(entries.map(([, item]) => item.id).join(","))}' data-objective-group-id='${escapeHtml(groupId)}' data-selection-limit='${limit}'><div class='paper-answer-number'><strong>${escapeHtml(numbers.join(" / "))}</strong><span>Choose ${limit}</span></div><fieldset><legend class='sr-only'>Choose ${limit} answers for Questions ${escapeHtml(numbers.join(" and "))}</legend>${visibleOptions.map((option) => {
     const id = `objective-${prefix}-${groupId}-${option.value}`.replace(/[^A-Za-z0-9_-]/g, "-");
-    return `<label for='${id}'><input id='${id}' class='objective-group-choice' type='checkbox' value='${escapeHtml(option.value)}' /> <strong>${escapeHtml(option.value)}</strong><span>${escapeHtml(option.label)}</span></label>`;
+    return `<label for='${id}' aria-label='Questions ${escapeHtml(numbers.join(" and "))}, choose ${escapeHtml(option.value)}'><input id='${id}' class='objective-group-choice' type='checkbox' value='${escapeHtml(option.value)}' /> <strong aria-hidden='true'>${escapeHtml(option.value)}</strong></label>`;
   }).join("")}<span class='objective-group-status' aria-live='polite'>0 / ${limit} selected</span></fieldset>${entries.map(([, item]) => renderObjectiveAnswerProxy(prefix, item, groupId)).join("")}</div>`;
 }
 

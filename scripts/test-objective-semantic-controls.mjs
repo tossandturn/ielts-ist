@@ -86,13 +86,23 @@ try {
     return {
       radioCount: host.querySelectorAll("input[type='radio']").length,
       values: [...host.querySelectorAll("input[type='radio']")].map((input) => input.value),
+      labels: [...host.querySelectorAll("fieldset > label")].map((label) => ({
+        text: label.innerText.trim(),
+        ariaLabel: label.getAttribute("aria-label"),
+      })),
     };
   }, fixedChoiceQuestion);
   assert.equal(fixedChoice.radioCount, 3, "True/False/Not Given and Yes/No/Not Given must render semantic radio controls");
   assert.deepEqual(fixedChoice.values, fixedChoiceQuestion.options.map((option) => option.value));
+  assert.deepEqual(fixedChoice.labels.map((label) => label.text), fixedChoiceQuestion.options.map((option) => option.value),
+    "The answer card must show only response labels; question wording remains on the paper");
+  assert.ok(fixedChoice.labels.every((label) => /^Question 1, choose /i.test(label.ariaLabel || "")),
+    "Compact answer-card controls must retain an accessible question-and-choice label");
 
   const mcq = page.locator(".objective-answer-shell:has(.objective-answer-proxy[data-qid='q11'])");
   assert.equal(await mcq.locator("input[type='radio']").count(), 3, "MCQ must render radio controls");
+  assert.deepEqual((await mcq.locator("fieldset > label").allTextContents()).map((text) => text.trim()), ["A", "B", "C"],
+    "Listening answer cards must not duplicate option wording from the paper");
   await mcq.locator("input[type='radio'][value='B']").check();
   const multi = page.locator(".objective-multiple-answer-group[data-objective-group-id='q17-q18']");
   assert.equal(await multi.locator("input[type='checkbox']").count(), 5, "Choose TWO must render one checkbox group");
@@ -101,7 +111,22 @@ try {
   assert.equal(await multi.locator("input[type='checkbox'][value='A']").isDisabled(), true, "Choose TWO must prevent a third selection");
   const matching = page.locator(".objective-answer-shell:has(.objective-answer-proxy[data-qid='q27'])");
   assert.equal(await matching.locator("select").count(), 1, "Matching with real options must render a select");
+  assert.ok((await matching.locator("select option").allTextContents()).every((text) => /^(?:Choose a letter|[A-I])$/.test(text.trim())),
+    "Matching answer cards must expose only option letters, not repeated source text");
   await matching.locator("select").selectOption("A");
+
+  const fallbackAnswerCard = await page.evaluate(() => {
+    const host = document.createElement("div");
+    host.innerHTML = renderObjectiveAnswerControl({ id: "q-fallback", type: "multiple_choice", options: [] }, "fixture", 99);
+    document.body.append(host);
+    return {
+      hintCount: host.querySelectorAll(".objective-content-gap").length,
+      placeholder: host.querySelector("input")?.getAttribute("placeholder"),
+    };
+  });
+  assert.equal(fallbackAnswerCard.hintCount, 0,
+    "Answer cards with unavailable imported options must not render question-copy text");
+  assert.equal(fallbackAnswerCard.placeholder, "Answer from paper");
 
   const first = await page.evaluate(() => {
     saveSingleAnswersToState();
@@ -173,6 +198,7 @@ try {
         sheet: sheet ? rect(sheet) : null,
         options: [...host.querySelectorAll("fieldset > label")].map((label) => ({
           text: label.innerText.trim(),
+          ariaLabel: label.getAttribute("aria-label"),
           display: getComputedStyle(label).display,
           columns: getComputedStyle(label).gridTemplateColumns,
           rect: rect(label),
@@ -186,7 +212,10 @@ try {
     layout.options.forEach((option, index) => {
       assert.equal(option.display, "grid", `${viewport.name}: Q25 option ${index + 1} is not a readable grid row`);
       assert.notEqual(option.columns, "none", `${viewport.name}: Q25 option ${index + 1} lost its option columns`);
-      assert.ok(option.text.length > 8, `${viewport.name}: Q25 option ${index + 1} has no readable option text`);
+      assert.equal(option.text, ["A", "B", "C", "D"][index],
+        `${viewport.name}: Q25 answer card must show only the source-paper letter`);
+      assert.match(option.ariaLabel || "", new RegExp(`Question 25, choose ${["A", "B", "C", "D"][index]}`, "i"),
+        `${viewport.name}: Q25 option ${index + 1} needs an accessible question-and-choice label`);
       assert.ok(option.rect.width >= 70, `${viewport.name}: Q25 option ${index + 1} is compressed to ${option.rect.width}px`);
       assert.ok(option.rect.left >= layout.sheet.left - 1 && option.rect.right <= layout.sheet.right + 1,
         `${viewport.name}: Q25 option ${index + 1} exceeds the answer sheet`);

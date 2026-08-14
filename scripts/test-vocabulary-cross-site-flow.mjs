@@ -134,6 +134,29 @@ try {
   assert.equal(browsedReturn.searchParams.get("stage"), term.stage, "Browsing a local term must preserve the original STEM stage");
   await unknown.close();
 
+  const pendingWithoutLocalPack = new URL(`${baseUrl}/`);
+  pendingWithoutLocalPack.search = new URLSearchParams({
+    from: "stem",
+    contractVersion: "stem-vocabulary-context-v1",
+    family: "exam",
+    termId: "not-yet-imported-term",
+    returnTo,
+    sourceStatus: "pending",
+    termInventoryStatus: "not-imported",
+  }).toString();
+  const pendingFallback = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+  await pendingFallback.goto(pendingWithoutLocalPack.toString(), { waitUntil: "networkidle" });
+  await pendingFallback.locator("#vocabulary.active .vocab-review-card").waitFor();
+  assert.equal(await pendingFallback.locator(".vocab-empty-state").count(), 0,
+    "An unmapped STEM vocabulary link must never leave the student in an empty word pack");
+  assert.ok(await pendingFallback.locator(".vocab-word-face h3").count() > 0,
+    "An unmapped STEM vocabulary link must offer a usable fallback word");
+  assert.match(await pendingFallback.locator(".vocab-review-top .eyebrow").textContent(), /IELTS Core Vocabulary/i,
+    "A STEM link without a local subject mapping must fall back to the student-safe IELTS Core pack");
+  assert.match(await pendingFallback.locator(".vocab-route-context").textContent(), /IELTSist glossary sync pending/i,
+    "The fallback must remain explicit that the STEM glossary pack is still pending");
+  await pendingFallback.close();
+
   const staleParams = new URL(stemVocabularyUrl(returnTo));
   staleParams.searchParams.set("specificationVersion", "A-Level STEM 2024");
   staleParams.searchParams.set("sourceStatus", "source-backed");

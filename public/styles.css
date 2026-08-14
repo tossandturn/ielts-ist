@@ -986,7 +986,7 @@ body.immersive-mode .exam-section.focused-section .paper-answer-row {
   gap: 5px;
 }
 
-body.immersive-mode .exam-section.focused-section .paper-answer-row span {
+body.immersive-mode .exam-section.focused-section .paper-answer-row > span {
   width: 22px;
   height: 22px;
   background: transparent;
@@ -17771,10 +17771,10 @@ body.immersive-mode:is([data-immersive-module="writing"], [data-immersive-module
 .objective-answer-radio label,
 .objective-multiple-answer-group fieldset > label {
   display: grid;
-  grid-template-columns: auto 18px minmax(0, 1fr);
+  grid-template-columns: 18px minmax(0, 1fr);
   align-items: start;
   gap: 6px;
-  min-height: 28px;
+  min-height: 30px;
   color: #344054;
   font-size: 12px;
   line-height: 1.35;
@@ -18214,7 +18214,7 @@ body.focus-camp-system .subscription-card.featured {
 @media (max-width: 600px) {
   .objective-answer-radio label,
   .objective-multiple-answer-group fieldset > label {
-    grid-template-columns: auto 17px minmax(0, 1fr);
+    grid-template-columns: 17px minmax(0, 1fr);
     font-size: 11px;
   }
 
