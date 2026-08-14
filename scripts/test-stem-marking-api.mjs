@@ -76,6 +76,8 @@ function startApp() {
       STEM_MARKING_AI_API_KEY: "stem-marking-test-key",
       STEM_MARKING_AI_BASE_URL: `http://127.0.0.1:${providerPort}/v1`,
       STEM_MARKING_AI_MODEL: "stem-marking-test-model",
+      STEM_MARKING_AI_DISABLED: "0",
+      STEM_MARKING_QUEUE_DISABLED: "0",
       STEM_MARKING_TRUSTED_MANIFEST_PATH: manifestPath,
     },
     stdio: ["ignore", "pipe", "pipe"],

@@ -157,6 +157,40 @@ try {
     "The fallback must remain explicit that the STEM glossary pack is still pending");
   await pendingFallback.close();
 
+  const mappedIgcseMath = new URL(`${baseUrl}/`);
+  mappedIgcseMath.search = new URLSearchParams({
+    from: "stem",
+    contractVersion: "stem-vocabulary-context-v1",
+    family: "exam",
+    taxonomyId: "exam.0580.igcse",
+    routeId: "exam.0580.igcse",
+    subjectCode: "0580",
+    stage: "IGCSE",
+    topicId: "algebra",
+    returnTo,
+    sourceStatus: "taxonomy-mapped",
+    termInventoryStatus: "not-imported",
+  }).toString();
+  const mappedMath = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+  await mappedMath.route("**/data/alevel-stem-vocabulary.json*", async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 400));
+    await route.continue();
+  });
+  await mappedMath.goto(mappedIgcseMath.toString(), { waitUntil: "domcontentloaded" });
+  await mappedMath.locator(".vocab-catalog-status").waitFor();
+  assert.equal(await mappedMath.locator(".vocab-empty-state").count(), 0,
+    "A STEM subject route must show a loading state rather than a false empty result while the local catalog loads");
+  await mappedMath.locator("#vocabulary.active .vocab-word-face h3").waitFor();
+  assert.equal(await mappedMath.locator(".vocab-empty-state").count(), 0,
+    "An explicitly mapped IGCSE subject route without term IDs must open a usable local subject pack");
+  assert.ok(await mappedMath.locator(".vocab-word-face h3").count() > 0,
+    "A mapped IGCSE subject route must show a study word instead of a blank result");
+  assert.match(await mappedMath.locator(".vocab-review-top .eyebrow").textContent(), /IGCSE Mathematics Vocabulary/i,
+    "Cambridge 0580 must resolve through the explicit Mathematics subject mapping");
+  assert.match(await mappedMath.locator(".vocab-route-context").textContent(), /IELTSist glossary sync pending/i,
+    "A local subject fallback must not claim STEM source terms were imported");
+  await mappedMath.close();
+
   const staleParams = new URL(stemVocabularyUrl(returnTo));
   staleParams.searchParams.set("specificationVersion", "A-Level STEM 2024");
   staleParams.searchParams.set("sourceStatus", "source-backed");

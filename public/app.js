@@ -4120,6 +4120,34 @@ function vocabularySpecificationVersion(item) {
   return `Cambridge-${String(item?.subject || "stem").toLowerCase()}-2026-knowledge-v2`;
 }
 
+// Cambridge syllabus codes are not local vocabulary identifiers. Keep this
+// deliberately explicit so a STEM route can open a useful local subject pack
+// without treating a code or a taxonomy label as a fuzzy content match.
+const vocabularySubjectByCambridgeCode = Object.freeze({
+  "0580": "mathematics", "0606": "mathematics", "0607": "mathematics", "9709": "mathematics", "9231": "mathematics",
+  "0625": "physics", "9702": "physics",
+  "0620": "chemistry", "9701": "chemistry",
+  "0610": "biology", "9700": "biology",
+  "0455": "economics", "9708": "economics",
+  "0450": "business", "9609": "business",
+  "0452": "accounting", "9706": "accounting",
+  "0478": "computer-science", "9618": "computer-science",
+  "0417": "information-technology", "9626": "information-technology",
+  "0460": "geography", "9696": "geography",
+  "0470": "history", "9489": "history",
+  "0495": "sociology", "9699": "sociology",
+  "9990": "psychology", "9084": "law",
+  "0680": "environmental-management", "8291": "environmental-management",
+  "0457": "global-perspectives", "9239": "global-perspectives",
+  "0445": "design-technology", "9705": "design-technology",
+});
+
+function vocabularySubjectFromCambridgeCode(context, items) {
+  const subject = vocabularySubjectByCambridgeCode[String(context?.subjectCode || "").trim()];
+  if (!subject) return "";
+  return subject;
+}
+
 function normalizeVocabularyMetadata(item, index = 0) {
   const subject = item.subject || "ielts";
   const topic = item.topic || "ielts-core";
@@ -4232,6 +4260,8 @@ function routeContextSubject(context, items) {
     && (!context.subjectCode || item.subjectCode === context.subjectCode),
   );
   if (exactMatches.length) return exactMatches[0].subject;
+  const mappedSubject = vocabularySubjectFromCambridgeCode(context, items);
+  if (mappedSubject) return mappedSubject;
   const routeMatch = items.find((item) =>
     (!context.family || item.family === context.family)
     && (!context.routeId || item.routeId === context.routeId)
@@ -4505,6 +4535,14 @@ function vocabularySubjectLabel(subject) {
   }[subject] || "Core vocabulary";
 }
 
+function vocabularyRouteStudyLabel(subject, context = state.vocabularyRouteContext) {
+  const subjectLabel = vocabularySubjectLabel(subject).replace(/^IG \+ A-Level\s+/, "").replace(/^A-Level\s+/, "");
+  const stage = String(context?.stage || "").toUpperCase();
+  if (stage === "IGCSE") return `IGCSE ${subjectLabel} Vocabulary`;
+  if (stage === "AS" || stage === "A2") return `${stage} Level ${subjectLabel} Vocabulary`;
+  return vocabularySubjectLabel(subject);
+}
+
 function vocabularyTypeLabel(type) {
   return { all: "All types", term: "Term", command: "Command word", phrase: "Question sentence" }[type] || "Term";
 }
@@ -4771,15 +4809,18 @@ function renderVocabularyReviewPage(allItems, subjectCounts, deck, item, knownCo
   const routeWarning = vocabularyRouteContextWarning(routeContext, allItems);
   const isStemRoute = routeContext.from === "stem";
   const hasResolvedStemTermPack = hasResolvedStemVocabularyTermPack(allItems, routeContext);
-  const isPendingStemFallback = isStemRoute && routeContext.termIds.length && !hasResolvedStemTermPack;
+  const isPendingStemFallback = isStemRoute && routeWarning === "IELTSist glossary sync pending" && !hasResolvedStemTermPack;
+  const isStemCatalogLoading = state.vocabularyReview.loading && isStemRoute && state.vocabularyReview.subject !== "ielts" && !item;
   const isGlobalSearch = Boolean(String(state.vocabularyReview.query || "").trim()) && state.vocabularyReview.mode === "all" && !isStemRoute;
   const studyLabel = isStemRoute && hasResolvedStemTermPack
     ? "STEM term pack"
     : isGlobalSearch
       ? "All vocabulary search"
-    : state.vocabularyReview.subject === "ielts"
+      : state.vocabularyReview.subject === "ielts"
       ? "IELTS Core Vocabulary"
-      : vocabularySubjectLabel(state.vocabularyReview.subject);
+      : isStemRoute
+        ? vocabularyRouteStudyLabel(state.vocabularyReview.subject, routeContext)
+        : vocabularySubjectLabel(state.vocabularyReview.subject);
   const itemScopeLabel = item?.subject === "ielts" ? "IELTS Core Vocabulary" : vocabularySubjectLabel(item?.subject || "");
   const currentScopeLabel = item
     ? `${isGlobalSearch ? `${studyLabel} · ${itemScopeLabel}` : studyLabel}${item.topicLabel || item.topic ? ` · ${item.topicLabel || item.topic}` : ""}`
@@ -4807,8 +4848,8 @@ function renderVocabularyReviewPage(allItems, subjectCounts, deck, item, knownCo
       <button class="secondary small-button vocab-pack-picker" type="button" data-vocab-back>Change word pack</button>
       ${catalogStatus}
     </div>
-    ${routeContext.from === "stem" ? `<aside class="vocab-route-context" aria-label="STEM learning context"><div><strong>${isPendingStemFallback ? "IELTSist glossary sync pending" : "STEM term pack"}</strong><span>${isPendingStemFallback ? `The requested STEM term pack is not available here yet. Continue with ${escapeHtml(vocabularySubjectLabel(state.vocabularyReview.subject))} while it syncs.` : `${escapeHtml(vocabularySubjectLabel(state.vocabularyReview.subject))}${routeContext.topicId ? ` · ${escapeHtml(routeContext.topicId)}` : ""}${routeContext.attemptId ? ` · attempt ${escapeHtml(routeContext.attemptId)}` : ""} · Vocabulary support only; progress stays on each site.`}</span>${routeWarning && !isPendingStemFallback ? `<em role="alert">${escapeHtml(routeWarning)}</em>` : ""}${isPendingStemFallback ? `<button class="secondary small-button" type="button" data-vocab-clear>Browse selected subject</button>` : ""}</div>${returnToStem ? `<a class="secondary small-button" href="${escapeHtml(returnToStem)}">Return to STEM attempt</a>` : ""}</aside>` : ""}
-    ${item ? `<article class="vocab-review-card ${revealed ? "is-revealed" : ""}">
+    ${routeContext.from === "stem" ? `<aside class="vocab-route-context" aria-label="STEM learning context"><div><strong>${isPendingStemFallback ? "IELTSist glossary sync pending" : "STEM term pack"}</strong><span>${isPendingStemFallback ? `The requested STEM term pack is not available here yet. Continue with ${escapeHtml(vocabularyRouteStudyLabel(state.vocabularyReview.subject, routeContext))} while it syncs.` : `${escapeHtml(vocabularySubjectLabel(state.vocabularyReview.subject))}${routeContext.topicId ? ` · ${escapeHtml(routeContext.topicId)}` : ""}${routeContext.attemptId ? ` · attempt ${escapeHtml(routeContext.attemptId)}` : ""} · Vocabulary support only; progress stays on each site.`}</span>${routeWarning && !isPendingStemFallback ? `<em role="alert">${escapeHtml(routeWarning)}</em>` : ""}${isPendingStemFallback && routeContext.termIds.length ? `<button class="secondary small-button" type="button" data-vocab-clear>Browse selected subject</button>` : ""}</div>${returnToStem ? `<a class="secondary small-button" href="${escapeHtml(returnToStem)}">Return to STEM attempt</a>` : ""}</aside>` : ""}
+    ${isStemCatalogLoading ? `<article class="vocab-review-card vocab-loading-state" role="status"><strong>Loading ${escapeHtml(vocabularyRouteStudyLabel(state.vocabularyReview.subject, routeContext))}</strong><p>Preparing the local study pack for this STEM route.</p></article>` : item ? `<article class="vocab-review-card ${revealed ? "is-revealed" : ""}">
       <div class="vocab-review-top">
         <span class="eyebrow">${escapeHtml(currentScopeLabel)}</span>
         <strong>${escapeHtml(deckPosition)}</strong>
@@ -8699,10 +8740,19 @@ function renderLegacyWritingReportHtml(text, json, fallbackName) {
 function renderWritingReportHtml(text, json, fallbackName) {
   const attempt = state.latestWritingAttempt || readLearningLoopHistory().writing || {};
   const analysis = json?.analysis || attempt.analysis || null;
-  const scores = extractWritingScores(text, analysis);
+  const contractCriteria = json?.contract?.score?.criteria || attempt.contract?.score?.criteria || [];
+  const extractedScores = extractWritingScores(text, analysis);
+  const scores = contractCriteria.length
+    ? {
+        ...extractedScores,
+        overall: json?.contract?.score?.overall?.value || attempt.contract?.score?.overall?.value || extractedScores.overall,
+        criteria: contractCriteria.map((item) => ({ ...item, score: item.score || "--" })),
+      }
+    : extractedScores;
   const overall = scores.overall || "--";
   const impact = writingImpactInsight(text, scores, attempt, analysis);
   const evidenceItems = json?.contract?.evidence || attempt.contract?.evidence || writingTextEvidence("task", attempt.essay || "", analysis);
+  const review = json?.review || json?.contract?.review || attempt.contract?.review || null;
   const contractItems = json?.contract?.attempt?.items || attempt.contract?.attempt?.items || [];
   const evidenceSources = contractItems.length
     ? contractItems.map((item, index) => ({ id: item.id || `task${index + 1}`, label: `Task ${index + 1} response`, text: item.response || item.essay || "" }))
@@ -8729,15 +8779,16 @@ function renderWritingReportHtml(text, json, fallbackName) {
     </nav>
     <section data-result-panel="overview" class="unified-result-panel result-overview-panel">
       <div class="unified-score-summary"><div><span>Overall Band</span><strong>${escapeHtml(overall)}</strong><em>Target 7.0</em></div><div><span>Highest-impact issue</span><strong>${escapeHtml(impact.criterion)}</strong><p>${escapeHtml(impact.issue)}</p></div><blockquote><span>Exact evidence</span>${escapeHtml(impact.evidence)}</blockquote></div>
+      ${review ? `<p class="notice-inline">${escapeHtml(review.required ? "Teacher review recommended. " : "")}${escapeHtml(review.reason || "AI-assisted practice estimate; this is not an official IELTS result.")}</p>` : ""}
       ${taskSummary}
       <button class="primary unified-result-primary" type="button" data-writing-result-action="rewrite">Improve this skill</button>
       <div class="unified-score-bars">${scores.criteria.map((item) => renderWritingScoreBar(item.label, item.score)).join("")}</div>
     </section>
     <section data-result-panel="evidence" class="unified-result-panel" hidden>
       <div class="writing-impact-panel"><header><div><span>Evidence review</span><h4>${escapeHtml(impact.criterion)}</h4></div><strong>${escapeHtml(impact.score || "Review")}</strong></header><p>${escapeHtml(impact.issue)}</p><blockquote><span>Exact evidence from your essay</span>${escapeHtml(impact.evidence)}</blockquote><div class="writing-impact-next"><span>Success criterion</span><strong>${escapeHtml(impact.instruction)}</strong></div></div>
-      <div class="writing-evidence-list">${evidenceItems.length ? evidenceItems.map((item) => `<button type="button" data-evidence-id="${escapeHtml(item.id)}" data-source-highlight data-item-id="${escapeHtml(item.itemId || "task")}" data-start="${escapeHtml(String(item.range?.start ?? ""))}" data-end="${escapeHtml(String(item.range?.end ?? ""))}" data-quote="${escapeHtml(item.quote || "")}">${escapeHtml(item.quote)}</button>`).join("") : `<p>No exact evidence range was returned for this attempt.</p>`}</div>
+      <div class="writing-evidence-list">${evidenceItems.length ? evidenceItems.map((item) => `<button type="button" aria-label="${escapeHtml(`${item.criterionKey || "Writing"} evidence: ${item.quote || ""}`)}" data-evidence-id="${escapeHtml(item.id)}" data-source-highlight data-item-id="${escapeHtml(item.itemId || "task")}" data-start="${escapeHtml(String(item.range?.start ?? ""))}" data-end="${escapeHtml(String(item.range?.end ?? ""))}" data-quote="${escapeHtml(item.quote || "")}">${item.criterionKey ? `<span>${escapeHtml(item.criterionKey.replace(/(^|[-_])\w/g, (match) => match.replace(/[-_]/, "").toUpperCase()))}</span>` : ""}${escapeHtml(item.quote)}</button>`).join("") : `<p>No exact evidence range was returned for this attempt.</p>`}</div>
       <div class="writing-evidence-sources">${evidenceSources.map((item) => `<article data-writing-source-item="${escapeHtml(item.id)}"><span>${escapeHtml(item.label)}</span><pre>${escapeHtml(item.text)}</pre></article>`).join("")}</div>
-      <section class="writing-result-grid"><div class="writing-result-card writing-feedback-card"><div class="writing-result-section-title"><span>Criterion review</span><strong>What held the score back</strong></div>${scores.criteria.map((item) => `<article><div><strong>${escapeHtml(item.label)}</strong><b>${escapeHtml(item.score || "--")}</b></div><p>${escapeHtml(item.feedback || feedbackSnippetForLabel(text, item.label))}</p></article>`).join("")}</div><aside class="writing-result-card writing-phrase-card"><h4>Better wording</h4>${(phrases.length ? phrases : [{ from: "Review the evidence", to: "Rewrite it with more precise language" }]).map((item) => typeof item === "object" ? `<div class="writing-phrase-pair"><span>${escapeHtml(item.from)}</span><strong>${escapeHtml(item.to)}</strong></div>` : `<p>${escapeHtml(item)}</p>`).join("")}</aside></section>
+      <section class="writing-result-grid"><div class="writing-result-card writing-feedback-card"><div class="writing-result-section-title"><span>Criterion review</span><strong>What held the score back</strong></div>${scores.criteria.map((item) => `<article><div><strong>${escapeHtml(item.label)}</strong><b>${escapeHtml(item.score || "--")}</b></div><p>${escapeHtml(item.feedback || feedbackSnippetForLabel(text, item.label))}</p>${item.bandRationale && item.bandRationale !== item.feedback ? `<p><strong>Band rationale:</strong> ${escapeHtml(item.bandRationale)}</p>` : ""}</article>`).join("")}</div><aside class="writing-result-card writing-phrase-card"><h4>Better wording</h4>${(phrases.length ? phrases : [{ from: "Review the evidence", to: "Rewrite it with more precise language" }]).map((item) => typeof item === "object" ? `<div class="writing-phrase-pair"><span>${escapeHtml(item.from)}</span><strong>${escapeHtml(item.to)}</strong></div>` : `<p>${escapeHtml(item)}</p>`).join("")}</aside></section>
     </section>
     <section data-result-panel="improve" class="unified-result-panel" hidden>
       <section class="writing-rewrite-mode"><div><span class="eyebrow">Targeted rewrite</span><strong>${escapeHtml(impact.instruction)}</strong><p>This paragraph check does not replace your full IELTS Band.</p></div><button class="primary" type="button" data-writing-result-action="rewrite">Start rewrite</button></section>
@@ -9629,12 +9680,24 @@ function renderLegacySpeakingResultHtml(text, json = {}, bandValue = "", prefix 
 function renderSpeakingResultHtml(text, json = {}, bandValue = "", prefix = "") {
   const feedback = String(text || json.feedback || "").trim();
   const resultRecord = buildSpeakingResultRecord(prefix, feedback, json, bandValue);
-  const { band, criteria: criteriaItems, weakest, transcript } = resultRecord;
+  const serverContract = json?.contract?.attempt?.module === "speaking" ? json.contract : null;
+  const serverCriteria = Array.isArray(serverContract?.score?.criteria) ? serverContract.score.criteria : [];
+  const serverEvidence = Array.isArray(serverContract?.evidence) ? serverContract.evidence : [];
+  const criteriaItems = serverCriteria.length ? serverCriteria : resultRecord.criteria;
+  const { band, transcript } = resultRecord;
+  const weakest = [...criteriaItems]
+    .map((item) => ({ ...item, numeric: Number.parseFloat(item.score) }))
+    .sort((a, b) => (Number.isFinite(a.numeric) ? a.numeric : 99) - (Number.isFinite(b.numeric) ? b.numeric : 99))[0]
+    || resultRecord.weakest;
   const overview = speakingResultOverview(prefix, transcript, json);
   const pairs = speakingAnalysisPairs(prefix, transcript);
-  const exactEvidence = pairs.find((pair) => pair.answer)?.answer || compactText(transcript, 260) || "No transcript evidence was returned.";
+  const exactEvidence = serverEvidence.find((item) => item.kind === "transcript-range")?.quote
+    || pairs.find((pair) => pair.answer)?.answer
+    || compactText(transcript, 260)
+    || "No transcript evidence was returned.";
   const audioSucceeded = json.audioAiUsed === true || json.evidence?.audioAnalysis?.status === "succeeded";
   const audioRanges = audioSucceeded && Array.isArray(json.evidence?.turns) ? json.evidence.turns : [];
+  const review = serverContract?.review || null;
   const recordingHref = qwenRecordingDownloadHref(speakingResultSession(prefix)?.recordingResult);
   const viewTarget = prefix === "exam" ? "exam" : prefix === "sequence" ? "sequence" : prefix === "bank" ? "bank" : "single";
   const learningHistory = readLearningLoopHistory();
@@ -9642,12 +9705,13 @@ function renderSpeakingResultHtml(text, json = {}, bandValue = "", prefix = "") 
     module: "speaking",
     mode: "exam",
     items: pairs.map((pair, index) => ({ id: `turn${index + 1}`, question: pair.question, response: pair.answer })),
-    score: { status: audioSucceeded ? "final" : "provisional", overall: { value: Number.parseFloat(band), scale: "ielts-band" }, criteria: criteriaItems },
+    score: { status: serverContract?.score?.status || (audioSucceeded ? "final" : "provisional"), overall: { value: Number.parseFloat(serverContract?.score?.overall?.value || band), scale: "ielts-band" }, criteria: criteriaItems },
     highestImpact: { criterionKey: weakest?.label || "Fluency & Coherence", issue: `Prioritise ${weakest?.label || "answer development"} in the next response.`, evidenceIds: ["speaking-transcript-evidence"], successCriterion: "Give a direct answer, one reason and one specific example." },
-    evidence: [{ id: "speaking-transcript-evidence", kind: "transcript", quote: exactEvidence }, ...audioRanges],
+    evidence: serverEvidence.length ? serverEvidence : [{ id: "speaking-transcript-evidence", kind: "transcript", quote: exactEvidence }, ...audioRanges],
     nextAction: { type: "answer-repeat", label: "Improve this skill" },
     retest: { type: "part2-repeat" },
-    provenance: { audioAnalysis: { status: audioSucceeded ? "succeeded" : "unavailable" } },
+    review,
+    provenance: { ...(serverContract?.provenance || {}), audioAnalysis: { status: audioSucceeded ? "succeeded" : "unavailable" } },
   });
   contract.attempt.parentAttemptId = state.speakingRetestParentAttemptId || null;
   resultRecord.contract = contract;
@@ -9668,12 +9732,14 @@ function renderSpeakingResultHtml(text, json = {}, bandValue = "", prefix = "") 
     <header class="unified-result-header"><div><span class="eyebrow">Speaking feedback</span><h3>Your Speaking result</h3><p>${escapeHtml(overview.date)} · ${escapeHtml(overview.testType)}</p></div><details class="result-more"><summary>More</summary><div>${renderSpeakingResultDownloadButton(json)}${renderSpeakingRecordingButton(prefix)}</div></details></header>
     <nav class="unified-result-tabs" role="tablist">${[["overview","Overview"],["evidence","Evidence"],["improve","Improve"],["history","History"]].map(([key,label], index) => `<button type="button" data-result-tab="${key}" class="${index === 0 ? "active" : ""}" aria-selected="${index === 0}">${label}</button>`).join("")}</nav>
     <section data-result-panel="overview" class="unified-result-panel result-overview-panel">
-      <div class="unified-score-summary"><div><span>Overall Band</span><strong>${escapeHtml(band || "--")}</strong><em>Target 7.0</em></div><div><span>Weakest criterion</span><strong>${escapeHtml(weakest?.label || "Review")}</strong><p>Focus on one controlled improvement, then repeat the answer.</p></div><blockquote><span>Exact response evidence</span>${escapeHtml(exactEvidence)}</blockquote></div>
+      <div class="unified-score-summary"><div><span>Overall Band</span><strong>${escapeHtml(serverContract?.score?.overall?.value || band || "--")}</strong><em>Target 7.0</em></div><div><span>Weakest criterion</span><strong>${escapeHtml(weakest?.label || "Review")}</strong><p>Focus on one controlled improvement, then repeat the answer.</p></div><blockquote><span>Exact response evidence</span>${escapeHtml(exactEvidence)}</blockquote></div>
+      ${review ? `<p class="notice-inline">${escapeHtml(review.required ? "Teacher review recommended. " : "")}${escapeHtml(review.reason || "AI-assisted practice estimate; this is not an official IELTS result.")}</p>` : ""}
       <button class="speaking-result-button primary unified-result-primary" type="button" data-speaking-result-action="part2">Improve this skill</button>
       <div class="unified-score-bars">${metricRows}</div>
     </section>
     <section data-result-panel="evidence" class="unified-result-panel" hidden>
       <div class="result-evidence-note ${audioSucceeded ? "audio-ready" : "transcript-only"}"><strong>${audioSucceeded ? "Audio evidence analysed" : "Transcript evidence only"}</strong><p>${audioSucceeded ? "Pronunciation comments may use the analysed recording ranges below." : "The audio model did not return a successful analysis, so this report does not claim timestamped Pronunciation evidence."}</p></div>
+      ${serverEvidence.length ? `<div class="speaking-evidence-list">${serverEvidence.map((item) => `<article data-speaking-evidence="${escapeHtml(item.id)}"><span>${escapeHtml(item.criterionKey || "Speaking evidence")}</span><p>${escapeHtml(item.quote || "Evidence was limited in this session.")}</p>${item.kind === "examiner-observation" ? `<em>${escapeHtml(item.source === "audio" ? "Audio observation" : "Examiner observation")}</em>` : ""}</article>`).join("")}</div>` : ""}
       <div class="speaking-evidence-list">${pairs.length ? pairs.map((pair, index) => `<article data-speaking-evidence="turn-${index + 1}"><span>${escapeHtml(pair.question || `Question ${index + 1}`)}</span><p>${escapeHtml(pair.answer)}</p></article>`).join("") : `<article data-speaking-evidence="transcript"><p>${escapeHtml(exactEvidence)}</p></article>`}</div>
       ${audioRanges.length && recordingHref ? `<audio data-speaking-evidence-player preload="metadata" src="${escapeHtml(recordingHref)}"></audio><div class="speaking-audio-evidence">${audioRanges.map((item, index) => `<button type="button" data-audio-evidence="${escapeHtml(item.id || `audio-${index}`)}" data-start-ms="${escapeHtml(String(item.startMs || 0))}" data-end-ms="${escapeHtml(String(item.endMs || 0))}">Play ${Math.round(Number(item.startMs || 0) / 1000)}s-${Math.round(Number(item.endMs || 0) / 1000)}s</button>`).join("")}</div>` : audioRanges.length ? `<p class="notice-inline">Timestamped evidence is available after the recording finishes preparing.</p>` : ""}
     </section>

@@ -75,6 +75,8 @@ const DASHSCOPE_COMPAT_BASE_URL = (process.env.DASHSCOPE_COMPAT_BASE_URL || DEFA
 const WRITING_AI_MODEL = process.env.WRITING_AI_MODEL || process.env.QWEN_WRITING_MODEL || "qwen3.7-max";
 const WRITING_AI_BASE_URL = (process.env.WRITING_AI_BASE_URL || process.env.QWEN_WRITING_BASE_URL || DASHSCOPE_COMPAT_BASE_URL).replace(/\/+$/, "");
 const WRITING_AI_API_KEY = process.env.WRITING_AI_API_KEY || process.env.QWEN_WRITING_API_KEY || DASHSCOPE_API_KEY;
+const WRITING_SCORING_PROMPT_VERSION = "ielts-writing-rubric.v2";
+const WRITING_AI_TIMEOUT_MS = Math.max(1_000, Math.min(60_000, Number(process.env.WRITING_AI_TIMEOUT_MS || 25_000)));
 // The public AI gateway is intentionally server-only. Do not expose this key in
 // /api/tasks, logs, client bundles, or provider error messages.
 const AI_GATEWAY_BASE_URL = (process.env.AI_GATEWAY_BASE_URL || "https://ai.ieltsist.com/v1").replace(/\/+$/, "");
@@ -101,6 +103,8 @@ const STEM_MARKING_REVIEW_STATUSES = new Set(["approved", "unreviewed", "quarant
 const SPEAKING_AUDIO_AI_MODEL = process.env.SPEAKING_AUDIO_AI_MODEL || process.env.QWEN_SPEAKING_AUDIO_MODEL || "qwen3.5-omni-flash";
 const SPEAKING_AUDIO_AI_BASE_URL = (process.env.SPEAKING_AUDIO_AI_BASE_URL || process.env.QWEN_SPEAKING_AUDIO_BASE_URL || DASHSCOPE_COMPAT_BASE_URL).replace(/\/+$/, "");
 const SPEAKING_AUDIO_AI_API_KEY = process.env.SPEAKING_AUDIO_AI_API_KEY || process.env.QWEN_SPEAKING_AUDIO_API_KEY || DASHSCOPE_API_KEY;
+const SPEAKING_SCORING_PROMPT_VERSION = "ielts-speaking-rubric.v2";
+const SPEAKING_AI_TIMEOUT_MS = Math.max(1_000, Math.min(60_000, Number(process.env.SPEAKING_AI_TIMEOUT_MS || 25_000)));
 const SPEAKING_AUDIO_MAX_BASE64_BYTES = Number(process.env.SPEAKING_AUDIO_MAX_BASE64_BYTES || 10_000_000);
 const QWEN_REALTIME_MODEL = process.env.QWEN_REALTIME_MODEL || "qwen3.5-omni-flash-realtime";
 const QWEN_ASR_MODEL = process.env.QWEN_ASR_MODEL || "qwen3-asr-flash-realtime";
@@ -4434,6 +4438,21 @@ function resolvePortableLocalFilePath(filePath) {
   return filePath;
 }
 
+async function fetchWithAiTimeout(url, options, timeoutMs = 0) {
+  const boundedTimeoutMs = Number(timeoutMs) || 0;
+  if (!boundedTimeoutMs) return fetch(url, options);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), boundedTimeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } catch (error) {
+    if (controller.signal.aborted) throw new Error("AI request timed out.");
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function callOpenAI({
   system,
   user,
@@ -4446,6 +4465,7 @@ async function callOpenAI({
   agentTools = [],
   toolExecutor = null,
   maxToolRounds = 2,
+  timeoutMs = 0,
 }) {
   if (!apiKey) return null;
   const normalizedBaseUrl = String(baseUrl || "").replace(/\/+$/, "");
@@ -4475,14 +4495,15 @@ async function callOpenAI({
     return body;
   };
 
-  let chatResponse = await fetch(`${normalizedBaseUrl}/chat/completions`, {
+  const postJson = (url, body) => fetchWithAiTimeout(url, {
     method: "POST",
     headers: {
       authorization: `Bearer ${apiKey}`,
       "content-type": "application/json",
     },
-    body: JSON.stringify(buildBody("chat")),
-  });
+    body: JSON.stringify(body),
+  }, timeoutMs);
+  let chatResponse = await postJson(`${normalizedBaseUrl}/chat/completions`, buildBody("chat"));
   let chatJson = null;
   let chatError = "";
   try {
@@ -4518,14 +4539,7 @@ async function callOpenAI({
             content: JSON.stringify(result || { ok: false, error: "Tool returned no data." }),
           });
         }
-        chatResponse = await fetch(`${normalizedBaseUrl}/chat/completions`, {
-          method: "POST",
-          headers: {
-            authorization: `Bearer ${apiKey}`,
-            "content-type": "application/json",
-          },
-          body: JSON.stringify(buildBody("chat")),
-        });
+        chatResponse = await postJson(`${normalizedBaseUrl}/chat/completions`, buildBody("chat"));
         try {
           chatJson = await chatResponse.json();
         } catch {
@@ -4551,14 +4565,7 @@ async function callOpenAI({
   if (!allowResponsesFallback) {
     throw new Error(`AI API failed. chat=${chatResponse.status}: ${chatError.slice(0, 500)}`);
   }
-  const response = await fetch(`${normalizedBaseUrl}/responses`, {
-    method: "POST",
-    headers: {
-      authorization: `Bearer ${apiKey}`,
-      "content-type": "application/json",
-    },
-    body: JSON.stringify(buildBody("responses")),
-  });
+  const response = await postJson(`${normalizedBaseUrl}/responses`, buildBody("responses"));
 
   if (!response.ok) {
     const errorText = await response.text();
@@ -4638,7 +4645,7 @@ function normalizeSpeakingAudioEvidence(evidence = {}) {
 
 async function callSpeakingAudioAI({ system, user, audio, temperature = 0.2 }) {
   if (!SPEAKING_AUDIO_AI_API_KEY || !audio?.available) return null;
-  const response = await fetch(`${SPEAKING_AUDIO_AI_BASE_URL}/chat/completions`, {
+  const response = await fetchWithAiTimeout(`${SPEAKING_AUDIO_AI_BASE_URL}/chat/completions`, {
     method: "POST",
     headers: {
       authorization: `Bearer ${SPEAKING_AUDIO_AI_API_KEY}`,
@@ -4661,7 +4668,7 @@ async function callSpeakingAudioAI({ system, user, audio, temperature = 0.2 }) {
       stream_options: { include_usage: false },
       temperature,
     }),
-  });
+  }, SPEAKING_AI_TIMEOUT_MS);
   const body = await response.text();
   if (!response.ok) {
     throw new Error(`Speaking audio AI failed. chat=${response.status}: ${body.slice(0, 500)}`);
@@ -4687,6 +4694,7 @@ async function callWritingAI({ system, user, temperature = 0.25 }) {
     baseUrl: WRITING_AI_BASE_URL,
     model: WRITING_AI_MODEL,
     allowResponsesFallback: false,
+    timeoutMs: WRITING_AI_TIMEOUT_MS,
   });
 }
 
@@ -4836,6 +4844,30 @@ function coachProviderWarning(error) {
     return "AI Coach could not reach the model service. Please retry in a moment.";
   }
   return "AI Coach is temporarily unavailable. Please retry in a moment.";
+}
+
+function writingProviderWarning(error) {
+  const message = String(error?.message || error || "");
+  if (/timeout|timed out|fetch failed|econn|network/i.test(message)) {
+    return "Writing AI could not reach the model service. A local practice estimate is shown; retry when you are ready.";
+  }
+  return "Writing AI is temporarily unavailable. A local practice estimate is shown; retry when you are ready.";
+}
+
+function speakingProviderWarning(error) {
+  const message = String(error?.message || error || "");
+  if (/timeout|timed out|fetch failed|econn|network/i.test(message)) {
+    return "Speaking AI could not reach the model service. A provisional estimate is shown; retry when you are ready.";
+  }
+  return "Speaking AI is temporarily unavailable. A provisional estimate is shown; retry when you are ready.";
+}
+
+function generalProviderWarning(error) {
+  const message = String(error?.message || error || "");
+  if (/timeout|timed out|fetch failed|econn|network/i.test(message)) {
+    return "The AI service could not be reached. Your local practice result is still available; retry when you are ready.";
+  }
+  return "The AI service is temporarily unavailable. Your local practice result is still available; retry when you are ready.";
 }
 
 function sanitizeCoachMarkdownLinkDestination(value) {
@@ -6730,9 +6762,10 @@ async function handleLegacyWriting(req, res) {
     ai = await callOpenAI({
       system: writingSystemPrompt(),
       user: `题目：${prompt}\n\n学生作文：\n${essay}`,
+      timeoutMs: WRITING_AI_TIMEOUT_MS,
     });
   } catch (error) {
-    warning = error.message || "AI unavailable";
+    warning = writingProviderWarning(error);
   }
   const feedback = ai || localWritingFeedbackLegacy(prompt, essay, warning);
   const pdfDataUrl = await createWritingReportPdfDataUrl(prompt, feedback);
@@ -6754,9 +6787,10 @@ async function handleSpeakingTurn(req, res) {
       system: speakingTurnSystemPrompt(),
       user: JSON.stringify({ topicSet: set, part, recentHistory: history }, null, 2),
       temperature: 0.55,
+      timeoutMs: SPEAKING_AI_TIMEOUT_MS,
     });
   } catch (error) {
-    warning = error.message || "AI unavailable";
+    warning = speakingProviderWarning(error);
   }
   const question = (ai || localNextSpeakingQuestion(set, history, part)).replace(/^(examiner|interviewer)\s*:\s*/i, "").trim();
   sendJson(res, 200, { mode: ai ? "ai" : "local", question, warning });
@@ -6775,7 +6809,7 @@ async function handleTts(req, res) {
   try {
     audio = await synthesizeFish(text, voice);
   } catch (error) {
-    warning = error.message || "TTS unavailable";
+    warning = "Audio generation is temporarily unavailable. Browser playback remains available.";
   }
   sendJson(res, 200, { mode: audio ? "fish" : "browser", audio, voice, warning });
 }
@@ -6917,9 +6951,10 @@ async function handleLegacyFullExam(req, res) {
         null,
         2,
       ),
+      timeoutMs: WRITING_AI_TIMEOUT_MS,
     });
   } catch (error) {
-    warning = error.message || "AI unavailable";
+    warning = generalProviderWarning(error);
   }
 
   const feedback = ai || local;
@@ -6985,8 +7020,10 @@ function writingSystemPrompt() {
   return [
     "You must mark IELTS Writing by following the Amber IELTS Writing Feedback Skill exactly.",
     "Return exactly one valid JSON object with no markdown fence and no text outside the object.",
-    "Use this schema: {\"overall\":6.5,\"criteria\":[{\"label\":\"Task Response\",\"score\":6,\"feedback\":\"...\"},{\"label\":\"Coherence & Cohesion\",\"score\":6,\"feedback\":\"...\"},{\"label\":\"Lexical Resource\",\"score\":6,\"feedback\":\"...\"},{\"label\":\"Grammatical Range & Accuracy\",\"score\":6,\"feedback\":\"...\"}],\"highestImpact\":{\"criterion\":\"...\",\"score\":6,\"issue\":\"...\",\"evidence\":\"an exact verbatim sentence from the student's essay\",\"rewriteInstruction\":\"...\"},\"phrases\":[{\"from\":\"...\",\"to\":\"...\"}],\"nextTaskPrompt\":\"...\",\"fullReport\":\"the complete Amber-style report\"}.",
+    `Scoring prompt version: ${WRITING_SCORING_PROMPT_VERSION}.`,
+    "Use this schema: {\"overall\":6.5,\"confidence\":\"high|medium|low\",\"criteria\":[{\"label\":\"Task Response\",\"score\":6,\"feedback\":\"...\",\"evidence\":\"an exact verbatim excerpt from the student's essay\",\"bandRationale\":\"one concise reason tied to the IELTS descriptor\"},{\"label\":\"Coherence & Cohesion\",\"score\":6,\"feedback\":\"...\",\"evidence\":\"...\",\"bandRationale\":\"...\"},{\"label\":\"Lexical Resource\",\"score\":6,\"feedback\":\"...\",\"evidence\":\"...\",\"bandRationale\":\"...\"},{\"label\":\"Grammatical Range & Accuracy\",\"score\":6,\"feedback\":\"...\",\"evidence\":\"...\",\"bandRationale\":\"...\"}],\"highestImpact\":{\"criterion\":\"...\",\"score\":6,\"issue\":\"...\",\"evidence\":\"an exact verbatim sentence from the student's essay\",\"rewriteInstruction\":\"...\"},\"phrases\":[{\"from\":\"...\",\"to\":\"...\"}],\"nextTaskPrompt\":\"...\",\"fullReport\":\"the complete Amber-style report\"}.",
     "All four criterion scores must be numbers. Overall must be their average rounded to the nearest 0.5. Evidence must be copied exactly from the submitted essay, never invented.",
+    "Give each criterion one evidence excerpt and one descriptor-linked band rationale. Set confidence to low whenever the response is too short or the supplied evidence is insufficient; otherwise use medium unless the evidence is unusually clear.",
     "Each criteria[].feedback must contain 2-3 concise Chinese sentences about that criterion only. Never reuse the same feedback across criteria and never place paragraph-by-paragraph comments or the full report inside criteria[].feedback.",
     "phrases must contain only short exact wording pairs from the essay, for example {\"from\":\"less bureaucratic\",\"to\":\"with fewer administrative barriers\"}. Do not put paragraph feedback, scores, explanations, or complete paragraphs in phrases.",
     "The fullReport field must contain the complete paragraph-by-paragraph feedback, corrected examples, and band-7.5 model answer required by the skill.",
@@ -7007,7 +7044,8 @@ function speakingSystemPrompt() {
   return [
     "You are a professional IELTS Speaking examiner and evidence-based scoring engine.",
     "Return exactly one valid JSON object with no markdown fence and no text outside the object.",
-    "Use this schema: {\"criteria\":[{\"key\":\"fc\",\"score\":6.0,\"evidence\":\"...\",\"feedback\":\"...\"},{\"key\":\"lr\",\"score\":6.0,\"evidence\":\"...\",\"feedback\":\"...\"},{\"key\":\"gra\",\"score\":6.0,\"evidence\":\"...\",\"feedback\":\"...\"},{\"key\":\"pronunciation\",\"score\":6.0,\"evidence\":\"...\",\"feedback\":\"...\"}],\"strengths\":[\"...\"],\"priorities\":[\"...\"],\"drills\":[\"...\"],\"cautions\":[\"...\"],\"confidence\":\"high|medium|low\"}.",
+    `Scoring prompt version: ${SPEAKING_SCORING_PROMPT_VERSION}.`,
+    "Use this schema: {\"criteria\":[{\"key\":\"fc\",\"score\":6.0,\"evidence\":\"an exact transcript phrase or an explicit audio observation\",\"feedback\":\"...\",\"bandRationale\":\"a descriptor-linked reason\"},{\"key\":\"lr\",\"score\":6.0,\"evidence\":\"...\",\"feedback\":\"...\",\"bandRationale\":\"...\"},{\"key\":\"gra\",\"score\":6.0,\"evidence\":\"...\",\"feedback\":\"...\",\"bandRationale\":\"...\"},{\"key\":\"pronunciation\",\"score\":6.0,\"evidence\":\"...\",\"feedback\":\"...\",\"bandRationale\":\"...\"}],\"strengths\":[\"...\"],\"priorities\":[\"...\"],\"drills\":[\"...\"],\"cautions\":[\"...\"],\"confidence\":\"high|medium|low\"}.",
     "Score four independent criteria from 0 to 9: Fluency and Coherence, Lexical Resource, Grammatical Range and Accuracy, Pronunciation.",
     "Do not supply or guess an Overall score. The server calculates it from the four criterion scores and rounds to the nearest 0.5.",
     "Use these band anchors:",
@@ -7060,6 +7098,7 @@ function normalizeSpeakingAssessment(raw, options = {}) {
       score: speakingBandNumber(source.score, fallbackScores[definition.key]),
       evidence: String(source.evidence || "Evidence was limited in this session.").replace(/\s+/g, " ").trim().slice(0, 600),
       feedback: String(source.feedback || "Keep building longer, clearer and more controlled answers.").replace(/\s+/g, " ").trim().slice(0, 600),
+      bandRationale: String(source.bandRationale || source.rationale || source.feedback || "The available evidence supports this provisional descriptor estimate.").replace(/\s+/g, " ").trim().slice(0, 600),
     };
   });
   const overall = speakingBandNumber(criteria.reduce((sum, item) => sum + item.score, 0) / 4, 5.5);
@@ -7073,8 +7112,13 @@ function normalizeSpeakingAssessment(raw, options = {}) {
   }
   const list = (value, fallback) => (Array.isArray(value) ? value : [])
     .map(String).map((item) => item.replace(/\s+/g, " ").trim()).filter(Boolean).slice(0, 5).concat(fallback).slice(0, 5);
+  const confidence = ["high", "medium", "low"].includes(String(parsed.confidence).toLowerCase())
+    ? String(parsed.confidence).toLowerCase()
+    : options.audioUsed ? "medium" : "low";
+  const reviewRequired = scope !== "full" || confidence === "low" || !options.audioUsed;
   return {
     version: 1,
+    rubricVersion: "ielts-speaking-four-criteria.v1",
     scope,
     overall,
     criteria,
@@ -7082,7 +7126,75 @@ function normalizeSpeakingAssessment(raw, options = {}) {
     priorities: list(parsed.priorities, ["Extend answers with a reason and a specific example."]),
     drills: list(parsed.drills, ["Record one timed answer, listen back, then repeat it with fewer pauses."]),
     cautions,
-    confidence: ["high", "medium", "low"].includes(String(parsed.confidence).toLowerCase()) ? String(parsed.confidence).toLowerCase() : options.audioUsed ? "medium" : "low",
+    confidence,
+    reviewRequired,
+    reviewReason: reviewRequired
+      ? "This is a scoped, low-confidence, or transcript-only estimate. Ask a qualified teacher to review it before using it for a formal decision."
+      : "This is an AI-assisted practice estimate, not an official IELTS result.",
+  };
+}
+
+function buildSpeakingScoringContract(assessment, transcript, options = {}) {
+  const sourceTranscript = String(transcript || "");
+  const sourceLower = sourceTranscript.toLowerCase();
+  const evidence = [];
+  const criteria = (Array.isArray(assessment?.criteria) ? assessment.criteria : []).slice(0, 4).map((criterion, index) => {
+    const criterionKey = String(criterion?.key || `criterion-${index + 1}`);
+    const requestedEvidence = String(criterion?.evidence || "").trim();
+    const start = requestedEvidence ? sourceLower.indexOf(requestedEvidence.toLowerCase()) : -1;
+    const id = `evidence-speaking-${criterionKey}-${index}`;
+    if (start >= 0) {
+      evidence.push({
+        id,
+        kind: "transcript-range",
+        itemId: "speaking-response",
+        criterionKey,
+        quote: sourceTranscript.slice(start, start + requestedEvidence.length),
+        range: { start, end: start + requestedEvidence.length, unit: "utf16-code-unit" },
+      });
+    } else {
+      evidence.push({
+        id,
+        kind: "examiner-observation",
+        itemId: "speaking-response",
+        criterionKey,
+        quote: requestedEvidence || "Evidence was limited in this session.",
+        source: criterionKey === "pronunciation" && options.audioUsed ? "audio" : "examiner-analysis",
+      });
+    }
+    return {
+      key: criterionKey,
+      label: String(criterion?.label || criterionKey),
+      score: speakingBandNumber(criterion?.score),
+      feedback: String(criterion?.feedback || ""),
+      bandRationale: String(criterion?.bandRationale || criterion?.feedback || ""),
+      evidenceIds: [id],
+    };
+  });
+  return {
+    schemaVersion: "scoring.v2",
+    attempt: {
+      module: "speaking",
+      scope: assessment?.scope || "full",
+      submittedAt: new Date().toISOString(),
+    },
+    score: {
+      status: "final",
+      overall: { value: speakingBandNumber(assessment?.overall), scale: "ielts-band" },
+      criteria,
+    },
+    evidence,
+    review: {
+      required: Boolean(assessment?.reviewRequired),
+      available: true,
+      reason: String(assessment?.reviewReason || "This is an AI-assisted practice estimate, not an official IELTS result."),
+    },
+    provenance: {
+      model: String(options.model || "local-speaking-estimate"),
+      promptVersion: String(options.promptVersion || SPEAKING_SCORING_PROMPT_VERSION),
+      rubric: "ielts-speaking-four-criteria",
+      transcriptHandling: "verbatim-input; evidence ranges are offsets into the submitted transcript",
+    },
   };
 }
 
@@ -7167,6 +7279,7 @@ function normalizeWritingAnalysis(raw, prompt, essay, fallbackReport = "") {
     "减少宽泛或重复用词，改用含义准确、搭配自然的主题词汇。",
     "增加可控的复杂句式，同时检查主谓一致、时态和标点准确性。",
   ];
+  const sourceEssay = String(essay || "");
   const usedFeedback = new Set();
   const criteria = labels.map((label, index) => {
     const key = criterionKey(label);
@@ -7178,10 +7291,20 @@ function normalizeWritingAnalysis(raw, prompt, essay, fallbackReport = "") {
     const feedbackKey = feedback.toLowerCase().replace(/\s+/g, " ");
     if (!feedback || usedFeedback.has(feedbackKey)) feedback = defaultFeedback[index];
     usedFeedback.add(feedback.toLowerCase().replace(/\s+/g, " "));
+    const requestedEvidence = String(source.evidence || source.evidenceSpan || "").trim();
+    const evidenceStart = requestedEvidence
+      ? sourceEssay.toLowerCase().indexOf(requestedEvidence.toLowerCase())
+      : -1;
+    const evidence = evidenceStart >= 0
+      ? sourceEssay.slice(evidenceStart, evidenceStart + requestedEvidence.length)
+      : writingEvidenceFromEssay(sourceEssay);
+    const bandRationale = String(source.bandRationale || source.rationale || feedback).replace(/\s+/g, " ").trim().slice(0, 520);
     return {
       label,
       score: writingBandNumber(source.score, localScores[index]),
       feedback,
+      evidence,
+      bandRationale,
     };
   });
   const overall = writingBandNumber(criteria.reduce((sum, item) => sum + item.score, 0) / criteria.length, 6);
@@ -7198,10 +7321,20 @@ function normalizeWritingAnalysis(raw, prompt, essay, fallbackReport = "") {
     "Lexical Resource": "Replace vague repeated wording with precise topic vocabulary.",
     "Grammatical Range & Accuracy": "Rewrite the idea with one controlled complex sentence, then check agreement, tense, and punctuation.",
   };
+  const confidence = ["high", "medium", "low"].includes(String(parsed.confidence || "").toLowerCase())
+    ? String(parsed.confidence).toLowerCase()
+    : parsed && Object.keys(parsed).length ? "medium" : "low";
+  const reviewRequired = confidence === "low";
   return {
     version: 1,
+    rubricVersion: "ielts-writing-four-criteria.v1",
     overall,
     criteria,
+    confidence,
+    reviewRequired,
+    reviewReason: reviewRequired
+      ? "The available writing evidence is limited or the AI scorer was unavailable; ask a qualified teacher to review this estimate."
+      : "This is an AI-assisted practice estimate, not an official IELTS result.",
     highestImpact: {
       criterion: requestedCriterion.label,
       score: requestedCriterion.score,
@@ -7289,13 +7422,40 @@ function writingAnalysisScore(analysis = {}) {
 }
 
 function serverWritingEvidence(item, analysis = {}) {
+  const essay = String(item?.essay || "");
+  const criteria = Array.isArray(analysis?.criteria) ? analysis.criteria : [];
+  const criterionKey = (label) => {
+    const text = String(label || "").toLowerCase();
+    if (/task\s*(?:response|achievement)|\btr\b|\bta\b/.test(text)) return "task";
+    if (/coherence|cohesion|\bcc\b/.test(text)) return "coherence";
+    if (/lexical|vocabulary|\blr\b/.test(text)) return "lexical";
+    if (/grammar|grammatical|\bgra\b/.test(text)) return "grammar";
+    return "criterion";
+  };
+  const exactEvidence = criteria.flatMap((criterion, index) => {
+    const requested = String(criterion?.evidence || "").trim();
+    const start = requested ? essay.toLowerCase().indexOf(requested.toLowerCase()) : -1;
+    if (start < 0) return [];
+    const quote = essay.slice(start, start + requested.length);
+    return [{
+      id: `evidence-${item.id}-${criterionKey(criterion.label)}-${start}`,
+      kind: "text-range",
+      itemId: item.id,
+      criterionKey: criterionKey(criterion.label),
+      criterionIndex: index,
+      quote,
+      range: { start, end: start + quote.length, unit: "utf16-code-unit" },
+    }];
+  });
+  if (exactEvidence.length) return exactEvidence;
   const quote = String(analysis?.highestImpact?.evidence || "").trim();
-  const start = quote ? item.essay.indexOf(quote) : -1;
+  const start = quote ? essay.toLowerCase().indexOf(quote.toLowerCase()) : -1;
   return start >= 0 ? [{
-    id: `evidence-${item.id}-${start}`,
+    id: `evidence-${item.id}-highest-impact-${start}`,
     kind: "text-range",
     itemId: item.id,
-    quote,
+    criterionKey: "highest-impact",
+    quote: essay.slice(start, start + quote.length),
     range: { start, end: start + quote.length, unit: "utf16-code-unit" },
   }] : [];
 }
@@ -7306,6 +7466,7 @@ function composeWeightedWritingScore(items, taskResults) {
       label: index === 0 && criterionIndex === 0 ? "Task Achievement" : String(criterion.label || "Writing criterion"),
       score: roundWritingScore(criterion.score),
       feedback: String(criterion.feedback || ""),
+      bandRationale: String(criterion.bandRationale || criterion.feedback || ""),
     }));
     return {
       taskNumber: index + 1,
@@ -7316,6 +7477,8 @@ function composeWeightedWritingScore(items, taskResults) {
       feedback: result.feedback || "",
       analysis: result.analysis || null,
       evidence: serverWritingEvidence(items[index], result.analysis),
+      confidence: result.analysis?.confidence || "low",
+      reviewRequired: Boolean(result.analysis?.reviewRequired),
       pdfUrl: result.pdfUrl || "",
     };
   });
@@ -7326,6 +7489,10 @@ function composeWeightedWritingScore(items, taskResults) {
     label,
     score: weighted(tasks[0].criteria[index]?.score, tasks[1].criteria[index]?.score),
     feedback: tasks[1].criteria[index]?.feedback || tasks[0].criteria[index]?.feedback || "",
+    bandRationale: tasks[1].criteria[index]?.bandRationale || tasks[0].criteria[index]?.bandRationale || "",
+    evidenceIds: tasks.flatMap((task) => task.evidence
+      .filter((entry) => entry.criterionIndex === index || (index === 0 && entry.criterionKey === "task"))
+      .map((entry) => entry.id)),
   }));
   const weakest = [...tasks].sort((a, b) => a.overall - b.overall)[0];
   const impact = weakest.analysis?.highestImpact || {};
@@ -7339,7 +7506,20 @@ function composeWeightedWritingScore(items, taskResults) {
     evidence,
     nextAction: { type: "rewrite", label: "Improve this skill", itemId: weakest.itemId },
     retest: { type: "paragraph-rewrite", parentAttemptId: attemptId, itemId: weakest.itemId },
-    provenance: { provider: WRITING_AI_MODEL, weighting: "task1:1,task2:2" },
+    review: {
+      required: tasks.some((task) => task.reviewRequired),
+      available: true,
+      reason: tasks.some((task) => task.reviewRequired)
+        ? "One or more rubric estimates have limited evidence and should be reviewed by a qualified teacher."
+        : "This is an AI-assisted practice estimate, not an official IELTS result.",
+    },
+    provenance: {
+      provider: taskResults.every((result) => result.mode?.startsWith("ai:")) ? WRITING_AI_MODEL : "local-writing-estimate",
+      model: taskResults.every((result) => result.mode?.startsWith("ai:")) ? WRITING_AI_MODEL : "local-writing-estimate",
+      promptVersion: WRITING_SCORING_PROMPT_VERSION,
+      rubric: "ielts-writing-four-criteria",
+      weighting: "task1:1,task2:2",
+    },
   };
 }
 
@@ -7352,14 +7532,31 @@ async function buildWritingFeedbackResult(prompt, essay) {
       user: `Prompt: ${prompt}\n\nStudent essay:\n${essay}`,
     });
   } catch (error) {
-    warning = error.message || "AI unavailable";
+    warning = writingProviderWarning(error);
   }
   const fallbackFeedback = localWritingFeedbackAmber(prompt, essay, warning);
   const analysis = normalizeWritingAnalysis(ai, prompt, essay, ai || fallbackFeedback);
   const feedback = analysis.fullReport || fallbackFeedback;
   const pdfDataUrl = await createWritingReportPdfDataUrl(prompt, feedback);
   return addPdfDownloadUrl(
-    { mode: ai ? `ai:${WRITING_AI_MODEL}` : "local", feedback, analysis, pdfDataUrl, pdfFileName: "ielts-writing-feedback.pdf", warning },
+    {
+      mode: ai ? `ai:${WRITING_AI_MODEL}` : "local",
+      feedback,
+      analysis,
+      review: {
+        required: analysis.reviewRequired,
+        available: true,
+        reason: analysis.reviewReason,
+      },
+      provenance: {
+        model: ai ? WRITING_AI_MODEL : "local-writing-estimate",
+        promptVersion: WRITING_SCORING_PROMPT_VERSION,
+        rubric: "ielts-writing-four-criteria",
+      },
+      pdfDataUrl,
+      pdfFileName: "ielts-writing-feedback.pdf",
+      warning,
+    },
     "ielts-writing-feedback.pdf"
   );
 }
@@ -7380,7 +7577,8 @@ async function buildWritingPairFeedbackResult(items) {
     taskScores: contract.score.tasks,
   };
   const pdfDataUrl = await createWritingReportPdfDataUrl("IELTS Writing Task 1 and Task 2", feedback);
-  return addPdfDownloadUrl({ mode: `ai:${WRITING_AI_MODEL}`, feedback, analysis, contract, taskResults, pdfDataUrl, pdfFileName: "ielts-writing-feedback.pdf" }, "ielts-writing-feedback.pdf");
+  const allAi = taskResults.every((result) => result.mode?.startsWith("ai:"));
+  return addPdfDownloadUrl({ mode: allAi ? `ai:${WRITING_AI_MODEL}` : "local", feedback, analysis, contract, taskResults, pdfDataUrl, pdfFileName: "ielts-writing-feedback.pdf" }, "ielts-writing-feedback.pdf");
 }
 
 function buildSingleWritingContract(prompt, essay, result) {
@@ -7391,6 +7589,7 @@ function buildSingleWritingContract(prompt, essay, result) {
     label: taskNumber === 1 && index === 0 ? "Task Achievement" : String(criterion.label || "Writing criterion"),
     score: roundWritingScore(criterion.score),
     feedback: String(criterion.feedback || ""),
+    bandRationale: String(criterion.bandRationale || criterion.feedback || ""),
   }));
   const evidence = serverWritingEvidence(item, result.analysis);
   const impact = result.analysis?.highestImpact || {};
@@ -7404,7 +7603,14 @@ function buildSingleWritingContract(prompt, essay, result) {
       submittedAt: new Date().toISOString(),
       items: [{ ...item, response: essay, essay: undefined, wordCount: wordCount(essay) }],
     },
-    score: { status: "final", overall: { value: overall, scale: "ielts-band" }, criteria },
+    score: {
+      status: "final",
+      overall: { value: overall, scale: "ielts-band" },
+      criteria: criteria.map((criterion, index) => ({
+        ...criterion,
+        evidenceIds: evidence.filter((entry) => entry.criterionIndex === index || (index === 0 && entry.criterionKey === "task")).map((entry) => entry.id),
+      })),
+    },
     highestImpact: {
       criterionKey: impact.criterion || criteria[0]?.label || "Task response",
       itemId: item.id,
@@ -7415,7 +7621,17 @@ function buildSingleWritingContract(prompt, essay, result) {
     evidence,
     nextAction: { type: "rewrite", label: "Improve this skill", itemId: item.id },
     retest: { type: "paragraph-rewrite", parentAttemptId: attemptId, itemId: item.id },
-    provenance: { provider: WRITING_AI_MODEL },
+    review: {
+      required: Boolean(result.analysis?.reviewRequired),
+      available: true,
+      reason: result.analysis?.reviewReason || "This is an AI-assisted practice estimate, not an official IELTS result.",
+    },
+    provenance: {
+      provider: result.mode?.startsWith("ai:") ? WRITING_AI_MODEL : "local-writing-estimate",
+      model: result.mode?.startsWith("ai:") ? WRITING_AI_MODEL : "local-writing-estimate",
+      promptVersion: WRITING_SCORING_PROMPT_VERSION,
+      rubric: "ielts-writing-four-criteria",
+    },
   };
 }
 
@@ -7454,7 +7670,7 @@ async function handleWritingJobStart(req, res) {
     .catch((error) => {
       job.status = "error";
       job.updatedAt = Date.now();
-      job.error = error.message || "Writing feedback failed";
+      job.error = "Writing feedback could not be completed safely. Please retry.";
     });
   sendJson(res, 202, { jobId: id, status: job.status, message: "Writing feedback job started." });
 }
@@ -7565,7 +7781,7 @@ async function handleSpeaking(req, res) {
       audioAiUsed = Boolean(ai);
     }
   } catch (error) {
-    warnings.push(error.message || "Speaking audio AI unavailable");
+    warnings.push(speakingProviderWarning(error));
   }
   if (!ai) {
     try {
@@ -7577,12 +7793,20 @@ async function handleSpeaking(req, res) {
           "No audio-model result is available. Use the realtime examiner note as the best audio-side evidence, and use the transcript for content, vocabulary and grammar.",
         ].join("\n"),
         temperature: 0.1,
+        timeoutMs: SPEAKING_AI_TIMEOUT_MS,
       });
     } catch (error) {
-      warnings.push(error.message || "AI unavailable");
+      warnings.push(speakingProviderWarning(error));
     }
   }
   const analysis = normalizeSpeakingAssessment(ai || {}, { scope, audioUsed: audioAiUsed, fallbackScores });
+  const contract = buildSpeakingScoringContract(analysis, transcript, {
+    model: ai
+      ? audioAiUsed ? SPEAKING_AUDIO_AI_MODEL : MODEL
+      : "local-speaking-estimate",
+    promptVersion: SPEAKING_SCORING_PROMPT_VERSION,
+    audioUsed: audioAiUsed,
+  });
   const feedback = formatSpeakingAssessment(analysis);
   const band = analysis.overall;
   const pdfDataUrl = await createReportPdfDataUrl("IELTS Speaking Result", [
@@ -7605,6 +7829,7 @@ async function handleSpeaking(req, res) {
     feedback,
     band,
     analysis,
+    contract,
     warning: warnings.filter(Boolean).join("\n"),
     pdfDataUrl,
     pdfFileName: "ielts-speaking-report.pdf",
@@ -7676,9 +7901,10 @@ async function handleFullExam(req, res) {
     ai = await callOpenAI({
       system: fullExamSystemPrompt(),
       user: JSON.stringify({ listening, reading, writing: { tasks: writingTasks }, speaking }, null, 2),
+      timeoutMs: WRITING_AI_TIMEOUT_MS,
     });
   } catch (error) {
-    warning = error.message || "AI unavailable";
+    warning = generalProviderWarning(error);
   }
   const feedback = ai || local;
   const reportBody = [
