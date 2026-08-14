@@ -69,5 +69,10 @@ const stylesVersion = html.match(/styles\.css\?v=([^"']+)/)?.[1] || "";
 const appVersion = html.match(/app\.js\?v=([^"']+)/)?.[1] || "";
 assert.match(appVersion, /^\d{8}-[a-z0-9-]+-v\d+$/, "Frontend assets need a dated cache version");
 assert.equal(stylesVersion, appVersion, "CSS and JavaScript must use the same cache version");
+assert.equal(
+  appVersion,
+  "20260814-full-papers-horizontal-v8",
+  "A changed app bundle must receive a fresh cache version before production release",
+);
 
 console.log(`IELTS Core vocabulary checks passed: ${catalog.items.length} items.`);
