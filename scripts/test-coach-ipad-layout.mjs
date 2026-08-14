@@ -34,17 +34,22 @@ try {
     const opened = await page.evaluate(() => {
       const panel = document.querySelector("#helpChatPanel");
       const rect = panel?.getBoundingClientRect();
-      const controls = ["#helpChatClose", "#helpChatCancel", "#helpChatRetry"].map((selector) => {
+      const controls = ["#helpChatClose"].map((selector) => {
         const node = document.querySelector(selector);
         const box = node?.getBoundingClientRect();
         return { selector, visible: Boolean(box && box.width > 0 && box.height > 0), box };
       });
+      const requestControls = ["#helpChatCancel", "#helpChatRetry"].map((selector) => ({
+        selector,
+        hidden: document.querySelector(selector)?.hidden === true,
+      }));
       return {
         bodyClass: document.body.classList.contains("coach-dock-open"),
         overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
         panel: rect && { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom },
         mainVisibility: getComputedStyle(document.querySelector(".app-shell main")).visibility,
         controls,
+        requestControls,
       };
     });
 
@@ -59,6 +64,11 @@ try {
       assert.ok(box.left >= 0 && box.right <= viewport.width && box.top >= 0 && box.bottom <= viewport.height,
         `${viewport.name}: ${selector} escapes the Coach viewport`);
     });
+    opened.requestControls.forEach(({ selector, hidden }) => {
+      assert.equal(hidden, true, `${viewport.name}: ${selector} should stay out of the empty Coach state`);
+    });
+    assert.equal(await page.locator("#helpAttachImage").count(), 1, `${viewport.name}: Coach needs one Capture entry`);
+    assert.equal(await page.locator("[data-global-coach-capture]").count(), 0, `${viewport.name}: Coach action list must not duplicate Capture`);
     if (screenshotDir) {
       const screenshotPath = resolve(screenshotDir, `coach-${viewport.width}x${viewport.height}-open.png`);
       await page.screenshot({ path: screenshotPath, fullPage: false });

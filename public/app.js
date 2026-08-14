@@ -5535,7 +5535,6 @@ function renderGlobalCoachActions() {
   const primaryActions = !surface.module
     ? [
         { type: "prompt", label: "How should I use IELTSist?", prompt: "Guide me through IELTSist as a student. Ask what I want to practise, then route me to the right skill and explain the loop: practice -> AI feedback -> review -> retest." },
-        { type: "capture", label: "Attach screenshot" },
       ]
     : surface.module === "reading"
     ? [
@@ -5546,7 +5545,6 @@ function renderGlobalCoachActions() {
       ]
     : [
         { type: "prompt", label: "Show evidence", prompt: "Show the evidence chain for the current question: question focus -> keywords -> paper/audio evidence -> correct answer -> why my answer or the wrong option fails." },
-        { type: "capture", label: "Attach screenshot" },
         { type: "retest", label: "Retest skill" },
       ];
   const moreActions = !surface.module
@@ -7872,8 +7870,14 @@ function syncHelpRequestControls() {
   const busy = Boolean(state.help.busy);
   const cancel = $("helpChatCancel");
   const retry = $("helpChatRetry");
-  if (cancel) cancel.disabled = !busy;
-  if (retry) retry.disabled = busy || !state.help.lastRequest;
+  if (cancel) {
+    cancel.disabled = !busy;
+    cancel.hidden = !busy;
+  }
+  if (retry) {
+    retry.disabled = busy || !state.help.lastRequest;
+    retry.hidden = busy || !state.help.lastRequest;
+  }
   $("helpChatPanel")?.setAttribute("aria-busy", String(busy));
 }
 
