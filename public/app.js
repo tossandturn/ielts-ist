@@ -5511,7 +5511,13 @@ function renderGlobalCoachContext() {
   const surface = currentCoachSurface();
   const answered = surface.answerCount ? `${surface.answerCount} answered` : surface.isImmersive ? "In practice" : "Ready";
   const questionLabel = surface.focusedQuestion?.number ? `Question ${surface.focusedQuestion.number}` : "";
-  const crumbs = [surface.viewLabel || "IELTS-ist", surface.moduleLabel || "", compactText(surface.title || "", 48), questionLabel].filter(Boolean);
+  const viewLabel = surface.viewLabel || "IELTS-ist";
+  const title = compactText(surface.title || "", 48);
+  const duplicateDashboardContext = !surface.module && /dashboard/i.test(viewLabel) && /dashboard/i.test(title);
+  const crumbs = (duplicateDashboardContext
+    ? [viewLabel]
+    : [viewLabel, surface.moduleLabel || "", title, questionLabel]
+  ).filter(Boolean);
   root.innerHTML = `
     <div class="help-coach-breadcrumb">
       ${crumbs.map((crumb) => `<span>${escapeHtml(crumb)}</span>`).join("<i>/</i>")}
@@ -7808,7 +7814,10 @@ async function deleteJson(url) {
 
 function setHelpStatus(text) {
   const node = $("helpChatStatus");
-  if (node) node.textContent = text || "";
+  if (!node) return;
+  const status = String(text || "").trim();
+  node.textContent = status;
+  node.hidden = !status || status === "Ready";
 }
 
 function helpResponseStatus(mode) {
