@@ -69,6 +69,11 @@ try {
   const notebookRowText = await page.locator(".vocab-notebook-recent li").first().innerText();
   assert.match(notebookRowText, /Due today|Mastered/, "Notebook row must show a student-facing review state");
   assert.doesNotMatch(notebookRowText, /vocabulary:/i, "Notebook row must not expose internal source keys");
+  assert.equal(await page.locator(".vocab-notebook-entry").count(), 1, "Notebook mode must show a saved entry list after Save");
+  assert.match(await page.locator(".vocab-notebook-entry").first().innerText(), /Definition|Meaning|中文|a place where/i,
+    "Notebook list must show the saved term meaning instead of only a compact label");
+  assert.match(await page.locator(".vocab-notebook-entry").first().innerText(), /IELTS|Travel|Transport/i,
+    "Notebook list must show the student-facing subject or topic");
   await reviewButton.click();
   await page.waitForFunction(() => document.getElementById("vocabulary")?.classList.contains("active"));
   assert.equal((await page.locator(".vocab-word-face h3").textContent()).trim(), word, "Notebook Review must reopen the original vocabulary card");

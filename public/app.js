@@ -4447,8 +4447,8 @@ function vocabularyModeLabel(mode) {
 }
 
 function vocabularyModeCount(mode, allItems) {
-  if (mode === "notebook") return allItems.filter(vocabularyIsSaved).length;
-  if (mode === "due") return allItems.filter((entry) => vocabularyIsSaved(entry) && vocabularyIsDue(entry)).length;
+  if (mode === "notebook") return vocabularyNotebookItems().length;
+  if (mode === "due") return vocabularyNotebookItems().filter(vocabularyIsDue).length;
   return "";
 }
 
@@ -4460,25 +4460,51 @@ function vocabularyNotebookSourceLabel(item) {
   return topicLabel && topicLabel !== subject ? `${subjectLabel} · ${topicLabel}` : subjectLabel;
 }
 
+function renderVocabularyNotebookEntry(item) {
+  const structured = parseImportedVocabularyPayload(item) || item?.structured || {};
+  const key = notebookIdentity(item);
+  const term = cleanReviewText(structured.term || item?.term || item?.word || "Saved term");
+  const meaning = cleanReviewText(structured.meaning || item?.meaning || "");
+  const definition = cleanReviewText(structured.definition || item?.definition || item?.explanation || "");
+  const example = cleanReviewText(structured.example || item?.example || item?.context || "");
+  const stateLabel = state.vocabularyReview.known.has(vocabularyItemKey(item)) ? "Mastered" : "Due today";
+  const privateNote = cleanReviewText(item?.privateNote || item?.note || "");
+  const sourceQuestionCount = Array.isArray(item?.relatedQuestionPartIds)
+    ? item.relatedQuestionPartIds.length
+    : (item?.questionPartId && !String(item.questionPartId).startsWith("vocabulary:") ? 1 : 0);
+  return `<li class="vocab-notebook-entry">
+    <article>
+      <div class="vocab-notebook-entry-head">
+        <div><span class="vocab-notebook-state ${stateLabel === "Mastered" ? "is-mastered" : "is-due"}">${stateLabel}</span><h4>${escapeHtml(term)}</h4><p>${escapeHtml(vocabularyNotebookSourceLabel(item))}</p></div>
+        <span class="vocab-notebook-entry-type">${escapeHtml(structured.type || item?.type || "Term")}</span>
+      </div>
+      <dl class="vocab-notebook-entry-facts">
+        ${meaning ? `<div><dt>Meaning</dt><dd>${escapeHtml(meaning)}</dd></div>` : ""}
+        ${definition ? `<div><dt>Definition</dt><dd>${escapeHtml(definition)}</dd></div>` : ""}
+        ${example ? `<div><dt>Example</dt><dd>${escapeHtml(example)}</dd></div>` : ""}
+        <div><dt>Private note</dt><dd>${escapeHtml(privateNote || "None yet")}</dd></div>
+        <div><dt>Source questions</dt><dd>${sourceQuestionCount ? `${sourceQuestionCount} linked` : "Vocabulary deck"}</dd></div>
+      </dl>
+      <div class="vocab-notebook-entry-actions">
+        <button class="secondary small-button" type="button" data-vocab-review-key="${escapeHtml(key)}">Review</button>
+        <button class="secondary small-button" type="button" data-vocab-remove-key="${escapeHtml(key)}">Remove</button>
+      </div>
+    </article>
+  </li>`;
+}
+
 function renderVocabularyNotebookStatus(allItems) {
-  const saved = allItems.filter(vocabularyIsSaved);
+  const saved = vocabularyNotebookItems();
   const due = saved.filter(vocabularyIsDue);
   const mastered = saved.length - due.length;
-  const local = readLocalVocabularyNotebook();
-  const privateNotes = local.filter((item) => String(item.privateNote || item.note || "").trim()).length;
+  const privateNotes = saved.filter((item) => String(item.privateNote || item.note || "").trim()).length;
   const sourceQuestions = saved.filter((item) => item.relatedQuestionPartIds?.length || (item.questionPartId && !String(item.questionPartId).startsWith("vocabulary:"))).length;
   const nextAction = due.length
     ? `Next: review ${Math.min(due.length, 5)} due term${due.length === 1 ? "" : "s"}, then mark the ones you can explain.`
     : saved.length
       ? "Next: add a private note to one saved term, then use it in a speaking or writing answer."
       : "Next: save a term from the deck. It will appear here with its definition, topic and source.";
-  const rows = saved.slice(0, 6).map((item) => {
-    const key = notebookIdentity(item);
-    const title = item.term || item.word || item.structured?.term || "Saved term";
-    const stateLabel = state.vocabularyReview.known.has(vocabularyItemKey(item)) ? "Mastered" : "Due";
-    const reviewLabel = stateLabel === "Due" ? "Due today" : stateLabel;
-    return `<li><button type="button" data-vocab-review-key="${escapeHtml(key)}"><strong>${escapeHtml(title)}</strong><span>${escapeHtml(reviewLabel)} · ${escapeHtml(compactText(vocabularyNotebookSourceLabel(item), 64))}</span></button></li>`;
-  }).join("");
+  const rows = saved.map(renderVocabularyNotebookEntry).join("");
   return `<section class="vocab-notebook-status" aria-label="Notebook learning status">
     <div class="vocab-notebook-status-head"><div><span class="eyebrow">Notebook</span><h3>Your learning queue</h3><p>${escapeHtml(nextAction)}</p></div><strong>${saved.length} saved</strong></div>
     <div class="vocab-notebook-stats">
@@ -4869,7 +4895,7 @@ function renderVocabularyReviewPage(allItems, subjectCounts, deck, item, knownCo
       ${catalogStatus}
     </div>
     ${routeContext.from === "stem" ? `<aside class="vocab-route-context" aria-label="STEM learning context"><div><strong>${isPendingStemFallback ? "IELTSist glossary sync pending" : "STEM term pack"}</strong><span>${isPendingStemFallback ? `The requested STEM term pack is not available here yet. Continue with ${escapeHtml(vocabularyRouteStudyLabel(state.vocabularyReview.subject, routeContext))} while it syncs.` : `${escapeHtml(vocabularySubjectLabel(state.vocabularyReview.subject))}${routeContext.topicId ? ` · ${escapeHtml(routeContext.topicId)}` : ""}${routeContext.attemptId ? ` · attempt ${escapeHtml(routeContext.attemptId)}` : ""} · Vocabulary support only; progress stays on each site.`}</span>${routeWarning && !isPendingStemFallback ? `<em role="alert">${escapeHtml(routeWarning)}</em>` : ""}${isPendingStemFallback && routeContext.termIds.length ? `<button class="secondary small-button" type="button" data-vocab-clear>Browse selected subject</button>` : ""}</div>${returnToStem ? `<a class="secondary small-button" href="${escapeHtml(returnToStem)}">Return to STEM attempt</a>` : ""}</aside>` : ""}
-    ${isStemCatalogLoading ? `<article class="vocab-review-card vocab-loading-state" role="status"><strong>Loading ${escapeHtml(vocabularyRouteStudyLabel(state.vocabularyReview.subject, routeContext))}</strong><p>Preparing the local study pack for this STEM route.</p></article>` : item ? `<article class="vocab-review-card ${revealed ? "is-revealed" : ""}">
+    ${state.vocabularyReview.mode === "notebook" ? "" : isStemCatalogLoading ? `<article class="vocab-review-card vocab-loading-state" role="status"><strong>Loading ${escapeHtml(vocabularyRouteStudyLabel(state.vocabularyReview.subject, routeContext))}</strong><p>Preparing the local study pack for this STEM route.</p></article>` : item ? `<article class="vocab-review-card ${revealed ? "is-revealed" : ""}">
       <div class="vocab-review-top">
         <span class="eyebrow">${escapeHtml(currentScopeLabel)}</span>
         <strong>${escapeHtml(deckPosition)}</strong>
@@ -4889,7 +4915,7 @@ function renderVocabularyReviewPage(allItems, subjectCounts, deck, item, knownCo
       </div>
     </article>` : `<article class="vocab-review-card vocab-empty-state"><strong>No vocabulary matches these filters.</strong><p>${routeContext.from === "stem" && routeContext.termIds.length ? "This STEM term pack may have changed. Browse the selected subject to keep learning." : "Try another subject, topic, type, or clear the search."}</p><button class="secondary" type="button" data-vocab-clear>${routeContext.from === "stem" && routeContext.termIds.length ? "Browse selected subject" : "Clear filters"}</button></article>`}
     ${state.vocabularyReview.notice ? `<div class="vocab-notice" role="status">${escapeHtml(state.vocabularyReview.notice)}</div>` : ""}
-    ${deck.length > 1 ? `<aside class="vocab-review-side" aria-label="Deck progress">
+    ${state.vocabularyReview.mode !== "notebook" && deck.length > 1 ? `<aside class="vocab-review-side" aria-label="Deck progress">
       <div class="vocab-study-meter">
         <span>This study set</span>
         <strong>${knownCount} mastered</strong>
@@ -5007,7 +5033,8 @@ function setVocabularyCourse(course) {
 }
 
 function openVocabularyNotebookEntry(key) {
-  const item = normalizedCoreVocabularyItems().find((entry) => notebookIdentity(entry) === key);
+  const item = normalizedCoreVocabularyItems().find((entry) => notebookIdentity(entry) === key)
+    || vocabularyNotebookItems().find((entry) => notebookIdentity(entry) === key);
   if (!item) {
     state.vocabularyReview.notice = "This saved note is from Coach text; open its full explanation in Notebook.";
     activateView("vocabulary", true);
@@ -5018,10 +5045,11 @@ function openVocabularyNotebookEntry(key) {
   state.vocabularyReview.subject = item.subject || "all";
   state.vocabularyReview.stage = item.stage || "all";
   state.vocabularyReview.topic = item.topic || "all";
-  state.vocabularyReview.type = item.subject === "ielts" ? "term" : "all";
+  state.vocabularyReview.type = "all";
   state.vocabularyReview.query = "";
   const deck = filteredCoreVocabulary();
   state.vocabularyReview.index = Math.max(0, deck.findIndex((entry) => notebookIdentity(entry) === key));
+  state.vocabularyReview.mode = "all";
   activateView("vocabulary", true);
   state.vocabularyReview.page = "review";
   state.vocabularyReview.revealed = true;
@@ -5096,6 +5124,12 @@ function bindVocabularyControls() {
   });
   document.querySelectorAll("[data-vocab-review-key]").forEach((button) => {
     button.onclick = () => openVocabularyNotebookEntry(button.dataset.vocabReviewKey || "");
+  });
+  document.querySelectorAll("[data-vocab-remove-key]").forEach((button) => {
+    button.onclick = async () => {
+      const item = vocabularyNotebookItems().find((entry) => notebookIdentity(entry) === button.dataset.vocabRemoveKey);
+      if (item) await removeVocabularyFromNotebook(item);
+    };
   });
   $("vocabSubjectFilter")?.addEventListener("change", (event) => {
     state.vocabularyReview.subject = event.target.value || "all";

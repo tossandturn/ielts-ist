@@ -57,8 +57,11 @@ assert.match(app, /IELTSist glossary sync pending/);
 assert.match(app, /older route metadata/);
 assert.match(app, /item\.taxonomyId === context\.taxonomyId/);
 assert.doesNotMatch(app, /item\.topicId\.endsWith/);
-assert.match(app, /const vocabularyStudySetSize = 30/);
-assert.match(app, /return !hasExplicitScope && deck\.length > vocabularyStudySetSize/);
+assert.match(app, /function vocabularyStudyDeck\(\)/);
+assert.match(app, /return filteredCoreVocabulary\(\);/,
+  "Vocabulary study mode must use the complete filtered deck rather than a fixed 30-word slice");
+assert.doesNotMatch(app, /vocabularyStudySetSize|30-word study session/,
+  "The default full-deck flow must not retain the old 30-word truncation path");
 assert.match(app, /const globalSearch = Boolean\(query\) && review\.mode === "all"/);
 assert.doesNotMatch(app, /item\.termId, item\.topicId, item\.stage,/);
 assert.match(app, /state\.examSubmitted = restoredState\.submitted/,
