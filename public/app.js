@@ -4418,6 +4418,14 @@ function vocabularyModeCount(mode, allItems) {
   return "";
 }
 
+function vocabularyNotebookSourceLabel(item) {
+  const subject = item?.subject || item?.structured?.subject || "ielts";
+  const topicLabel = item?.topicLabel || item?.structured?.topicLabel || item?.topic || item?.structured?.topic || "";
+  if (subject === "ielts") return topicLabel ? `IELTS ${topicLabel}` : "IELTS Core";
+  const subjectLabel = vocabularySubjectLabel(subject).replace(/^IG \+ A-Level /, "");
+  return topicLabel && topicLabel !== subject ? `${subjectLabel} · ${topicLabel}` : subjectLabel;
+}
+
 function renderVocabularyNotebookStatus(allItems) {
   const saved = allItems.filter(vocabularyIsSaved);
   const due = saved.filter(vocabularyIsDue);
@@ -4432,10 +4440,10 @@ function renderVocabularyNotebookStatus(allItems) {
       : "Next: save a term from the deck. It will appear here with its definition, topic and source.";
   const rows = saved.slice(0, 6).map((item) => {
     const key = notebookIdentity(item);
-    const source = item.relatedQuestionPartIds?.[0] || item.questionPartId || item.source || `${vocabularySubjectLabel(item.subject || "ielts")} topic`;
     const title = item.term || item.word || item.structured?.term || "Saved term";
     const stateLabel = state.vocabularyReview.known.has(vocabularyItemKey(item)) ? "Mastered" : "Due";
-    return `<li><button type="button" data-vocab-review-key="${escapeHtml(key)}"><strong>${escapeHtml(title)}</strong><span>${escapeHtml(stateLabel)} · ${escapeHtml(compactText(source, 64))}</span></button></li>`;
+    const reviewLabel = stateLabel === "Due" ? "Due today" : stateLabel;
+    return `<li><button type="button" data-vocab-review-key="${escapeHtml(key)}"><strong>${escapeHtml(title)}</strong><span>${escapeHtml(reviewLabel)} · ${escapeHtml(compactText(vocabularyNotebookSourceLabel(item), 64))}</span></button></li>`;
   }).join("");
   return `<section class="vocab-notebook-status" aria-label="Notebook learning status">
     <div class="vocab-notebook-status-head"><div><span class="eyebrow">Notebook</span><h3>Your learning queue</h3><p>${escapeHtml(nextAction)}</p></div><strong>${saved.length} saved</strong></div>
@@ -5203,6 +5211,34 @@ function requestPracticeLeave(next) {
   return false;
 }
 
+function openDiagnosticChoiceDialog() {
+  const dialog = $("diagnosticChoiceDialog");
+  if (dialog?.showModal) dialog.showModal();
+  else activateSingleModule("listening", true);
+}
+
+function openDiagnosticModule(moduleName) {
+  const dialog = $("diagnosticChoiceDialog");
+  if (dialog?.open) dialog.close();
+  if (!["listening", "reading", "writing", "speaking"].includes(moduleName)) return;
+  if (moduleName === "listening") {
+    setSinglePracticeScope("listening", "section");
+    activateSingleModule("listening", true);
+    return;
+  }
+  if (moduleName === "reading") {
+    setSinglePracticeScope("reading", "section");
+    activateSingleModule("reading", true);
+    return;
+  }
+  if (moduleName === "writing") {
+    openWritingPracticeSetup("topic", writingTopicOptions()[0]?.id || "");
+    return;
+  }
+  state.speakingSetupMode = "diagnostic";
+  activateSingleModule("speaking", true);
+}
+
 function activateSingleModule(moduleName, updateHash = true, options = {}) {
   if (!["listening", "reading", "writing", "speaking"].includes(moduleName)) return;
   if (options.confirmLeave === true && !options.force && moduleName !== state.activeModule && unfinishedSinglePractice()) {
@@ -5332,12 +5368,7 @@ function runHomeAction(action) {
     return;
   }
   if (action === "coach-diagnostic") {
-    openGlobalCoachPanel();
-    const input = $("helpChatInput");
-    if (input) {
-      input.value = "Help me choose my first IELTS diagnostic. Ask which skill I want to diagnose, then open that practice. Do not assume Speaking is my weakest skill.";
-      input.focus();
-    }
+    openDiagnosticChoiceDialog();
   }
 }
 
@@ -7432,7 +7463,17 @@ function restoredExamSessionState(record, fallbackTotal) {
 
 function restoreExamSessionValues(record) {
   if (!record?.values || typeof record.values !== "object") return;
-  requestAnimationFrame(() => applyDraftValues(record.values));
+  const values = { ...record.values };
+  const restore = () => {
+    const missingBeforeApply = Object.keys(values).some((key) => !findDraftField(key));
+    applyDraftValues(values);
+    return missingBeforeApply;
+  };
+  // The exam DOM is synchronously rendered before this helper is called. Apply
+  // immediately so a reload never exposes a blank answer while the first
+  // animation frame is pending; retry once for controls introduced by deferred
+  // section/task rendering.
+  if (restore()) requestAnimationFrame(() => applyDraftValues(values));
 }
 
 function restoreExamSessionAfterData(prefixRoot) {
@@ -10699,6 +10740,18 @@ function renderAnswerGroup(group, prefix, options = {}) {
   const passagePageByQuestion = options.passagePageByQuestion instanceof Map
     ? options.passagePageByQuestion
     : new Map();
+  const activeSection = String(options.activeSection || "");
+  const isDeferredListeningGroup = options.lazyAnswerGroups === true
+    && !isReading
+    && group.section
+    && activeSection
+    && String(group.section) !== activeSection;
+  if (isDeferredListeningGroup) {
+    return `<section class="paper-answer-group paper-answer-group-deferred" data-listening-section="${escapeHtml(group.section)}">
+      <div class="paper-answer-group-title">${escapeHtml(group.title)}</div>
+      <button class="secondary small-button answer-group-open" type="button" data-answer-group-section="${escapeHtml(group.section)}" data-answer-group-prefix="${escapeHtml(prefix)}">Open Section ${escapeHtml(group.section)}</button>
+    </section>`;
+  }
   return `<section class="paper-answer-group"${!isReading && group.section ? ` data-listening-section="${escapeHtml(group.section)}"` : ""}>
     <div class="paper-answer-group-title">${escapeHtml(group.title)}</div>
     ${renderSectionAudio(group.audioUrl, group.section, prefix)}
@@ -10751,6 +10804,10 @@ function renderPaperAnswerPanel(prefix, questions, assignments, label, audioUrls
       ? readingAnswerGroups(entries)
       : pageAnswerGroups(assignments, entries);
   const title = isListening ? "Listening answer sheet" : answerCardTitle(label);
+  const activeSection = isListening
+    ? (prefix === "single" ? listeningWorkspaceSection(prefix) || "1" : "1")
+    : "";
+  const lazyAnswerGroups = isListening && entries.length > 10;
   const scrollAttribute = options.scrollKey ? ` data-reading-scroll-pane="${escapeHtml(options.scrollKey)}"` : "";
   return `<aside class="paper-answer-scroll${isReading ? " reading-answer-sheet" : ""}"${scrollAttribute} aria-label="${escapeHtml(title)}">
     <div class="paper-answer-groups">
@@ -10758,6 +10815,8 @@ function renderPaperAnswerPanel(prefix, questions, assignments, label, audioUrls
         isReading,
         passagePageByQuestion: options.passagePageByQuestion,
         examLocked: options.examLocked,
+        activeSection,
+        lazyAnswerGroups,
       })).join("") : `<div class="page-card-empty">This paper has no answerable questions.</div>`}
     </div>
   </aside>`;
@@ -10781,11 +10840,33 @@ function assignQuestionsToPages(images, questions, paper) {
 }
 
 function collectAnswers(prefix) {
-  const answers = {};
+  const answers = prefix === "single"
+    && state.singleAnswerItemId
+    && state.activeSingle?.id === state.singleAnswerItemId
+    ? { ...(state.singleAnswers || {}) }
+    : {};
   document.querySelectorAll(`.answer-input[data-prefix="${prefix}"]`).forEach((input) => {
-    answers[input.dataset.qid] = input.value;
+    const value = String(input.value || "").trim();
+    if (value) answers[input.dataset.qid] = input.value;
+    else delete answers[input.dataset.qid];
   });
   return answers;
+}
+
+function openListeningAnswerGroup(prefix, section) {
+  const normalizedSection = Number(section);
+  if (!(normalizedSection >= 1 && normalizedSection <= 4)) return;
+  const bundle = prefix.startsWith("sequence") ? state.sequence : prefix.startsWith("exam") ? state.exam : null;
+  const item = bundle?.listening ? normalizeItem(bundle.listening) : null;
+  if (!item) return;
+  const entries = paperQuestionEntries(item.questions || []);
+  const groups = listeningAnswerGroups(entries, Array.isArray(item.audioUrls) ? item.audioUrls.map(resolveAudioUrl) : []);
+  const group = groups.find((candidate) => Number(candidate.section) === normalizedSection);
+  const placeholder = document.querySelector(`.paper-answer-group[data-listening-section="${normalizedSection}"] .answer-group-open[data-answer-group-prefix="${CSS.escape(prefix)}"]`)?.closest(".paper-answer-group");
+  if (!group || !placeholder) return;
+  activateListeningSection(prefix, normalizedSection);
+  placeholder.outerHTML = renderAnswerGroup(group, prefix, { activeSection: String(normalizedSection), lazyAnswerGroups: false });
+  bindDynamicControls();
 }
 
 function objectiveProxyForControl(control) {
@@ -11033,6 +11114,9 @@ function savePracticeSession(options = {}) {
   try {
     upsertPracticeSession(session, owner);
     setPracticeSaveState(authToken ? "syncing" : "saved");
+    if (activeViewId() === "single" && ["listening", "reading"].includes(session.module) && session.sessionId) {
+      history.replaceState(null, "", `#practice/${session.module}/${encodeURIComponent(session.sessionId)}`);
+    }
   } catch {}
   if (options.scheduleRemote !== false) scheduleRemotePracticeSessionSync(session, { owner, authToken });
 }
@@ -12070,31 +12154,77 @@ function readingPassagePageByQuestion(passageImages, paper, providedStarts = {})
   return byQuestion;
 }
 
+function readingPassageForQuestionNumber(number) {
+  const normalized = Number(number);
+  if (normalized >= 1 && normalized <= 13) return 1;
+  if (normalized >= 14 && normalized <= 26) return 2;
+  if (normalized >= 27 && normalized <= 40) return 3;
+  return 1;
+}
+
+function readingQuestionForNumber(questions, number) {
+  const normalized = Number(number);
+  return (questions || []).find((question, index) => questionNumber(question, index) === normalized) || null;
+}
+
 function renderReadingSplitPages(images, prefix, questions, paper, provided = {}) {
+  const allQuestions = questions || [];
   const { passageImages, questionImages } = splitReadingPageImages(images, paper, provided);
+  const requestedPassage = Math.max(1, Math.min(3, Number(state.singlePracticeSections?.reading) || 1));
+  const requestedQuestions = questionsInRange(allQuestions, ...singleSectionQuestionRange("reading", requestedPassage));
+  const activeQuestions = requestedQuestions.length
+    ? requestedQuestions
+    : questionsInRange(allQuestions, ...singleSectionQuestionRange(
+      "reading",
+      readingPassageForQuestionNumber(questionNumber(allQuestions?.[0], 0)),
+    ));
+  const activePassage = activeQuestions.length
+    ? readingPassageForQuestionNumber(questionNumber(activeQuestions[0], 0))
+    : requestedPassage;
+  const scopedPassageImages = readingPassageImagesForQuestionSubset(
+    passageImages,
+    paper,
+    activeQuestions,
+    provided.passageStartPages,
+  );
+  const scopedQuestionImages = paperImagesForQuestionSubset(
+    questionImages,
+    allQuestions,
+    paper,
+    activeQuestions,
+  );
   const passagePageByQuestion = readingPassagePageByQuestion(passageImages, paper, provided.passageStartPages);
   const activePane = ["passage", "questions"].includes(state.readingMobilePane) ? state.readingMobilePane : "passage";
-  const focusedQuestion = state.coach.focusQuestion?.module === "reading"
-    ? state.coach.focusQuestion.number
-    : questionNumber(questions?.[0], 0);
-  const questionPaperHtml = questionImages.length
-    ? renderPageImages(questionImages, "Reading question PDF")
+  const storedQuestion = readingQuestionForNumber(
+    allQuestions,
+    Number(String(state.singleCurrentQuestion || "").match(/\d{1,2}/)?.[0] || 0),
+  );
+  const coachQuestion = state.coach.focusQuestion?.module === "reading"
+    ? readingQuestionForNumber(allQuestions, state.coach.focusQuestion.number)
+    : null;
+  const focusedCandidate = [storedQuestion, coachQuestion]
+    .find((question) => question && readingPassageForQuestionNumber(questionNumber(question, 0)) === activePassage);
+  const focusedQuestion = focusedCandidate
+    ? questionNumber(focusedCandidate, 0)
+    : questionNumber(activeQuestions[0], 0);
+  const questionPaperHtml = scopedQuestionImages.length
+    ? renderPageImages(scopedQuestionImages, "Reading question PDF")
     : `<section class="reading-question-fallback"><p>Question paper text is unavailable.</p></section>`;
-  const questionAssignments = assignQuestionsToPages(questionImages, questions, paper);
-  const answerPanelHtml = renderPaperAnswerPanel(prefix, questions, questionAssignments, "Reading question PDF", [], {
+  const questionAssignments = assignQuestionsToPages(scopedQuestionImages, activeQuestions, paper);
+  const answerPanelHtml = renderPaperAnswerPanel(prefix, activeQuestions, questionAssignments, "Reading question PDF", [], {
     scrollKey: "answers",
     passagePageByQuestion,
     examLocked: provided.examLocked === true,
   });
-  return `<div class="reading-mobile-workspace" data-reading-pane="${escapeHtml(activePane)}" data-focused-question="${escapeHtml(focusedQuestion || "")}">
+  return `<div class="reading-mobile-workspace" data-reading-pane="${escapeHtml(activePane)}" data-active-passage="${escapeHtml(activePassage)}" data-focused-question="${escapeHtml(focusedQuestion || "")}">
     <nav class="reading-pane-tabs" aria-label="Reading workspace">
       ${["passage", "questions"].map((pane) => `<button class="${pane === activePane ? "active" : ""}" type="button" data-reading-pane-target="${pane}">${pane.slice(0, 1).toUpperCase()}${pane.slice(1)}</button>`).join("")}
     </nav>
     <div class="reading-question-rail-layout reading-question-top-layout">
-      ${renderReadingQuestionNav(questions)}
+      ${renderReadingQuestionNav(allQuestions)}
       <div class="reading-split">
         <section class="reading-pane reading-passage-pane" data-reading-pane-content="passage" data-reading-scroll-pane="passage">
-          ${renderPageImages(passageImages, "Reading passage PDF")}
+          ${renderPageImages(scopedPassageImages, "Reading passage PDF")}
         </section>
         <div class="reading-split-divider" role="separator" aria-label="Resize passage and questions" aria-orientation="vertical" tabindex="0"></div>
         <section class="reading-pane reading-question-pane" data-reading-pane-content="questions">
@@ -12204,20 +12334,54 @@ function listeningPlaybackRecord(prefix) {
   return state.listeningPlayback[prefix];
 }
 
-function setListeningPlaybackStatus(audio, status, label) {
+function listeningWorkspaceSection(prefix = "single") {
+  const status = document.querySelector(`[data-listening-status][data-prefix="${CSS.escape(prefix)}"]`);
+  const studio = document.querySelector(`.listening-study[data-listening-prefix="${CSS.escape(prefix)}"]`);
+  const candidate = prefix === "single"
+    ? (state.singlePracticeSections?.listening || studio?.dataset.currentSection || status?.dataset.section || "")
+    : (studio?.dataset.currentSection || status?.dataset.section || "");
+  const section = Number(candidate);
+  return section >= 1 && section <= 4 ? String(section) : "";
+}
+
+function isActiveListeningAudio(audio) {
+  if (!audio) return false;
+  const section = String(audio.dataset.section || "");
+  if (!section) return true;
+  const activeSection = listeningWorkspaceSection(audio.dataset.prefix || "single");
+  return !activeSection || activeSection === section;
+}
+
+function activateListeningSection(prefix, section) {
+  const normalized = Number(section);
+  if (!(normalized >= 1 && normalized <= 4)) return "";
+  const value = String(normalized);
+  if (prefix === "single") state.singlePracticeSections.listening = normalized;
+  document.querySelectorAll(`.listening-study[data-listening-prefix="${CSS.escape(prefix)}"]`).forEach((studio) => {
+    studio.dataset.currentSection = value;
+  });
+  document.querySelectorAll(`[data-listening-status][data-prefix="${CSS.escape(prefix)}"]`).forEach((node) => {
+    node.dataset.section = value;
+  });
+  return value;
+}
+
+function setListeningPlaybackStatus(audio, status, label, options = {}) {
   const prefix = audio?.dataset?.prefix || "single";
   const section = audio?.dataset?.section || "";
+  if (section && options.activate) activateListeningSection(prefix, section);
+  if (section && !isActiveListeningAudio(audio)) return;
   const record = listeningPlaybackRecord(prefix);
   record.status = status;
-  record.section = section;
+  record.section = section || listeningWorkspaceSection(prefix);
   document.querySelectorAll(`[data-listening-status][data-prefix="${CSS.escape(prefix)}"]`).forEach((node) => {
     node.dataset.playbackState = status;
-    if (section) node.dataset.section = section;
+    if (record.section) node.dataset.section = record.section;
     const stateNode = node.querySelector("[data-listening-state]");
     if (stateNode) stateNode.textContent = label;
     const progressNode = node.querySelector("[data-listening-progress]");
     const item = prefix === "single" ? singlePracticeItemForMode("listening", state.activeSingle) : null;
-    if (progressNode) progressNode.textContent = listeningProgressLabel(prefix, section, item?.questions || []);
+    if (progressNode) progressNode.textContent = listeningProgressLabel(prefix, record.section, item?.questions || []);
     const start = node.querySelector("[data-listening-start]");
     if (start) {
       start.disabled = status === "playing" || status === "finished";
@@ -12234,14 +12398,18 @@ function advanceListeningExamSection(audio) {
   const currentIndex = players.indexOf(audio);
   const next = currentIndex >= 0 ? players[currentIndex + 1] : null;
   if (!next) return false;
-  setListeningPlaybackStatus(next, next.readyState >= 3 ? "ready" : "loading", next.readyState >= 3 ? `Section ${next.dataset.section} ready` : `Loading Section ${next.dataset.section}`);
+  setListeningPlaybackStatus(next, next.readyState >= 3 ? "ready" : "loading", next.readyState >= 3 ? `Section ${next.dataset.section} ready` : `Loading Section ${next.dataset.section}`, { activate: true });
   if (next.readyState === 0) next.load();
   Promise.resolve(next.play()).catch(() => setListeningPlaybackStatus(next, "failed", `Section ${next.dataset.section} failed`));
   return true;
 }
 
 function updateListeningProgress(prefix = "single") {
-  const audio = [...document.querySelectorAll(`.listening-player[data-prefix="${CSS.escape(prefix)}"]`)].find((item) => !item.paused) || document.querySelector(`.listening-player[data-prefix="${CSS.escape(prefix)}"]`);
+  const activeSection = listeningWorkspaceSection(prefix);
+  const activeSelector = activeSection ? `[data-section="${CSS.escape(activeSection)}"]` : "";
+  const audio = [...document.querySelectorAll(`.listening-player[data-prefix="${CSS.escape(prefix)}"]${activeSelector}`)].find((item) => !item.paused)
+    || document.querySelector(`.listening-player[data-prefix="${CSS.escape(prefix)}"]${activeSelector}`)
+    || document.querySelector(`.listening-player[data-prefix="${CSS.escape(prefix)}"]`);
   if (!audio) return;
   const record = listeningPlaybackRecord(prefix);
   const labels = { loading: "Loading", ready: "Ready to play", playing: "Playing", paused: "Paused", failed: "Playback failed", finished: "Finished" };
@@ -18680,7 +18848,14 @@ function singleRecommendationReason(moduleName, item, options = []) {
     return `Your last ${moduleLabel.toLowerCase()} result was ${latestObjective.correct || 0}/${latestObjective.total || 0} with ${wrongCount} item${wrongCount === 1 ? "" : "s"} to review. ${recentLine}`;
   }
 
-  return `${sourceLine || moduleLabel} is selected by rotation, not because it is the first item. ${recentLine}`;
+  if (["listening", "reading"].includes(moduleName)) {
+    const meta = singlePracticeMeta(moduleName);
+    const output = moduleName === "listening"
+      ? "an objective score and the listening traps to review"
+      : "an objective score and the passage evidence to revisit";
+    return `Start with a fresh full test to establish your first baseline. This ${moduleLabel.toLowerCase()} session takes about ${meta.estimate} and gives you ${output}.`;
+  }
+  return `${sourceLine || moduleLabel} gives you a clear next ${moduleLabel.toLowerCase()} task. ${recentLine}`;
 }
 
 function singleRecommendedOption(moduleName, options) {
@@ -18774,6 +18949,7 @@ function beginSinglePracticeUnit(item, options = {}) {
     renderSingle();
     renderSingleTimer();
     setSingleImmersive(moduleName);
+    if (savedSession.sessionId) history.replaceState(null, "", `#practice/${moduleName}/${encodeURIComponent(savedSession.sessionId)}`);
     window.scrollTo({ top: 0, behavior: "auto" });
     return;
   }
@@ -21332,16 +21508,16 @@ function bindListeningCaptionPlayers() {
       const prefix = audio.dataset.prefix || "single";
       if (prefix === "single" && state.activeModule === "listening") {
         const section = Number(audio.dataset.section || 0);
-        if (section >= 1 && section <= 4) state.singlePracticeSections.listening = section;
+        if (section >= 1 && section <= 4) activateListeningSection(prefix, section);
         if (!state.singleTimerId) startSingleTimer();
         schedulePracticeSessionSave();
       }
-      setListeningPlaybackStatus(audio, audio.readyState >= 3 ? "playing" : "loading", audio.readyState >= 3 ? "Playing" : "Loading audio");
+      setListeningPlaybackStatus(audio, audio.readyState >= 3 ? "playing" : "loading", audio.readyState >= 3 ? "Playing" : "Loading audio", { activate: true });
       sync({ restart: true });
     });
     audio.addEventListener("playing", () => {
       settleListeningLoadRequest(audio);
-      setListeningPlaybackStatus(audio, "playing", "Playing");
+      setListeningPlaybackStatus(audio, "playing", "Playing", { activate: true });
       sync({ restart: true });
     });
     audio.addEventListener("canplay", () => {
@@ -21432,9 +21608,10 @@ function bindListeningPlaybackControls() {
       });
       const record = listeningPlaybackRecord(prefix);
       record.loadRequested = true;
+      activateListeningSection(prefix, audio.dataset.section || section);
       record.section = audio.dataset.section || section;
       armListeningLoadTimeout(audio);
-      setListeningPlaybackStatus(audio, audio.readyState >= 3 ? "ready" : "loading", audio.readyState >= 3 ? "Ready to play" : "Loading");
+      setListeningPlaybackStatus(audio, audio.readyState >= 3 ? "ready" : "loading", audio.readyState >= 3 ? "Ready to play" : "Loading", { activate: true });
       try {
         if (audio.readyState === 0) audio.load();
         if (prefix === "single" && state.activeModule === "listening" && !state.singleTimerId) startSingleTimer();
@@ -21570,14 +21747,34 @@ function appendReadingEvidenceAction(messageNode, evidence) {
 function focusReadingQuestion(number) {
   const workspace = document.querySelector(".reading-mobile-workspace");
   if (!workspace) return;
+  const normalizedNumber = Number(number);
+  const targetQuestion = readingQuestionForNumber(state.activeSingle?.questions || [], normalizedNumber);
+  const targetPassage = readingPassageForQuestionNumber(normalizedNumber);
+  if (
+    state.activeModule === "reading"
+    && state.singleStarted
+    && targetQuestion
+    && String(workspace.dataset.activePassage || "") !== String(targetPassage)
+  ) {
+    saveSingleAnswersToState();
+    state.singlePracticeSections.reading = targetPassage;
+    state.singleCurrentQuestion = targetQuestion.id || "";
+    state.readingMobilePane = "questions";
+    renderSingle();
+    setSingleImmersive("reading");
+    requestAnimationFrame(() => focusReadingQuestion(normalizedNumber));
+    savePracticeSession();
+    return;
+  }
+  if (targetQuestion?.id) state.singleCurrentQuestion = targetQuestion.id;
   state.readingMobilePane = "questions";
   workspace.dataset.readingPane = "questions";
-  setReadingCurrentQuestion(workspace, number);
+  setReadingCurrentQuestion(workspace, normalizedNumber);
   const questionPane = workspace.querySelector(".reading-question-pane");
   workspace.querySelectorAll("[data-reading-pane-target]").forEach((button) => {
     button.classList.toggle("active", button.dataset.readingPaneTarget === "questions");
   });
-  const target = workspace.querySelector(`.paper-answer-row[data-question-number="${number}"]`);
+  const target = workspace.querySelector(`.paper-answer-row[data-question-number="${normalizedNumber}"]`);
   const answerScroll = target?.closest(".paper-answer-scroll");
   if (target && answerScroll) {
     const nextTop = target.offsetTop - Math.max(12, (answerScroll.clientHeight - target.offsetHeight) / 2);
@@ -21595,8 +21792,15 @@ function focusReadingQuestion(number) {
       if (passagePane.getClientRects().length) passagePane.scrollTo({ top: passageTop, behavior: "auto" });
     };
     syncPassagePage();
+    requestAnimationFrame(() => {
+      syncPassagePage();
+      requestAnimationFrame(syncPassagePage);
+    });
     const passageImage = passagePageNode.querySelector("img");
-    if (passageImage && !passageImage.complete) passageImage.addEventListener("load", syncPassagePage, { once: true });
+    if (passageImage) {
+      if (!passageImage.complete) passageImage.addEventListener("load", syncPassagePage, { once: true });
+      passageImage.decode?.().then(syncPassagePage).catch(() => null);
+    }
   }
   const questionPaper = workspace.querySelector(".reading-question-paper");
   const questionPageNode = questionPage ? questionPaper?.querySelector(`[data-pdf-page="${questionPage}"]`) : null;
@@ -21607,8 +21811,15 @@ function focusReadingQuestion(number) {
       questionPaper.scrollTo({ top: questionTop, behavior: "auto" });
     };
     syncQuestionPage();
+    requestAnimationFrame(() => {
+      syncQuestionPage();
+      requestAnimationFrame(syncQuestionPage);
+    });
     const questionImage = questionPageNode.querySelector("img");
-    if (questionImage && !questionImage.complete) questionImage.addEventListener("load", syncQuestionPage, { once: true });
+    if (questionImage) {
+      if (!questionImage.complete) questionImage.addEventListener("load", syncQuestionPage, { once: true });
+      questionImage.decode?.().then(syncQuestionPage).catch(() => null);
+    }
   }
   target?.querySelector(".objective-answer-control, input:not([type='hidden']), select, textarea")?.focus({ preventScroll: true });
   if (answerScroll) {
@@ -21837,6 +22048,23 @@ function bindDynamicControls() {
       savePracticeSession();
     };
   });
+  document.querySelectorAll("[data-answer-group-section]").forEach((button) => {
+    button.onclick = () => {
+      const prefix = button.dataset.answerGroupPrefix || "single";
+      const section = Number(button.dataset.answerGroupSection);
+      if (!(section >= 1 && section <= 4)) return;
+      if (prefix !== "single") {
+        openListeningAnswerGroup(prefix, section);
+        return;
+      }
+      saveSingleAnswersToState();
+      state.singlePracticeSections.listening = section;
+      state.singleCurrentQuestion = "";
+      renderSingle();
+      setSingleImmersive("listening");
+      savePracticeSession();
+    };
+  });
   document.querySelectorAll("[data-review-empty-action]").forEach((button) => {
     button.onclick = () => {
       state.singlePracticeModes[state.activeModule] = button.dataset.reviewEmptyAction || (state.activeModule === "listening" ? "training" : "full");
@@ -21858,10 +22086,29 @@ function bindDynamicControls() {
       const nextContent = workspace?.querySelector(`[data-reading-scroll-pane="${pane}"]`);
       if (nextContent) requestAnimationFrame(() => {
         const pendingPage = pane === "passage" ? nextContent.dataset.pendingPdfPage : "";
-        const pendingNode = pendingPage ? nextContent.querySelector(`[data-pdf-page="${pendingPage}"]`) : null;
-        const nextTop = pendingNode ? Math.max(0, pendingNode.offsetTop - 8) : Number(state.readingPaneScroll[pane]) || 0;
-        nextContent.scrollTop = nextTop;
-        state.readingPaneScroll[pane] = nextTop;
+        const syncPaneScroll = () => {
+          const pendingNode = pendingPage ? nextContent.querySelector(`[data-pdf-page="${pendingPage}"]`) : null;
+          const nextTop = pendingNode
+            ? Math.min(
+              Math.max(0, pendingNode.offsetTop - 8),
+              Math.max(0, nextContent.scrollHeight - nextContent.clientHeight),
+            )
+            : Number(state.readingPaneScroll[pane]) || 0;
+          nextContent.scrollTop = nextTop;
+          state.readingPaneScroll[pane] = nextTop;
+        };
+        syncPaneScroll();
+        requestAnimationFrame(() => {
+          syncPaneScroll();
+          requestAnimationFrame(syncPaneScroll);
+        });
+        const pendingImage = pendingPage
+          ? nextContent.querySelector(`[data-pdf-page="${pendingPage}"] img`)
+          : null;
+        if (pendingImage) {
+          if (!pendingImage.complete) pendingImage.addEventListener("load", syncPaneScroll, { once: true });
+          pendingImage.decode?.().then(syncPaneScroll).catch(() => null);
+        }
         if (pendingPage) delete nextContent.dataset.pendingPdfPage;
       });
       savePracticeSession();
@@ -22811,6 +23058,42 @@ function applyInitialHash() {
     scrollToExamSection(hash);
     return;
   }
+  const practiceMatch = hashRoute.match(/^practice\/(listening|reading)\/([^/]+)$/);
+  if (practiceMatch) {
+    const moduleName = practiceMatch[1];
+    const sessionId = decodeURIComponent(practiceMatch[2]);
+    const session = readPracticeSessions().find((item) => item.module === moduleName && (item.sessionId === sessionId || item.attemptId === sessionId));
+    if (session && restorePracticeSessionAfterData(moduleName, session.itemId)) {
+      renderSingle();
+      renderSingleTimer();
+      activateView("single", false);
+      setSingleImmersive(moduleName);
+      return;
+    }
+    activateSingleModule(moduleName, false);
+    return;
+  }
+  const writingMatch = hashRoute.match(/^writing\/([^/]+)$/);
+  if (writingMatch) {
+    state.pendingWritingSetId = decodeURIComponent(writingMatch[1]);
+    activateView("writing-upload", false);
+    restoreWritingUploadSessionAfterData({ force: true });
+    return;
+  }
+  const speakingMatch = hashRoute.match(/^speaking\/([^/]+)$/);
+  if (speakingMatch) {
+    state.activeSpeakingTopic = decodeURIComponent(speakingMatch[1]);
+    activateView("bank", false);
+    return;
+  }
+  const mockMatch = hashRoute.match(/^mock\/(same|random)\/([^/]+)$/);
+  if (mockMatch) {
+    const viewId = mockMatch[1] === "same" ? "sequence" : "exam";
+    activateView(viewId, false);
+    if (viewId === "sequence") buildSequence();
+    else buildExam();
+    return;
+  }
   const viewId = hashRoute === "coach" ? "home" : hashRoute;
   activateView(viewId, false);
   if (viewId === "single" && state.singleStarted) setSingleImmersive(state.activeModule);
@@ -22847,6 +23130,9 @@ function bindEvents() {
     const message = input?.value || "";
     if (input) input.value = "";
     await sendHelpChatMessage(message);
+  });
+  document.querySelectorAll("[data-diagnostic-module]").forEach((button) => {
+    button.addEventListener("click", () => openDiagnosticModule(button.dataset.diagnosticModule || ""));
   });
   $("practiceLeaveContinue")?.addEventListener("click", () => {
     closePracticeLeaveDialog();

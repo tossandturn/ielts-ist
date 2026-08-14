@@ -2,12 +2,27 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { mkdir } from "node:fs/promises";
 import { createRequire } from "node:module";
+import { createServer } from "node:net";
 import { resolve } from "node:path";
 
 const require = createRequire(import.meta.url);
 const { chromium } = require("C:/Users/10604/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright");
 const root = new URL("../", import.meta.url);
-const port = 6000 + (process.pid % 300);
+async function findAvailablePort() {
+  const probe = createServer();
+  await new Promise((resolveListen, reject) => {
+    probe.once("error", reject);
+    probe.listen(0, "127.0.0.1", resolveListen);
+  });
+  const address = probe.address();
+  const port = typeof address === "object" && address ? address.port : null;
+  await new Promise((resolveClose, reject) => {
+    probe.close((error) => (error ? reject(error) : resolveClose()));
+  });
+  if (!port) throw new Error("Could not allocate an available test port");
+  return port;
+}
+const port = await findAvailablePort();
 const baseUrl = `http://127.0.0.1:${port}`;
 const outputDir = resolve("artifacts", "sitewide-focus-camp");
 await mkdir(outputDir, { recursive: true });
@@ -60,7 +75,7 @@ try {
       localStorage.removeItem("ieltsistAuthToken");
       localStorage.removeItem("ieltsistPracticeSessionV1");
     });
-    await page.goto(`${baseUrl}/?test=sitewide-${viewport.name}#home`, { waitUntil: "networkidle" });
+    await page.goto(`${baseUrl}/?test=sitewide-${viewport.name}#home`, { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => document.querySelector("#dashboardContent")?.children.length);
 
     assert.equal(await page.locator("body.focus-camp-system").count(), 1, `${viewport.name}: shared system marker is missing`);

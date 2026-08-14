@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>IELTS-ist</title>
-    <link rel="stylesheet" href="/styles.css?v=20260814-vocabulary-answercard-v4" />
+    <link rel="stylesheet" href="/styles.css?v=20260814-answer-card-v6" />
   </head>
   <body class="focus-camp-system">
     <div class="app-shell">
@@ -447,12 +447,39 @@
         </div>
       </form>
     </dialog>
+
+    <dialog id="diagnosticChoiceDialog" class="diagnostic-choice-dialog" aria-labelledby="diagnosticChoiceTitle" aria-describedby="diagnosticChoiceDescription">
+      <form method="dialog" class="diagnostic-choice-shell">
+        <header class="diagnostic-choice-head">
+          <div>
+            <span class="eyebrow">First diagnostic</span>
+            <h2 id="diagnosticChoiceTitle">Choose one skill to measure</h2>
+            <p id="diagnosticChoiceDescription">Start with the format that matches the time you have today.</p>
+          </div>
+          <button class="icon-btn" value="cancel" aria-label="Close diagnostic choices">×</button>
+        </header>
+        <div class="diagnostic-choice-grid">
+          <button type="button" class="diagnostic-choice-card" data-diagnostic-module="listening">
+            <strong>Listening</strong><span>1 Section · 10 min</span><small>Objective score + listening traps to review</small>
+          </button>
+          <button type="button" class="diagnostic-choice-card" data-diagnostic-module="reading">
+            <strong>Reading</strong><span>1 Passage · 15–20 min</span><small>Objective score + passage evidence to revisit</small>
+          </button>
+          <button type="button" class="diagnostic-choice-card" data-diagnostic-module="writing">
+            <strong>Writing</strong><span>Task 2 short diagnostic · 20 min</span><small>First estimate across the four writing criteria</small>
+          </button>
+          <button type="button" class="diagnostic-choice-card" data-diagnostic-module="speaking">
+            <strong>Speaking</strong><span>Part 2 + follow-up · 5–7 min</span><small>First estimate across the four speaking criteria</small>
+          </button>
+        </div>
+      </form>
+    </dialog>
     <div id="annotationToolbar" class="annotation-toolbar" aria-label="PDF annotation tools">
       <button id="toggleAnnotation" class="icon-btn" type="button" aria-pressed="false">Draw</button>
       <button id="toggleEraser" class="icon-btn" type="button" aria-pressed="false">Erase</button>
       <button id="clearAnnotation" class="icon-btn" type="button">Clear paper</button>
     </div>
-  <script src="/vendor/lucide.min.js?v=20260814-vocabulary-answercard-v4"></script>
-  <script src="/app.js?v=20260814-vocabulary-answercard-v4"></script>
+  <script src="/vendor/lucide.min.js?v=20260814-answer-card-v6"></script>
+  <script src="/app.js?v=20260814-answer-card-v6"></script>
   </body>
 </html>

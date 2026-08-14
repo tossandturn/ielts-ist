@@ -66,6 +66,9 @@ try {
   await page.locator('.vocab-notebook-status').waitFor();
   const reviewButton = page.locator("[data-vocab-review-key]");
   await reviewButton.waitFor();
+  const notebookRowText = await page.locator(".vocab-notebook-recent li").first().innerText();
+  assert.match(notebookRowText, /Due today|Mastered/, "Notebook row must show a student-facing review state");
+  assert.doesNotMatch(notebookRowText, /vocabulary:/i, "Notebook row must not expose internal source keys");
   await reviewButton.click();
   await page.waitForFunction(() => document.getElementById("vocabulary")?.classList.contains("active"));
   assert.equal((await page.locator(".vocab-word-face h3").textContent()).trim(), word, "Notebook Review must reopen the original vocabulary card");

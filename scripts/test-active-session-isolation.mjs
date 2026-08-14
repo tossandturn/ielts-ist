@@ -238,6 +238,22 @@ try {
   assert.equal(afterLibraryReturn.audio?.src, new URL(sectionFixture.audioUrl, baseUrl).href, "Restored audio must be the canonical Section 4 source");
   assert.ok(afterLibraryReturn.audio?.readyState >= 1 && Number.isFinite(afterLibraryReturn.audio.duration), "Restored MP3 metadata did not become usable");
   assert.equal(afterLibraryReturn.audio.error, null);
+  const sessionRoute = await page.evaluate(() => location.hash);
+  assert.match(sessionRoute, /^#practice\/listening\/[^/]+$/, "Listening session URL must carry module and opaque session id");
+  await page.reload({ waitUntil: "networkidle" });
+  await page.waitForFunction(() => state.activeModule === "listening" && state.singleStarted === true);
+  const deepLinkRestore = await page.evaluate(({ itemId, questionId }) => ({
+    hash: location.hash,
+    sessionId: readPracticeSession("listening", itemId)?.sessionId || "",
+    answer: state.singleAnswers?.[questionId] || "",
+    section: state.singlePracticeSections.listening,
+    progress: document.querySelector("[data-listening-progress]")?.textContent || "",
+  }), { itemId: sectionId, questionId: firstQuestionId });
+  assert.equal(deepLinkRestore.hash, sessionRoute, "Reload must keep the canonical single-module route");
+  assert.equal(deepLinkRestore.sessionId, afterLibraryReturn.sessionId);
+  assert.equal(deepLinkRestore.answer, beforeLibraryReturn.answer);
+  assert.equal(deepLinkRestore.section, 4);
+  assert.match(deepLinkRestore.progress, /^Section 4 · 1\/10 answered$/);
   console.log(`PASS Listening library card restored ${sectionId} with Section 4 status/audio/PDF/questions aligned, session ${afterLibraryReturn.sessionId}, timer ${afterLibraryReturn.timer}, audio readyState ${afterLibraryReturn.audio.readyState}.`);
 } finally {
   await browser?.close();

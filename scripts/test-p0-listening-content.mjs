@@ -159,6 +159,68 @@ try {
   }
   assert.equal(result.sessions.length, 1, "repeated restore must not duplicate drafts");
 
+  // All four section players preload metadata. Their passive media events must not
+  // overwrite the restored Section 1 workspace after the DOM has settled.
+  await page.waitForTimeout(1_600);
+  const metadataStableRestore = await page.evaluate(() => {
+    const studio = document.querySelector('.listening-study[data-listening-prefix="single"]');
+    const status = document.querySelector('[data-listening-status][data-prefix="single"]');
+    const currentSection = Number(studio?.dataset.currentSection || 0);
+    const progress = status?.querySelector('[data-listening-progress]')?.textContent || "";
+    const statusSection = status?.dataset.section || "";
+    const activeAudio = document.querySelector(`.listening-player[data-prefix="single"][data-section="${currentSection}"]`);
+    const answerGroups = [...document.querySelectorAll('.paper-answer-group[data-listening-section]')];
+    return {
+      currentSection,
+      statusSection,
+      progress,
+    activeAudioSection: activeAudio?.dataset.section || "",
+    answerGroups: answerGroups.map((group) => group.dataset.listeningSection),
+      interactiveControls: document.querySelectorAll('.objective-answer-control[data-prefix="single"]').length,
+    };
+  });
+  assert.deepEqual(metadataStableRestore, {
+    currentSection: 1,
+    statusSection: "1",
+    progress: "Section 1 · 1/10 answered",
+    activeAudioSection: "1",
+    answerGroups: ["1", "2", "3", "4"],
+    interactiveControls: 10,
+  }, "Passive metadata must not change the active Section, and the answer card must keep only the active section interactive");
+
+  const answerCardLayout = await page.evaluate(() => {
+    const wrapper = document.createElement("div");
+    wrapper.innerHTML = `<div class="pdf-study-layout"><div class="pdf-scroll-box"></div><aside class="paper-answer-scroll"><div class="paper-answer-groups"><div class="paper-answer-row objective-multiple-answer-group" data-question-number="11">${renderObjectiveMultipleChoiceGroup([
+      [11, { id: "q11", type: "multiple_choice_multiple", optionGroupId: "fixture-group", selectionLimit: 2, options: [
+        { value: "A", label: "Option A" },
+        { value: "B", label: "Option B" },
+        { value: "C", label: "Option C" },
+      ] }],
+      [12, { id: "q12", type: "multiple_choice_multiple", optionGroupId: "fixture-group", selectionLimit: 2, options: [
+        { value: "A", label: "Option A" },
+        { value: "B", label: "Option B" },
+        { value: "C", label: "Option C" },
+      ] }],
+    ], "single")}</div></div></aside></div>`;
+    document.body.append(wrapper);
+    const layout = wrapper.querySelector(".pdf-study-layout");
+    const answerSheet = wrapper.querySelector(".paper-answer-scroll");
+    const nestedSpans = [...wrapper.querySelectorAll(".objective-multiple-answer-group span")]
+      .filter((node) => !node.classList.contains("sr-only"));
+    return {
+      gridColumns: getComputedStyle(layout).gridTemplateColumns,
+      answerSheetWidth: answerSheet.getBoundingClientRect().width,
+      nestedBubbleSpans: nestedSpans.filter((node) => {
+        const style = getComputedStyle(node);
+        return style.width === "24px" && style.height === "24px" && style.borderRadius === "999px";
+      }).map((node) => node.textContent.trim()),
+    };
+  });
+  const answerCardColumnWidth = Number(answerCardLayout.gridColumns.match(/([0-9.]+)px\s*$/)?.[1] || 0);
+  assert.ok(answerCardColumnWidth >= 250, `Answer card must keep a usable right column, got ${answerCardLayout.gridColumns}`);
+  assert.ok(answerCardLayout.answerSheetWidth >= 250, `Answer card must be at least 250px wide, got ${answerCardLayout.answerSheetWidth}`);
+  assert.deepEqual(answerCardLayout.nestedBubbleSpans, [], "Nested option/status spans must not inherit the question-number bubble style");
+
   const recovery = await page.evaluate(() => {
     const item = mergedItems("listening").map(normalizeItem).find((candidate) => candidate.id === "cam11-l-test4");
     const baseline = readPracticeSession("listening", item.id);

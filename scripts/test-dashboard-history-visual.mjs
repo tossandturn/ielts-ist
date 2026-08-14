@@ -52,11 +52,12 @@ try {
   for (const size of sizes) {
     const page = await browser.newPage({ viewport: { width: size.width, height: size.height } });
     await page.addInitScript((fixture) => {
-      if (!localStorage.getItem("ieltsistLearningLoopHistory")) {
-        localStorage.setItem("ieltsistLearningLoopHistory", JSON.stringify(fixture.learning));
+      localStorage.setItem("ieltsistLocalDataOwnerV1", "guest");
+      if (!localStorage.getItem("ieltsistLearningLoopHistory::guest")) {
+        localStorage.setItem("ieltsistLearningLoopHistory::guest", JSON.stringify(fixture.learning));
       }
-      if (!localStorage.getItem("ieltsistCoachHistoryV1")) {
-        localStorage.setItem("ieltsistCoachHistoryV1", JSON.stringify(fixture.coach));
+      if (!localStorage.getItem("ieltsistCoachHistoryV1::guest")) {
+        localStorage.setItem("ieltsistCoachHistoryV1::guest", JSON.stringify(fixture.coach));
       }
     }, historyFixture);
     await page.route("**/api/help/chat", async (route) => {
@@ -67,7 +68,7 @@ try {
       });
     });
 
-    await page.goto(`${baseUrl}/?visual=dashboard-history-1#home`, { waitUntil: "networkidle" });
+    await page.goto(`${baseUrl}/?visual=dashboard-history-1#home`, { waitUntil: "domcontentloaded" });
     await page.locator(".dashboard-history").waitFor({ state: "visible" });
     const home = await page.evaluate(() => ({
       overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
@@ -89,7 +90,7 @@ try {
       await page.locator("#helpChatClose").click();
     }
 
-    await page.goto(`${baseUrl}/?visual=writing-launch-1#writing-upload`, { waitUntil: "networkidle" });
+    await page.goto(`${baseUrl}/?visual=writing-launch-1#writing-upload`, { waitUntil: "domcontentloaded" });
     await page.locator("#writingEntry").waitFor({ state: "visible" });
     await page.locator('[data-writing-scope="topics"]').click();
     const writing = await page.evaluate(() => {
@@ -136,10 +137,13 @@ try {
     await page.screenshot({ path: resolve(outputDir, `${size.name}-reading.png`), fullPage: false });
 
     if (size.name === "desktop") {
-      await page.goto(`${baseUrl}/?visual=coach-persist-1#home`, { waitUntil: "networkidle" });
+      await page.goto(`${baseUrl}/?visual=coach-persist-1#home`, { waitUntil: "domcontentloaded" });
       await page.evaluate(() => sendHelpChatMessage("Keep this Coach message after refresh."));
-      await page.waitForFunction(() => JSON.parse(localStorage.getItem("ieltsistCoachHistoryV1") || "[]").some((thread) => thread.messages?.some((message) => message.content.includes("Keep this Coach message"))));
-      await page.reload({ waitUntil: "networkidle" });
+      await page.waitForFunction(() => {
+        const value = JSON.parse(localStorage.getItem("ieltsistCoachHistoryV1::guest") || "[]");
+        return value.some((thread) => thread.messages?.some((message) => message.content.includes("Keep this Coach message")));
+      });
+      await page.reload({ waitUntil: "domcontentloaded" });
       assert.match(await page.locator(".dashboard-history").innerText(), /Keep this Coach message after refresh/);
     }
 

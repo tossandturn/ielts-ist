@@ -72,6 +72,7 @@ try {
     state.singlePracticeModes.listening = "exam";
     state.singlePracticeScopes.listening = "paper";
     state.singleAnswers = {};
+    state.singleAnswerItemId = item.id;
     state.practiceSessionCompleted = false;
     resetSingleTimer("listening");
     renderSingle();
@@ -99,6 +100,7 @@ try {
   assert.ok(fixedChoice.labels.every((label) => /^Question 1, choose /i.test(label.ariaLabel || "")),
     "Compact answer-card controls must retain an accessible question-and-choice label");
 
+  await page.locator('.answer-group-open[data-answer-group-section="2"][data-answer-group-prefix="single"]').click();
   const mcq = page.locator(".objective-answer-shell:has(.objective-answer-proxy[data-qid='q11'])");
   assert.equal(await mcq.locator("input[type='radio']").count(), 3, "MCQ must render radio controls");
   assert.deepEqual((await mcq.locator("fieldset > label").allTextContents()).map((text) => text.trim()), ["A", "B", "C"],
@@ -109,6 +111,7 @@ try {
   await multi.locator("input[type='checkbox'][value='D']").check();
   await multi.locator("input[type='checkbox'][value='B']").check();
   assert.equal(await multi.locator("input[type='checkbox'][value='A']").isDisabled(), true, "Choose TWO must prevent a third selection");
+  await page.locator('.answer-group-open[data-answer-group-section="3"][data-answer-group-prefix="single"]').click();
   const matching = page.locator(".objective-answer-shell:has(.objective-answer-proxy[data-qid='q27'])");
   assert.equal(await matching.locator("select").count(), 1, "Matching with real options must render a select");
   assert.ok((await matching.locator("select option").allTextContents()).every((text) => /^(?:Choose a letter|[A-I])$/.test(text.trim())),
@@ -143,14 +146,18 @@ try {
       .map((proxy) => [proxy.dataset.qid, proxy.value])),
   }));
   assert.deepEqual(restored.state, { q11: "B", q17: "B", q18: "D", q27: "A" }, "Rerender must retain every objective answer in state");
-  assert.deepEqual(restored.proxies, { q11: "B", q17: "B", q18: "D", q27: "A" }, "Rerender must hydrate objective answer proxies from the saved session");
+  assert.deepEqual(restored.proxies, { q27: "A" }, "Rerender must hydrate the active section without recreating every off-screen control");
+  await page.locator('.answer-group-open[data-answer-group-section="2"][data-answer-group-prefix="single"]').click();
   assert.equal(await mcq.locator("input[type='radio'][value='B']").isChecked(), true, "Radio selection must restore after rerender");
   assert.equal(await multi.locator("input[type='checkbox'][value='B']").isChecked(), true, "Checkbox selection must restore after rerender");
   assert.equal(await multi.locator("input[type='checkbox'][value='D']").isChecked(), true, "Checkbox selection must restore after rerender");
+  await page.locator('.answer-group-open[data-answer-group-section="3"][data-answer-group-prefix="single"]').click();
   assert.equal(await matching.locator("select").inputValue(), "A", "Matching select must restore after rerender");
 
   const scored = await page.evaluate(async () => {
     const item = state.activeSingle;
+    state.singlePracticeSections.listening = 2;
+    renderSingle();
     setObjectiveProxyValue(document.querySelector(".objective-answer-proxy[data-qid='q17']"), "D");
     setObjectiveProxyValue(document.querySelector(".objective-answer-proxy[data-qid='q18']"), "B");
     const payload = await objectiveSubmissionPayload(item, "listening", "single", collectAnswers("single"));
@@ -182,9 +189,7 @@ try {
       renderSingle();
       setSingleImmersive("reading");
     });
-    if (viewport.width <= 820 && viewport.height > viewport.width) {
-      await page.locator('[data-reading-pane-target="questions"]').click();
-    }
+    await page.locator('[data-reading-question-nav="25"]').click();
     const q25 = page.locator('.paper-answer-row[data-question-number="25"] .objective-answer-radio');
     await q25.waitFor({ state: "visible" });
     const layout = await q25.evaluate((host) => {

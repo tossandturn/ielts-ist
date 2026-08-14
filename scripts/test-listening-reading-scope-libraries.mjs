@@ -122,13 +122,35 @@ try {
 }
 console.log("PASS semantic topic generator inputs and server startup catalog validation");
 
+const runtimeTempDir = await mkdtemp(join(tmpdir(), "ieltsist-scope-runtime-"));
 const child = spawn(process.execPath, ["server.js"], {
   cwd: root,
-  env: { ...process.env, PORT: String(port), LISTENING_ASR_CACHE_PATH: listeningAsrCachePath },
+  env: {
+    ...process.env,
+    PORT: String(port),
+    LISTENING_ASR_CACHE_PATH: listeningAsrCachePath,
+    IELTSIST_DB_PATH: join(runtimeTempDir, "scope-libraries.sqlite"),
+  },
   stdio: ["ignore", "pipe", "pipe"],
 });
 let serverStderr = "";
 child.stderr.on("data", (chunk) => { serverStderr += chunk; });
+async function stopScopeServer() {
+  if (child.exitCode === null && child.signalCode === null) child.kill();
+  if (child.exitCode === null && child.signalCode === null) {
+    await Promise.race([
+      new Promise((resolveClose) => child.once("close", resolveClose)),
+      new Promise((resolveTimeout) => setTimeout(resolveTimeout, 2_000)),
+    ]);
+  }
+  if (child.exitCode === null && child.signalCode === null) child.kill("SIGKILL");
+  if (child.exitCode === null && child.signalCode === null) {
+    await Promise.race([
+      new Promise((resolveClose) => child.once("close", resolveClose)),
+      new Promise((resolveTimeout) => setTimeout(resolveTimeout, 2_000)),
+    ]);
+  }
+}
 
 async function waitForServer() {
   const deadline = Date.now() + 15_000;
@@ -824,5 +846,6 @@ try {
   }
 } finally {
   await browser.close();
-  child.kill();
+  await stopScopeServer();
+  await rm(runtimeTempDir, { recursive: true, force: true });
 }

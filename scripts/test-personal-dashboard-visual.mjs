@@ -116,15 +116,16 @@ try {
 
     await page.addInitScript(({ history, threads }) => {
       localStorage.setItem("ieltsistAuthToken", "visual-auth-token");
-      localStorage.setItem("ieltsistLearningLoopHistory", JSON.stringify(history));
-      localStorage.setItem("ieltsistCoachHistoryV1", JSON.stringify(threads));
+      localStorage.setItem("ieltsistLocalDataOwnerV1", "user:102");
+      localStorage.setItem("ieltsistLearningLoopHistory::user%3A102", JSON.stringify(history));
+      localStorage.setItem("ieltsistCoachHistoryV1::user%3A102", JSON.stringify(threads));
       localStorage.removeItem("ieltsistPracticeSessionV1");
     }, { history: localHistory, threads: coachThreads });
 
     await page.route("**/api/me", (route) => route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ user: { username: "Mia", membership: { plan: "month", active: true, expiresAt: "2026-08-29T00:00:00.000Z" } } }),
+      body: JSON.stringify({ user: { id: 102, username: "Mia", membership: { plan: "month", active: true, expiresAt: "2026-08-29T00:00:00.000Z" } } }),
     }));
     await page.route("**/api/drafts", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ drafts: [] }) }));
     await page.route("**/api/vocabulary", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ items: [{ id: "v1", term: "paraphrase" }] }) }));
@@ -138,7 +139,7 @@ try {
       });
     });
 
-    await page.goto(`${baseUrl}/?visual=personal-dashboard-v1#home`, { waitUntil: "networkidle" });
+    await page.goto(`${baseUrl}/?visual=personal-dashboard-v1#home`, { waitUntil: "domcontentloaded" });
     await page.locator(".dashboard-focus-camp").waitFor({ state: "visible" });
     await page.waitForFunction(() => document.querySelector(".dashboard-focus-header h1")?.textContent?.includes("Mia"));
 

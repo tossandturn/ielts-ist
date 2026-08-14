@@ -96,6 +96,8 @@ try {
     assert.match(single.reason, /Why this/i, `${size.name}: single recommendation reason is missing`);
     assert.match(single.reason, /rotation|weak area|last|fresh|selected/i, `${size.name}: single recommendation reason is too generic`);
     assert.match(single.rotation.reason, /rotation|weak area|last|fresh|selected/i);
+    assert.doesNotMatch(single.reason, /selected by rotation|not because it is the first item/i, `${size.name}: recommendation must not explain internal rotation`);
+    assert.doesNotMatch(single.rotation.reason, /selected by rotation|not because it is the first item/i, `${size.name}: recommendation must not explain internal rotation`);
     if (single.rotation.count > 1) {
       assert.notEqual(single.rotation.first, single.rotation.second, `${size.name}: recommendation repeated after recording the first item`);
     }
@@ -240,6 +242,20 @@ try {
     console.log(`PASS ${size.name} recommendation UX`);
     await page.close();
   }
+  const dashboardPage = await browser.newPage({ viewport: { width: 1024, height: 768 } });
+  await dashboardPage.addInitScript(() => {
+    for (const key of Object.keys(localStorage)) {
+      if (/learning|PracticeSession|recommendation/i.test(key)) localStorage.removeItem(key);
+    }
+  });
+  await dashboardPage.goto(`${baseUrl}/?visual=diagnostic-choice#home`, { waitUntil: "networkidle" });
+  const diagnosticCta = dashboardPage.locator("#dashboardContent [data-home-action='coach-diagnostic']").first();
+  await diagnosticCta.waitFor();
+  await diagnosticCta.click();
+  await dashboardPage.locator("#diagnosticChoiceDialog[open]").waitFor();
+  assert.equal(await dashboardPage.locator("[data-diagnostic-module]").count(), 4, "Diagnostic CTA must expose four skill choices");
+  assert.match(await dashboardPage.locator("#diagnosticChoiceDialog").innerText(), /Listening[\s\S]*Section[\s\S]*Reading[\s\S]*Passage[\s\S]*Writing[\s\S]*Task 2[\s\S]*Speaking[\s\S]*Part 2/i);
+  await dashboardPage.close();
 } finally {
   await browser.close();
   child.kill();

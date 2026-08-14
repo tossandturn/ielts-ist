@@ -116,7 +116,7 @@ try {
   assert.match(appSource, /\["passage",\s*"questions"\]/, "Reading mobile workspace must use two tabs");
   assert.doesNotMatch(appSource, /reading-question-view-toggle/, "Reading Questions must not add a second paper/answer toggle");
   assert.doesNotMatch(appSource, /data-reading-question-view/, "Reading Questions must keep the real question and answer in one view");
-  assert.match(appSource, /renderPaperAnswerPanel\(prefix,\s*questions,\s*questionAssignments/, "Reading Questions must render answer inputs beside the question paper");
+  assert.match(appSource, /renderPaperAnswerPanel\(prefix,\s*activeQuestions,\s*questionAssignments/, "Reading Questions must render the active Passage's answer inputs beside the question paper");
   assert.match(appSource, /data-listening-start/, "Listening must expose one coordinated start action");
   assert.match(appSource, /currentSinglePracticeMode\(["']listening["']\)\s*!==\s*["']exam["'][^}]*stopSingleTimer\(\)/s,
     "Training and Review timers must pause with native audio controls");

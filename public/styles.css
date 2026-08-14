@@ -2439,7 +2439,7 @@ textarea:focus,
 
 .pdf-study-layout {
   display: grid;
-  grid-template-columns: minmax(0, 82fr) minmax(176px, 18fr);
+  grid-template-columns: minmax(0, 82fr) minmax(250px, 18fr);
   gap: 12px;
   align-items: stretch;
   padding: 12px;
@@ -2489,6 +2489,19 @@ textarea:focus,
 .paper-answer-group {
   display: grid;
   gap: 7px;
+}
+
+.paper-answer-group-deferred {
+  align-content: start;
+  min-height: 56px;
+  padding: 8px;
+  border: 1px dashed #c8d4df;
+  border-radius: 8px;
+  background: #fbfcfe;
+}
+
+.paper-answer-group-deferred .answer-group-open {
+  justify-self: start;
 }
 
 .paper-audio-list,
@@ -2557,7 +2570,7 @@ textarea:focus,
   align-items: center;
 }
 
-.paper-answer-row span {
+.paper-answer-row > span {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2602,7 +2615,7 @@ textarea:focus,
 
 .pdf-page-with-card {
   display: grid;
-  grid-template-columns: minmax(0, 82fr) minmax(150px, 18fr);
+  grid-template-columns: minmax(0, 1fr) minmax(250px, 320px);
   gap: 12px;
   align-items: start;
   padding: 10px;
@@ -3139,7 +3152,7 @@ body.single-immersive-mode .sidebar-account-entry {
   align-items: center;
 }
 
-.page-card-answer span {
+.page-card-answer > span {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -18175,6 +18188,105 @@ body.focus-camp-system .subscription-card.featured {
 
 .practice-leave-dialog::backdrop {
   background: rgba(15, 23, 42, .45);
+}
+
+.diagnostic-choice-dialog {
+  width: min(720px, calc(100vw - 32px));
+  max-width: 720px;
+  border: 0;
+  border-radius: 8px;
+  padding: 0;
+  background: var(--surface);
+  box-shadow: 0 28px 88px rgba(15, 23, 42, .3);
+}
+
+.diagnostic-choice-dialog::backdrop {
+  background: rgba(15, 23, 42, .48);
+}
+
+.diagnostic-choice-shell {
+  display: grid;
+  gap: 20px;
+  padding: 24px;
+}
+
+.diagnostic-choice-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.diagnostic-choice-head h2,
+.diagnostic-choice-head p {
+  margin: 0;
+}
+
+.diagnostic-choice-head h2 {
+  margin-top: 4px;
+  color: var(--text);
+  font-size: clamp(20px, 3vw, 28px);
+}
+
+.diagnostic-choice-head p {
+  margin-top: 6px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.diagnostic-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.diagnostic-choice-card {
+  display: grid;
+  gap: 5px;
+  min-height: 128px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.diagnostic-choice-card:hover,
+.diagnostic-choice-card:focus-visible {
+  border-color: var(--accent);
+  outline: 3px solid color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.diagnostic-choice-card strong {
+  font-size: 16px;
+}
+
+.diagnostic-choice-card span {
+  color: var(--accent-dark);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.diagnostic-choice-card small {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+@media (max-width: 600px) {
+  .diagnostic-choice-shell {
+    padding: 18px;
+  }
+
+  .diagnostic-choice-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .diagnostic-choice-card {
+    min-height: 0;
+  }
 }
 
 .practice-leave-card {

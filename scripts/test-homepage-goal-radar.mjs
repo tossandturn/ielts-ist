@@ -2,12 +2,27 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { mkdir } from "node:fs/promises";
 import { createRequire } from "node:module";
+import { createServer } from "node:net";
 import { resolve } from "node:path";
 
 const require = createRequire(import.meta.url);
 const { chromium } = require("C:/Users/10604/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright");
 const root = new URL("../", import.meta.url);
-const port = 5600 + (process.pid % 300);
+async function findAvailablePort() {
+  const probe = createServer();
+  await new Promise((resolveListen, reject) => {
+    probe.once("error", reject);
+    probe.listen(0, "127.0.0.1", resolveListen);
+  });
+  const address = probe.address();
+  const port = typeof address === "object" && address ? address.port : null;
+  await new Promise((resolveClose, reject) => {
+    probe.close((error) => (error ? reject(error) : resolveClose()));
+  });
+  if (!port) throw new Error("Could not allocate an available test port");
+  return port;
+}
+const port = await findAvailablePort();
 const baseUrl = `http://127.0.0.1:${port}`;
 const outputDir = resolve("artifacts", "homepage-goal-radar");
 await mkdir(outputDir, { recursive: true });
@@ -91,7 +106,7 @@ try {
   await memberPage.route("**/api/me", (route) => route.fulfill({
     status: 200,
     contentType: "application/json",
-    body: JSON.stringify({ user: { username: "Amber", membership: { plan: "month", active: true } } }),
+    body: JSON.stringify({ user: { id: 101, username: "Amber", membership: { plan: "month", active: true } } }),
   }));
   await routeCommonApis(memberPage);
   await memberPage.route("**/api/learning/profile", async (route) => {
@@ -102,7 +117,7 @@ try {
       body: JSON.stringify({ profile: { ...learningState.profile, ...patchedProfile, onboardingCompleted: true } }),
     });
   });
-  await memberPage.goto(`${baseUrl}/?test=goal-radar-member#home`, { waitUntil: "networkidle" });
+  await memberPage.goto(`${baseUrl}/?test=goal-radar-member#home`, { waitUntil: "domcontentloaded" });
   await memberPage.waitForFunction(() => document.querySelector("#dashboardContent")?.textContent?.includes("Amber"));
 
   assert.equal(await memberPage.locator("[data-dashboard-goal='target']").count(), 1, "Target Band badge must be an editable control");
@@ -160,7 +175,7 @@ try {
   });
   await guestPage.route("**/api/me", (route) => route.fulfill({ status: 401, contentType: "application/json", body: JSON.stringify({ error: "Unauthorized" }) }));
   await routeCommonApis(guestPage, null);
-  await guestPage.goto(`${baseUrl}/?test=goal-radar-guest#home`, { waitUntil: "networkidle" });
+  await guestPage.goto(`${baseUrl}/?test=goal-radar-guest#home`, { waitUntil: "domcontentloaded" });
   await guestPage.waitForFunction(() => document.querySelector("#dashboardContent")?.textContent?.includes("Continue practice"));
   assert.equal(await guestPage.locator("[data-dashboard-goal='target']").count(), 1, "A resume task must not suppress guest goal editing");
   await guestPage.locator("[data-dashboard-goal='target']").click();
@@ -171,9 +186,12 @@ try {
   await guestEditor.locator("[name='dailyMinutes']").fill("35");
   await guestEditor.locator("button[type='submit']").click();
   await guestEditor.waitFor({ state: "hidden" });
-  await guestPage.reload({ waitUntil: "networkidle" });
+  await guestPage.reload({ waitUntil: "domcontentloaded" });
   await guestPage.waitForFunction(() => document.querySelector("#dashboardContent")?.textContent?.includes("7.5"));
-  const guestProfile = await guestPage.evaluate(() => JSON.parse(localStorage.getItem("ieltsistGuestLearningProfileV1")));
+  const guestProfile = await guestPage.evaluate(() => {
+    const key = Object.keys(localStorage).find((candidate) => candidate === "ieltsistGuestLearningProfileV1::guest");
+    return key ? JSON.parse(localStorage.getItem(key) || "null") : null;
+  });
   assert.deepEqual(guestProfile, {
     version: 1,
     currentBand: 6,

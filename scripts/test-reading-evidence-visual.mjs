@@ -57,6 +57,21 @@ try {
     });
     await page.locator(".reading-mobile-workspace").waitFor({ state: "visible" });
     await page.locator("#toggleAnnotation").waitFor({ state: "visible" });
+    const initialWindow = await page.evaluate(() => ({
+      passage: document.querySelector(".reading-mobile-workspace")?.dataset.activePassage || "",
+      numbers: [...document.querySelectorAll(".reading-answer-sheet .paper-answer-row[data-question-number]")]
+        .map((row) => Number(row.dataset.questionNumber))
+        .filter(Number.isFinite),
+    }));
+    assert.equal(initialWindow.passage, "1", `${size.name}: Reading must start with Passage 1 as the rendered window`);
+    assert.ok(
+      initialWindow.numbers.every((number) => number >= 1 && number <= 13),
+      `${size.name}: Reading rendered answer rows outside Passage 1`,
+    );
+    await page.locator('[data-reading-question-nav="1"]').click();
+    const initialQ1Control = page.locator('.paper-answer-row[data-question-number="1"] .objective-answer-control').first();
+    await initialQ1Control.waitFor({ state: "visible" });
+    await initialQ1Control.fill("saved-q1");
     const immersiveLayout = await page.evaluate(() => {
       const toolbar = document.querySelector("#annotationToolbar");
       const header = document.querySelector("#single > .view-head");
@@ -123,23 +138,75 @@ try {
         const passageNode = passagePane?.querySelector(`[data-pdf-page="${passagePage}"]`);
         return {
           current: workspace?.dataset.focusedQuestion,
+          activePassage: workspace?.dataset.activePassage,
+          renderedNumbers: [...(workspace?.querySelectorAll(".reading-answer-sheet .paper-answer-row[data-question-number]") || [])]
+            .map((entry) => Number(entry.dataset.questionNumber))
+            .filter(Number.isFinite),
           mappedPassage: row?.dataset.readingPassagePage,
           hasQuestionPage: Boolean(questionNode),
           questionDelta: questionNode && questionPaper ? Math.abs(questionPaper.scrollTop - Math.max(0, questionNode.offsetTop - 8)) : Infinity,
+          questionPosition: questionNode && questionPaper
+            ? {
+                scrollTop: questionPaper.scrollTop,
+                nodeTop: questionNode.offsetTop,
+                maxScrollTop: Math.max(0, questionPaper.scrollHeight - questionPaper.clientHeight),
+              }
+            : null,
           answerVisible: row && answerScroll
             ? row.offsetTop >= answerScroll.scrollTop - 16
               && row.offsetTop + row.offsetHeight <= answerScroll.scrollTop + answerScroll.clientHeight + 16
             : false,
+          answerControlVisible: row && answerScroll
+            ? (() => {
+                const control = row.querySelector(".objective-answer-control, input:not([type='hidden']), select, textarea");
+                if (!control) return false;
+                const top = control.offsetTop;
+                const bottom = top + control.offsetHeight;
+                return top >= answerScroll.scrollTop - 16
+                  && bottom <= answerScroll.scrollTop + answerScroll.clientHeight + 16;
+              })()
+            : false,
+          answerPosition: row && answerScroll
+            ? {
+                rowTop: row.offsetTop,
+                rowBottom: row.offsetTop + row.offsetHeight,
+                scrollTop: answerScroll.scrollTop,
+                clientHeight: answerScroll.clientHeight,
+                scrollHeight: answerScroll.scrollHeight,
+              }
+            : null,
           passageStored: state.readingPaneScroll.passage,
           passageExpected: passageNode ? Math.max(0, passageNode.offsetTop - 8) : -1,
           passageMax: passagePane ? Math.max(0, passagePane.scrollHeight - passagePane.clientHeight) : -1,
         };
       }, { question, passagePage });
       assert.equal(synchronized.current, String(question), `${size.name} Q${question}: current question mismatch`);
+      assert.equal(
+        synchronized.activePassage,
+        String(question <= 13 ? 1 : question <= 26 ? 2 : 3),
+        `${size.name} Q${question}: rendered Passage window mismatch`,
+      );
+      const [passageStart, passageEnd] = question <= 13 ? [1, 13] : question <= 26 ? [14, 26] : [27, 40];
+      assert.ok(
+        synchronized.renderedNumbers.every((number) => number >= passageStart && number <= passageEnd),
+        `${size.name} Q${question}: answer rows outside the active Passage remain in the DOM`,
+      );
+      if (question === 14) {
+        assert.equal(
+          await page.locator('.paper-answer-row[data-question-number="1"]').count(),
+          0,
+          `${size.name} Q14: Passage 1 answer DOM was not released`,
+        );
+      }
       assert.equal(synchronized.mappedPassage, String(passagePage), `${size.name} Q${question}: passage mapping mismatch`);
       assert.equal(synchronized.hasQuestionPage, true, `${size.name} Q${question}: question page is missing`);
       assert.ok(synchronized.questionDelta < 40, `${size.name} Q${question}: question paper did not scroll`);
-      assert.equal(synchronized.answerVisible, true, `${size.name} Q${question}: answer row is not visible`);
+      assert.ok(synchronized.answerControlVisible, `${size.name} Q${question}: answer control is not visible`);
+      assert.ok(
+        synchronized.answerVisible
+        || synchronized.answerPosition?.rowTop < synchronized.answerPosition?.scrollTop + synchronized.answerPosition?.clientHeight,
+        `${size.name} Q${question}: answer row label is not visible`,
+      );
       const expectedPassageTop = Math.min(synchronized.passageExpected, synchronized.passageMax);
       assert.ok(Math.abs(synchronized.passageStored - expectedPassageTop) < 12,
         `${size.name} Q${question}: passage position was not preserved (${synchronized.passageStored} vs ${expectedPassageTop})`);
@@ -151,12 +218,27 @@ try {
       const mobilePassage = await page.evaluate(() => {
         const pane = document.querySelector(".reading-passage-pane");
         const node = pane?.querySelector('[data-pdf-page="26"]');
-        return node && pane ? Math.abs(pane.scrollTop - Math.max(0, node.offsetTop - 8)) : Infinity;
+        if (!node || !pane) return Infinity;
+        const expected = Math.min(
+          Math.max(0, node.offsetTop - 8),
+          Math.max(0, pane.scrollHeight - pane.clientHeight),
+        );
+        return {
+          delta: Math.abs(pane.scrollTop - expected),
+          scrollTop: pane.scrollTop,
+          expected,
+          pending: pane.dataset.pendingPdfPage || "",
+          hasNode: Boolean(node),
+        };
       });
-      assert.ok(mobilePassage < 20, `${size.name}: Passage tab did not restore Q27's passage`);
+      assert.ok(mobilePassage.delta < 20, `${size.name}: Passage tab did not restore Q27's passage`);
       await page.locator('[data-reading-pane-target="questions"]').click();
     }
 
+    await page.locator('[data-reading-question-nav="1"]').click();
+    await page.waitForFunction(() => document.querySelector(".reading-mobile-workspace")?.dataset.activePassage === "1");
+    const restoredQ1 = page.locator('.paper-answer-row[data-question-number="1"] .objective-answer-control').first();
+    assert.equal(await restoredQ1.inputValue(), "saved-q1", `${size.name}: Passage 1 answer did not survive window switching`);
     const hintButton = page.locator('.paper-answer-row[data-question-number="1"] [data-reading-hint]');
     await hintButton.scrollIntoViewIfNeeded();
     const pageScrollBeforeCoach = await page.evaluate(() => window.scrollY);
