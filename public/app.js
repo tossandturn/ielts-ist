@@ -171,7 +171,7 @@
     subject: "ielts",
     stage: "all",
     topic: "all",
-    type: "term",
+    type: "all",
     query: "",
     catalogCourse: "ielts",
     loading: false,
@@ -180,7 +180,7 @@
     notice: "",
     searchTimer: null,
     filtersOpen: false,
-    fullDeck: false,
+    fullDeck: true,
   },
   vocabularyRouteContext: {
     applied: false,
@@ -4612,27 +4612,10 @@ function filteredCoreVocabulary() {
   });
 }
 
-const vocabularyStudySetSize = 30;
-
 function vocabularyStudyDeck() {
-  const deck = filteredCoreVocabulary();
-  const review = state.vocabularyReview;
-  const resolvedStemTermPack = hasResolvedStemVocabularyTermPack();
-  const hasExplicitScope = Boolean(
-    String(review.query || "").trim()
-    || review.topic !== "all"
-    || review.stage !== "all"
-    || (review.subject === "ielts" ? review.type !== "term" : review.type !== "all")
-    || review.mode !== "all"
-    || review.fullDeck
-    || resolvedStemTermPack,
-  );
-  // A normal first study session should never feel like the student has been
-  // dropped into a 3,000-word database. Search, saved notes and STEM packs
-  // retain their complete result set because those are explicit choices.
-  return !hasExplicitScope && deck.length > vocabularyStudySetSize
-    ? deck.slice(0, vocabularyStudySetSize)
-    : deck;
+  // IELTS Core is a full, navigable deck; the sidebar renders only a small
+  // current window so a complete catalog never becomes a large DOM list.
+  return filteredCoreVocabulary();
 }
 
 function clearVocabularyRouteTermScope() {
@@ -4681,6 +4664,22 @@ function currentCoreVocabularyItem() {
   const index = Math.max(0, Math.min(deck.length - 1, state.vocabularyReview.index || 0));
   state.vocabularyReview.index = index;
   return deck[index] || null;
+}
+
+function vocabularyDeckNavigation(deck, activeIndex) {
+  const windowSize = 12;
+  const start = Math.max(0, Math.min(Math.max(0, deck.length - windowSize), activeIndex - Math.floor(windowSize / 2)));
+  const end = Math.min(deck.length, start + windowSize);
+  return `<section class="vocab-deck-navigation" aria-label="Word list">
+    <div class="vocab-mini-list-head"><strong>Word list</strong><span>${start + 1}-${end} of ${deck.length}</span></div>
+    <ol class="vocab-mini-list">${deck.slice(start, end).map((entry, offset) => {
+      const index = start + offset;
+      const isActive = index === activeIndex;
+      const isKnown = state.vocabularyReview.known.has(vocabularyItemKey(entry));
+      const term = entry.word || entry.term || "Vocabulary term";
+      return `<li><button type="button" class="${isActive ? "active" : ""}${isKnown ? " known" : ""}" data-vocab-index="${index}" aria-current="${isActive ? "true" : "false"}" aria-label="Open word ${index + 1}: ${escapeHtml(term)}"><span>${index + 1}. ${escapeHtml(term)}</span><em>${isKnown ? "Known" : "Study"}</em></button></li>`;
+    }).join("")}</ol>
+  </section>`;
 }
 
 function renderVocabularyImportPanel() {
@@ -4822,10 +4821,10 @@ function renderVocabularyReviewPage(allItems, subjectCounts, deck, item, knownCo
     && state.vocabularyReview.subject === "ielts"
     && state.vocabularyReview.stage === "all"
     && state.vocabularyReview.topic === "all"
-    && (state.vocabularyReview.type === "term" || state.vocabularyReview.fullDeck)
+    && state.vocabularyReview.type === "all"
     && state.vocabularyReview.mode === "all";
   const ieltsCoreCount = allItems.filter((entry) => entry.subject === "ielts").length;
-  const defaultType = state.vocabularyReview.subject === "ielts" ? "term" : "all";
+  const defaultType = "all";
   const activeFilterCount = [
     state.vocabularyReview.topic !== "all" && !(isStemRoute && routeContext.topicId && state.vocabularyReview.topic === routeContext.topicId),
     state.vocabularyReview.stage !== "all" && !(isStemRoute && routeContext.stage && state.vocabularyReview.stage === routeContext.stage),
@@ -4896,7 +4895,8 @@ function renderVocabularyReviewPage(allItems, subjectCounts, deck, item, knownCo
         <strong>${knownCount} mastered</strong>
         <em>${Math.max(0, deck.length - knownCount)} to revisit · ${deck.length} words</em>
       </div>
-      ${isDefaultIeltsCore ? `<div class="vocab-catalog-summary"><strong>${ieltsCoreCount} IELTS Core words</strong><span>${state.vocabularyReview.fullDeck ? "Full core deck" : "30-word study session"}</span>${state.vocabularyReview.fullDeck ? "" : `<button class="secondary small-button" type="button" data-vocab-open-full-deck>Browse all ${ieltsCoreCount} core words</button>`}</div>` : ""}
+      ${isDefaultIeltsCore ? `<div class="vocab-catalog-summary"><strong>${ieltsCoreCount} IELTS Core words</strong><span>Full core deck</span></div>` : ""}
+      ${vocabularyDeckNavigation(deck, state.vocabularyReview.index)}
       <div class="vocab-nav-actions">
         <button id="vocabPrev" class="secondary" type="button">Previous</button>
         <button id="vocabNext" class="primary" type="button">Next word</button>
@@ -4989,7 +4989,8 @@ function openVocabularySubjectPack(subject) {
   state.vocabularyReview.subject = subject;
   state.vocabularyReview.stage = "all";
   state.vocabularyReview.topic = "all";
-  state.vocabularyReview.type = subject === "ielts" ? "term" : "all";
+  state.vocabularyReview.type = "all";
+  state.vocabularyReview.fullDeck = subject === "ielts";
   state.vocabularyReview.query = "";
   state.vocabularyReview.page = "review";
   state.vocabularyReview.index = 0;
@@ -5090,13 +5091,6 @@ function bindVocabularyControls() {
   });
   $("vocabPrev")?.addEventListener("click", () => setVocabularyIndex(state.vocabularyReview.index - 1));
   $("vocabNext")?.addEventListener("click", () => setVocabularyIndex(state.vocabularyReview.index + 1));
-  document.querySelector("[data-vocab-open-full-deck]")?.addEventListener("click", () => {
-    state.vocabularyReview.fullDeck = true;
-    state.vocabularyReview.type = "all";
-    state.vocabularyReview.index = 0;
-    state.vocabularyReview.revealed = false;
-    renderVocabularyTrainer();
-  });
   document.querySelectorAll("[data-vocab-index]").forEach((button) => {
     button.onclick = () => setVocabularyIndex(button.dataset.vocabIndex);
   });
@@ -5118,7 +5112,7 @@ function bindVocabularyControls() {
     state.vocabularyReview.topic = "all";
     state.vocabularyReview.index = 0;
     state.vocabularyReview.revealed = false;
-    state.vocabularyReview.fullDeck = false;
+    state.vocabularyReview.fullDeck = state.vocabularyReview.subject === "ielts";
     renderVocabularyTrainer();
   });
   document.querySelector(".vocab-more-filters")?.addEventListener("toggle", (event) => {
@@ -5152,16 +5146,12 @@ function bindVocabularyControls() {
   $("vocabSearch")?.addEventListener("input", (event) => {
     const value = event.target.value || "";
     window.clearTimeout(state.vocabularyReview.searchTimer);
-    const restoreIeltsStudySet = !value
-      && state.vocabularyReview.fullDeck
-      && state.vocabularyReview.subject === "ielts"
-      && state.vocabularyReview.mode === "all";
     state.vocabularyReview.query = value;
     state.vocabularyReview.index = 0;
     state.vocabularyReview.revealed = false;
-    if (restoreIeltsStudySet) {
-      state.vocabularyReview.type = "term";
-      state.vocabularyReview.fullDeck = false;
+    if (!value && state.vocabularyReview.subject === "ielts" && state.vocabularyReview.mode === "all") {
+      state.vocabularyReview.type = "all";
+      state.vocabularyReview.fullDeck = true;
     }
     state.vocabularyReview.page = "review";
     renderVocabularyTrainer();
@@ -5171,7 +5161,7 @@ function bindVocabularyControls() {
   });
   document.querySelector("[data-vocab-clear]")?.addEventListener("click", () => {
     clearVocabularyRouteTermScope();
-    Object.assign(state.vocabularyReview, { page: "review", subject: "all", stage: "all", topic: "all", type: "all", query: "", index: 0, revealed: false, fullDeck: false });
+    Object.assign(state.vocabularyReview, { page: "review", subject: "ielts", stage: "all", topic: "all", type: "all", query: "", index: 0, revealed: false, fullDeck: true });
     renderVocabularyTrainer();
   });
   document.querySelector("[data-vocab-retry]")?.addEventListener("click", () => {
@@ -23173,10 +23163,11 @@ function activateView(viewId, updateHash = false, options = {}) {
     state.vocabularyReview.subject = "ielts";
     state.vocabularyReview.stage = "all";
     state.vocabularyReview.topic = "all";
-    state.vocabularyReview.type = "term";
+    state.vocabularyReview.type = "all";
       state.vocabularyReview.query = "";
       state.vocabularyReview.index = 0;
       state.vocabularyReview.revealed = false;
+      state.vocabularyReview.fullDeck = true;
     }
     renderVocabularyTrainer();
     void ensureIeltsCoreVocabularyLoaded();

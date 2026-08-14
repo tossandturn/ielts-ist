@@ -11545,7 +11545,7 @@ button.vocab-catalog-status.is-error {
 
 .vocab-review-side {
   display: grid;
-  grid-template-rows: auto auto;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
   gap: 14px;
   height: auto;
   min-height: 0;
@@ -11599,7 +11599,39 @@ button.vocab-catalog-status.is-error {
 }
 
 .vocab-mini-list {
-  display: none;
+  display: grid;
+  gap: 6px;
+  max-height: 392px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+  scrollbar-gutter: stable;
+}
+
+.vocab-deck-navigation {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.vocab-mini-list-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  color: #475467;
+  font-size: 12px;
+}
+
+.vocab-mini-list-head strong {
+  color: #1d2939;
+  font-size: 13px;
+}
+
+.vocab-mini-list-head span {
+  color: #667085;
+  white-space: nowrap;
 }
 
 .vocab-mini-list button {
@@ -11618,8 +11650,9 @@ button.vocab-catalog-status.is-error {
 }
 
 .vocab-mini-list button.active {
-  border-color: #5eead4;
-  background: #f0fdfa;
+  border-color: #7357e8;
+  background: #f6f4ff;
+  color: #35287f;
 }
 
 .vocab-mini-list button.known em {

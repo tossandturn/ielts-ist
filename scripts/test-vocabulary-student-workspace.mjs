@@ -64,7 +64,7 @@ try {
     });
     await page.goto(`${baseUrl}/?test=vocabulary-student-${viewport.width}#vocabulary`, { waitUntil: "networkidle" });
     await page.locator("#vocabulary.active .vocab-review-card").waitFor();
-    await page.waitForFunction(() => document.querySelector(".vocab-review-top strong")?.textContent?.includes("/ 30"));
+    await page.waitForFunction(() => document.querySelector(".vocab-review-top strong")?.textContent?.includes("/ 304"));
     assert.equal(await page.locator("#vocabSubjectFilter").inputValue(), "ielts", `${viewport.label} must default to IELTS English`);
     assert.equal(await page.getByRole("tab", { name: /^study$/i }).isVisible(), true,
       `${viewport.label} must start in the focused Study mode`);
@@ -89,19 +89,21 @@ try {
         `${viewport.label} must stack the learning controls in a clear order on a phone`);
     }
     assert.match((await page.locator(".vocab-word-face h3").textContent()) || "", /^[A-Za-z][A-Za-z -]*$/, `${viewport.label} first card must be an IELTS English word`);
-    assert.equal(await page.locator(".vocab-mini-list [data-vocab-index]").count(), 0, `${viewport.label} must not render a 3,000-word side list`);
-    assert.match(await page.locator(".vocab-review-top strong").innerText(), /1\s*\/\s*30/, `${viewport.label} must present a 30-word study set`);
-    assert.match(await page.locator(".vocab-catalog-summary").innerText(), /304 IELTS Core words[\s\S]*30-word study session/i,
-      `${viewport.label} must distinguish the complete IELTS Core catalog from the first study session`);
-    assert.equal(await page.getByRole("button", { name: /browse all 304 core words/i }).isVisible(), true,
-      `${viewport.label} must let a student explicitly open the complete IELTS Core deck`);
+    const deckNavigationCount = await page.locator(".vocab-mini-list [data-vocab-index]").count();
+    assert.ok(deckNavigationCount > 0 && deckNavigationCount <= 15,
+      `${viewport.label} must restore a virtualized right-side deck navigator without rendering the whole catalog`);
+    assert.match(await page.locator(".vocab-review-top strong").innerText(), /1\s*\/\s*304/, `${viewport.label} must begin in the complete IELTS Core deck`);
+    assert.match(await page.locator(".vocab-catalog-summary").innerText(), /304 IELTS Core words[\s\S]*Full core deck/i,
+      `${viewport.label} must identify the default set as the complete IELTS Core deck`);
+    assert.equal(await page.getByRole("button", { name: /browse all 304 core words/i }).count(), 0,
+      `${viewport.label} must not make the complete deck a secondary action`);
     assert.equal(await page.locator("#vocabMeaning").isVisible(), true, `${viewport.label} must show the meaning without a blank flashcard state`);
     assert.equal(await page.getByRole("button", { name: /again/i }).isVisible(), true);
     assert.equal(await page.getByRole("button", { name: /know it/i }).isVisible(), true);
     assert.equal(await page.getByRole("button", { name: /^save$/i }).isVisible(), true);
     if (viewport.width === 390) {
       const topicChip = page.locator(".vocab-review-top .eyebrow");
-      assert.match(await topicChip.innerText(), /Travel & Transport/, "Phone must retain the complete current-topic label");
+      assert.match(await topicChip.innerText(), /^IELTS Core Vocabulary · .+/, "Phone must retain the current IELTS scope and topic label");
       const topicChipGeometry = await topicChip.evaluate((element) => ({
         clipped: element.scrollWidth - element.clientWidth,
         lineCount: Math.round(element.getBoundingClientRect().height / parseFloat(getComputedStyle(element).lineHeight || "16")),
@@ -117,16 +119,20 @@ try {
   const fullIeltsDeck = await browser.newPage({ viewport: { width: 1024, height: 768 } });
   await fullIeltsDeck.goto(`${baseUrl}/?test=vocabulary-student-full-core#vocabulary`, { waitUntil: "networkidle" });
   await fullIeltsDeck.locator("#vocabulary.active .vocab-review-card").waitFor();
-  await fullIeltsDeck.getByRole("button", { name: /browse all 304 core words/i }).click();
   await fullIeltsDeck.waitForFunction(() => document.querySelector(".vocab-review-top strong")?.textContent?.trim() === "1 / 304");
   assert.match(await fullIeltsDeck.locator(".vocab-catalog-summary").innerText(), /304 IELTS Core words[\s\S]*Full core deck/i,
     "Opening the complete core deck must not require a search or subject change");
+  await fullIeltsDeck.locator(".vocab-mini-list [data-vocab-index='6']").click();
+  await fullIeltsDeck.waitForFunction(() => document.querySelector(".vocab-review-top strong")?.textContent?.trim() === "7 / 304");
+  assert.equal(await fullIeltsDeck.locator(".vocab-mini-list [aria-current='true']").getAttribute("data-vocab-index"), "6",
+    "The virtualized right-side list must move to the selected word without rendering the complete deck");
   await fullIeltsDeck.locator("#vocabSearch").fill("sustainable");
   await fullIeltsDeck.locator(".vocab-word-face h3").waitFor();
-  await fullIeltsDeck.locator("#vocabSearch").fill("");
-  await fullIeltsDeck.waitForFunction(() => document.querySelector(".vocab-review-top strong")?.textContent?.trim() === "1 / 30");
-  assert.match(await fullIeltsDeck.locator(".vocab-catalog-summary").innerText(), /304 IELTS Core words[\s\S]*30-word study session/i,
-    "Clearing a search after browsing the full deck must return to the default IELTS study set");
+  await fullIeltsDeck.locator("#vocabSearch").press(process.platform === "darwin" ? "Meta+A" : "Control+A");
+  await fullIeltsDeck.locator("#vocabSearch").press("Backspace");
+  await fullIeltsDeck.waitForFunction(() => document.querySelector(".vocab-review-top strong")?.textContent?.trim() === "1 / 304");
+  assert.match(await fullIeltsDeck.locator(".vocab-catalog-summary").innerText(), /304 IELTS Core words[\s\S]*Full core deck/i,
+    "Clearing a search must restore the default complete IELTS Core deck");
   await assertNoOverflow(fullIeltsDeck, "Complete IELTS Core deck");
   await fullIeltsDeck.close();
 
@@ -138,13 +144,13 @@ try {
   assert.equal(await responsive.locator("#vocabTypeFilter").isVisible(), true, "Phone Refine control must expose Content type");
   await responsive.locator(".vocab-more-filters > summary").click();
   await responsive.getByRole("button", { name: /next word/i }).click();
-  assert.match(await responsive.locator(".vocab-review-top strong").innerText(), /2\s*\/\s*30/, "Phone Next word must advance the active card");
+  assert.match(await responsive.locator(".vocab-review-top strong").innerText(), /2\s*\/\s*304/, "Phone Next word must advance the active card");
   await responsive.close();
 
   const globalSearch = await browser.newPage({ viewport: { width: 1024, height: 768 } });
   await globalSearch.goto(`${baseUrl}/?test=vocabulary-student-global-search#vocabulary`, { waitUntil: "networkidle" });
   await globalSearch.locator(".vocab-review-card").waitFor();
-  await globalSearch.waitForFunction(() => document.querySelector(".vocab-review-top strong")?.textContent?.includes("/ 30"));
+  await globalSearch.waitForFunction(() => document.querySelector(".vocab-review-top strong")?.textContent?.includes("/ 304"));
   assert.equal(await globalSearch.locator("#vocabSubjectFilter").inputValue(), "ielts", "The default Word pack stays IELTS before a global search");
   await globalSearch.locator("#vocabSearch").fill("absorption line");
   await globalSearch.locator(".vocab-word-face h3").waitFor();
@@ -153,7 +159,7 @@ try {
   assert.match(await globalSearch.locator(".vocab-review-top .eyebrow").innerText(), /All vocabulary search · IG \+ A-Level Physics · Astrophysics/,
     "Global search results must state the actual subject and topic");
   await globalSearch.locator("#vocabSearch").fill("");
-  await globalSearch.waitForFunction(() => document.querySelector(".vocab-review-top strong")?.textContent?.includes("/ 30"));
+  await globalSearch.waitForFunction(() => document.querySelector(".vocab-review-top strong")?.textContent?.includes("/ 304"));
   assert.equal(await globalSearch.locator("#vocabSubjectFilter").inputValue(), "ielts", "Clearing a global search must retain the student's IELTS Word pack");
   assert.match((await globalSearch.locator(".vocab-word-face h3").innerText()) || "", /^[A-Za-z][A-Za-z -]*$/,
     "Clearing a global search must return to an IELTS English word");
@@ -163,7 +169,7 @@ try {
   const desktopShot = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   await desktopShot.goto(`${baseUrl}/?test=vocabulary-student-screenshot#vocabulary`, { waitUntil: "networkidle" });
   await desktopShot.locator("#vocabulary.active .vocab-review-card").waitFor();
-  await desktopShot.waitForFunction(() => document.querySelector(".vocab-review-top strong")?.textContent?.includes("/ 30"));
+  await desktopShot.waitForFunction(() => document.querySelector(".vocab-review-top strong")?.textContent?.includes("/ 304"));
   await desktopShot.close();
 
   const subject = await browser.newPage({ viewport: { width: 1024, height: 768 } });
