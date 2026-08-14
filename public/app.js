@@ -19089,10 +19089,10 @@ function buildExam() {
   };
   $("examPaper").innerHTML = `
     <nav class="exam-quick-nav" aria-label="Quick navigation">
-      <a href="#exam-listening-section">Listening</a>
-      <a href="#exam-reading-section">Reading</a>
-      <a href="#exam-writing-section">Writing</a>
-      <a href="#exam-speaking-section">Speaking</a>
+      <a href="#exam-listening-section">Immerse Listening</a>
+      <a href="#exam-reading-section">Immerse Reading</a>
+      <a href="#exam-writing-section">Immerse Writing</a>
+      <a href="#exam-speaking-section">Immerse Speaking</a>
     </nav>
     <section id="exam-listening-section" class="panel exam-section"><h2>Listening</h2>${renderListening(state.exam.listening, "exam-listening")}</section>
     <section id="exam-reading-section" class="panel exam-section"><h2>Reading</h2>${renderReading(state.exam.reading, "exam-reading")}</section>
@@ -19148,10 +19148,10 @@ function renderFullExamPaper(bundle, prefixRoot, scoreButtonId) {
     <nav class="exam-quick-nav" aria-label="quick navigation">
       <div class="exam-quick-links">
         <button class="inline-sidebar-toggle" type="button" aria-label="Stopped">&gt;</button>
-        <a href="#${prefixRoot}-listening-section" data-focus-module="listening">Listening</a>
-        <a href="#${prefixRoot}-reading-section" data-focus-module="reading">Reading</a>
-        <a href="#${prefixRoot}-writing-section" data-focus-module="writing">Writing</a>
-        <a href="#${prefixRoot}-speaking-section" data-focus-module="speaking">Speaking</a>
+        <a href="#${prefixRoot}-listening-section" data-focus-module="listening">Immerse Listening</a>
+        <a href="#${prefixRoot}-reading-section" data-focus-module="reading">Immerse Reading</a>
+        <a href="#${prefixRoot}-writing-section" data-focus-module="writing">Immerse Writing</a>
+        <a href="#${prefixRoot}-speaking-section" data-focus-module="speaking">Immerse Speaking</a>
         <button class="back-submit-button" type="button" data-submit-target="${scoreButtonId}">Back and submit</button>
       </div>
       ${timerHtml}

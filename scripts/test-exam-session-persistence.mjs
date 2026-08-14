@@ -166,12 +166,19 @@ try {
       metadata: { ...state.sequence.examMetadata },
       status: document.querySelector("#sequenceSelectionStatus")?.textContent || "",
       manifest: document.querySelector("#sequencePaper .exam-source-manifest")?.textContent || "",
+      moduleNavLabels: [...document.querySelectorAll("#sequencePaper .exam-quick-links a[data-focus-module]")]
+        .map((link) => link.textContent?.trim() || ""),
     };
   });
   assert.equal(chosenSequence.metadata.context, "same-test");
   assert.equal(chosenSequence.metadata.sourceSetId.length > 0, true, "Same Test must persist its exact Cambridge source-set ID");
   assert.match(chosenSequence.status, new RegExp(`Ready: Cambridge ${chosenSequence.book} Test ${chosenSequence.test}`), "Same Test must preview the selected exact set");
   assert.match(chosenSequence.manifest, /Paper source[\s\S]*Listening[\s\S]*Reading[\s\S]*Writing Task 1[\s\S]*Writing Task 2[\s\S]*Speaking/, "Same Test must expose the full source manifest");
+  assert.deepEqual(
+    chosenSequence.moduleNavLabels,
+    ["Immerse Listening", "Immerse Reading", "Immerse Writing", "Immerse Speaking"],
+    "Full-test navigation must describe each module as an immersive workspace",
+  );
 
   console.log(`PASS random seed rebuild, random exam restore ${after.examId}, and explicit same-test source manifest.`);
 } finally {
