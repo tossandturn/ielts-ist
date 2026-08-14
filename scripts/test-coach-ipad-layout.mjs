@@ -69,6 +69,8 @@ try {
     });
     assert.equal(await page.locator("#helpAttachImage").count(), 1, `${viewport.name}: Coach needs one Capture entry`);
     assert.equal(await page.locator("[data-global-coach-capture]").count(), 0, `${viewport.name}: Coach action list must not duplicate Capture`);
+    assert.equal((await page.locator("#helpChatStatus").innerText()).trim(), "Ready",
+      `${viewport.name}: Coach status must not repeat its title in the empty state`);
     if (screenshotDir) {
       const screenshotPath = resolve(screenshotDir, `coach-${viewport.width}x${viewport.height}-open.png`);
       await page.screenshot({ path: screenshotPath, fullPage: false });

@@ -5620,7 +5620,7 @@ function openGlobalCoachPanel(surfaceOverride = null) {
   if (form) form.dataset.examLocked = examLocked ? "1" : "0";
   if (input) input.disabled = examLocked;
   if (actions) actions.hidden = examLocked;
-  setHelpStatus("AI Coach");
+  setHelpStatus("Ready");
   updateHelpAttachmentPreview();
   renderGlobalCoachContext();
   renderGlobalCoachActions();
