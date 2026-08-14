@@ -76,6 +76,18 @@ try {
       `${viewport.label} must not duplicate the word-pack selector with another large command`);
     assert.match(await page.locator(".vocab-more-filters > summary").innerText(), /^Filters(?: \(\d+\))?$/,
       `${viewport.label} must keep secondary filters progressive rather than making them a peer control`);
+    const controlLabelTops = await page.locator(".vocab-mode-control > span:not(.sr-only), .vocab-course-filter > span:not(.sr-only), .vocab-topic-search > span:not(.sr-only)")
+      .evaluateAll((labels) => labels.map((label) => Math.round(label.getBoundingClientRect().top)));
+    if (viewport.width > 1320) {
+      assert.ok(Math.max(...controlLabelTops) - Math.min(...controlLabelTops) <= 1,
+        `${viewport.label} must align all visible control labels on the desktop row`);
+    } else if (viewport.width > 620) {
+      assert.ok(Math.abs(controlLabelTops[0] - controlLabelTops[1]) <= 1 && controlLabelTops[2] > controlLabelTops[0],
+        `${viewport.label} must align mode and word pack, then give search its own full-width row: ${controlLabelTops.join(", ")}`);
+    } else {
+      assert.ok(controlLabelTops[0] < controlLabelTops[1] && controlLabelTops[1] < controlLabelTops[2],
+        `${viewport.label} must stack the learning controls in a clear order on a phone`);
+    }
     assert.match((await page.locator(".vocab-word-face h3").textContent()) || "", /^[A-Za-z][A-Za-z -]*$/, `${viewport.label} first card must be an IELTS English word`);
     assert.equal(await page.locator(".vocab-mini-list [data-vocab-index]").count(), 0, `${viewport.label} must not render a 3,000-word side list`);
     assert.match(await page.locator(".vocab-review-top strong").innerText(), /1\s*\/\s*30/, `${viewport.label} must present a 30-word study set`);
@@ -207,6 +219,12 @@ try {
   await stem.locator("#vocabulary.active .vocab-review-card").waitFor();
   assert.equal(await stem.locator(".vocab-route-context").count(), 1, "STEM deep link must keep route context visible");
   assert.match(await stem.locator(".vocab-route-context").innerText(), /IELTSist glossary sync pending/, "Unmapped STEM terms must not fall back to a fake local count");
+  assert.equal(await stem.locator("#vocabSubjectFilter").inputValue(), "physics",
+    "A pending STEM term pack must open the mapped local subject rather than an incompatible IELTS Core filter");
+  assert.equal(await stem.locator(".vocab-empty-state").count(), 0,
+    "A pending STEM term pack must show a loading or compatible local subject card, never an empty result state");
+  assert.equal((await stem.locator(".vocab-more-filters > summary").innerText()).trim(), "Filters",
+    "Route-provided stage and topic context must not be presented as unexplained student filters");
   assert.equal(await stem.locator(".vocab-catalog-status").count(), 0, "STEM pending term packs must not claim an unrelated catalog total");
   await assertNoOverflow(stem, "STEM vocabulary deep link");
   assert.deepEqual(stemErrors, [], "STEM vocabulary deep link must not emit console errors");

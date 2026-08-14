@@ -10657,13 +10657,6 @@ body.immersive-mode[data-immersive-module="speaking"] .exam-section.focused-sect
   text-transform: uppercase;
 }
 
-.vocab-topic-search small {
-  min-height: 16px;
-  color: #667085;
-  font-size: 11px;
-  line-height: 1.3;
-}
-
 .vocab-library-toolbar select,
 .vocab-library-toolbar input {
   width: 100%;

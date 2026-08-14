@@ -4144,9 +4144,12 @@ const vocabularySubjectByCambridgeCode = Object.freeze({
 });
 
 function vocabularySubjectFromCambridgeCode(context, items) {
-  const subject = vocabularySubjectByCambridgeCode[String(context?.subjectCode || "").trim()];
-  if (!subject) return "";
-  return subject;
+  const subjectCode = String(context?.subjectCode || "").trim().toLowerCase();
+  const mappedSubject = vocabularySubjectByCambridgeCode[subjectCode];
+  if (mappedSubject) return mappedSubject;
+  // STEM may send its canonical subject code when no numeric Cambridge code
+  // applies. Accept it only when this vocabulary catalog has that exact subject.
+  return items.some((item) => item.subject === subjectCode) ? subjectCode : "";
 }
 
 function normalizeVocabularyMetadata(item, index = 0) {
@@ -4824,8 +4827,8 @@ function renderVocabularyReviewPage(allItems, subjectCounts, deck, item, knownCo
   const ieltsCoreCount = allItems.filter((entry) => entry.subject === "ielts").length;
   const defaultType = state.vocabularyReview.subject === "ielts" ? "term" : "all";
   const activeFilterCount = [
-    state.vocabularyReview.topic !== "all",
-    state.vocabularyReview.stage !== "all",
+    state.vocabularyReview.topic !== "all" && !(isStemRoute && routeContext.topicId && state.vocabularyReview.topic === routeContext.topicId),
+    state.vocabularyReview.stage !== "all" && !(isStemRoute && routeContext.stage && state.vocabularyReview.stage === routeContext.stage),
     state.vocabularyReview.type !== defaultType,
   ].filter(Boolean).length;
   const studyLabel = isStemRoute && hasResolvedStemTermPack
@@ -4858,7 +4861,7 @@ function renderVocabularyReviewPage(allItems, subjectCounts, deck, item, knownCo
         <option value="__subjects__" ${state.vocabularyReview.subject !== "ielts" && !isStemRoute ? "selected" : ""}>IGCSE & A-Level subjects…</option>
         ${isStemRoute && state.vocabularyReview.subject !== "ielts" ? `<option value="${escapeHtml(state.vocabularyReview.subject)}" selected>${escapeHtml(vocabularySubjectLabel(state.vocabularyReview.subject))}</option>` : ""}
       </select></label>
-      <label class="vocab-topic-search"><span>Search every word</span><input id="vocabSearch" type="search" value="${escapeHtml(state.vocabularyReview.query)}" placeholder="Search IELTS, IGCSE or A-Level terms" aria-describedby="vocabSearchScope" /><small id="vocabSearchScope">${isGlobalSearch ? "Showing matches across every word pack" : "Search is available across every word pack"}</small></label>
+      <label class="vocab-topic-search"><span>Search every word</span><input id="vocabSearch" type="search" value="${escapeHtml(state.vocabularyReview.query)}" placeholder="Search IELTS, IGCSE or A-Level terms" aria-describedby="vocabSearchScope" /><span id="vocabSearchScope" class="sr-only">${isGlobalSearch ? "Showing matches across every word pack" : "Search is available across every word pack"}</span></label>
       <details class="vocab-more-filters" ${state.vocabularyReview.filtersOpen ? "open" : ""}><summary>Filters${activeFilterCount ? ` (${activeFilterCount})` : ""}</summary><div>
         <label><span>Topic</span><select id="vocabTopicFilter"><option value="all">All topics</option>${availableTopics.map(([topic, label]) => `<option value="${escapeHtml(topic)}" ${state.vocabularyReview.topic === topic ? "selected" : ""}>${escapeHtml(label)}</option>`).join("")}</select></label>
         ${state.vocabularyReview.subject !== "ielts" ? `<label><span>Stage</span><select id="vocabStageFilter">${["all", "IGCSE", "AS", "A2"].map((stage) => `<option value="${stage}" ${state.vocabularyReview.stage === stage ? "selected" : ""}>${stage === "all" ? "All stages" : stage}</option>`).join("")}</select></label>` : ""}
