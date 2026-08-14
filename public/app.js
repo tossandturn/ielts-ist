@@ -4440,7 +4440,7 @@ function vocabularyIsDue(item) {
 }
 
 function vocabularyModeLabel(mode) {
-  return { all: "Learn", notebook: "Notebook", due: "Review" }[mode] || "Learn";
+  return { all: "Study", notebook: "Notebook", due: "Due today" }[mode] || "Study";
 }
 
 function vocabularyModeCount(mode, allItems) {
@@ -4822,6 +4822,12 @@ function renderVocabularyReviewPage(allItems, subjectCounts, deck, item, knownCo
     && (state.vocabularyReview.type === "term" || state.vocabularyReview.fullDeck)
     && state.vocabularyReview.mode === "all";
   const ieltsCoreCount = allItems.filter((entry) => entry.subject === "ielts").length;
+  const defaultType = state.vocabularyReview.subject === "ielts" ? "term" : "all";
+  const activeFilterCount = [
+    state.vocabularyReview.topic !== "all",
+    state.vocabularyReview.stage !== "all",
+    state.vocabularyReview.type !== defaultType,
+  ].filter(Boolean).length;
   const studyLabel = isStemRoute && hasResolvedStemTermPack
     ? "STEM term pack"
     : isGlobalSearch
@@ -4845,17 +4851,16 @@ function renderVocabularyReviewPage(allItems, subjectCounts, deck, item, knownCo
         }).join("")}
       </div>
       <label class="vocab-course-filter"><span>Word pack</span><select id="vocabSubjectFilter">
-        <option value="ielts" ${state.vocabularyReview.subject === "ielts" ? "selected" : ""}>IELTS English</option>
+        <option value="ielts" ${state.vocabularyReview.subject === "ielts" ? "selected" : ""}>IELTS Core · ${ieltsCoreCount} words</option>
         <option value="__subjects__" ${state.vocabularyReview.subject !== "ielts" && !isStemRoute ? "selected" : ""}>IGCSE & A-Level subjects…</option>
         ${isStemRoute && state.vocabularyReview.subject !== "ielts" ? `<option value="${escapeHtml(state.vocabularyReview.subject)}" selected>${escapeHtml(vocabularySubjectLabel(state.vocabularyReview.subject))}</option>` : ""}
       </select></label>
-      <label class="vocab-topic-search"><span>Search all words</span><input id="vocabSearch" type="search" value="${escapeHtml(state.vocabularyReview.query)}" placeholder="Search IELTS, IGCSE or A-Level terms" /></label>
-      <details class="vocab-more-filters" ${state.vocabularyReview.filtersOpen ? "open" : ""}><summary>Refine current pack</summary><div>
+      <label class="vocab-topic-search"><span>Search every word</span><input id="vocabSearch" type="search" value="${escapeHtml(state.vocabularyReview.query)}" placeholder="Search IELTS, IGCSE or A-Level terms" aria-describedby="vocabSearchScope" /><small id="vocabSearchScope">${isGlobalSearch ? "Showing matches across every word pack" : "Search is available across every word pack"}</small></label>
+      <details class="vocab-more-filters" ${state.vocabularyReview.filtersOpen ? "open" : ""}><summary>Filters${activeFilterCount ? ` (${activeFilterCount})` : ""}</summary><div>
         <label><span>Topic</span><select id="vocabTopicFilter"><option value="all">All topics</option>${availableTopics.map(([topic, label]) => `<option value="${escapeHtml(topic)}" ${state.vocabularyReview.topic === topic ? "selected" : ""}>${escapeHtml(label)}</option>`).join("")}</select></label>
         ${state.vocabularyReview.subject !== "ielts" ? `<label><span>Stage</span><select id="vocabStageFilter">${["all", "IGCSE", "AS", "A2"].map((stage) => `<option value="${stage}" ${state.vocabularyReview.stage === stage ? "selected" : ""}>${stage === "all" ? "All stages" : stage}</option>`).join("")}</select></label>` : ""}
         <label><span>Content type</span><select id="vocabTypeFilter">${["term", "all", "command", "phrase"].map((type) => `<option value="${type}" ${state.vocabularyReview.type === type ? "selected" : ""}>${escapeHtml(vocabularyTypeLabel(type))}</option>`).join("")}</select></label>
       </div></details>
-      <button class="secondary small-button vocab-pack-picker" type="button" data-vocab-back>Change word pack</button>
       ${catalogStatus}
     </div>
     ${routeContext.from === "stem" ? `<aside class="vocab-route-context" aria-label="STEM learning context"><div><strong>${isPendingStemFallback ? "IELTSist glossary sync pending" : "STEM term pack"}</strong><span>${isPendingStemFallback ? `The requested STEM term pack is not available here yet. Continue with ${escapeHtml(vocabularyRouteStudyLabel(state.vocabularyReview.subject, routeContext))} while it syncs.` : `${escapeHtml(vocabularySubjectLabel(state.vocabularyReview.subject))}${routeContext.topicId ? ` · ${escapeHtml(routeContext.topicId)}` : ""}${routeContext.attemptId ? ` · attempt ${escapeHtml(routeContext.attemptId)}` : ""} · Vocabulary support only; progress stays on each site.`}</span>${routeWarning && !isPendingStemFallback ? `<em role="alert">${escapeHtml(routeWarning)}</em>` : ""}${isPendingStemFallback && routeContext.termIds.length ? `<button class="secondary small-button" type="button" data-vocab-clear>Browse selected subject</button>` : ""}</div>${returnToStem ? `<a class="secondary small-button" href="${escapeHtml(returnToStem)}">Return to STEM attempt</a>` : ""}</aside>` : ""}

@@ -66,6 +66,14 @@ try {
     await page.locator("#vocabulary.active .vocab-review-card").waitFor();
     await page.waitForFunction(() => document.querySelector(".vocab-review-top strong")?.textContent?.includes("/ 30"));
     assert.equal(await page.locator("#vocabSubjectFilter").inputValue(), "ielts", `${viewport.label} must default to IELTS English`);
+    assert.equal(await page.getByRole("tab", { name: /^study$/i }).isVisible(), true,
+      `${viewport.label} must start in the focused Study mode`);
+    assert.equal(await page.getByRole("tab", { name: /^due today$/i }).isVisible(), true,
+      `${viewport.label} must expose a clear due-review mode`);
+    assert.equal(await page.getByRole("button", { name: /change word pack/i }).count(), 0,
+      `${viewport.label} must not duplicate the word-pack selector with another large command`);
+    assert.match(await page.locator(".vocab-more-filters > summary").innerText(), /^Filters(?: \(\d+\))?$/,
+      `${viewport.label} must keep secondary filters progressive rather than making them a peer control`);
     assert.match((await page.locator(".vocab-word-face h3").textContent()) || "", /^[A-Za-z][A-Za-z -]*$/, `${viewport.label} first card must be an IELTS English word`);
     assert.equal(await page.locator(".vocab-mini-list [data-vocab-index]").count(), 0, `${viewport.label} must not render a 3,000-word side list`);
     assert.match(await page.locator(".vocab-review-top strong").innerText(), /1\s*\/\s*30/, `${viewport.label} must present a 30-word study set`);
@@ -151,7 +159,7 @@ try {
   });
   await subject.goto(`${baseUrl}/?test=vocabulary-student-subject#vocabulary`, { waitUntil: "networkidle" });
   await subject.locator(".vocab-review-card").waitFor();
-  await subject.getByRole("button", { name: /change word pack/i }).click();
+  await subject.locator("#vocabSubjectFilter").selectOption("__subjects__");
   await subject.locator(".vocab-hub-shell").waitFor();
   await subject.locator("[data-vocab-course='alevel']").click();
   await subject.locator("[data-vocab-subject='physics']").click();
