@@ -10642,13 +10642,15 @@ body.immersive-mode[data-immersive-module="speaking"] .exam-section.focused-sect
   border-bottom: 1px solid #e4e7ec;
 }
 
-.vocab-library-toolbar label {
+.vocab-library-toolbar label,
+.vocab-mode-control {
   min-width: 0;
   display: grid;
   gap: 6px;
 }
 
-.vocab-library-toolbar label > span {
+.vocab-library-toolbar label > span,
+.vocab-mode-control > span {
   color: #667085;
   font-size: 11px;
   font-weight: 900;

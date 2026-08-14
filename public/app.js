@@ -4844,11 +4844,14 @@ function renderVocabularyReviewPage(allItems, subjectCounts, deck, item, knownCo
   return `<section class="vocab-trainer-shell${deck.length <= 1 ? " single-term-pack" : ""}">
     ${state.vocabularyReview.mode === "notebook" ? renderVocabularyNotebookStatus(allItems) : ""}
     <div class="vocab-library-toolbar" aria-label="Vocabulary learning controls">
-      <div class="vocab-mode-tabs" role="tablist" aria-label="Learning mode">
-        ${["all", "notebook", "due"].map((mode) => {
-          const count = vocabularyModeCount(mode, allItems);
-          return `<button type="button" role="tab" class="vocab-mode-tab ${state.vocabularyReview.mode === mode ? "active" : ""}" data-vocab-mode="${mode}" aria-selected="${state.vocabularyReview.mode === mode}">${vocabularyModeLabel(mode)}${count ? `<span>${count}</span>` : ""}</button>`;
-        }).join("")}
+      <div class="vocab-mode-control">
+        <span>Learning mode</span>
+        <div class="vocab-mode-tabs" role="tablist" aria-label="Learning mode">
+          ${["all", "notebook", "due"].map((mode) => {
+            const count = vocabularyModeCount(mode, allItems);
+            return `<button type="button" role="tab" class="vocab-mode-tab ${state.vocabularyReview.mode === mode ? "active" : ""}" data-vocab-mode="${mode}" aria-selected="${state.vocabularyReview.mode === mode}">${vocabularyModeLabel(mode)}${count ? `<span>${count}</span>` : ""}</button>`;
+          }).join("")}
+        </div>
       </div>
       <label class="vocab-course-filter"><span>Word pack</span><select id="vocabSubjectFilter">
         <option value="ielts" ${state.vocabularyReview.subject === "ielts" ? "selected" : ""}>IELTS Core · ${ieltsCoreCount} words</option>

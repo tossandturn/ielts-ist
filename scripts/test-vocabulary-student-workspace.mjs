@@ -68,6 +68,8 @@ try {
     assert.equal(await page.locator("#vocabSubjectFilter").inputValue(), "ielts", `${viewport.label} must default to IELTS English`);
     assert.equal(await page.getByRole("tab", { name: /^study$/i }).isVisible(), true,
       `${viewport.label} must start in the focused Study mode`);
+    assert.equal((await page.locator(".vocab-mode-control > span").innerText()).trim().toLowerCase(), "learning mode",
+      `${viewport.label} must give the mode selector the same visible hierarchy as the word pack and search`);
     assert.equal(await page.getByRole("tab", { name: /^due today$/i }).isVisible(), true,
       `${viewport.label} must expose a clear due-review mode`);
     assert.equal(await page.getByRole("button", { name: /change word pack/i }).count(), 0,
