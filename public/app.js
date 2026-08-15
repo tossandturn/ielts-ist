@@ -14332,6 +14332,7 @@ const QWEN_WEBRTC_LOCAL_SILENCE_MS = 2600;
 const QWEN_WEBRTC_SUBMIT_GRACE_MS = 2300;
 const QWEN_WEBRTC_MIN_VOICED_MS = 500;
 const QWEN_WEBRTC_MIN_TURN_BYTES = 14000;
+const QWEN_MAX_CONNECTION_RECOVERY_ATTEMPTS = 3;
 const QWEN_WEBRTC_CAPTURE_SAMPLE_RATE = 16000;
 const QWEN_WEBRTC_AUDIO_TAIL_MS = 420;
 const QWEN_OPUS_MAX_AVERAGE_BITRATE = 16000;
@@ -14640,7 +14641,13 @@ function qwenSetControls(prefix, connected) {
     const currentSession = qwenSession(prefix);
     const transport = currentSession.transport;
     const usingWebRtc = transport === "webrtc" || !!currentSession.pc;
-    if (button.classList.contains("start-qwen-speaking")) button.disabled = connected;
+    if (button.classList.contains("start-qwen-speaking")) {
+      button.disabled = connected;
+      if (connected || !currentSession.lastDisconnectReason) {
+        button.dataset.qwenRetry = "";
+        button.textContent = "Start speaking test";
+      }
+    }
     if (button.classList.contains("qwen-mic-toggle")) button.disabled = !connected;
     if (button.classList.contains("qwen-commit-answer")) {
       button.disabled = !connected || usingWebRtc;
@@ -14648,6 +14655,18 @@ function qwenSetControls(prefix, connected) {
     }
     if (button.classList.contains("qwen-finish-score")) button.disabled = !connected;
     if (button.classList.contains("qwen-disconnect")) button.disabled = !connected;
+  });
+}
+
+function qwenSetRetryControls(prefix) {
+  qwenSetControls(prefix, false);
+  document.querySelectorAll(`.start-qwen-speaking[data-prefix="${prefix}"]`).forEach((button) => {
+    button.disabled = false;
+    button.dataset.qwenRetry = "true";
+    button.textContent = "Retry connection";
+  });
+  document.querySelectorAll(`.qwen-disconnect[data-prefix="${prefix}"]`).forEach((button) => {
+    button.disabled = false;
   });
 }
 
@@ -14822,13 +14841,14 @@ function bindQwenWakeLockEvents() {
   document.addEventListener("visibilitychange", refreshQwenWakeLocksOnVisibility);
 }
 
-function qwenShouldRecoverConnection(session) {
+function qwenShouldRecoverConnection(session, options = {}) {
   return Boolean(session)
     && !session.userDisconnected
     && !session.finalScoreInFlight
     && !session.autoFinishStarted
     && !session.connectionRecovering
-    && !session.suppressConnectionRecovery;
+    && !session.suppressConnectionRecovery
+    && (options.manual || (session.connectionRecoveryAttempts || 0) < QWEN_MAX_CONNECTION_RECOVERY_ATTEMPTS);
 }
 
 function qwenRecoveryInstructions(prefix, reason = "connection lost") {
@@ -14861,9 +14881,26 @@ function qwenRecoveryInstructions(prefix, reason = "connection lost") {
   ].join("\n");
 }
 
+async function startQwenRecoveryTransport(prefix, instructions) {
+  const session = qwenSession(prefix);
+  if (await qwenShouldTryWebRtc(prefix)) {
+    try {
+      await startQwenWebRtc(prefix, instructions);
+      return "webrtc";
+    } catch {
+      qwenCloseWebRtc(prefix);
+      session.transport = "";
+      session.connected = false;
+      qwenAddBubble(prefix, "system", "Direct voice reconnection did not complete. Trying the backup connection...");
+    }
+  }
+  startQwenWebSocket(prefix, instructions, { recovery: true });
+  return "ws";
+}
+
 function scheduleQwenConnectionRecovery(prefix, reason = "connection lost", options = {}) {
   const session = qwenSession(prefix);
-  if (!qwenShouldRecoverConnection(session)) return false;
+  if (!qwenShouldRecoverConnection(session, options)) return false;
   const interruptedExaminerText = compactDialogueText(session.pendingAssistantText || session.currentAssistantText || "");
   if (interruptedExaminerText) {
     qwenRememberExaminerQuestion(prefix, interruptedExaminerText);
@@ -14875,7 +14912,12 @@ function scheduleQwenConnectionRecovery(prefix, reason = "connection lost", opti
   session.connectionRecovering = true;
   session.connected = false;
   session.lastDisconnectReason = reason;
-  session.connectionRecoveryAttempts = proactive ? 0 : Math.min((session.connectionRecoveryAttempts || 0) + 1, 8);
+  const previousSocket = session.ws;
+  session.ws = null;
+  if (previousSocket?.readyState === WebSocket.OPEN || previousSocket?.readyState === WebSocket.CONNECTING) {
+    previousSocket.close(1000, "recovering connection");
+  }
+  session.connectionRecoveryAttempts = proactive ? 0 : Math.min((session.connectionRecoveryAttempts || 0) + 1, QWEN_MAX_CONNECTION_RECOVERY_ATTEMPTS);
   const delay = proactive ? 250 : Math.min(6000, 900 + session.connectionRecoveryAttempts * 450);
   qwenSetRecoveringControls(prefix);
   qwenSetStatus(prefix, proactive ? "Refreshing speaking connection..." : "Connection interrupted. Reconnecting...", true);
@@ -14893,20 +14935,23 @@ function scheduleQwenConnectionRecovery(prefix, reason = "connection lost", opti
     try {
       await stopQwenMic(prefix, false);
       qwenCloseWebRtc(prefix);
-      if (session.ws?.readyState === WebSocket.OPEN || session.ws?.readyState === WebSocket.CONNECTING) {
-        session.ws.close(1000, "recovering connection");
-      }
-      session.ws = null;
       session.httpSessionId = "";
       session.transport = "";
       session.openingRequested = true;
-      startQwenWebSocket(prefix, qwenRecoveryInstructions(prefix, reason), { recovery: true });
+      await startQwenRecoveryTransport(prefix, qwenRecoveryInstructions(prefix, reason));
     } catch (error) {
       session.connectionRecovering = false;
       qwenSetStatus(prefix, `Reconnect failed: ${error.message}`, false);
     }
   }, delay);
   return true;
+}
+
+function retryQwenConnection(prefix) {
+  const session = qwenSession(prefix);
+  if (!session.lastDisconnectReason || session.connectionRecovering) return false;
+  session.connectionRecoveryAttempts = 0;
+  return scheduleQwenConnectionRecovery(prefix, session.lastDisconnectReason, { manual: true });
 }
 
 function clearQwenCommitWatchdog(prefix) {
@@ -16466,7 +16511,7 @@ async function startQwenWebRtc(prefix, openingInstructions) {
       stopQwenMic(prefix, false);
       session.connected = false;
       session.transport = "";
-      startQwenWebSocket(prefix, openingInstructions);
+      startQwenWebSocket(prefix, openingInstructions, { recovery: session.connectionRecovering });
     }, 25000);
   };
   dc.onerror = () => qwenSetStatus(prefix, "WebRTC data channel error", false);
@@ -16510,8 +16555,10 @@ async function startQwenWebRtc(prefix, openingInstructions) {
 function startQwenWebSocket(prefix, openingInstructions, options = {}) {
   const session = qwenSession(prefix);
   const wsUrl = `${location.origin.replace(/^http/, "ws")}/qwen-client`;
-  session.ws = new WebSocket(wsUrl);
-  session.ws.addEventListener("open", () => {
+  const ws = new WebSocket(wsUrl);
+  session.ws = ws;
+  ws.addEventListener("open", () => {
+    if (session.ws !== ws) return;
     session.transport = "ws";
     qwenSend(prefix, {
       type: "connect",
@@ -16519,10 +16566,13 @@ function startQwenWebSocket(prefix, openingInstructions, options = {}) {
       voice: "Ethan",
       turnDetection: "manual",
     });
-    qwenAddBubble(prefix, "system", options.recovery ? "Connection restored through WebSocket." : "WebSocket connected.");
+    qwenAddBubble(prefix, "system", options.recovery ? "Reconnecting to the examiner..." : "Connecting to the examiner...");
   });
-  session.ws.addEventListener("message", (event) => handleQwenMessage(prefix, JSON.parse(event.data)));
-  session.ws.addEventListener("close", () => {
+  ws.addEventListener("message", (event) => {
+    if (session.ws === ws) handleQwenMessage(prefix, JSON.parse(event.data));
+  });
+  ws.addEventListener("close", () => {
+    if (session.ws !== ws) return;
     if (session.connectionRecovering && !options.recovery) return;
     if (session.connectionRecovering && options.recovery) {
       session.connectionRecovering = false;
@@ -16548,7 +16598,8 @@ function startQwenWebSocket(prefix, openingInstructions, options = {}) {
     qwenSetStatus(prefix, "Disconnected", false);
     qwenSetControls(prefix, false);
   });
-  session.ws.addEventListener("error", () => {
+  ws.addEventListener("error", () => {
+    if (session.ws !== ws) return;
     if (session.connectionRecovering && !options.recovery) return;
     if (session.connectionRecovering && options.recovery) {
       session.connectionRecovering = false;
@@ -16825,9 +16876,10 @@ function handleQwenMessage(prefix, message) {
     return;
   }
   if (message.type === "error") {
+    if (session.connectionRecovering) session.connectionRecovering = false;
     if (session.transport && scheduleQwenConnectionRecovery(prefix, message.message || "Realtime connection error")) return;
     qwenSetStatus(prefix, "Error", false);
-    qwenSetControls(prefix, false);
+    qwenSetRetryControls(prefix);
     stopQwenHeartbeat(prefix);
     qwenAddBubble(prefix, "system", message.message || "Session stopped.");
     return;
@@ -16844,7 +16896,9 @@ function handleQwenMessage(prefix, message) {
     clearQwenWebRtcTurnTimer(prefix);
     clearQwenWebRtcFallbackTimer(prefix);
     const errorMessage = payload.message || payload.error?.message || payload.error || "Realtime response error.";
+    if (session.transport && scheduleQwenConnectionRecovery(prefix, String(errorMessage))) return;
     qwenSetStatus(prefix, "Error", false);
+    qwenSetRetryControls(prefix);
     qwenAddBubble(prefix, "system", String(errorMessage));
     return;
   }
@@ -22361,7 +22415,10 @@ function bindDynamicControls() {
     button.onclick = () => startSpeech(button.dataset.target);
   });
   document.querySelectorAll(".start-qwen-speaking").forEach((button) => {
-    button.onclick = () => startQwenSpeaking(button.dataset.prefix);
+    button.onclick = () => {
+      if (button.dataset.qwenRetry === "true" && retryQwenConnection(button.dataset.prefix)) return;
+      startQwenSpeaking(button.dataset.prefix);
+    };
   });
   document.querySelectorAll(".qwen-mic-toggle").forEach((button) => {
     button.onclick = () => toggleQwenMic(button.dataset.prefix);
