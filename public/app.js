@@ -14630,9 +14630,6 @@ async function qwenRuntimeConfig() {
 }
 
 async function qwenShouldTryWebRtc(prefix = "") {
-  // Single-module practice needs visible transcript and reliable turn-taking.
-  // Use the Singapore WebSocket realtime path there; full exams can still prefer WebRTC.
-  if (prefix === "single" || prefix === "bank") return false;
   const config = await qwenRuntimeConfig();
   return config.webrtcEnabled !== false && config.webrtcMode !== "off";
 }
