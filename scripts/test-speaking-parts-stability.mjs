@@ -89,8 +89,95 @@ assert.match(start, /session\.practiceScope/);
 assert.match(start, /session\.targetMs\s*=\s*scopeConfig\.targetMs/);
 assert.match(schedule, /practiceScope|qwenSpeakingScope/);
 assert.match(meta, /remainingMs|qwenSpeakingCountdownState/);
-assert.match(meta, /finishQwenSpeaking/);
+assert.doesNotMatch(meta, /finishQwenSpeaking/, "The countdown updater must not call scoring directly");
 assert.match(disconnect, /uiTimer/);
+
+const timerContext = {
+  Math,
+  Date: { now: () => 181_000 },
+  document: { querySelectorAll: () => [] },
+  window: { setTimeout: (callback) => callback() },
+  nodes: new Map(),
+  statuses: [],
+  finishCalls: 0,
+};
+vm.createContext(timerContext);
+vm.runInContext(`
+  const sessions = new Map();
+  function qwenSession(prefix) { return sessions.get(prefix); }
+  function qwenSpeakingTargetMs() { return 180_000; }
+  function qwenSpeakingScope(prefix) { return qwenSession(prefix).practiceScope; }
+  function qwenBuildAutoScoreTranscript(prefix) { return qwenSession(prefix).transcript; }
+  function qwenWordCount(value) { return String(value || "").trim().split(/\\s+/).filter(Boolean).length; }
+  function qwenSpeakingMinimumReached() { return true; }
+  function qwenOutputBusy(prefix) { return Boolean(qwenSession(prefix).outputBusy); }
+  function qwenAdvanceScheduledAction() {}
+  function qwenSetStatus(prefix, text) { statuses.push(text); }
+  function finishQwenSpeaking() { finishCalls += 1; return Promise.resolve(); }
+  function $(id) {
+    if (!nodes.has(id)) nodes.set(id, { textContent: "" });
+    return nodes.get(id);
+  }
+  ${functionSource(app, "speakingPracticeScopeConfig")}
+  ${functionSource(app, "qwenSpeakingCountdownState")}
+  ${functionSource(app, "qwenUpdateExamMeta")}
+  ${functionSource(app, "qwenMaybeAutoFinish")}
+  this.runExpiredTimer = (overrides = {}) => {
+    finishCalls = 0;
+    statuses.length = 0;
+    const session = {
+      practiceScope: "part2",
+      sessionStartedAt: 1_000,
+      countdownExpiredHandled: false,
+      timeExpiredPending: false,
+      finalScoreInFlight: false,
+      autoFinishStarted: false,
+      awaitingScore: false,
+      scheduledAction: { part: "Part 2", kind: "cue-card" },
+      lastActionKind: "cue-card",
+      voiceStarted: false,
+      turnCommitted: false,
+      waitingForResponse: false,
+      responseActive: false,
+      serverTurnCommitted: false,
+      webRtcResponseRequested: false,
+      currentTurnBytes: 0,
+      outputBusy: false,
+      transcript: "one two three four five six seven eight nine ten eleven twelve",
+      ...overrides,
+    };
+    sessions.set("bank", session);
+    qwenUpdateExamMeta("bank");
+    return { finishCalls, statuses: [...statuses], session };
+  };
+  this.continueExpiredTimer = (overrides = {}) => {
+    const session = sessions.get("bank");
+    Object.assign(session, overrides);
+    qwenUpdateExamMeta("bank");
+    return { finishCalls, statuses: [...statuses], session };
+  };
+`, timerContext);
+
+const activeAnswerExpiry = timerContext.runExpiredTimer({ voiceStarted: true, currentTurnBytes: 32_000 });
+assert.equal(activeAnswerExpiry.finishCalls, 0, "Timer expiry must not score while the candidate is speaking");
+assert.equal(activeAnswerExpiry.session.timeExpiredPending, true, "Timer expiry should wait for the active answer to finish");
+assert.match(activeAnswerExpiry.statuses.join(" "), /finish this answer/i);
+
+const activeAnswerBeforeTranscriptExpiry = timerContext.runExpiredTimer({ voiceStarted: true, currentTurnBytes: 32_000, transcript: "" });
+assert.equal(activeAnswerBeforeTranscriptExpiry.finishCalls, 0, "Timer expiry must not score before the active answer transcript settles");
+assert.equal(activeAnswerBeforeTranscriptExpiry.session.timeExpiredPending, true, "An in-progress answer must remain pending even before ASR text arrives");
+
+const pendingExaminerExpiry = timerContext.runExpiredTimer({ waitingForResponse: true, serverTurnCommitted: true });
+assert.equal(pendingExaminerExpiry.finishCalls, 0, "Timer expiry must not score while a committed answer is being processed");
+
+const playbackExpiry = timerContext.runExpiredTimer({ responseActive: true, outputBusy: true });
+assert.equal(playbackExpiry.finishCalls, 0, "Timer expiry must not score over examiner playback");
+const playbackFinished = timerContext.continueExpiredTimer({ responseActive: false, outputBusy: false });
+assert.equal(playbackFinished.finishCalls, 1, "Pending scoring should start once examiner playback reaches an idle boundary");
+assert.equal(playbackFinished.session.timeExpiredPending, false, "The pending expiry flag should clear when scoring starts");
+
+const idleExpiry = timerContext.runExpiredTimer();
+assert.equal(idleExpiry.finishCalls, 1, "Timer expiry may score once the completed turn is idle");
 
 const prompt = functionSource(app, "buildIeltsSpeakingPrompt");
 const turnPrompt = functionSource(app, "qwenTurnControlInstructions");

@@ -13812,6 +13812,7 @@ function renderRealtimeSpeakingPanel(item, prefix, options = {}) {
   const mode = options.mode || (prefix === "exam" ? "exam" : "coach");
   const leftPane = options.leftPane || "";
   const practiceScope = speakingPracticeScopeConfig(options.practiceScope || "full");
+  const initialCountdownLabel = qwenSpeakingCountdownState(practiceScope.targetMs, 0).label;
   const speakingTopicPayload = JSON.stringify({
     title: item.title || "",
     source: item.source || "",
@@ -13840,7 +13841,7 @@ function renderRealtimeSpeakingPanel(item, prefix, options = {}) {
         <div class="speaking-preflight" aria-label="Speaking test status"><span><i aria-hidden="true"></i> ${prefix === "bank" && state.speakingDeviceChecked ? "Device check passed" : "Ready for device permission"}</span><span><i aria-hidden="true"></i> ${navigator.onLine ? "Network online" : "Network offline"}</span></div>
         <div class="speaking-live-meta" aria-live="polite">
           <strong id="${prefix}-speaking-current-part">Preparation</strong>
-          <span id="${prefix}-speaking-elapsed" aria-label="Time remaining">${practiceScope.id === "full" ? "15:00" : practiceScope.id === "part2" ? "03:00" : "05:00"}</span>
+          <span id="${prefix}-speaking-elapsed" aria-label="Time remaining">${initialCountdownLabel}</span>
         </div>
         <div class="qwen-meter" aria-label="Live voice waveform">
           <span id="${prefix}-qwen-level"></span>
@@ -14268,6 +14269,7 @@ function qwenSession(prefix) {
       practiceScope: "full",
       targetMs: 15 * 60 * 1000,
       countdownExpiredHandled: false,
+      timeExpiredPending: false,
       speakingPlan: null,
       scheduledAction: null,
       part1Index: 0,
@@ -14451,13 +14453,13 @@ function qwenUpdateExamMeta(prefix) {
   document.querySelectorAll(`.qwen-speaking[data-prefix="${prefix}"] [data-speaking-part2-cue]`).forEach((node) => {
     node.hidden = !/^Part 2/i.test(part);
   });
-  if (countdown.expired && session.sessionStartedAt && !session.countdownExpiredHandled && !session.finalScoreInFlight) {
-    session.countdownExpiredHandled = true;
-    if (qwenWordCount(qwenBuildAutoScoreTranscript(prefix)) >= 12) {
-      finishQwenSpeaking(prefix).catch((error) => qwenSetStatus(prefix, `Auto scoring failed: ${error.message}`, false));
-    } else {
-      qwenSetStatus(prefix, "Time is up · not enough speech to score", false);
+  if (countdown.expired && session.sessionStartedAt && !session.finalScoreInFlight) {
+    if (!session.countdownExpiredHandled) {
+      session.countdownExpiredHandled = true;
+      session.timeExpiredPending = true;
+      qwenSetStatus(prefix, "Time reached. Finish this answer, then scoring will start.", true);
     }
+    if (session.timeExpiredPending) qwenMaybeAutoFinish(prefix);
   }
 }
 
@@ -15402,6 +15404,7 @@ function qwenResetExaminerSchedule(prefix) {
   session.lastActionKind = "";
   session.autoFinishPending = false;
   session.autoFinishStarted = false;
+  session.timeExpiredPending = false;
   session.finalScoreInFlight = false;
 }
 
@@ -16634,6 +16637,7 @@ async function startQwenSpeaking(prefix) {
   session.targetMs = scopeConfig.targetMs;
   session.recentQuestions = qwenRecentQuestionLedger();
   session.countdownExpiredHandled = false;
+  session.timeExpiredPending = false;
   session.connecting = true;
   qwenHideScoringProgress(prefix);
   session.userDisconnected = false;
@@ -17424,15 +17428,35 @@ async function requestQwenRealtimeScoreNote(prefix) {
 
 function qwenMaybeAutoFinish(prefix) {
   const session = qwenSession(prefix);
-  if (session.awaitingScore || session.finalScoreInFlight || session.autoFinishStarted) return;
-  if (session.scheduledAction?.kind !== "auto-finish" && session.lastActionKind !== "auto-finish") return;
+  if (session.userDisconnected || session.awaitingScore || session.finalScoreInFlight || session.autoFinishStarted) return;
+  const timerExpired = Boolean(session.timeExpiredPending);
+  const scheduleFinished = session.scheduledAction?.kind === "auto-finish" || session.lastActionKind === "auto-finish";
+  if (!timerExpired && !scheduleFinished) return;
   if (!qwenSpeakingMinimumReached(prefix)) {
     session.scheduledAction = null;
     session.lastActionKind = "";
     qwenAdvanceScheduledAction(prefix, { allowAdaptive: true });
     return;
   }
-  if (qwenWordCount(qwenBuildAutoScoreTranscript(prefix)) < 12) return;
+  const turnInProgress = Boolean(
+    session.voiceStarted
+    || session.turnCommitted
+    || session.waitingForResponse
+    || session.responseActive
+    || session.serverTurnCommitted
+    || session.webRtcResponseRequested
+    || (session.currentTurnBytes || 0) > 0
+    || qwenOutputBusy(prefix)
+  );
+  if (turnInProgress) {
+    if (timerExpired) qwenSetStatus(prefix, "Time reached. Finish this answer, then scoring will start.", true);
+    return;
+  }
+  if (qwenWordCount(qwenBuildAutoScoreTranscript(prefix)) < 12) {
+    if (timerExpired) qwenSetStatus(prefix, "Time is up · not enough speech to score yet", false);
+    return;
+  }
+  session.timeExpiredPending = false;
   session.autoFinishStarted = true;
   qwenSetStatus(prefix, "Speaking test complete. Scoring now...", true);
   window.setTimeout(() => {
@@ -17771,6 +17795,7 @@ function disconnectQwenSpeaking(prefix) {
   session.waitingForResponse = false;
   session.responseActive = false;
   session.turnCommitted = false;
+  session.timeExpiredPending = false;
   session.awaitingScore = false;
   session.scoreNoteInFlight = false;
   session.scoreNoteTimedOut = false;
