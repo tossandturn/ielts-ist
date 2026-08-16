@@ -9898,56 +9898,13 @@ function normalizeItem(item) {
   return item.source === "User real-question bank" ? bankToTest(item) : item;
 }
 
-function objectiveQuestionOptions(question) {
-  return Array.isArray(question?.options)
-    ? question.options.map((option) => ({
-        value: String(option?.value || "").trim().toUpperCase(),
-        label: String(option?.label || "").trim(),
-      })).filter((option) => /^(?:[A-I]|TRUE|FALSE|NOT GIVEN|YES|NO)$/.test(option.value) && option.label)
-    : [];
-}
-
-function objectiveControlKind(question) {
-  const type = String(question?.type || "");
-  if (type === "multiple_choice_multiple") return "checkbox";
-  if (["matching", "matching_headings", "matching_information", "matching_features", "map_plan_labelling"].includes(type)) return "select";
-  if (["multiple_choice", "true_false_not_given", "yes_no_not_given"].includes(type)) return "radio";
-  return "text";
-}
-
 function renderObjectiveAnswerProxy(prefix, question, groupId = "") {
   return `<input class="answer-input objective-answer-proxy" type="hidden" data-objective-proxy="true" data-prefix="${escapeHtml(prefix)}" data-qid="${escapeHtml(question.id)}"${groupId ? ` data-objective-group-id="${escapeHtml(groupId)}"` : ""} />`;
 }
 
 function renderObjectiveAnswerControl(question, prefix, number) {
-  const visibleOptions = objectiveQuestionOptions(question);
-  const kind = objectiveControlKind(question);
   const controlId = `objective-${prefix}-${question.id}`.replace(/[^A-Za-z0-9_-]/g, "-");
-  const fallback = kind !== "text" && visibleOptions.length < 2;
-  if (kind === "radio" && !fallback) {
-    return `<div class='objective-answer-shell objective-answer-radio' data-objective-qid='${escapeHtml(question.id)}'><fieldset><legend class='sr-only'>Question ${number} answer</legend>${visibleOptions.map((option) => {
-      const id = `${controlId}-${option.value}`;
-      return `<label for='${id}' aria-label='Question ${number}, choose ${escapeHtml(option.value)}'><input id='${id}' class='objective-answer-control' type='radio' name='${controlId}' value='${escapeHtml(option.value)}' data-prefix='${escapeHtml(prefix)}' data-qid='${escapeHtml(question.id)}' /> <strong aria-hidden='true'>${escapeHtml(option.value)}</strong></label>`;
-    }).join("")}</fieldset>${renderObjectiveAnswerProxy(prefix, question)}</div>`;
-  }
-  if (kind === "select" && !fallback) {
-    return `<label class='objective-answer-shell objective-answer-select' for='${controlId}'><span class='sr-only'>Question ${number} answer</span><select id='${controlId}' class='text-input objective-answer-control' data-prefix='${escapeHtml(prefix)}' data-qid='${escapeHtml(question.id)}'><option value=''>Choose a letter</option>${visibleOptions.map((option) => `<option value='${escapeHtml(option.value)}'>${escapeHtml(option.value)}</option>`).join("")}</select>${renderObjectiveAnswerProxy(prefix, question)}</label>`;
-  }
-  return `<label class='objective-answer-shell objective-answer-text' for='${controlId}'><span class='sr-only'>Question ${number} answer</span><input id='${controlId}' class='text-input objective-answer-control' data-prefix='${escapeHtml(prefix)}' data-qid='${escapeHtml(question.id)}' placeholder='${fallback ? "Answer from paper" : "Answer"}' />${renderObjectiveAnswerProxy(prefix, question)}</label>`;
-}
-
-function renderObjectiveMultipleChoiceGroup(entries, prefix) {
-  const first = entries[0];
-  const question = first?.[1];
-  const visibleOptions = objectiveQuestionOptions(question);
-  const limit = Math.max(2, Math.min(entries.length, Number(question?.selectionLimit) || entries.length));
-  const groupId = String(question?.optionGroupId || "");
-  if (!groupId || visibleOptions.length < 2) return "";
-  const numbers = entries.map(([number]) => number);
-  return `<div class='paper-answer-row objective-multiple-answer-group' data-question-number='${numbers[0]}' data-qid='${escapeHtml(entries.map(([, item]) => item.id).join(","))}' data-objective-group-id='${escapeHtml(groupId)}' data-selection-limit='${limit}'><div class='paper-answer-number'><strong>${escapeHtml(numbers.join(" / "))}</strong><span>Choose ${limit}</span></div><fieldset><legend class='sr-only'>Choose ${limit} answers for Questions ${escapeHtml(numbers.join(" and "))}</legend>${visibleOptions.map((option) => {
-    const id = `objective-${prefix}-${groupId}-${option.value}`.replace(/[^A-Za-z0-9_-]/g, "-");
-    return `<label for='${id}' aria-label='Questions ${escapeHtml(numbers.join(" and "))}, choose ${escapeHtml(option.value)}'><input id='${id}' class='objective-group-choice' type='checkbox' value='${escapeHtml(option.value)}' /> <strong aria-hidden='true'>${escapeHtml(option.value)}</strong></label>`;
-  }).join("")}<span class='objective-group-status' aria-live='polite'>0 / ${limit} selected</span></fieldset>${entries.map(([, item]) => renderObjectiveAnswerProxy(prefix, item, groupId)).join("")}</div>`;
+  return `<label class='objective-answer-shell objective-answer-text' data-objective-qid='${escapeHtml(question.id)}' for='${controlId}'><span class='sr-only'>Question ${number} answer</span><input id='${controlId}' class='text-input objective-answer-control' type='text' data-prefix='${escapeHtml(prefix)}' data-qid='${escapeHtml(question.id)}' placeholder='Answer' autocomplete='off' spellcheck='false' />${renderObjectiveAnswerProxy(prefix, question)}</label>`;
 }
 
 function renderQuestionInputs(prefix, questions) {
@@ -10908,16 +10865,7 @@ function renderObjectiveAnswerEntries(entries, prefix, options = {}) {
   const examLocked = options.examLocked === true;
   const passagePageByQuestion = options.passagePageByQuestion instanceof Map ? options.passagePageByQuestion : new Map();
   const output = [];
-  const consumedGroups = new Set();
   entries.forEach(([number, question]) => {
-    const groupId = String(question?.optionGroupId || "");
-    if (groupId && question?.type === "multiple_choice_multiple" && objectiveQuestionOptions(question).length >= 2) {
-      if (consumedGroups.has(groupId)) return;
-      const groupEntries = entries.filter(([, candidate]) => String(candidate?.optionGroupId || "") === groupId);
-      groupEntries.forEach(([, candidate]) => consumedGroups.add(String(candidate?.optionGroupId || "")));
-      output.push(renderObjectiveMultipleChoiceGroup(groupEntries, prefix));
-      return;
-    }
     const field = renderObjectiveAnswerControl(question, prefix, number);
     if (!isReading) {
       output.push(`<div class='paper-answer-row'><span>${number}</span>${field}</div>`);
@@ -11030,27 +10978,8 @@ function setObjectiveProxyValue(proxy, value) {
   proxy.dispatchEvent(new Event("input", { bubbles: true }));
 }
 
-function syncObjectiveMultipleChoiceGroup(group) {
-  if (!group) return;
-  const limit = Math.max(1, Number(group.dataset.selectionLimit) || 1);
-  const proxies = [...group.querySelectorAll(".objective-answer-proxy")];
-  const values = proxies.map((proxy) => String(proxy.value || "")).filter(Boolean);
-  const selected = [...new Set(values)];
-  group.querySelectorAll(".objective-group-choice").forEach((choice) => {
-    choice.checked = selected.includes(choice.value);
-    choice.disabled = selected.length >= limit && !choice.checked;
-  });
-  const status = group.querySelector(".objective-group-status");
-  if (status) status.textContent = `${selected.length} / ${limit} selected`;
-}
-
 function syncObjectiveControlFromProxy(proxy) {
   if (!proxy) return;
-  const group = proxy.closest(".objective-multiple-answer-group");
-  if (group) {
-    syncObjectiveMultipleChoiceGroup(group);
-    return;
-  }
   const shell = proxy.closest(".objective-answer-shell");
   if (!shell) return;
   const value = String(proxy.value || "");
@@ -11080,18 +11009,6 @@ function bindObjectiveAnswerControls() {
     control.addEventListener("focus", () => {
       if (control.dataset.prefix === "single") state.singleCurrentQuestion = String(control.dataset.qid || "");
     });
-  });
-  document.querySelectorAll(".objective-multiple-answer-group").forEach((group) => {
-    if (group.dataset.objectiveBound) { syncObjectiveMultipleChoiceGroup(group); return; }
-    group.dataset.objectiveBound = "true";
-    group.querySelectorAll(".objective-group-choice").forEach((choice) => choice.addEventListener("change", () => {
-      const limit = Math.max(1, Number(group.dataset.selectionLimit) || 1);
-      const selected = [...group.querySelectorAll(".objective-group-choice:checked")].map((item) => item.value);
-      if (selected.length > limit) { choice.checked = false; return; }
-      group.querySelectorAll(".objective-answer-proxy").forEach((proxy, index) => setObjectiveProxyValue(proxy, selected[index] || ""));
-      syncObjectiveMultipleChoiceGroup(group);
-    }));
-    syncObjectiveMultipleChoiceGroup(group);
   });
 }
 

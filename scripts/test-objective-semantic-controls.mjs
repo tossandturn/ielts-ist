@@ -86,37 +86,28 @@ try {
     bindObjectiveAnswerControls();
     return {
       radioCount: host.querySelectorAll("input[type='radio']").length,
-      values: [...host.querySelectorAll("input[type='radio']")].map((input) => input.value),
-      labels: [...host.querySelectorAll("fieldset > label")].map((label) => ({
-        text: label.innerText.trim(),
-        ariaLabel: label.getAttribute("aria-label"),
-      })),
+      checkboxCount: host.querySelectorAll("input[type='checkbox']").length,
+      selectCount: host.querySelectorAll("select").length,
+      textCount: host.querySelectorAll("input.objective-answer-control[type='text']").length,
+      placeholder: host.querySelector("input.objective-answer-control")?.getAttribute("placeholder"),
     };
   }, fixedChoiceQuestion);
-  assert.equal(fixedChoice.radioCount, 3, "True/False/Not Given and Yes/No/Not Given must render semantic radio controls");
-  assert.deepEqual(fixedChoice.values, fixedChoiceQuestion.options.map((option) => option.value));
-  assert.deepEqual(fixedChoice.labels.map((label) => label.text), fixedChoiceQuestion.options.map((option) => option.value),
-    "The answer card must show only response labels; question wording remains on the paper");
-  assert.ok(fixedChoice.labels.every((label) => /^Question 1, choose /i.test(label.ariaLabel || "")),
-    "Compact answer-card controls must retain an accessible question-and-choice label");
+  assert.deepEqual(fixedChoice, { radioCount: 0, checkboxCount: 0, selectCount: 0, textCount: 1, placeholder: "Answer" },
+    "Every objective question type must render one plain answer textbox");
 
   await page.locator('.answer-group-open[data-answer-group-section="2"][data-answer-group-prefix="single"]').click();
   const mcq = page.locator(".objective-answer-shell:has(.objective-answer-proxy[data-qid='q11'])");
-  assert.equal(await mcq.locator("input[type='radio']").count(), 3, "MCQ must render radio controls");
-  assert.deepEqual((await mcq.locator("fieldset > label").allTextContents()).map((text) => text.trim()), ["A", "B", "C"],
-    "Listening answer cards must not duplicate option wording from the paper");
-  await mcq.locator("input[type='radio'][value='B']").check();
-  const multi = page.locator(".objective-multiple-answer-group[data-objective-group-id='q17-q18']");
-  assert.equal(await multi.locator("input[type='checkbox']").count(), 5, "Choose TWO must render one checkbox group");
-  await multi.locator("input[type='checkbox'][value='D']").check();
-  await multi.locator("input[type='checkbox'][value='B']").check();
-  assert.equal(await multi.locator("input[type='checkbox'][value='A']").isDisabled(), true, "Choose TWO must prevent a third selection");
+  assert.equal(await mcq.locator("input[type='radio'], input[type='checkbox'], select").count(), 0, "MCQ answer cards must not render options");
+  await mcq.locator("input.objective-answer-control[type='text']").fill("B");
+  assert.equal(await page.locator(".objective-multiple-answer-group").count(), 0, "Choose TWO must render separate textboxes, not a checkbox group");
+  const multi17 = page.locator(".objective-answer-shell:has(.objective-answer-proxy[data-qid='q17']) input.objective-answer-control[type='text']");
+  const multi18 = page.locator(".objective-answer-shell:has(.objective-answer-proxy[data-qid='q18']) input.objective-answer-control[type='text']");
+  await multi17.fill("B");
+  await multi18.fill("D");
   await page.locator('.answer-group-open[data-answer-group-section="3"][data-answer-group-prefix="single"]').click();
   const matching = page.locator(".objective-answer-shell:has(.objective-answer-proxy[data-qid='q27'])");
-  assert.equal(await matching.locator("select").count(), 1, "Matching with real options must render a select");
-  assert.ok((await matching.locator("select option").allTextContents()).every((text) => /^(?:Choose a letter|[A-I])$/.test(text.trim())),
-    "Matching answer cards must expose only option letters, not repeated source text");
-  await matching.locator("select").selectOption("A");
+  assert.equal(await matching.locator("select, input[type='radio'], input[type='checkbox']").count(), 0, "Matching answer cards must not render options");
+  await matching.locator("input.objective-answer-control[type='text']").fill("A");
 
   const fallbackAnswerCard = await page.evaluate(() => {
     const host = document.createElement("div");
@@ -129,7 +120,7 @@ try {
   });
   assert.equal(fallbackAnswerCard.hintCount, 0,
     "Answer cards with unavailable imported options must not render question-copy text");
-  assert.equal(fallbackAnswerCard.placeholder, "Answer from paper");
+  assert.equal(fallbackAnswerCard.placeholder, "Answer");
 
   const first = await page.evaluate(() => {
     saveSingleAnswersToState();
@@ -148,11 +139,11 @@ try {
   assert.deepEqual(restored.state, { q11: "B", q17: "B", q18: "D", q27: "A" }, "Rerender must retain every objective answer in state");
   assert.deepEqual(restored.proxies, { q27: "A" }, "Rerender must hydrate the active section without recreating every off-screen control");
   await page.locator('.answer-group-open[data-answer-group-section="2"][data-answer-group-prefix="single"]').click();
-  assert.equal(await mcq.locator("input[type='radio'][value='B']").isChecked(), true, "Radio selection must restore after rerender");
-  assert.equal(await multi.locator("input[type='checkbox'][value='B']").isChecked(), true, "Checkbox selection must restore after rerender");
-  assert.equal(await multi.locator("input[type='checkbox'][value='D']").isChecked(), true, "Checkbox selection must restore after rerender");
+  assert.equal(await mcq.locator("input.objective-answer-control[type='text']").inputValue(), "B", "MCQ text answer must restore after rerender");
+  assert.equal(await multi17.inputValue(), "B", "First Choose TWO textbox must restore after rerender");
+  assert.equal(await multi18.inputValue(), "D", "Second Choose TWO textbox must restore after rerender");
   await page.locator('.answer-group-open[data-answer-group-section="3"][data-answer-group-prefix="single"]').click();
-  assert.equal(await matching.locator("select").inputValue(), "A", "Matching select must restore after rerender");
+  assert.equal(await matching.locator("input.objective-answer-control[type='text']").inputValue(), "A", "Matching text answer must restore after rerender");
 
   const scored = await page.evaluate(async () => {
     const item = state.activeSingle;
@@ -190,7 +181,7 @@ try {
       setSingleImmersive("reading");
     });
     await page.locator('[data-reading-question-nav="25"]').click();
-    const q25 = page.locator('.paper-answer-row[data-question-number="25"] .objective-answer-radio');
+    const q25 = page.locator('.paper-answer-row[data-question-number="25"] .objective-answer-shell');
     await q25.waitFor({ state: "visible" });
     const layout = await q25.evaluate((host) => {
       const rect = (node) => {
@@ -198,50 +189,32 @@ try {
         return { left: value.left, top: value.top, right: value.right, bottom: value.bottom, width: value.width, height: value.height };
       };
       const sheet = host.closest(".reading-answer-sheet");
+      const input = host.querySelector("input.objective-answer-control[type='text']");
       return {
         host: rect(host),
         sheet: sheet ? rect(sheet) : null,
-        options: [...host.querySelectorAll("fieldset > label")].map((label) => ({
-          text: label.innerText.trim(),
-          ariaLabel: label.getAttribute("aria-label"),
-          display: getComputedStyle(label).display,
-          columns: getComputedStyle(label).gridTemplateColumns,
-          rect: rect(label),
-        })),
+        input: input ? rect(input) : null,
+        placeholder: input?.getAttribute("placeholder") || "",
+        optionControls: host.querySelectorAll("input[type='radio'], input[type='checkbox'], select").length,
         overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
       };
     });
-    assert.equal(layout.options.length, 4, `${viewport.name}: Q25 must show all four answer choices`);
+    assert.equal(layout.optionControls, 0, `${viewport.name}: Q25 must not render answer options`);
+    assert.ok(layout.input, `${viewport.name}: Q25 must render one text answer field`);
     assert.ok(layout.sheet, `${viewport.name}: Q25 is outside its answer sheet`);
     assert.ok(layout.overflow <= 1, `${viewport.name}: Q25 creates ${layout.overflow}px horizontal page overflow`);
-    const optionTop = Math.min(...layout.options.map((option) => option.rect.top));
-    const optionBottom = Math.max(...layout.options.map((option) => option.rect.bottom));
-    layout.options.forEach((option, index) => {
-      assert.equal(option.display, "flex", `${viewport.name}: Q25 option ${index + 1} is not a horizontal choice`);
-      assert.ok(option.rect.top <= optionTop + 2 && option.rect.bottom >= optionBottom - 2,
-        `${viewport.name}: Q25 option ${index + 1} is not aligned on the same horizontal row`);
-      assert.equal(option.text, ["A", "B", "C", "D"][index],
-        `${viewport.name}: Q25 answer card must show only the source-paper letter`);
-      assert.match(option.ariaLabel || "", new RegExp(`Question 25, choose ${["A", "B", "C", "D"][index]}`, "i"),
-        `${viewport.name}: Q25 option ${index + 1} needs an accessible question-and-choice label`);
-      assert.ok(option.rect.width >= 44, `${viewport.name}: Q25 option ${index + 1} is below the touch minimum at ${option.rect.width}px`);
-      assert.ok(option.rect.left >= layout.sheet.left - 1 && option.rect.right <= layout.sheet.right + 1,
-        `${viewport.name}: Q25 option ${index + 1} exceeds the answer sheet`);
-    });
-    for (let index = 1; index < layout.options.length; index += 1) {
-      const previous = layout.options[index - 1].rect;
-      const current = layout.options[index].rect;
-      assert.ok(previous.right <= current.left + 1,
-        `${viewport.name}: Q25 options ${index} and ${index + 1} overlap horizontally`);
-    }
-    const q25Choice = q25.locator('input[type="radio"][value="B"]');
-    await q25Choice.check();
+    assert.equal(layout.placeholder, "Answer", `${viewport.name}: Q25 needs the standard answer placeholder`);
+    assert.ok(layout.input.width >= 44 && layout.input.height >= 44, `${viewport.name}: Q25 textbox is below the touch minimum`);
+    assert.ok(layout.input.left >= layout.sheet.left - 1 && layout.input.right <= layout.sheet.right + 1,
+      `${viewport.name}: Q25 textbox exceeds the answer sheet`);
+    const q25Choice = q25.locator('input.objective-answer-control[type="text"]');
+    await q25Choice.fill("B");
     await page.evaluate(() => renderSingle());
-    assert.equal(await page.locator('.paper-answer-row[data-question-number="25"] input[type="radio"][value="B"]').isChecked(), true,
-      `${viewport.name}: Q25 selection is lost after rerender`);
+    assert.equal(await page.locator('.paper-answer-row[data-question-number="25"] input.objective-answer-control[type="text"]').inputValue(), "B",
+      `${viewport.name}: Q25 text answer is lost after rerender`);
   }
   assert.equal(pageErrors.length, 0, `Browser page errors: ${pageErrors.join(" | ")}`);
-  console.log("PASS semantic objective controls: public metadata, radio, choose-two, matching, restore, Cambridge 21 Q25 layout, and strict review boundary.");
+  console.log("PASS text-only objective controls: public metadata, MCQ, choose-two, matching, restore, Cambridge 21 Q25 layout, and strict review boundary.");
 } finally {
   await browser.close();
   child.kill();

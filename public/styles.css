@@ -18023,96 +18023,18 @@ body.immersive-mode:is([data-immersive-module="writing"], [data-immersive-module
   display: none !important;
 }
 
-/* Semantic objective controls share the existing saved-answer contract through
-   hidden proxies. Visible controls stay compact enough for PDF workspaces. */
+/* Objective answer cards use one text field per question. The paper remains the
+   source of option wording while hidden proxies preserve the saved-answer contract. */
 .objective-answer-shell {
   display: block;
   min-width: 0;
 }
 
-.objective-answer-radio fieldset,
-.objective-multiple-answer-group fieldset {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(44px, 1fr));
-  gap: 5px;
+.objective-answer-text .objective-answer-control {
+  width: 100%;
   min-width: 0;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-
-.objective-answer-radio label,
-.objective-multiple-answer-group fieldset > label {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-width: 44px;
-  min-height: 40px;
-  padding: 5px 7px;
-  border: 1px solid #d0d5dd;
-  border-radius: 8px;
-  background: #fff;
-  color: #344054;
-  font-size: 12px;
-  line-height: 1.2;
-  cursor: pointer;
-}
-
-.objective-answer-radio label:has(input:checked),
-.objective-multiple-answer-group fieldset > label:has(input:checked) {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-}
-
-.objective-answer-radio input,
-.objective-multiple-answer-group input {
-  width: 16px;
-  height: 16px;
-  margin: 1px 0 0;
-  accent-color: var(--accent);
-}
-
-.objective-answer-radio strong,
-.objective-multiple-answer-group strong {
-  color: #252d48;
-  font-size: 12px;
-}
-
-.objective-answer-select select {
-  min-height: 36px;
-  font-size: 12px;
-}
-
-.objective-content-gap {
-  display: block;
-  margin-top: 4px;
-  color: #667085;
-  font-size: 11px;
-  line-height: 1.35;
-}
-
-.paper-answer-row.objective-multiple-answer-group {
-  grid-template-columns: minmax(72px, .75fr) minmax(0, 1fr) !important;
-  align-items: start;
-  min-height: auto;
-}
-
-.objective-multiple-answer-group .objective-group-status {
-  display: block;
-  width: auto;
-  height: auto;
-  margin-top: 2px;
-  border-radius: 0;
-  background: transparent;
-  color: #667085;
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.objective-multiple-answer-group .objective-group-choice:disabled + strong,
-.objective-multiple-answer-group .objective-group-choice:disabled ~ span {
-  color: #98a2b3;
+  min-height: 44px;
+  padding: 8px 10px;
 }
 
 /* Source evidence is part of an exam, not another promotional card. Keep the
@@ -18595,24 +18517,6 @@ body.focus-camp-system .subscription-card.featured {
 }
 
 @media (max-width: 600px) {
-  .objective-answer-radio fieldset,
-  .objective-multiple-answer-group fieldset {
-    grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
-    gap: 4px;
-  }
-
-  .objective-answer-radio label,
-  .objective-multiple-answer-group fieldset > label {
-    min-width: 40px;
-    min-height: 38px;
-    padding: 4px 5px;
-    font-size: 11px;
-  }
-
-  .paper-answer-row.objective-multiple-answer-group {
-    grid-template-columns: minmax(58px, .55fr) minmax(0, 1.45fr) !important;
-  }
-
   .exam-generation-controls {
     align-items: stretch;
     flex-direction: column;

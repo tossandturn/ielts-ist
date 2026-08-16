@@ -190,36 +190,26 @@ try {
 
   const answerCardLayout = await page.evaluate(() => {
     const wrapper = document.createElement("div");
-    wrapper.innerHTML = `<div class="pdf-study-layout"><div class="pdf-scroll-box"></div><aside class="paper-answer-scroll"><div class="paper-answer-groups"><div class="paper-answer-row objective-multiple-answer-group" data-question-number="11">${renderObjectiveMultipleChoiceGroup([
-      [11, { id: "q11", type: "multiple_choice_multiple", optionGroupId: "fixture-group", selectionLimit: 2, options: [
-        { value: "A", label: "Option A" },
-        { value: "B", label: "Option B" },
-        { value: "C", label: "Option C" },
-      ] }],
-      [12, { id: "q12", type: "multiple_choice_multiple", optionGroupId: "fixture-group", selectionLimit: 2, options: [
-        { value: "A", label: "Option A" },
-        { value: "B", label: "Option B" },
-        { value: "C", label: "Option C" },
-      ] }],
-    ], "single")}</div></div></aside></div>`;
+    const questions = [
+      { id: "q11", type: "multiple_choice_multiple" },
+      { id: "q12", type: "multiple_choice_multiple" },
+    ];
+    wrapper.innerHTML = `<div class="pdf-study-layout"><div class="pdf-scroll-box"></div><aside class="paper-answer-scroll"><div class="paper-answer-groups">${questions.map((question, index) => `<div class="paper-answer-row" data-question-number="${index + 11}"><span>${index + 11}</span>${renderObjectiveAnswerControl(question, "single", index + 11)}</div>`).join("")}</div></aside></div>`;
     document.body.append(wrapper);
     const layout = wrapper.querySelector(".pdf-study-layout");
     const answerSheet = wrapper.querySelector(".paper-answer-scroll");
-    const nestedSpans = [...wrapper.querySelectorAll(".objective-multiple-answer-group span")]
-      .filter((node) => !node.classList.contains("sr-only"));
     return {
       gridColumns: getComputedStyle(layout).gridTemplateColumns,
       answerSheetWidth: answerSheet.getBoundingClientRect().width,
-      nestedBubbleSpans: nestedSpans.filter((node) => {
-        const style = getComputedStyle(node);
-        return style.width === "24px" && style.height === "24px" && style.borderRadius === "999px";
-      }).map((node) => node.textContent.trim()),
+      textInputs: wrapper.querySelectorAll('input.objective-answer-control[type="text"]').length,
+      optionControls: wrapper.querySelectorAll('input[type="radio"], input[type="checkbox"], select').length,
     };
   });
   const answerCardColumnWidth = Number(answerCardLayout.gridColumns.match(/([0-9.]+)px\s*$/)?.[1] || 0);
   assert.ok(answerCardColumnWidth >= 250, `Answer card must keep a usable right column, got ${answerCardLayout.gridColumns}`);
   assert.ok(answerCardLayout.answerSheetWidth >= 250, `Answer card must be at least 250px wide, got ${answerCardLayout.answerSheetWidth}`);
-  assert.deepEqual(answerCardLayout.nestedBubbleSpans, [], "Nested option/status spans must not inherit the question-number bubble style");
+  assert.equal(answerCardLayout.textInputs, 2, "Each Choose TWO answer must have its own text field");
+  assert.equal(answerCardLayout.optionControls, 0, "The answer card must not render radio, checkbox, or select options");
 
   const recovery = await page.evaluate(() => {
     const item = mergedItems("listening").map(normalizeItem).find((candidate) => candidate.id === "cam11-l-test4");
