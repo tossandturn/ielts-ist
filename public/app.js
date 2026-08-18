@@ -1325,6 +1325,7 @@ async function refreshMineData() {
     state.serverDrafts = drafts.drafts || [];
     state.vocabItems = vocab.items || [];
     state.learningState = learning ? { ...learning, completionIdentity: ownerIdentity } : null;
+    await syncCoachHistoryFromServer(authToken);
     await syncLocalVocabularyNotebook();
     if (!readPendingPracticeCompletion()) {
       importRemotePracticeSessions(learning.activeSessions || (learning.activeSession ? [learning.activeSession] : []));
@@ -1939,7 +1940,7 @@ function openDashboardCoachHistory(threadKey) {
   if (log) {
     log.innerHTML = "";
     delete log.dataset.coachSurface;
-    state.help.history.forEach((message) => addHelpMessage(message.role, message.content || ""));
+    state.help.history.forEach((message) => addHelpMessage(message.role, message.content || "", { messageId: message.id }));
   }
   openGlobalCoachPanel({
     module: thread.binding?.module || "",
@@ -2853,16 +2854,243 @@ function readCoachHistoryThreads() {
       .filter((thread) => thread && thread.key && Array.isArray(thread.messages))
       .map((thread) => ({
         ...thread,
+        conversationId: thread.conversationId || thread.key,
         messages: thread.messages
           .filter((message) => ["user", "assistant"].includes(message?.role) && String(message.content || "").trim())
-          .slice(-24)
-          .map((message) => ({ role: message.role, content: String(message.content || "").slice(0, 8000), createdAt: message.createdAt || thread.updatedAt || "" })),
+          .slice(-80)
+          .map((message) => ({
+            ...(message.id ? { id: String(message.id).slice(0, 120) } : {}),
+            role: message.role,
+            content: String(message.content || "").slice(0, 8000),
+            createdAt: message.createdAt || thread.updatedAt || "",
+            updatedAt: message.updatedAt || message.createdAt || thread.updatedAt || "",
+            ...(Array.isArray(message.attachments) && message.attachments.length ? { attachments: message.attachments.slice(0, 4) } : {}),
+            ...(message.status ? { status: String(message.status).slice(0, 40) } : {}),
+          })),
       }))
       .sort((a, b) => String(b.updatedAt || "").localeCompare(String(a.updatedAt || "")))
-      .slice(0, 12);
+      .slice(0, 80);
   } catch {
     return [];
   }
+}
+
+function coachConversationPayload(thread) {
+  return {
+    conversationId: String(thread?.conversationId || thread?.key || "").slice(0, 180),
+    sourceProduct: thread?.sourceProduct || "ieltsist",
+    surface: thread?.binding?.view || "",
+    module: thread?.binding?.module || "",
+    title: thread?.title || "AI Coach conversation",
+    binding: thread?.binding || {},
+    messages: Array.isArray(thread?.messages) ? thread.messages : [],
+    metadata: {
+      ...(thread?.metadata || {}),
+      status: "saved",
+    },
+    createdAt: thread?.createdAt || thread?.updatedAt || new Date().toISOString(),
+    updatedAt: thread?.updatedAt || new Date().toISOString(),
+  };
+}
+
+function coachHistoryMessageIdentity(message) {
+  const id = String(message?.id || "").trim();
+  if (id) return `id:${id}`;
+  return `turn:${String(message?.role || "").toLowerCase()}|${String(message?.createdAt || "")}|${String(message?.content || "")}`;
+}
+
+function coachHistoryMessageStatusRank(value) {
+  return {
+    completed: 5,
+    fallback: 4,
+    interrupted: 3,
+    failed: 2,
+    retrying: 1,
+    streaming: 0,
+  }[String(value || "").toLowerCase()] || 0;
+}
+
+function createCoachMessageId(prefix = "coach-message") {
+  const random = globalThis.crypto?.randomUUID?.();
+  return `${prefix}-${random || `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`}`;
+}
+
+function upsertCoachHistoryMessage(history, message) {
+  if (!Array.isArray(history) || !message?.id) return -1;
+  const id = String(message.id).slice(0, 120);
+  const index = history.findIndex((entry) => String(entry?.id || "") === id);
+  const current = index >= 0 ? history[index] : null;
+  const next = {
+    ...(current || {}),
+    ...message,
+    id,
+    role: String(message.role || current?.role || "assistant").toLowerCase(),
+    content: String(message.content || ""),
+    createdAt: message.createdAt || current?.createdAt || new Date().toISOString(),
+    updatedAt: message.updatedAt || new Date().toISOString(),
+  };
+  if (index >= 0) history[index] = next;
+  else history.push(next);
+  return index >= 0 ? index : history.length - 1;
+}
+
+function mergeCoachHistoryMessages(...messageLists) {
+  const byIdentity = new Map();
+  let position = 0;
+  for (const list of messageLists) {
+    for (const rawMessage of Array.isArray(list) ? list : []) {
+      const role = String(rawMessage?.role || "").toLowerCase();
+      const content = String(rawMessage?.content || "").trim().slice(0, 8000);
+      const createdAt = String(rawMessage?.createdAt || "").slice(0, 80);
+      const currentPosition = position;
+      position += 1;
+      if (!["user", "assistant"].includes(role) || !content) continue;
+      const message = {
+        ...(rawMessage.id ? { id: String(rawMessage.id).slice(0, 120) } : {}),
+        role,
+        content,
+        createdAt,
+        updatedAt: String(rawMessage?.updatedAt || createdAt).slice(0, 80),
+        ...(Array.isArray(rawMessage.attachments) && rawMessage.attachments.length ? { attachments: rawMessage.attachments.slice(0, 4) } : {}),
+        ...(rawMessage.status ? { status: String(rawMessage.status).slice(0, 40) } : {}),
+      };
+      const identity = coachHistoryMessageIdentity(message);
+      const existing = byIdentity.get(identity);
+      if (!existing) {
+        byIdentity.set(identity, { message, position: currentPosition });
+        continue;
+      }
+      const existingRank = coachHistoryMessageStatusRank(existing.message.status);
+      const candidateRank = coachHistoryMessageStatusRank(message.status);
+      const existingUpdatedAt = Date.parse(existing.message.updatedAt || existing.message.createdAt) || 0;
+      const candidateUpdatedAt = Date.parse(message.updatedAt || message.createdAt) || 0;
+      const candidateWins = candidateUpdatedAt > existingUpdatedAt
+        || (candidateUpdatedAt === existingUpdatedAt && (candidateRank > existingRank || (candidateRank === existingRank && message.content.length >= existing.message.content.length)));
+      const preferred = candidateWins ? message : existing.message;
+      const secondary = candidateWins ? existing.message : message;
+      const attachments = preferred.attachments?.length ? preferred.attachments : secondary.attachments;
+      byIdentity.set(identity, {
+        message: {
+          ...secondary,
+          ...preferred,
+          ...(attachments?.length ? { attachments } : {}),
+        },
+        position: Math.min(existing.position, currentPosition),
+      });
+    }
+  }
+  return [...byIdentity.values()]
+    .sort((left, right) => {
+      const leftTime = Date.parse(left.message.createdAt) || 0;
+      const rightTime = Date.parse(right.message.createdAt) || 0;
+      return leftTime - rightTime || left.position - right.position;
+    })
+    .slice(-80)
+    .map((entry) => entry.message);
+}
+
+function mergeCoachHistoryThreadPair(current, candidate, conversationId) {
+  const currentTime = Date.parse(current?.updatedAt || "") || 0;
+  const candidateTime = Date.parse(candidate?.updatedAt || "") || 0;
+  const newest = candidateTime >= currentTime ? candidate : current;
+  const older = newest === candidate ? current : candidate;
+  const createdAt = [current?.createdAt, candidate?.createdAt].filter(Boolean).sort()[0] || newest?.createdAt || "";
+  const updatedAt = [current?.updatedAt, candidate?.updatedAt].filter(Boolean).sort().at(-1) || newest?.updatedAt || "";
+  return {
+    ...(older || {}),
+    ...(newest || {}),
+    key: conversationId,
+    conversationId,
+    sourceProduct: newest?.sourceProduct || older?.sourceProduct || "ieltsist",
+    binding: { ...(older?.binding || {}), ...(newest?.binding || {}) },
+    metadata: { ...(older?.metadata || {}), ...(newest?.metadata || {}) },
+    messages: mergeCoachHistoryMessages(current?.messages, candidate?.messages),
+    contextText: newest?.contextText || older?.contextText || "",
+    createdAt,
+    updatedAt,
+  };
+}
+
+function mergeCoachHistoryThreads(localThreads = [], remoteThreads = []) {
+  const byId = new Map();
+  [...localThreads, ...remoteThreads].forEach((thread) => {
+    const conversationId = String(thread?.conversationId || thread?.key || "").trim();
+    if (!conversationId || !Array.isArray(thread?.messages) || !thread.messages.length) return;
+    const current = byId.get(conversationId);
+    byId.set(conversationId, current ? mergeCoachHistoryThreadPair(current, thread, conversationId) : mergeCoachHistoryThreadPair(null, thread, conversationId));
+  });
+  return [...byId.values()]
+    .sort((a, b) => String(b.updatedAt || "").localeCompare(String(a.updatedAt || "")))
+    .slice(0, 80);
+}
+
+const coachHistoryWriteBatchSize = 20;
+// Account history writes share one queue so delayed devices cannot commit stale snapshots out of order.
+let coachHistoryOperationQueue = Promise.resolve();
+
+function enqueueCoachHistoryOperation(operation) {
+  const next = coachHistoryOperationQueue.then(operation, operation);
+  coachHistoryOperationQueue = next.catch(() => undefined);
+  return next;
+}
+
+async function writeCoachHistoryChunks(conversations, authToken) {
+  for (let offset = 0; offset < conversations.length; offset += coachHistoryWriteBatchSize) {
+    await putJson("/api/coach/conversations", {
+      conversations: conversations.slice(offset, offset + coachHistoryWriteBatchSize).map(coachConversationPayload),
+    }, { authToken });
+  }
+}
+
+async function syncCoachHistoryNow(authToken) {
+  if (!authToken || !state.localDataOwnerResolved || !validLocalDataOwner(state.localDataOwner) || state.localDataOwner === "guest") return;
+  const owner = state.localDataOwner;
+  try {
+    const remote = await getJson("/api/coach/conversations?limit=80", { authToken });
+    if (state.authToken !== authToken || state.localDataOwner !== owner) return;
+    const remoteThreads = (remote.conversations || []).map((conversation) => ({
+      ...conversation,
+      key: conversation.conversationId,
+      conversationId: conversation.conversationId,
+      contextText: conversation.contextText || "",
+    }));
+    const merged = mergeCoachHistoryThreads(readCoachHistoryThreads(), remoteThreads);
+    const localProductConversations = merged.filter((thread) => String(thread.sourceProduct || "ieltsist").toLowerCase() === "ieltsist");
+    if (localProductConversations.length) {
+      await writeCoachHistoryChunks(localProductConversations, authToken);
+      if (state.authToken !== authToken || state.localDataOwner !== owner) return;
+    }
+    const latestLocal = readCoachHistoryThreads();
+    const latestMerged = mergeCoachHistoryThreads(merged, latestLocal);
+    const latestProductConversations = latestMerged.filter((thread) => String(thread.sourceProduct || "ieltsist").toLowerCase() === "ieltsist");
+    if (JSON.stringify(latestProductConversations) !== JSON.stringify(localProductConversations)) {
+      await writeCoachHistoryChunks(latestProductConversations, authToken);
+      if (state.authToken !== authToken || state.localDataOwner !== owner) return;
+    }
+    writeOwnerStoredJson(coachHistoryStoreKey, latestMerged, owner);
+  } catch {
+    // The local owner-scoped history remains usable while the account API recovers.
+  }
+}
+
+function syncCoachHistoryFromServer(authToken = state.authToken) {
+  return enqueueCoachHistoryOperation(() => syncCoachHistoryNow(authToken));
+}
+
+function queueCoachThreadSync(thread) {
+  if (!state.authToken || !state.localDataOwnerResolved || state.localDataOwner === "guest") return;
+  const authToken = state.authToken;
+  const owner = state.localDataOwner;
+  void enqueueCoachHistoryOperation(async () => {
+    if (state.authToken !== authToken || state.localDataOwner !== owner) return;
+    try {
+      await putJson("/api/coach/conversations", { conversation: coachConversationPayload(thread) }, { authToken });
+      if (state.authToken !== authToken || state.localDataOwner !== owner) return;
+      await syncCoachHistoryNow(authToken);
+    } catch {
+      // The local owner-scoped history remains queued for the next account sync.
+    }
+  });
 }
 
 function restoreCoachThread(binding) {
@@ -2870,14 +3098,18 @@ function restoreCoachThread(binding) {
   return readCoachHistoryThreads().find((thread) => thread.key === key) || null;
 }
 
-function persistCoachThread(binding = state.help.binding, history = state.help.history) {
+function persistCoachThread(binding = state.help.binding, history = state.help.history, options = {}) {
   const cleanMessages = (history || [])
     .filter((message) => ["user", "assistant"].includes(message?.role) && String(message.content || "").trim())
     .slice(-24)
     .map((message) => ({
+      ...(message.id ? { id: String(message.id).slice(0, 120) } : {}),
       role: message.role,
       content: String(message.content || "").slice(0, 8000),
       createdAt: message.createdAt || new Date().toISOString(),
+      updatedAt: message.updatedAt || message.createdAt || new Date().toISOString(),
+      ...(Array.isArray(message.attachments) && message.attachments.length ? { attachments: message.attachments.slice(0, 4) } : {}),
+      ...(message.status ? { status: String(message.status).slice(0, 40) } : {}),
     }));
   if (!binding || !cleanMessages.length) return null;
   const key = coachBindingKey(binding);
@@ -2887,13 +3119,16 @@ function persistCoachThread(binding = state.help.binding, history = state.help.h
   const questionLabel = binding.questionId ? ` · ${String(binding.questionId).toUpperCase()}` : "";
   const thread = {
     key,
+    conversationId: key,
+    sourceProduct: "ieltsist",
     binding: { ...binding },
     title: `${item?.title || moduleLabel}${questionLabel}`,
     messages: cleanMessages,
-    contextText: String(state.help.contextText || "").slice(0, 16000),
+    contextText: String(Object.prototype.hasOwnProperty.call(options, "contextText") ? options.contextText : state.help.contextText || "").slice(0, 16000),
     updatedAt: new Date().toISOString(),
   };
-  writeOwnerStoredJson(coachHistoryStoreKey, [thread, ...existing].slice(0, 12));
+  writeOwnerStoredJson(coachHistoryStoreKey, [thread, ...existing].slice(0, 80));
+  queueCoachThreadSync(thread);
   return thread;
 }
 
@@ -3325,6 +3560,7 @@ function addCoachMessage(role, text, options = {}) {
   if (!log) return null;
   const item = document.createElement("div");
   item.className = `coach-message ${role === "user" ? "user" : "assistant"}`;
+  if (options.messageId) item.dataset.coachMessageId = String(options.messageId);
   setCoachMessageContent(item, role, text);
   if (options.attachment) {
     const badge = document.createElement("span");
@@ -3345,7 +3581,7 @@ function renderCoach() {
     log.innerHTML = "";
     const history = state.coach.history.slice(-8);
     if (history.length) {
-      history.forEach((message) => addCoachMessage(message.role === "user" ? "user" : "assistant", message.content || ""));
+      history.forEach((message) => addCoachMessage(message.role === "user" ? "user" : "assistant", message.content || "", { messageId: message.id }));
     } else {
       addCoachMessage("assistant", "Ask me how to use IELTS-ist, where to start today, why an answer is correct, or attach a screenshot. I can guide you through Practice, Simulation, Writing with AI, Speaking with AI topics, drafts, vocabulary, and retests.");
     }
@@ -3367,9 +3603,23 @@ async function sendCoachMessage(message) {
   const imageDataUrl = state.coach.pendingImageDataUrl || "";
   if (!clean && !imageDataUrl) return;
   if (state.coach.busy) return;
+  const userMessageId = createCoachMessageId("coach-user");
+  const assistantMessageId = createCoachMessageId("coach-assistant");
+  const userContent = clean || "Please explain this screenshot.";
+  const createdAt = new Date().toISOString();
   state.coach.busy = true;
-  addCoachMessage("user", clean || "Please explain this screenshot.", { attachment: Boolean(imageDataUrl) });
-  const pending = addCoachMessage("assistant", "Thinking...");
+  addCoachMessage("user", userContent, { attachment: Boolean(imageDataUrl), messageId: userMessageId });
+  const pending = addCoachMessage("assistant", "Thinking...", { messageId: assistantMessageId });
+  upsertCoachHistoryMessage(state.coach.history, { id: userMessageId, role: "user", content: userContent, createdAt, updatedAt: createdAt });
+  upsertCoachHistoryMessage(state.coach.history, {
+    id: assistantMessageId,
+    role: "assistant",
+    content: "AI Coach is responding...",
+    createdAt,
+    updatedAt: createdAt,
+    status: "streaming",
+  });
+  persistCoachThread(currentCoachBinding(), state.coach.history, { contextText: state.coach.contextText });
   setCoachStatus("Thinking");
   try {
     const helpContext = await hydrateCoachEvidenceContext(buildCoachHelpContext());
@@ -3383,7 +3633,14 @@ async function sendCoachMessage(message) {
     const answer = json.answer || "";
     setCoachMessageContent(pending, "assistant", answer || "I could not find enough evidence. Try attaching the question area or typing the question number.");
     if (json.ocrText) state.coach.contextText = [state.coach.contextText, json.ocrText].filter(Boolean).join("\n\n");
-    state.coach.history.push({ role: "user", content: clean || "[Screenshot attached]" }, { role: "assistant", content: answer });
+    upsertCoachHistoryMessage(state.coach.history, {
+      id: assistantMessageId,
+      role: "assistant",
+      content: answer,
+      updatedAt: new Date().toISOString(),
+      status: json.mode === "ai" ? "completed" : "fallback",
+    });
+    persistCoachThread(currentCoachBinding(), state.coach.history, { contextText: state.coach.contextText });
     state.coach.pendingImageDataUrl = "";
     state.coach.lastAnswer = answer;
     state.coach.lastModule = helpContext.activeModule || state.activeModule || "";
@@ -3391,7 +3648,16 @@ async function sendCoachMessage(message) {
     renderCoachContextChips();
     setCoachStatus(helpResponseStatus(json.mode));
   } catch (error) {
-    setCoachMessageContent(pending, "assistant", coachRequestFailureMessage());
+    const failureMessage = coachRequestFailureMessage();
+    setCoachMessageContent(pending, "assistant", failureMessage);
+    upsertCoachHistoryMessage(state.coach.history, {
+      id: assistantMessageId,
+      role: "assistant",
+      content: failureMessage,
+      updatedAt: new Date().toISOString(),
+      status: /abort|fetch|network|timeout|econn/i.test(String(error?.message || "")) ? "interrupted" : "failed",
+    });
+    persistCoachThread(currentCoachBinding(), state.coach.history, { contextText: state.coach.contextText });
     setCoachStatus("Error");
   } finally {
     state.coach.busy = false;
@@ -8096,11 +8362,29 @@ function setHelpMessageContent(item, role, text) {
   item.innerHTML = `<div class="help-rich">${renderHelpRichText(text || "")}</div>`;
 }
 
-function addHelpMessage(role, text) {
+function helpMessageNode(messageId) {
+  const log = $("helpChatLog");
+  if (!log || !messageId) return null;
+  return [...log.children].find((node) => node.dataset.coachMessageId === String(messageId)) || null;
+}
+
+function upsertHelpMessageNode(messageId, role, text) {
+  const existing = helpMessageNode(messageId);
+  if (existing) {
+    setHelpMessageContent(existing, role, text);
+    const log = $("helpChatLog");
+    if (log) log.scrollTop = log.scrollHeight;
+    return existing;
+  }
+  return addHelpMessage(role, text, { messageId });
+}
+
+function addHelpMessage(role, text, options = {}) {
   const log = $("helpChatLog");
   if (!log) return null;
   const item = document.createElement("div");
   item.className = `help-message ${role === "user" ? "user" : "assistant"}`;
+  if (options.messageId) item.dataset.coachMessageId = String(options.messageId);
   setHelpMessageContent(item, role, text);
   log.appendChild(item);
   log.scrollTop = log.scrollHeight;
@@ -8467,19 +8751,53 @@ async function sendHelpChatMessage(message, options = {}) {
   const imageDataUrl = state.help.pendingImageDataUrl || "";
   if (!clean && !imageDataUrl) return;
   if (state.help.busy) return;
+  const previousRequest = options.isRetry ? state.help.lastRequest : null;
+  const requestMessage = previousRequest?.message ?? clean;
+  const requestImageDataUrl = previousRequest?.imageDataUrl || imageDataUrl;
+  const userMessageId = previousRequest?.userMessageId || createCoachMessageId("coach-user");
+  const assistantMessageId = previousRequest?.assistantMessageId || createCoachMessageId("coach-assistant");
+  const userContent = [requestMessage, requestImageDataUrl ? "[Screenshot attached]" : ""].filter(Boolean).join("\n") || "Please explain this screenshot.";
+  const requestRecord = {
+    message: requestMessage,
+    imageDataUrl: requestImageDataUrl,
+    userMessageId,
+    assistantMessageId,
+  };
   state.help.busy = true;
   state.help.abortReason = "";
   const requestId = state.help.requestId + 1;
   state.help.requestId = requestId;
   const controller = new AbortController();
   state.help.requestController = controller;
-  state.help.lastRequest = { message: clean, imageDataUrl };
+  state.help.lastRequest = requestRecord;
   state.help.requestTimer = window.setTimeout(() => cancelHelpChatRequest("timeout"), coachClientTimeoutMs);
-  const agentActions = coachAgentActionsFromText(clean);
+  const agentActions = coachAgentActionsFromText(requestMessage);
   const agentAction = agentActions[0] || null;
   openGlobalCoachPanel();
   renderGlobalCoachContext();
-  if (!options.isRetry) addHelpMessage("user", [clean, imageDataUrl ? "[Screenshot attached]" : ""].filter(Boolean).join("\n"));
+  const now = new Date().toISOString();
+  if (!options.isRetry) {
+    addHelpMessage("user", userContent, { messageId: userMessageId });
+    upsertCoachHistoryMessage(state.help.history, {
+      id: userMessageId,
+      role: "user",
+      content: userContent,
+      createdAt: now,
+      updatedAt: now,
+    });
+  }
+  const currentAssistant = state.help.history.find((entry) => entry.id === assistantMessageId);
+  const pendingText = options.isRetry ? "Retrying AI Coach request..." : "AI Coach is responding...";
+  upsertCoachHistoryMessage(state.help.history, {
+    id: assistantMessageId,
+    role: "assistant",
+    content: pendingText,
+    createdAt: currentAssistant?.createdAt || now,
+    updatedAt: now,
+    status: options.isRetry ? "retrying" : "streaming",
+  });
+  upsertHelpMessageNode(assistantMessageId, "assistant", options.isRetry ? "Retrying..." : "Thinking...");
+  persistCoachThread(state.help.binding, state.help.history);
   setHelpStatus("Processing - you can cancel or retry");
   syncHelpRequestControls();
   try {
@@ -8489,10 +8807,11 @@ async function sendHelpChatMessage(message, options = {}) {
       contextText: state.help.contextText,
       helpContext,
       history: state.help.history.slice(-8),
-      imageDataUrl,
-      message: clean || "Please explain this screenshot.",
+      imageDataUrl: requestImageDataUrl,
+      message: requestMessage || "Please explain this screenshot.",
     }, { signal: controller.signal });
-    const answerNode = addHelpMessage("assistant", json.answer || "");
+    const answer = json.answer || "";
+    const answerNode = upsertHelpMessageNode(assistantMessageId, "assistant", answer);
     if (json.readingEvidence) {
       focusReadingEvidence(json.readingEvidence);
       appendReadingEvidenceAction(answerNode, json.readingEvidence);
@@ -8501,11 +8820,14 @@ async function sendHelpChatMessage(message, options = {}) {
     }
     if (json.ocrText) state.help.contextText = [state.help.contextText, json.ocrText].filter(Boolean).join("\n\n");
     state.help.context = helpContext;
-    const createdAt = new Date().toISOString();
-    state.help.history.push(
-      { role: "user", content: clean || "[Screenshot attached]", createdAt },
-      { role: "assistant", content: json.answer || "", createdAt },
-    );
+    const updatedAt = new Date().toISOString();
+    upsertCoachHistoryMessage(state.help.history, {
+      id: assistantMessageId,
+      role: "assistant",
+      content: answer,
+      updatedAt,
+      status: json.mode === "ai" ? "completed" : "fallback",
+    });
     persistCoachThread(state.help.binding, state.help.history);
     state.help.pendingImageDataUrl = "";
     updateHelpAttachmentPreview();
@@ -8518,8 +8840,18 @@ async function sendHelpChatMessage(message, options = {}) {
     }
   } catch (error) {
     const reason = requestId === state.help.requestId ? state.help.abortReason : "";
-    const fallbackNode = addHelpMessage("assistant", helpRequestFailureMessage(reason));
+    const failureMessage = helpRequestFailureMessage(reason);
+    const fallbackNode = upsertHelpMessageNode(assistantMessageId, "assistant", failureMessage);
     appendCoachAgentActions(fallbackNode, agentActions);
+    const interrupted = Boolean(reason) || /abort|fetch|network|timeout|econn/i.test(String(error?.message || ""));
+    upsertCoachHistoryMessage(state.help.history, {
+      id: assistantMessageId,
+      role: "assistant",
+      content: failureMessage,
+      updatedAt: new Date().toISOString(),
+      status: interrupted ? "interrupted" : "failed",
+    });
+    persistCoachThread(state.help.binding, state.help.history);
     setHelpStatus(reason === "timeout" ? "Timed out" : reason === "cancelled" ? "Cancelled" : "Unavailable");
   } finally {
     clearHelpRequest(requestId);
@@ -11491,7 +11823,7 @@ function rebindCoachContext() {
   if (log) {
     log.innerHTML = "";
     delete log.dataset.coachSurface;
-    state.help.history.forEach((message) => addHelpMessage(message.role, message.content || ""));
+    state.help.history.forEach((message) => addHelpMessage(message.role, message.content || "", { messageId: message.id }));
   }
   updateHelpAttachmentPreview();
   return next;
@@ -18387,7 +18719,7 @@ function mergePrivateOwnerValue(baseKey, destination, source, sourceOwner, desti
     return mergePartitionedPrivateStore(baseKey, destination, source, sourceOwner, destinationOwner);
   }
   if (baseKey === weakAreaStoreKey) return mergePrivateRecordCollections(destination, source, ["id", "questionId"], 60);
-  if (baseKey === coachHistoryStoreKey) return mergePrivateRecordCollections(destination, source, ["key"], 12);
+  if (baseKey === coachHistoryStoreKey) return mergeCoachHistoryThreads(destination, source);
   if (baseKey === localVocabularyNotebookStoreKey) return mergePrivateRecordCollections(destination, source, ["localKey", "termId", "word"], 300);
   if (baseKey === storeKey) return mergePrivateRecordCollections(destination, source, ["id"], 1000);
   if ([coreVocabularyStoreKey, likedTopicStoreKey].includes(baseKey)) {

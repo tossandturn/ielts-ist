@@ -9,6 +9,12 @@ const PDFDocument = require("pdfkit");
 const WebSocket = require("ws");
 const { WebSocketServer } = require("ws");
 const { createWorker } = require("tesseract.js");
+const {
+  initCoachHistorySchema,
+  listCoachConversations,
+  parseCoachUserId,
+  upsertCoachConversations,
+} = require("./server/coachHistory");
 let DatabaseSync = null;
 try {
   ({ DatabaseSync } = require("node:sqlite"));
@@ -2212,6 +2218,7 @@ function getAppDb() {
   const objectiveAttemptColumns = new Set(appDb.prepare("PRAGMA table_info(objective_attempts)").all().map((column) => column.name));
   if (!objectiveAttemptColumns.has("parent_exam_id")) appDb.exec("ALTER TABLE objective_attempts ADD COLUMN parent_exam_id TEXT REFERENCES objective_exam_attempts(exam_id) ON DELETE CASCADE");
   appDb.exec("CREATE INDEX IF NOT EXISTS idx_objective_attempts_parent_exam ON objective_attempts(parent_exam_id, module)");
+  initCoachHistorySchema(appDb);
   return appDb;
 }
 
@@ -2435,6 +2442,67 @@ async function handleStemInternalAuthenticate(req, res) {
     return;
   }
   sendJson(res, 200, { identity: stemInternalIdentity(user) });
+}
+
+function requireStemInternalRequest(req, body) {
+  if (!signedStemInternalRequest(req, body)) {
+    throw stemMarkingError("STEM server-to-server requests must be signed.", 403);
+  }
+}
+
+async function handleCoachConversationsApi(req, res) {
+  const user = requireUser(req);
+  const db = getAppDb();
+  if (req.method === "GET") {
+    const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+    sendJson(res, 200, {
+      conversations: listCoachConversations(db, user.id, { limit: Number(url.searchParams.get("limit") || 40) }),
+    });
+    return;
+  }
+  if (req.method === "PUT") {
+    const payload = await readJsonBody(req);
+    sendJson(res, 200, {
+      conversations: upsertCoachConversations(db, user.id, payload, { sourceProduct: "ieltsist", forceSourceProduct: true }),
+    });
+    return;
+  }
+  sendJson(res, 405, { error: "Method not allowed" });
+}
+
+async function handleStemInternalCoachConversations(req, res) {
+  const rawBody = await readBody(req);
+  const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+  const authPayload = req.method === "GET" ? `${rawBody}\n${url.pathname}${url.search}` : rawBody;
+  requireStemInternalRequest(req, authPayload);
+  let payload = {};
+  if (req.method !== "GET") {
+    try {
+      payload = JSON.parse(rawBody || "{}");
+    } catch {
+      sendJson(res, 400, { error: "Conversation request must be valid JSON." });
+      return;
+    }
+  }
+  const userId = parseCoachUserId(payload.userId || url.searchParams.get("userId") || "");
+  const db = getAppDb();
+  if (!db.prepare("SELECT id FROM users WHERE id = ?").get(userId)) {
+    sendJson(res, 404, { error: "User not found." });
+    return;
+  }
+  if (req.method === "GET") {
+    sendJson(res, 200, {
+      conversations: listCoachConversations(db, userId, { limit: Number(url.searchParams.get("limit") || 40) }),
+    });
+    return;
+  }
+  if (req.method === "PUT") {
+    sendJson(res, 200, {
+      conversations: upsertCoachConversations(db, userId, payload, { sourceProduct: "stem", forceSourceProduct: true }),
+    });
+    return;
+  }
+  sendJson(res, 405, { error: "Method not allowed" });
 }
 
 function applyStemCors(req, res, methods = "GET,OPTIONS") {
@@ -7986,6 +8054,14 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.method === "POST" && requestPathname === "/api/stem/internal/authenticate") {
       await handleStemInternalAuthenticate(req, res);
+      return;
+    }
+    if ((req.method === "GET" || req.method === "PUT") && requestPathname === "/api/coach/conversations") {
+      await handleCoachConversationsApi(req, res);
+      return;
+    }
+    if ((req.method === "GET" || req.method === "PUT") && requestPathname === "/api/internal/stem/coach/conversations") {
+      await handleStemInternalCoachConversations(req, res);
       return;
     }
     if (req.url.startsWith("/api/stem/marking/")) {
