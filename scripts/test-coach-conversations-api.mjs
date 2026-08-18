@@ -124,6 +124,7 @@ function sampleConversation(conversationId, sourceProduct = "ieltsist") {
       status: "completed",
       providerTrace: "must-not-survive",
     },
+    contextText: "OCR question context: identify the evidence sentence for Q3.",
     messages: [
       {
         role: "user",
@@ -161,6 +162,11 @@ try {
   assert.equal(savedA.json.conversations.length, 1);
   assert.equal(savedA.json.conversations[0].conversationId, "conv-a");
   assert.equal(savedA.json.conversations[0].sourceProduct, "ieltsist", "The public IELTSist API must stamp its own product source.");
+  assert.equal(
+    savedA.json.conversations[0].contextText,
+    "OCR question context: identify the evidence sentence for Q3.",
+    "OCR and question context must survive account history persistence.",
+  );
   assert.equal(savedA.json.conversations[0].userId, undefined, "Student response must not expose raw database user_id.");
   assert.equal(savedA.json.conversations[0].messages.length, 2, "Only user and assistant messages are persisted.");
   assert.doesNotMatch(JSON.stringify(savedA.json), /data:image|sk-test-should-redact|providerTrace|tool output/i);

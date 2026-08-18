@@ -42,6 +42,7 @@ function initCoachHistorySchema(db) {
       surface TEXT,
       module TEXT,
       title TEXT,
+      context_text TEXT NOT NULL DEFAULT '',
       binding_json TEXT NOT NULL DEFAULT '{}',
       messages_json TEXT NOT NULL DEFAULT '[]',
       metadata_json TEXT NOT NULL DEFAULT '{}',
@@ -51,6 +52,10 @@ function initCoachHistorySchema(db) {
     );
     CREATE INDEX IF NOT EXISTS idx_coach_conversations_user_updated ON coach_conversations(user_id, updated_at DESC);
   `);
+  const columns = db.prepare("PRAGMA table_info(coach_conversations)").all();
+  if (!columns.some((column) => column.name === "context_text")) {
+    db.exec("ALTER TABLE coach_conversations ADD COLUMN context_text TEXT NOT NULL DEFAULT ''");
+  }
 }
 
 function safeText(value, maxLength = 400) {
@@ -185,6 +190,7 @@ function normalizeConversation(value, defaults = {}) {
     surface: redactSecrets(safeText(source.surface || source.view || "", 120)),
     module: redactSecrets(safeText(source.module || source.binding?.module || "", 80)),
     title: redactSecrets(safeText(source.title || "AI Coach conversation", 180)),
+    contextText: redactSecrets(source.contextText || source.context_text || ""),
     binding,
     messages,
     metadata: safeObjectFields(source.metadata || {}, [
@@ -218,6 +224,7 @@ function publicConversation(row) {
     surface: row.surface || "",
     module: row.module || "",
     title: row.title || "AI Coach conversation",
+    contextText: row.context_text || "",
     binding: parseStoredJson(row.binding_json, {}),
     messages: parseStoredJson(row.messages_json, []),
     metadata: parseStoredJson(row.metadata_json, {}),
@@ -330,6 +337,7 @@ function mergeCoachConversation(existing, incoming, defaults = {}) {
     surface: newest.surface || older.surface || "",
     module: newest.module || older.module || "",
     title: newest.title || older.title || "AI Coach conversation",
+    contextText: newest.contextText || older.contextText || "",
     binding: { ...(older.binding || {}), ...(newest.binding || {}) },
     messages: mergeCoachMessages(previous.messages, incoming.messages),
     metadata: { ...(older.metadata || {}), ...(newest.metadata || {}) },
@@ -350,14 +358,15 @@ function upsertCoachConversations(db, userId, payload, defaults = {}) {
   const write = db.prepare(`
     INSERT INTO coach_conversations (
       conversation_id, user_id, source_product, surface, module, title,
-      binding_json, messages_json, metadata_json, created_at, updated_at
+      context_text, binding_json, messages_json, metadata_json, created_at, updated_at
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(user_id, conversation_id) DO UPDATE SET
       source_product = excluded.source_product,
       surface = excluded.surface,
       module = excluded.module,
       title = excluded.title,
+      context_text = excluded.context_text,
       binding_json = excluded.binding_json,
       messages_json = excluded.messages_json,
       metadata_json = excluded.metadata_json,
@@ -379,6 +388,7 @@ function upsertCoachConversations(db, userId, payload, defaults = {}) {
         conversation.surface,
         conversation.module,
         conversation.title,
+        conversation.contextText,
         JSON.stringify(conversation.binding),
         JSON.stringify(conversation.messages),
         JSON.stringify(conversation.metadata),

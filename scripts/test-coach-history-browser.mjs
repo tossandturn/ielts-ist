@@ -152,6 +152,11 @@ try {
       assert.ok(failedAssistant, "A disconnected request must persist an assistant failure slot.");
       assert.ok(failedAssistant.id, "The assistant failure slot must have a stable message ID for retry replacement.");
 
+      await page.reload({ waitUntil: "networkidle" });
+      await page.locator("#globalHelpButton").click();
+      await page.locator("#helpChatRetry").waitFor({ state: "visible", timeout: 10_000 });
+      assert.equal(await page.locator("#helpChatRetry").isEnabled(), true, "A failed request must remain retryable after a page refresh.");
+
       abortGatewayRequest = false;
       await page.locator("#helpChatRetry").click();
       await page.locator("#helpChatLog").getByText(/Recovered Coach answer/).waitFor({ timeout: 10_000 });

@@ -1936,12 +1936,14 @@ function openDashboardCoachHistory(threadKey) {
   state.help.binding = currentCoachBinding();
   state.help.history = thread.messages.map((message) => ({ ...message }));
   state.help.contextText = thread.contextText || "";
+  state.help.lastRequest = recoverHelpRequestFromHistory(state.help.history);
   const log = $("helpChatLog");
   if (log) {
     log.innerHTML = "";
     delete log.dataset.coachSurface;
     state.help.history.forEach((message) => addHelpMessage(message.role, message.content || "", { messageId: message.id }));
   }
+  syncHelpRequestControls();
   openGlobalCoachPanel({
     module: thread.binding?.module || "",
     moduleLabel: thread.binding?.module ? moduleDisplayName(thread.binding.module) : "AI Coach",
@@ -2882,6 +2884,7 @@ function coachConversationPayload(thread) {
     surface: thread?.binding?.view || "",
     module: thread?.binding?.module || "",
     title: thread?.title || "AI Coach conversation",
+    contextText: String(thread?.contextText || "").slice(0, 16000),
     binding: thread?.binding || {},
     messages: Array.isArray(thread?.messages) ? thread.messages : [],
     metadata: {
@@ -3096,6 +3099,29 @@ function queueCoachThreadSync(thread) {
 function restoreCoachThread(binding) {
   const key = coachBindingKey(binding);
   return readCoachHistoryThreads().find((thread) => thread.key === key) || null;
+}
+
+function recoverHelpRequestFromHistory(history = []) {
+  const retryableStatuses = new Set(["failed", "interrupted", "streaming", "retrying"]);
+  const candidates = history
+    .map((message, index) => ({ message, index }))
+    .filter(({ message }) => message?.role === "assistant" && retryableStatuses.has(String(message.status || "").toLowerCase()) && message.id)
+    .sort((left, right) => {
+      const leftTime = Date.parse(left.message.updatedAt || left.message.createdAt || "") || 0;
+      const rightTime = Date.parse(right.message.updatedAt || right.message.createdAt || "") || 0;
+      return leftTime - rightTime || left.index - right.index;
+    });
+  const candidate = candidates.at(-1);
+  if (!candidate) return null;
+  const user = [...history.slice(0, candidate.index)].reverse().find((message) => message?.role === "user" && message.id);
+  if (!user) return null;
+  const message = String(user.content || "").replace(/\s*\[Screenshot attached\]\s*$/i, "").trim();
+  return {
+    message: message || "Please explain this screenshot.",
+    imageDataUrl: "",
+    userMessageId: String(user.id).slice(0, 120),
+    assistantMessageId: String(candidate.message.id).slice(0, 120),
+  };
 }
 
 function persistCoachThread(binding = state.help.binding, history = state.help.history, options = {}) {
@@ -11814,10 +11840,8 @@ function rebindCoachContext() {
   state.help.context = null;
   state.help.pendingImageDataUrl = "";
   state.help.history = restored?.messages?.map((message) => ({ ...message })) || [];
+  state.help.lastRequest = recoverHelpRequestFromHistory(state.help.history);
   state.help.surfaceOverride = null;
-  state.coach.history = [];
-  state.coach.contextText = "";
-  state.coach.lastAnswer = "";
   state.coach.focusQuestion = focus?.module === next.module && (!next.questionId || focus.id === next.questionId) ? focus : null;
   const log = $("helpChatLog");
   if (log) {
@@ -11826,6 +11850,7 @@ function rebindCoachContext() {
     state.help.history.forEach((message) => addHelpMessage(message.role, message.content || "", { messageId: message.id }));
   }
   updateHelpAttachmentPreview();
+  syncHelpRequestControls();
   return next;
 }
 
