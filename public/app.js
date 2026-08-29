@@ -4540,6 +4540,17 @@ function vocabularyRouteContextFromLocation() {
   };
 }
 
+function deepLinkPracticeModuleFromLocation() {
+  const params = new URLSearchParams(window.location.search);
+  const hashRoute = String(window.location.hash || "").replace(/^#/, "").split("?", 1)[0];
+  const moduleName = String(params.get("module") || "").trim().toLowerCase();
+  if (!["listening", "reading", "writing", "speaking"].includes(moduleName)) return "";
+  if (hashRoute === "single") return moduleName;
+  if (hashRoute === "writing-upload" && moduleName === "writing") return moduleName;
+  if (hashRoute === "bank" && moduleName === "speaking") return moduleName;
+  return "";
+}
+
 function vocabularyRouteContextKey(context) {
   return JSON.stringify([
     context.contractVersion, context.from, context.family, context.taxonomyId, context.routeId,
@@ -11781,7 +11792,7 @@ function importRemotePracticeSessions(remotes = []) {
 }
 
 function restorePracticeSessionAfterData(expectedModule = "", expectedItemId = "") {
-  const hasExpectedTarget = ["listening", "reading", "writing", "speaking"].includes(expectedModule) && Boolean(expectedItemId);
+  const hasExpectedTarget = ["listening", "reading", "writing", "speaking"].includes(expectedModule);
   const savedSession = hasExpectedTarget
     ? readPracticeSession(expectedModule, expectedItemId)
     : readPracticeSession();
@@ -23712,6 +23723,7 @@ function activateView(viewId, updateHash = false, options = {}) {
 function applyInitialHash() {
   const hash = location.hash.replace("#", "");
   const hashRoute = hash.split("?", 1)[0];
+  const deepLinkModule = deepLinkPracticeModuleFromLocation();
   if (!hash) {
     if (vocabularyRouteContextFromLocation().from === "stem") {
       activateView("vocabulary", true);
@@ -23752,6 +23764,30 @@ function applyInitialHash() {
   const speakingMatch = hashRoute.match(/^speaking\/([^/]+)$/);
   if (speakingMatch) {
     state.activeSpeakingTopic = decodeURIComponent(speakingMatch[1]);
+    activateView("bank", false);
+    return;
+  }
+  if (hashRoute === "single") {
+    if (deepLinkModule) {
+      if (state.activeModule !== deepLinkModule || !state.singleStarted) activateSingleModule(deepLinkModule, false);
+      else {
+        activateView("single", false);
+        setSingleImmersive(state.activeModule);
+      }
+      return;
+    }
+    activateView("single", false);
+    if (state.singleStarted) setSingleImmersive(state.activeModule);
+    return;
+  }
+  if (hashRoute === "writing-upload") {
+    if (deepLinkModule === "writing") state.activeModule = "writing";
+    activateView("writing-upload", false);
+    restoreWritingUploadSessionAfterData({ force: true });
+    return;
+  }
+  if (hashRoute === "bank") {
+    if (deepLinkModule === "speaking") state.activeModule = "speaking";
     activateView("bank", false);
     return;
   }
@@ -24111,7 +24147,7 @@ async function init() {
   loadBank();
   loadCoreVocabularyKnown();
   state.data = await fetchTaskDataWithRetry();
-  const restoredPractice = restorePracticeSessionAfterData();
+  const restoredPractice = restorePracticeSessionAfterData(deepLinkPracticeModuleFromLocation());
   $("aiStatus").textContent = state.data.aiEnabled
     ? `AI connected · ${state.data.model}${state.data.ttsEnabled ? " · Fish TTS" : " · Browser TTS"}`
     : "Local mode · OPENAI_API_KEY not detected";
