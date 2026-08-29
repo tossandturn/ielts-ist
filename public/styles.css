@@ -1879,6 +1879,20 @@ body.immersive-mode .global-help-button strong {
   align-self: flex-start;
 }
 
+.help-attachment-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  margin-top: 8px;
+  padding: 2px 7px;
+  border: 1px solid rgba(255, 255, 255, .28);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .16);
+  color: inherit;
+  font-size: 11px;
+  font-weight: 800;
+}
+
 .coach-agent-actions {
   display: flex;
   flex-wrap: wrap;
@@ -1976,6 +1990,52 @@ body.immersive-mode .global-help-button strong {
   min-width: 58px;
   height: 32px;
   font-size: 12px;
+}
+
+.help-attachment-info {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.help-attachment-info span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.help-attachment-info img {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border: 1px solid rgba(18, 109, 128, .22);
+  border-radius: 6px;
+  background: #fff;
+  object-fit: cover;
+}
+
+.help-attachment-actions {
+  display: inline-flex;
+  align-items: end;
+  gap: 6px;
+  min-width: 0;
+}
+
+.help-attachment-actions .help-attach-button {
+  min-width: 58px;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
 }
 
 .help-chat-form textarea {

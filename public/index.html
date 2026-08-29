@@ -423,11 +423,18 @@
       <form id="helpChatForm" class="help-chat-form">
         <div class="help-chat-composer">
           <div id="helpAttachmentPreview" class="help-attachment-preview" hidden>
-            <span>Screenshot attached</span>
-            <button id="helpAttachmentClear" class="icon-btn" type="button" aria-label="Remove screenshot">Remove</button>
+            <div class="help-attachment-info">
+              <img id="helpAttachmentThumbnail" alt="Selected Coach image preview" hidden>
+              <span id="helpAttachmentLabel">Image attached</span>
+            </div>
+            <button id="helpAttachmentClear" class="icon-btn" type="button" aria-label="Remove attached image">Remove</button>
           </div>
           <textarea id="helpChatInput" rows="3" placeholder="Ask AI Coach about a question, screenshot, or where to practise next..."></textarea>
-          <button id="helpAttachImage" class="icon-btn help-attach-button" type="button" aria-label="Attach screenshot">Capture</button>
+          <div class="help-attachment-actions">
+            <button id="helpPhotoButton" class="icon-btn help-attach-button" type="button" aria-label="Take or upload a photo">Photo</button>
+            <button id="helpAttachImage" class="icon-btn help-attach-button" type="button" aria-label="Capture a screenshot">Capture</button>
+          </div>
+          <input id="helpPhotoInput" class="visually-hidden" type="file" accept="image/*" capture="environment" aria-label="Choose a photo for AI Coach">
         </div>
         <button class="primary" type="submit">Send</button>
       </form>

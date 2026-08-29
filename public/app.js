@@ -128,6 +128,10 @@
     contextText: "",
     context: null,
     pendingImageDataUrl: "",
+    pendingImageSource: "",
+    pendingImageName: "",
+    pendingImageWidth: 0,
+    pendingImageHeight: 0,
     captureMode: "explain",
     history: [],
     captureRequestId: 0,
@@ -8285,7 +8289,21 @@ function openHelpPanel() {
 function updateHelpAttachmentPreview() {
   const preview = $("helpAttachmentPreview");
   if (!preview) return;
-  preview.hidden = !state.help.pendingImageDataUrl;
+  const attached = Boolean(state.help.pendingImageDataUrl);
+  preview.hidden = !attached;
+  const label = $("helpAttachmentLabel");
+  if (label) {
+    label.textContent = state.help.pendingImageSource === "photo"
+      ? "Photo attached"
+      : "Screenshot attached";
+  }
+  const thumbnail = $("helpAttachmentThumbnail");
+  if (thumbnail) {
+    thumbnail.hidden = !attached;
+    if (attached && thumbnail.src !== state.help.pendingImageDataUrl) {
+      thumbnail.src = state.help.pendingImageDataUrl;
+    }
+  }
 }
 
 function closeHelpPanel() {
@@ -8412,6 +8430,12 @@ function addHelpMessage(role, text, options = {}) {
   item.className = `help-message ${role === "user" ? "user" : "assistant"}`;
   if (options.messageId) item.dataset.coachMessageId = String(options.messageId);
   setHelpMessageContent(item, role, text);
+  if (options.attachment) {
+    const badge = document.createElement("span");
+    badge.className = "help-attachment-badge";
+    badge.textContent = options.attachment.source === "photo" ? "Photo attached" : "Screenshot attached";
+    item.appendChild(badge);
+  }
   log.appendChild(item);
   log.scrollTop = log.scrollHeight;
   return item;
@@ -8649,8 +8673,12 @@ async function explainHelpImage(imageDataUrl) {
   }
 }
 
-function attachHelpImage(imageDataUrl) {
+function attachHelpImage(imageDataUrl, metadata = {}) {
   state.help.pendingImageDataUrl = imageDataUrl || "";
+  state.help.pendingImageSource = metadata.source === "photo" ? "photo" : "capture";
+  state.help.pendingImageName = String(metadata.name || "").slice(0, 160);
+  state.help.pendingImageWidth = Number(metadata.width) || 0;
+  state.help.pendingImageHeight = Number(metadata.height) || 0;
   updateHelpAttachmentPreview();
   openGlobalCoachPanel();
   setHelpStatus(state.help.pendingImageDataUrl ? "Image attached" : "Ready");
@@ -8696,7 +8724,7 @@ async function confirmHelpSelection() {
     hideHelpCaptureOverlay();
     stopHelpCaptureStream();
     if (state.help.captureMode === "attach" || state.help.captureMode === "coach-attach") {
-      attachHelpImage(imageDataUrl);
+      attachHelpImage(imageDataUrl, { source: "capture" });
       return;
     }
     await explainHelpImage(imageDataUrl);
@@ -8705,6 +8733,83 @@ async function confirmHelpSelection() {
     openGlobalCoachPanel();
     setCaptureStatus("Ready");
     addCaptureAssistantMessage(error.message || "Could not capture the selected area.");
+  }
+}
+
+const coachPhotoMaxFileBytes = 20 * 1024 * 1024;
+const coachPhotoMaxDimension = 2400;
+
+async function readCoachPhotoFile(file) {
+  if (!file || !file.size) throw new Error("Choose a photo first.");
+  if (file.size > coachPhotoMaxFileBytes) {
+    throw new Error("That photo is too large. Choose an image under 20 MB.");
+  }
+  if (!/^image\//i.test(String(file.type || ""))) {
+    throw new Error("Choose an image file for Coach.");
+  }
+  const objectUrl = URL.createObjectURL(file);
+  try {
+    const image = new Image();
+    image.decoding = "async";
+    await new Promise((resolve, reject) => {
+      image.onload = resolve;
+      image.onerror = () => reject(new Error("This photo format could not be read. Choose a JPEG, PNG, or WebP image."));
+      image.src = objectUrl;
+    });
+    const sourceWidth = Number(image.naturalWidth || image.width);
+    const sourceHeight = Number(image.naturalHeight || image.height);
+    if (!sourceWidth || !sourceHeight) throw new Error("The selected photo has no readable image data.");
+    const scale = Math.min(1, coachPhotoMaxDimension / Math.max(sourceWidth, sourceHeight));
+    const width = Math.max(1, Math.round(sourceWidth * scale));
+    const height = Math.max(1, Math.round(sourceHeight * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext("2d", { alpha: false });
+    if (!context) throw new Error("Photo processing is unavailable in this browser.");
+    context.fillStyle = "#fff";
+    context.fillRect(0, 0, width, height);
+    context.drawImage(image, 0, 0, width, height);
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.86);
+    if (!/^data:image\/jpeg;base64,/i.test(dataUrl)) {
+      throw new Error("The selected photo could not be prepared for Coach.");
+    }
+    return {
+      dataUrl,
+      width,
+      height,
+      name: String(file.name || "coach-photo.jpg").replace(/[^\w.\- ]+/g, "").trim().slice(0, 120) || "coach-photo.jpg",
+    };
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
+
+async function handleHelpPhotoInput(event) {
+  const input = event?.target;
+  const file = input?.files?.[0];
+  if (input) input.value = "";
+  if (!file) return;
+  openGlobalCoachPanel();
+  setHelpStatus("Preparing photo");
+  try {
+    const prepared = await readCoachPhotoFile(file);
+    attachHelpImage(prepared.dataUrl, {
+      source: "photo",
+      name: prepared.name,
+      width: prepared.width,
+      height: prepared.height,
+    });
+    setHelpStatus("Photo attached");
+  } catch (error) {
+    state.help.pendingImageDataUrl = "";
+    state.help.pendingImageSource = "";
+    state.help.pendingImageName = "";
+    state.help.pendingImageWidth = 0;
+    state.help.pendingImageHeight = 0;
+    updateHelpAttachmentPreview();
+    setHelpStatus("Photo not attached");
+    addCaptureAssistantMessage(error?.message || "The photo could not be attached.");
   }
 }
 
@@ -8780,15 +8885,35 @@ async function sendHelpChatMessage(message, options = {}) {
   const previousRequest = options.isRetry ? state.help.lastRequest : null;
   const requestMessage = previousRequest?.message ?? clean;
   const requestImageDataUrl = previousRequest?.imageDataUrl || imageDataUrl;
+  const requestImageSource = previousRequest?.imageSource || state.help.pendingImageSource || "";
+  const requestImageName = previousRequest?.imageName || state.help.pendingImageName || "";
+  const requestImageWidth = Number(previousRequest?.imageWidth || state.help.pendingImageWidth || 0);
+  const requestImageHeight = Number(previousRequest?.imageHeight || state.help.pendingImageHeight || 0);
   const userMessageId = previousRequest?.userMessageId || createCoachMessageId("coach-user");
   const assistantMessageId = previousRequest?.assistantMessageId || createCoachMessageId("coach-assistant");
-  const userContent = [requestMessage, requestImageDataUrl ? "[Screenshot attached]" : ""].filter(Boolean).join("\n") || "Please explain this screenshot.";
+  const userContent = [
+    requestMessage,
+    requestImageDataUrl ? (requestImageSource === "photo" ? "[Photo attached]" : "[Screenshot attached]") : "",
+  ].filter(Boolean).join("\n") || "Please explain this image.";
   const requestRecord = {
     message: requestMessage,
     imageDataUrl: requestImageDataUrl,
+    imageSource: requestImageSource,
+    imageName: requestImageName,
+    imageWidth: requestImageWidth,
+    imageHeight: requestImageHeight,
     userMessageId,
     assistantMessageId,
   };
+  const attachment = requestImageDataUrl
+    ? [{
+        kind: "image",
+        source: requestImageSource === "photo" ? "photo" : "screenshot",
+        ...(requestImageName ? { name: requestImageName } : {}),
+        ...(requestImageWidth ? { width: requestImageWidth } : {}),
+        ...(requestImageHeight ? { height: requestImageHeight } : {}),
+      }]
+    : [];
   state.help.busy = true;
   state.help.abortReason = "";
   const requestId = state.help.requestId + 1;
@@ -8803,13 +8928,17 @@ async function sendHelpChatMessage(message, options = {}) {
   renderGlobalCoachContext();
   const now = new Date().toISOString();
   if (!options.isRetry) {
-    addHelpMessage("user", userContent, { messageId: userMessageId });
+    addHelpMessage("user", userContent, {
+      messageId: userMessageId,
+      ...(attachment.length ? { attachment: attachment[0] } : {}),
+    });
     upsertCoachHistoryMessage(state.help.history, {
       id: userMessageId,
       role: "user",
       content: userContent,
       createdAt: now,
       updatedAt: now,
+      ...(attachment.length ? { attachments: attachment } : {}),
     });
   }
   const currentAssistant = state.help.history.find((entry) => entry.id === assistantMessageId);
@@ -8856,6 +8985,10 @@ async function sendHelpChatMessage(message, options = {}) {
     });
     persistCoachThread(state.help.binding, state.help.history);
     state.help.pendingImageDataUrl = "";
+    state.help.pendingImageSource = "";
+    state.help.pendingImageName = "";
+    state.help.pendingImageWidth = 0;
+    state.help.pendingImageHeight = 0;
     updateHelpAttachmentPreview();
     setHelpStatus(helpResponseStatus(json.mode));
     if (agentAction?.autoOpen && !json.readingEvidence) {
@@ -11839,6 +11972,10 @@ function rebindCoachContext() {
   state.help.contextText = restored?.contextText || "";
   state.help.context = null;
   state.help.pendingImageDataUrl = "";
+  state.help.pendingImageSource = "";
+  state.help.pendingImageName = "";
+  state.help.pendingImageWidth = 0;
+  state.help.pendingImageHeight = 0;
   state.help.history = restored?.messages?.map((message) => ({ ...message })) || [];
   state.help.lastRequest = recoverHelpRequestFromHistory(state.help.history);
   state.help.surfaceOverride = null;
@@ -23637,8 +23774,14 @@ function bindEvents() {
   bindHelpControls();
   $("helpCaptureAgain")?.addEventListener("click", beginHelpCapture);
   $("helpAttachImage")?.addEventListener("click", () => beginHelpCapture("attach"));
+  $("helpPhotoButton")?.addEventListener("click", () => $("helpPhotoInput")?.click());
+  $("helpPhotoInput")?.addEventListener("change", handleHelpPhotoInput);
   $("helpAttachmentClear")?.addEventListener("click", () => {
     state.help.pendingImageDataUrl = "";
+    state.help.pendingImageSource = "";
+    state.help.pendingImageName = "";
+    state.help.pendingImageWidth = 0;
+    state.help.pendingImageHeight = 0;
     updateHelpAttachmentPreview();
     setHelpStatus("Ready");
   });
