@@ -169,6 +169,11 @@ try {
       state.currentUser?.username === "Amber"
       && state.learningState?.attempts?.length === 5
     ));
+    await page.waitForFunction(() => {
+      const hero = document.querySelector(".dashboard-focus-hero");
+      const heading = hero?.querySelector("h2")?.textContent || "";
+      return /Listening[\s\S]*plural/i.test(`${heading} ${hero?.textContent || ""}`);
+    }, { timeout: 10000 });
 
     const layout = await page.evaluate(() => {
       const rect = (selector) => {

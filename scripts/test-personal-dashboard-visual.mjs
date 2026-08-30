@@ -142,6 +142,12 @@ try {
     await page.goto(`${baseUrl}/?visual=personal-dashboard-v1#home`, { waitUntil: "domcontentloaded" });
     await page.locator(".dashboard-focus-camp").waitFor({ state: "visible" });
     await page.waitForFunction(() => document.querySelector(".dashboard-focus-header h1")?.textContent?.includes("Mia"));
+    await page.waitForFunction(() => {
+      const hero = document.querySelector(".dashboard-focus-hero");
+      const heading = hero?.querySelector("h2")?.textContent || "";
+      const kicker = document.querySelector(".dashboard-focus-kicker")?.textContent || "";
+      return /Reading(?: with AI)? weak-area retest/i.test(`${heading} ${kicker} ${hero?.textContent || ""}`);
+    }, { timeout: 10000 });
 
     const layout = await page.evaluate(() => {
       const rect = (selector) => {

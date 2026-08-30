@@ -5477,9 +5477,6 @@ function bindVocabularyControls() {
   document.querySelectorAll("[data-vocab-back]").forEach((button) => {
     button.onclick = () => setVocabularyPage("hub");
   });
-  document.querySelectorAll("[data-vocab-pack]").forEach((button) => {
-    button.onclick = () => openVocabularyPack(button.dataset.vocabPack || "");
-  });
   document.querySelectorAll("[data-vocab-subject]").forEach((button) => {
     button.onclick = () => {
       openVocabularySubjectPack(button.dataset.vocabSubject || "");
@@ -5491,6 +5488,9 @@ function bindVocabularyControls() {
   });
   document.querySelectorAll("[data-vocab-course]").forEach((button) => {
     button.onclick = () => setVocabularyCourse(button.dataset.vocabCourse || "");
+  });
+  document.querySelectorAll("[data-vocab-pack]").forEach((button) => {
+    button.onclick = () => openVocabularyPack(button.dataset.vocabPack || "");
   });
   document.querySelectorAll("[data-vocab-mine]").forEach((button) => {
     button.onclick = () => {

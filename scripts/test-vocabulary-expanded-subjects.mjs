@@ -118,7 +118,7 @@ try {
   assert.equal(await page.locator("#vocabSubjectFilter").inputValue(), "ielts", "A student opening Vocabulary must start in the IELTS Core deck, not a mixed all-subject deck");
   assert.match((await page.locator(".vocab-word-face h3").textContent()) || "", /^[A-Za-z][A-Za-z -]*$/, "The default card must be an IELTS English word, never an arbitrary imported subject term");
   assert.equal(await page.locator(".vocab-mini-list [data-vocab-index]").count(), 0, "The study workspace must not render a scrollable 36-word side list as a competing control");
-  await page.getByRole("button", { name: /change word pack/i }).click();
+  await page.locator("[data-vocab-pack='alevel']").click();
   await page.locator(".vocab-hub-shell").waitFor();
   await page.locator("[data-vocab-course='alevel']").click();
   assert.equal(await page.locator(".vocab-subject-directory [data-vocab-subject]").count(), 40, "The subject directory must expose all professional subject packs");
@@ -126,7 +126,7 @@ try {
   await page.locator(".vocab-word-face h3").waitFor();
   const thinkingEyebrow = await page.locator(".vocab-review-top .eyebrow").textContent();
   assert.match(thinkingEyebrow || "", /A-Level Thinking Skills/);
-  await page.getByRole("button", { name: /change word pack/i }).click();
+  await page.locator("[data-vocab-pack='alevel']").click();
   await page.locator(".vocab-hub-shell").waitFor();
   await page.locator("[data-vocab-course='alevel']").click();
   await page.locator("[data-vocab-subject='law']").waitFor({ state: "visible" });
@@ -134,12 +134,11 @@ try {
   await page.locator(".vocab-word-face h3").waitFor();
   const lawEyebrow = await page.locator(".vocab-review-top .eyebrow").textContent();
   assert.match(lawEyebrow || "", /IG \+ A-Level Law/);
-  await page.getByRole("button", { name: /change word pack/i }).click();
-  await page.locator(".vocab-hub-shell").waitFor();
-  await page.getByRole("button", { name: /IELTS English/i }).click();
+  await page.locator("[data-vocab-pack='ielts']").click();
   await page.locator(".vocab-review-card").waitFor();
+  assert.equal(await page.locator("#vocabSubjectFilter").inputValue(), "ielts", "IELTS Core pack must reopen the full deck");
 
-  await page.getByRole("button", { name: /change word pack/i }).click();
+  await page.locator("[data-vocab-pack='alevel']").click();
   await page.locator("[data-vocab-course='igcse']").click();
   await page.locator("[data-vocab-subject='computer-science']").click();
   await page.locator("#vocabSearch").fill("binary");
@@ -191,7 +190,7 @@ try {
     ["digital-media-design", "design brief", "design brief"],
     ["world-literature", "postcolonial reading", "postcolonial reading"],
   ]) {
-    await page.getByRole("button", { name: /change word pack/i }).click();
+    await page.locator("[data-vocab-pack='alevel']").click();
     await page.locator("[data-vocab-course='alevel']").click();
     await page.locator(`[data-vocab-subject='${subject}']`).click();
     await page.locator("#vocabSearch").fill(query);
@@ -207,7 +206,7 @@ try {
   await mobile.locator(".vocab-review-card").waitFor();
   let overflow = await mobile.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   assert.ok(overflow <= 1, `Expanded vocabulary mobile default deck overflow is ${overflow}px`);
-  await mobile.getByRole("button", { name: /change word pack/i }).click();
+  await mobile.locator("[data-vocab-pack='igcse']").click();
   await mobile.locator("[data-vocab-course='igcse']").click();
   await mobile.locator("[data-vocab-subject='computer-science']").click();
   await mobile.locator("#vocabSearch").fill("binary");
