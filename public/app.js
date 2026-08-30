@@ -3020,8 +3020,10 @@ function mergeCoachHistoryThreadPair(current, candidate, conversationId) {
 }
 
 function mergeCoachHistoryThreads(localThreads = [], remoteThreads = []) {
+  const localList = Array.isArray(localThreads) ? localThreads : [];
+  const remoteList = Array.isArray(remoteThreads) ? remoteThreads : [];
   const byId = new Map();
-  [...localThreads, ...remoteThreads].forEach((thread) => {
+  [...localList, ...remoteList].forEach((thread) => {
     const conversationId = String(thread?.conversationId || thread?.key || "").trim();
     if (!conversationId || !Array.isArray(thread?.messages) || !thread.messages.length) return;
     const current = byId.get(conversationId);
@@ -11616,6 +11618,14 @@ function bindObjectiveAnswerControls() {
     control.addEventListener("change", update);
     control.addEventListener("focus", () => {
       if (control.dataset.prefix === "single") state.singleCurrentQuestion = String(control.dataset.qid || "");
+      if (control.dataset.prefix !== "single" || !document.body.classList.contains("single-immersive-mode")) return;
+      const outerScrollY = window.scrollY;
+      let lockFrames = 0;
+      const lockOuterScroll = () => {
+        if (Math.abs(window.scrollY - outerScrollY) > 1) window.scrollTo({ top: outerScrollY, behavior: "auto" });
+        if (++lockFrames < 36) requestAnimationFrame(lockOuterScroll);
+      };
+      requestAnimationFrame(lockOuterScroll);
     });
   });
 }
@@ -22529,6 +22539,13 @@ function appendReadingEvidenceAction(messageNode, evidence) {
 function focusReadingQuestion(number) {
   const workspace = document.querySelector(".reading-mobile-workspace");
   if (!workspace) return;
+  const outerScrollY = window.scrollY;
+  let outerScrollLockFrames = 0;
+  const lockOuterScroll = () => {
+    if (Math.abs(window.scrollY - outerScrollY) > 1) window.scrollTo({ top: outerScrollY, behavior: "auto" });
+    if (++outerScrollLockFrames < 36) requestAnimationFrame(lockOuterScroll);
+  };
+  requestAnimationFrame(lockOuterScroll);
   const normalizedNumber = Number(number);
   const targetQuestion = readingQuestionForNumber(state.activeSingle?.questions || [], normalizedNumber);
   const targetPassage = readingPassageForQuestionNumber(normalizedNumber);
@@ -22560,7 +22577,7 @@ function focusReadingQuestion(number) {
   const answerScroll = target?.closest(".paper-answer-scroll");
   if (target && answerScroll) {
     const nextTop = target.offsetTop - Math.max(12, (answerScroll.clientHeight - target.offsetHeight) / 2);
-    answerScroll.scrollTo({ top: Math.max(0, nextTop), behavior: "smooth" });
+    answerScroll.scrollTo({ top: Math.max(0, nextTop), behavior: "auto" });
   }
   const questionPage = target?.dataset.questionPage;
   const passagePage = target?.dataset.readingPassagePage;
@@ -22588,9 +22605,15 @@ function focusReadingQuestion(number) {
   const questionPageNode = questionPage ? questionPaper?.querySelector(`[data-pdf-page="${questionPage}"]`) : null;
   if (questionPageNode && questionPaper) {
     const syncQuestionPage = () => {
-      const questionTop = Math.max(0, questionPageNode.offsetTop - 8);
-      state.readingPaneScroll.questionPaper = questionTop;
-      questionPaper.scrollTo({ top: questionTop, behavior: "auto" });
+      const paperRect = questionPaper.getBoundingClientRect();
+      const pageRect = questionPageNode.getBoundingClientRect();
+      const nextTop = questionPaper.scrollTop + pageRect.top - paperRect.top - 8;
+      const boundedTop = Math.min(
+        Math.max(0, nextTop),
+        Math.max(0, questionPaper.scrollHeight - questionPaper.clientHeight),
+      );
+      questionPaper.scrollTo({ top: boundedTop, behavior: "auto" });
+      state.readingPaneScroll.questionPaper = boundedTop;
     };
     syncQuestionPage();
     requestAnimationFrame(() => {
@@ -22679,6 +22702,7 @@ function bindReadingWorkspaceControls() {
       savePracticeSession();
     });
     input.addEventListener("focus", () => {
+      const outerScrollY = window.scrollY;
       const qid = input.dataset.qid;
       const context = currentReadingContext();
       const question = context?.questions?.find((item) => item.id === qid);
@@ -22686,6 +22710,12 @@ function bindReadingWorkspaceControls() {
       const workspace = input.closest(".reading-mobile-workspace");
       if (workspace) setReadingCurrentQuestion(workspace, question?.number || input.closest(".paper-answer-row")?.dataset.questionNumber || "");
       refreshGlobalCoachPanelIfOpen();
+      let lockFrames = 0;
+      const lockOuterScroll = () => {
+        if (Math.abs(window.scrollY - outerScrollY) > 1) window.scrollTo({ top: outerScrollY, behavior: "auto" });
+        if (++lockFrames < 36) requestAnimationFrame(lockOuterScroll);
+      };
+      requestAnimationFrame(lockOuterScroll);
     });
   });
   document.querySelectorAll(".reading-mobile-workspace").forEach((workspace) => {

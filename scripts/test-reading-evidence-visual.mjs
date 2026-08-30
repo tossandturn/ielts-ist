@@ -68,7 +68,8 @@ try {
       initialWindow.numbers.every((number) => number >= 1 && number <= 13),
       `${size.name}: Reading rendered answer rows outside Passage 1`,
     );
-    await page.locator('[data-reading-question-nav="1"]').click();
+    const readingWindowScrollBeforeFocus = await page.evaluate(() => window.scrollY);
+    await page.locator('[data-reading-question-nav="1"]').evaluate((button) => button.click());
     const initialQ1Control = page.locator('.paper-answer-row[data-question-number="1"] .objective-answer-control').first();
     await initialQ1Control.waitFor({ state: "visible" });
     await initialQ1Control.fill("saved-q1");
@@ -93,12 +94,17 @@ try {
         first: rect(first),
         second: rect(second),
         overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        windowScroll: window.scrollY,
       };
     });
     assert.equal(immersiveLayout.accountVisible, false, `${size.name}: Account entry is visible during immersive practice`);
     assert.match(immersiveLayout.toolbarParent, /view-head/, `${size.name}: annotation tools are not mounted in the fixed header`);
     assert.ok(immersiveLayout.toolbar.x <= immersiveLayout.header.x + 16, `${size.name}: annotation tools are not at the top-left`);
     assert.ok(immersiveLayout.nav.y < immersiveLayout.split.y, `${size.name}: Reading question navigation is not above the workspace`);
+    assert.ok(
+      Math.abs(immersiveLayout.windowScroll - readingWindowScrollBeforeFocus) <= 120,
+      `${size.name}: focusing a Reading question scrolled the outer workspace too far`,
+    );
     assert.ok(Math.abs(immersiveLayout.first.y - immersiveLayout.second.y) <= 2, `${size.name}: Reading question navigation is not horizontal`);
     assert.ok(immersiveLayout.second.x > immersiveLayout.first.x, `${size.name}: Reading question order is incorrect`);
     assert.ok(immersiveLayout.overflow <= 1, `${size.name}: immersive Reading overflows by ${immersiveLayout.overflow}px`);
@@ -125,7 +131,7 @@ try {
     await page.locator("#toggleEraser").click();
 
     for (const [question, passagePage] of [[1, 18], [14, 22], [27, 26]]) {
-      await page.locator(`[data-reading-question-nav="${question}"]`).click();
+      await page.locator(`[data-reading-question-nav="${question}"]`).evaluate((button) => button.click());
       await page.waitForTimeout(550);
       const synchronized = await page.evaluate(({ question, passagePage }) => {
         const workspace = document.querySelector(".reading-mobile-workspace");
@@ -144,7 +150,16 @@ try {
             .filter(Number.isFinite),
           mappedPassage: row?.dataset.readingPassagePage,
           hasQuestionPage: Boolean(questionNode),
-          questionDelta: questionNode && questionPaper ? Math.abs(questionPaper.scrollTop - Math.max(0, questionNode.offsetTop - 8)) : Infinity,
+          questionGeometryDelta: questionNode && questionPaper
+            ? Math.abs((questionNode.getBoundingClientRect().top - questionPaper.getBoundingClientRect().top) - 8)
+            : Infinity,
+          questionVisible: questionNode && questionPaper
+            ? (() => {
+                const pageRect = questionNode.getBoundingClientRect();
+                const paperRect = questionPaper.getBoundingClientRect();
+                return pageRect.top <= paperRect.bottom && pageRect.bottom >= paperRect.top;
+              })()
+            : false,
           questionPosition: questionNode && questionPaper
             ? {
                 scrollTop: questionPaper.scrollTop,
@@ -200,7 +215,8 @@ try {
       }
       assert.equal(synchronized.mappedPassage, String(passagePage), `${size.name} Q${question}: passage mapping mismatch`);
       assert.equal(synchronized.hasQuestionPage, true, `${size.name} Q${question}: question page is missing`);
-      assert.ok(synchronized.questionDelta < 40, `${size.name} Q${question}: question paper did not scroll`);
+      assert.ok(synchronized.questionGeometryDelta < 40, `${size.name} Q${question}: question page is not aligned in the question pane`);
+      assert.equal(synchronized.questionVisible, true, `${size.name} Q${question}: question page is not visible in the question pane`);
       assert.ok(synchronized.answerControlVisible, `${size.name} Q${question}: answer control is not visible`);
       assert.ok(
         synchronized.answerVisible
@@ -235,7 +251,7 @@ try {
       await page.locator('[data-reading-pane-target="questions"]').click();
     }
 
-    await page.locator('[data-reading-question-nav="1"]').click();
+    await page.locator('[data-reading-question-nav="1"]').evaluate((button) => button.click());
     await page.waitForFunction(() => document.querySelector(".reading-mobile-workspace")?.dataset.activePassage === "1");
     const restoredQ1 = page.locator('.paper-answer-row[data-question-number="1"] .objective-answer-control').first();
     assert.equal(await restoredQ1.inputValue(), "saved-q1", `${size.name}: Passage 1 answer did not survive window switching`);
