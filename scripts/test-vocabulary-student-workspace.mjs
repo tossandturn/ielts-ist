@@ -90,13 +90,23 @@ try {
     }
     assert.match((await page.locator(".vocab-word-face h3").textContent()) || "", /^[A-Za-z][A-Za-z -]*$/, `${viewport.label} first card must be an IELTS English word`);
     const deckNavigationCount = await page.locator(".vocab-mini-list [data-vocab-index]").count();
-    assert.ok(deckNavigationCount > 0 && deckNavigationCount <= 15,
-      `${viewport.label} must restore a virtualized right-side deck navigator without rendering the whole catalog`);
+    assert.equal(deckNavigationCount, 0,
+      `${viewport.label} must keep the complete IELTS Core deck from rendering the full right-side navigator`);
     assert.match(await page.locator(".vocab-review-top strong").innerText(), /1\s*\/\s*304/, `${viewport.label} must begin in the complete IELTS Core deck`);
     assert.match(await page.locator(".vocab-catalog-summary").innerText(), /304 IELTS Core words[\s\S]*Full core deck/i,
       `${viewport.label} must identify the default set as the complete IELTS Core deck`);
-    assert.equal(await page.getByRole("button", { name: /browse all 304 core words/i }).count(), 0,
-      `${viewport.label} must not make the complete deck a secondary action`);
+    const packEntries = page.locator("[data-vocab-pack]");
+    assert.equal(await packEntries.count(), 5, `${viewport.label} must expose IELTS Core, IGCSE, A-Level, Competition and Admissions pack entries`);
+    assert.match(await page.getByRole("button", { name: /ielts core/i }).innerText(), /304 words/i,
+      `${viewport.label} must keep the full IELTS Core pack visible`);
+    assert.match(await page.getByRole("button", { name: /igcse/i }).innerText(), /subjects/i,
+      `${viewport.label} must expose the IGCSE pack entry`);
+    assert.match(await page.getByRole("button", { name: /a-level/i }).innerText(), /subjects/i,
+      `${viewport.label} must expose the A-Level pack entry`);
+    assert.match(await page.getByRole("button", { name: /competition/i }).innerText(), /sync pending/i,
+      `${viewport.label} must tell the student the Competition pack is not imported yet`);
+    assert.match(await page.getByRole("button", { name: /admissions/i }).innerText(), /sync pending/i,
+      `${viewport.label} must tell the student the Admissions pack is not imported yet`);
     assert.equal(await page.locator("#vocabMeaning").isVisible(), true, `${viewport.label} must show the meaning without a blank flashcard state`);
     assert.equal(await page.getByRole("button", { name: /again/i }).isVisible(), true);
     assert.equal(await page.getByRole("button", { name: /know it/i }).isVisible(), true);

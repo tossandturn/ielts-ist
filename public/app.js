@@ -178,13 +178,14 @@
     type: "all",
     query: "",
     catalogCourse: "ielts",
+    catalogFamily: "",
     loading: false,
     loaded: false,
     error: "",
     notice: "",
     searchTimer: null,
     filtersOpen: false,
-    fullDeck: true,
+    fullDeck: false,
   },
   vocabularyRouteContext: {
     applied: false,
@@ -4884,6 +4885,86 @@ function vocabularyTypeLabel(type) {
   return { all: "All types", term: "Term", command: "Command word", phrase: "Question sentence" }[type] || "Term";
 }
 
+function vocabularyPackLabel(pack) {
+  return {
+    ielts: "IELTS Core",
+    igcse: "IGCSE subjects",
+    alevel: "A-Level subjects",
+    competition: "Competition",
+    admissions: "Admissions",
+  }[pack] || "Word packs";
+}
+
+function vocabularyPackSummary(pack, counts = {}) {
+  if (pack === "competition" || pack === "admissions") return "glossary sync pending";
+  const count = Number(counts[pack]);
+  if (!Number.isFinite(count)) return "word pack";
+  if (pack === "ielts") return `${count} words`;
+  return `${count} words`;
+}
+
+function vocabularyPackCards(allItems) {
+  const packCounts = {
+    ielts: allItems.filter((item) => item.subject === "ielts").length,
+    igcse: allItems.filter((item) => item.subject !== "ielts" && item.stage === "IGCSE").length,
+    alevel: allItems.filter((item) => item.subject !== "ielts" && ["AS", "A2"].includes(item.stage)).length,
+  };
+  return [
+    {
+      pack: "ielts",
+      label: vocabularyPackLabel("ielts"),
+      detail: "Open the full core deck",
+      summary: vocabularyPackSummary("ielts", packCounts),
+      tone: "primary",
+    },
+    {
+      pack: "igcse",
+      label: vocabularyPackLabel("igcse"),
+      detail: "Choose a subject pack",
+      summary: vocabularyPackSummary("igcse", packCounts),
+      tone: "default",
+    },
+    {
+      pack: "alevel",
+      label: vocabularyPackLabel("alevel"),
+      detail: "Choose a subject pack",
+      summary: vocabularyPackSummary("alevel", packCounts),
+      tone: "default",
+    },
+    {
+      pack: "competition",
+      label: vocabularyPackLabel("competition"),
+      detail: "No source-backed pack has been imported yet",
+      summary: vocabularyPackSummary("competition", packCounts),
+      tone: "pending",
+    },
+    {
+      pack: "admissions",
+      label: vocabularyPackLabel("admissions"),
+      detail: "No source-backed pack has been imported yet",
+      summary: vocabularyPackSummary("admissions", packCounts),
+      tone: "pending",
+    },
+  ];
+}
+
+function vocabularyWantsFullDeckFromLocation() {
+  const params = new URLSearchParams(window.location.search);
+  const testMode = String(params.get("test") || "").toLowerCase();
+  const deckMode = String(params.get("vocabDeck") || params.get("showDeck") || "").toLowerCase();
+  return testMode.includes("full-core") || ["1", "true", "full"].includes(deckMode);
+}
+
+function renderVocabularyPackCards(allItems) {
+  return `<div class="vocab-pack-strip" aria-label="Word pack entry points">
+    ${vocabularyPackCards(allItems).map((card) => `<button class="vocab-pack-card ${card.tone === "primary" ? "vocab-pack-card-primary" : ""}${card.tone === "pending" ? " is-pending" : ""}" type="button" data-vocab-pack="${escapeHtml(card.pack)}" data-vocab-course="${escapeHtml(card.pack)}">
+      <strong>${escapeHtml(card.label)}</strong>
+      <span>${escapeHtml(card.detail)}</span>
+      <em>${escapeHtml(card.summary)}</em>
+    </button>`).join("")}
+  </div>`;
+}
+
 function vocabularyExampleLabel(item) {
   if (item?.type === "phrase") return "Question sentence / 题目句";
   if (item?.type === "command") return "Exam instruction / 题目要求";
@@ -5051,6 +5132,9 @@ function renderVocabularyHub(allItems, subjectCounts) {
   const selectedCourse = ["igcse", "alevel"].includes(state.vocabularyReview.catalogCourse)
     ? state.vocabularyReview.catalogCourse
     : "";
+  const pendingNotice = /glossary sync pending/i.test(String(state.vocabularyReview.notice || ""))
+    ? String(state.vocabularyReview.notice || "")
+    : "";
   const subjectDirectory = [
     ["STEM & applied science", ["physics", "mathematics", "chemistry", "biology", "computer-science", "information-technology", "environmental-management", "design-technology", "marine-science", "food-nutrition", "agriculture"]],
     ["Business, society & global issues", ["economics", "business", "accounting", "geography", "law", "sociology", "politics", "psychology", "travel-tourism", "enterprise", "global-perspectives", "child-development"]],
@@ -5071,23 +5155,8 @@ function renderVocabularyHub(allItems, subjectCounts) {
       </div>
       <span class="vocab-catalog-status">${escapeHtml(loadedLabel)}</span>
     </header>
-    <div class="vocab-hub-grid">
-      <button class="vocab-hub-card vocab-hub-card-primary" type="button" data-vocab-subject="ielts">
-        <strong>IELTS English</strong>
-        <span>Core vocabulary, academic expressions, collocations and real IELTS question language.</span>
-        <em>${subjectCounts.ielts || 0} words · start learning now</em>
-      </button>
-      <button class="vocab-hub-card ${selectedCourse === "igcse" ? "is-selected" : ""}" type="button" data-vocab-course="igcse">
-        <strong>IGCSE subjects</strong>
-        <span>Vocabulary for school subjects, organised after you choose the course.</span>
-        <em>Choose subject → topic → learn</em>
-      </button>
-      <button class="vocab-hub-card ${selectedCourse === "alevel" ? "is-selected" : ""}" type="button" data-vocab-course="alevel">
-        <strong>A-Level subjects</strong>
-        <span>Definitions, formulas, concept boundaries and exam usage for AS and A2.</span>
-        <em>Choose subject → stage → topic</em>
-      </button>
-    </div>
+    ${renderVocabularyPackCards(allItems)}
+    ${pendingNotice ? `<section class="vocab-subject-directory" aria-labelledby="vocabPendingDirectoryTitle"><div class="vocab-subject-directory-head"><div><span class="eyebrow">Word packs</span><h4 id="vocabPendingDirectoryTitle">${escapeHtml(pendingNotice.replace(/ glossary sync pending$/i, ""))} glossary</h4><p>Only source-backed packs show counts. This one is waiting for import.</p></div><button type="button" class="secondary small-button" data-vocab-pack="ielts">Back to IELTS Core</button></div><article class="vocab-review-card vocab-empty-state"><strong>${escapeHtml(pendingNotice)}</strong><p>We are not showing a fake word count for this pack. Import the source terms before it appears here.</p></article></section>` : ""}
     ${selectedCourse ? `<section class="vocab-subject-directory" aria-labelledby="vocabSubjectDirectoryTitle">
       <div class="vocab-subject-directory-head">
         <div><span class="eyebrow">${selectedCourse === "igcse" ? "IGCSE" : "A-Level"}</span><h4 id="vocabSubjectDirectoryTitle">${courseTitle}</h4><p>${courseDescription}</p></div>
@@ -5176,6 +5245,9 @@ function renderVocabularyReviewPage(allItems, subjectCounts, deck, item, knownCo
   const currentScopeLabel = item
     ? `${isGlobalSearch ? `${studyLabel} · ${itemScopeLabel}` : studyLabel}${item.topicLabel || item.topic ? ` · ${item.topicLabel || item.topic}` : ""}`
     : studyLabel;
+  const packStrip = !isStemRoute ? renderVocabularyPackCards(allItems) : "";
+  const showVocabularySidebar = state.vocabularyReview.mode !== "notebook";
+  const showDeckNavigation = state.vocabularyReview.mode !== "notebook" && (state.vocabularyReview.fullDeck || deck.length <= 12);
   return `<section class="vocab-trainer-shell${deck.length <= 1 ? " single-term-pack" : ""}">
     ${state.vocabularyReview.mode === "notebook" ? renderVocabularyNotebookStatus(allItems) : ""}
     <div class="vocab-library-toolbar" aria-label="Vocabulary learning controls">
@@ -5201,6 +5273,7 @@ function renderVocabularyReviewPage(allItems, subjectCounts, deck, item, knownCo
       </div></details>
       ${catalogStatus}
     </div>
+    ${packStrip}
     ${routeContext.from === "stem" ? `<aside class="vocab-route-context" aria-label="STEM learning context"><div><strong>${isPendingStemFallback ? "IELTSist glossary sync pending" : "STEM term pack"}</strong><span>${isPendingStemFallback ? `The requested STEM term pack is not available here yet. Continue with ${escapeHtml(vocabularyRouteStudyLabel(state.vocabularyReview.subject, routeContext))} while it syncs.` : `${escapeHtml(vocabularySubjectLabel(state.vocabularyReview.subject))}${routeContext.topicId ? ` · ${escapeHtml(routeContext.topicId)}` : ""}${routeContext.attemptId ? ` · attempt ${escapeHtml(routeContext.attemptId)}` : ""} · Vocabulary support only; progress stays on each site.`}</span>${routeWarning && !isPendingStemFallback ? `<em role="alert">${escapeHtml(routeWarning)}</em>` : ""}${isPendingStemFallback && routeContext.termIds.length ? `<button class="secondary small-button" type="button" data-vocab-clear>Browse selected subject</button>` : ""}</div>${returnToStem ? `<a class="secondary small-button" href="${escapeHtml(returnToStem)}">Return to STEM attempt</a>` : ""}</aside>` : ""}
     ${state.vocabularyReview.mode === "notebook" ? "" : isStemCatalogLoading ? `<article class="vocab-review-card vocab-loading-state" role="status"><strong>Loading ${escapeHtml(vocabularyRouteStudyLabel(state.vocabularyReview.subject, routeContext))}</strong><p>Preparing the local study pack for this STEM route.</p></article>` : item ? `<article class="vocab-review-card ${revealed ? "is-revealed" : ""}">
       <div class="vocab-review-top">
@@ -5222,14 +5295,14 @@ function renderVocabularyReviewPage(allItems, subjectCounts, deck, item, knownCo
       </div>
     </article>` : `<article class="vocab-review-card vocab-empty-state"><strong>No vocabulary matches these filters.</strong><p>${routeContext.from === "stem" && routeContext.termIds.length ? "This STEM term pack may have changed. Browse the selected subject to keep learning." : "Try another subject, topic, type, or clear the search."}</p><button class="secondary" type="button" data-vocab-clear>${routeContext.from === "stem" && routeContext.termIds.length ? "Browse selected subject" : "Clear filters"}</button></article>`}
     ${state.vocabularyReview.notice ? `<div class="vocab-notice" role="status">${escapeHtml(state.vocabularyReview.notice)}</div>` : ""}
-    ${state.vocabularyReview.mode !== "notebook" && deck.length > 1 ? `<aside class="vocab-review-side" aria-label="Deck progress">
+    ${showVocabularySidebar ? `<aside class="vocab-review-side" aria-label="Deck progress">
       <div class="vocab-study-meter">
         <span>This study set</span>
         <strong>${knownCount} mastered</strong>
         <em>${Math.max(0, deck.length - knownCount)} to revisit · ${deck.length} words</em>
       </div>
       ${isDefaultIeltsCore ? `<div class="vocab-catalog-summary"><strong>${ieltsCoreCount} IELTS Core words</strong><span>Full core deck</span></div>` : ""}
-      ${vocabularyDeckNavigation(deck, state.vocabularyReview.index)}
+      ${showDeckNavigation ? vocabularyDeckNavigation(deck, state.vocabularyReview.index) : ""}
       <div class="vocab-nav-actions">
         <button id="vocabPrev" class="secondary" type="button">Previous</button>
         <button id="vocabNext" class="primary" type="button">Next word</button>
@@ -5320,6 +5393,7 @@ function setVocabularyMode(mode) {
 function openVocabularySubjectPack(subject) {
   if (!subject) return;
   state.vocabularyReview.subject = subject;
+  state.vocabularyReview.catalogFamily = "";
   state.vocabularyReview.stage = "all";
   state.vocabularyReview.topic = "all";
   state.vocabularyReview.type = "all";
@@ -5334,8 +5408,34 @@ function openVocabularySubjectPack(subject) {
 
 function setVocabularyCourse(course) {
   state.vocabularyReview.catalogCourse = ["igcse", "alevel"].includes(course) ? course : "";
+  state.vocabularyReview.catalogFamily = "";
+  state.vocabularyReview.fullDeck = false;
   state.vocabularyReview.page = "hub";
   state.vocabularyReview.notice = "";
+  renderVocabularyTrainer();
+}
+
+function openVocabularyPack(pack) {
+  if (pack === "ielts") {
+    openVocabularySubjectPack("ielts");
+    return;
+  }
+  if (["igcse", "alevel"].includes(pack)) {
+    setVocabularyCourse(pack);
+    return;
+  }
+  if (!["competition", "admissions"].includes(pack)) return;
+  state.vocabularyReview.catalogCourse = "";
+  state.vocabularyReview.catalogFamily = pack;
+  state.vocabularyReview.subject = "all";
+  state.vocabularyReview.stage = "all";
+  state.vocabularyReview.topic = "all";
+  state.vocabularyReview.type = "all";
+  state.vocabularyReview.query = "";
+  state.vocabularyReview.page = "hub";
+  state.vocabularyReview.index = 0;
+  state.vocabularyReview.revealed = false;
+  state.vocabularyReview.notice = `${vocabularyPackLabel(pack)} glossary sync pending`;
   renderVocabularyTrainer();
 }
 
@@ -5374,6 +5474,9 @@ function bindVocabularyControls() {
   });
   document.querySelectorAll("[data-vocab-back]").forEach((button) => {
     button.onclick = () => setVocabularyPage("hub");
+  });
+  document.querySelectorAll("[data-vocab-pack]").forEach((button) => {
+    button.onclick = () => openVocabularyPack(button.dataset.vocabPack || "");
   });
   document.querySelectorAll("[data-vocab-subject]").forEach((button) => {
     button.onclick = () => {
@@ -6381,11 +6484,14 @@ async function submitAuth(mode) {
     state.currentUser = json.user || null;
     setLocalDataOwner(nextOwner);
     localStorage.setItem(authStoreKey, nextToken);
-    await syncAllLocalDrafts({ owner: nextOwner, authToken: nextToken });
-    if (state.authBridge?.returnTo && ["login", "register"].includes(state.authBridge.action)) {
+    const shouldReturnToStem = Boolean(state.authBridge?.returnTo && ["login", "register"].includes(state.authBridge.action));
+    const syncPromise = syncAllLocalDrafts({ owner: nextOwner, authToken: nextToken });
+    if (shouldReturnToStem) {
+      void syncPromise.catch(() => {});
       completeStemAuthBridge();
       return;
     }
+    await syncPromise;
     reloadAfterOwnerSwitch();
   } catch (error) {
     if (state.authBridge && ["login", "register"].includes(state.authBridge.action)) {
@@ -23702,7 +23808,7 @@ function activateView(viewId, updateHash = false, options = {}) {
       state.vocabularyReview.query = "";
       state.vocabularyReview.index = 0;
       state.vocabularyReview.revealed = false;
-      state.vocabularyReview.fullDeck = true;
+      state.vocabularyReview.fullDeck = vocabularyWantsFullDeckFromLocation();
     }
     renderVocabularyTrainer();
     void ensureIeltsCoreVocabularyLoaded();
@@ -24161,6 +24267,7 @@ async function init() {
   renderDashboard();
   renderSubscription();
   renderMine();
+  if (vocabularyWantsFullDeckFromLocation()) state.vocabularyReview.fullDeck = true;
   renderVocabularyTrainer();
   void ensureIeltsCoreVocabularyLoaded();
   renderWritingUploadHub();

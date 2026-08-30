@@ -50,9 +50,30 @@ function bridgeUrl(action, returnTo, from = "stem") {
 }
 
 const stemReturn = "https://stem.ieltsist.com/papers?paper=S25%2F11&attemptId=attempt-7&token=secret&returnTo=https%3A%2F%2Fevil.example#question?state=temp&part=22";
-const canonicalStemReturn = "https://stem.ieltsist.com/papers?attemptId=attempt-7&paper=S25%2F11#question?part=22";
+const canonicalStemReturn = "https://stem.ieltsist.com/papers?paper=S25%2F11&attemptId=attempt-7#question?part=22";
 const username = `bridge_${process.pid}_${Date.now()}`.slice(0, 24);
 const password = "bridge-pass-2026";
+
+async function waitForStemReturn(page, expectedUrl = canonicalStemReturn) {
+  const expected = new URL(expectedUrl);
+  const deadline = Date.now() + 20_000;
+  let lastUrl = page.url();
+  while (Date.now() < deadline) {
+    lastUrl = page.url();
+    try {
+      const url = new URL(lastUrl);
+      if (url.origin === expected.origin
+        && url.pathname === expected.pathname
+        && url.hash === expected.hash
+        && url.searchParams.get("paper") === expected.searchParams.get("paper")
+        && url.searchParams.get("attemptId") === expected.searchParams.get("attemptId")) {
+        return;
+      }
+    } catch {}
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  throw new Error(`Timed out waiting for STEM return ${expected.href}. Last URL: ${lastUrl}`);
+}
 
 await waitForServer();
 const browser = await chromium.launch({
@@ -79,7 +100,7 @@ try {
   await page.locator("#authUsername").fill(username);
   await page.locator("#authPassword").fill(password);
   await page.locator("#registerUser").click();
-  await page.waitForURL(canonicalStemReturn, { timeout: 20_000 });
+  await waitForStemReturn(page);
   assert.equal(await page.locator("#stem-return").innerText(), "Returned to STEM attempt");
 
   let identity = await context.request.get(`${baseUrl}/api/stem/identity`, {
@@ -90,7 +111,7 @@ try {
   assert.equal(registeredIdentity.identity.username, username);
 
   await page.goto(bridgeUrl("logout", stemReturn), { waitUntil: "networkidle" });
-  await page.waitForURL(canonicalStemReturn, { timeout: 20_000 });
+  await waitForStemReturn(page);
   identity = await context.request.get(`${baseUrl}/api/stem/identity`, {
     headers: { origin: "https://stem.ieltsist.com" },
   });
@@ -100,8 +121,11 @@ try {
   await page.locator('[data-auth-bridge-mode="login"]').waitFor({ state: "visible" });
   await page.locator("#authUsername").fill(username);
   await page.locator("#authPassword").fill(password);
+  const loginResponsePromise = page.waitForResponse((response) => response.url().endsWith("/api/auth/login"));
   await page.locator("#loginUser").click();
-  await page.waitForURL(canonicalStemReturn, { timeout: 20_000 });
+  const loginResponse = await loginResponsePromise;
+  assert.equal(loginResponse.status(), 200, "Login bridge must accept the previously registered credentials");
+  await waitForStemReturn(page);
   identity = await context.request.get(`${baseUrl}/api/stem/identity`, {
     headers: { origin: "https://stem.ieltsist.com" },
   });
@@ -115,7 +139,7 @@ try {
   assert.equal(await page.locator('[data-auth-bridge-mode]').count(), 0, "Rejected origins must not open an auth bridge mode");
 
   await page.goto(bridgeUrl("logout", stemReturn), { waitUntil: "networkidle" });
-  await page.waitForURL(canonicalStemReturn, { timeout: 20_000 });
+  await waitForStemReturn(page);
   identity = await context.request.get(`${baseUrl}/api/stem/identity`, {
     headers: { origin: "https://stem.ieltsist.com" },
   });

@@ -17,6 +17,7 @@ const cases = [
     url: `${baseUrl}/?module=reading#single`,
     expectedView: "single",
     expectedModule: "reading",
+    stableDelayMs: 1800,
   },
   {
     name: "single-listening",
@@ -64,6 +65,21 @@ try {
     assert.equal(actual.tabView || actual.viewId, testCase.expectedView, `${testCase.name}: wrong active view`);
     if (testCase.expectedModule) {
       assert.equal(actual.module, testCase.expectedModule, `${testCase.name}: wrong active module`);
+    }
+    if (testCase.stableDelayMs) {
+      await page.waitForTimeout(testCase.stableDelayMs);
+      const stable = await page.evaluate(() => {
+        const activeTab = document.querySelector(".tab.active");
+        const activeView = document.querySelector(".view.active");
+        const activeModule = document.querySelector(".module-btn.active");
+        return {
+          tabView: activeTab?.dataset.view || "",
+          viewId: activeView?.id || "",
+          module: activeTab?.dataset.moduleTarget || activeModule?.dataset.module || "",
+        };
+      });
+      assert.equal(stable.tabView || stable.viewId, testCase.expectedView, `${testCase.name}: wrong active view after delay`);
+      assert.equal(stable.module, testCase.expectedModule, `${testCase.name}: wrong active module after delay`);
     }
     await page.close();
     console.log(`PASS ${testCase.name}`);

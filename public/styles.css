@@ -10938,6 +10938,56 @@ body.immersive-mode[data-immersive-module="speaking"] .exam-section.focused-sect
   gap: 14px;
 }
 
+.vocab-pack-strip {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.vocab-pack-card {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border: 1px solid rgba(226, 232, 240, .96);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, .06);
+  text-align: left;
+  cursor: pointer;
+}
+
+.vocab-pack-card strong {
+  color: #101828;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.vocab-pack-card span {
+  color: #475467;
+  font-size: 12px;
+  line-height: 1.45;
+  font-weight: 700;
+}
+
+.vocab-pack-card em {
+  color: #667085;
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.vocab-pack-card-primary {
+  border-color: #cfc6ff;
+  background: linear-gradient(135deg, #ffffff 0%, #f6f4ff 100%);
+}
+
+.vocab-pack-card.is-pending {
+  border-style: dashed;
+  border-color: #d0d5dd;
+  background: #fcfcfd;
+}
+
 .vocab-hub-card {
   display: grid;
   gap: 8px;
@@ -11815,8 +11865,10 @@ button.vocab-catalog-status.is-error {
 }
 
 .vocab-catalog-summary {
+  grid-column: 1 / -1;
   display: grid;
   gap: 6px;
+  min-width: 0;
   padding: 16px 18px;
   border-top: 1px solid #e2e4ed;
 }
@@ -11946,6 +11998,10 @@ button.vocab-catalog-status.is-error {
     grid-template-columns: 1fr;
   }
 
+  .vocab-pack-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .vocab-subject-groups {
     grid-template-columns: 1fr;
   }
@@ -11991,6 +12047,10 @@ button.vocab-catalog-status.is-error {
   .vocab-topic-search {
     grid-column: 1 / -1;
   }
+
+  .vocab-pack-strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 .vocab-mini-window-status {
@@ -12014,6 +12074,10 @@ button.vocab-catalog-status.is-error {
   }
 
   .vocab-library-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .vocab-pack-strip {
     grid-template-columns: 1fr;
   }
 
