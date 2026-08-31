@@ -55,7 +55,14 @@ assert.match(app, /clearVocabularyRouteTermScope/);
 assert.match(app, /function vocabularyRouteContextWarning\(context, allItems\)/);
 assert.match(app, /IELTSist glossary sync pending/);
 assert.match(app, /older route metadata/);
-assert.match(app, /item\.taxonomyId === context\.taxonomyId/);
+assert.match(app, /function vocabularyIdentifierKey\(value\)/);
+assert.match(app, /function vocabularyIdentifiersEqual\(left, right\)/);
+assert.match(app, /function vocabularyContextMetadataMatches\(context, item\)/);
+assert.match(app, /vocabularyIdentifiersEqual\(item\.taxonomyId, context\.taxonomyId\)/);
+assert.match(app, /vocabularyIdentifiersEqual\(item\.routeId, context\.routeId\)/);
+assert.match(app, /vocabularyIdentifiersEqual\(item\.subjectCode, context\.subjectCode\)/);
+assert.match(app, /vocabularyIdentifiersEqual\(item\.topicId, context\.topicId\)/);
+assert.match(app, /vocabularyIdentifiersEqual\(item\.termId, termId\)/);
 assert.doesNotMatch(app, /item\.topicId\.endsWith/);
 assert.match(app, /function vocabularyStudyDeck\(\)/);
 assert.match(app, /return filteredCoreVocabulary\(\);/,

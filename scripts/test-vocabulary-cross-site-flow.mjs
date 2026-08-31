@@ -63,6 +63,31 @@ function stemVocabularyUrl(returnTo) {
   return `${baseUrl}/?${params.toString()}`;
 }
 
+function caseVariantStemVocabularyUrl(returnTo, overrides = {}) {
+  const params = new URLSearchParams({
+    from: "STEM",
+    contractVersion: "stem-vocabulary-context-v1",
+    family: "EXAM",
+    taxonomyId: String(term.taxonomyId || term.topicId).toUpperCase(),
+    routeId: String(term.routeId).toUpperCase(),
+    specificationVersion: term.specificationVersion,
+    subjectCode: String(term.subject).toUpperCase(),
+    topicId: String(term.topicId).toUpperCase(),
+    questionPartId: `vocabulary:${String(term.termId).toUpperCase()}`,
+    termId: String(term.termId).toUpperCase(),
+    termIds: String(term.termId).toUpperCase(),
+    attemptId: "physics-attempt-case",
+    returnTo,
+    source: "stem-reviewed-glossary",
+    sourceStatus: "SOURCE-BACKED",
+    termInventoryStatus: "IMPORTED",
+    availableCount: "1",
+    stage: term.stage.toLowerCase(),
+    ...overrides,
+  });
+  return `${baseUrl}/?${params.toString()}`;
+}
+
 await waitForServer();
 const browser = await chromium.launch({ headless: true, executablePath: "C:/Program Files/Google/Chrome/Application/chrome.exe" });
 
@@ -100,6 +125,43 @@ try {
   assert.match(await hashRouted.locator(".vocab-route-context").textContent(), /IELTSist glossary sync pending/i,
     "Hash-routed pending inventory must not fall back to IELTS Core");
   await hashRouted.close();
+
+  const caseVariant = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+  await caseVariant.goto(caseVariantStemVocabularyUrl(returnTo), { waitUntil: "networkidle" });
+  await caseVariant.locator("#vocabulary.active .vocab-review-card").waitFor();
+  assert.equal((await caseVariant.locator(".vocab-word-face h3").textContent()).trim(), term.word,
+    "Case-variant STEM taxonomy, route, topic, subject and term IDs must focus the requested term exactly");
+  assert.equal(await caseVariant.locator(".vocab-route-context [role='alert']").count(), 0,
+    "Case-equivalent STEM IDs must not be treated as stale metadata");
+  await caseVariant.locator("#vocabReveal").click();
+  const caseOutbound = new URL(await caseVariant.locator(".vocab-cross-link").getAttribute("href"));
+  assert.equal(caseOutbound.searchParams.get("family"), "exam");
+  assert.equal(caseOutbound.searchParams.get("taxonomyId"), String(term.taxonomyId || term.topicId).toUpperCase());
+  assert.equal(caseOutbound.searchParams.get("routeId"), String(term.routeId).toUpperCase());
+  assert.equal(caseOutbound.searchParams.get("subjectCode"), String(term.subject).toUpperCase());
+  assert.equal(caseOutbound.searchParams.get("topicId"), String(term.topicId).toUpperCase());
+  assert.equal(caseOutbound.searchParams.get("termIds"), String(term.termId).toUpperCase(),
+    "Case-insensitive termIds merging must preserve the requested ID without appending a duplicate canonical copy");
+  assert.equal(caseOutbound.searchParams.get("sourceStatus"), "source-backed");
+  assert.equal(caseOutbound.searchParams.get("termInventoryStatus"), "imported");
+  assert.equal(caseOutbound.searchParams.get("availableCount"), "1");
+  assert.equal(caseOutbound.search.includes("taxonomy_id="), false, "Outbound STEM links must keep canonical camelCase field names");
+  assert.equal(caseOutbound.search.includes("route_id="), false, "Outbound STEM links must keep canonical camelCase field names");
+  await caseVariant.close();
+
+  const unknownCaseTerm = `${term.termId}-unknown`.toUpperCase();
+  const unknownCaseVariant = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+  await unknownCaseVariant.goto(caseVariantStemVocabularyUrl(returnTo, {
+    termId: unknownCaseTerm,
+    termIds: unknownCaseTerm,
+    questionPartId: `vocabulary:${unknownCaseTerm}`,
+  }), { waitUntil: "networkidle" });
+  await unknownCaseVariant.locator("#vocabulary.active .vocab-review-card").waitFor();
+  assert.match(await unknownCaseVariant.locator(".vocab-route-context").textContent(), /IELTSist glossary sync pending/i,
+    "Unknown case-variant STEM term IDs must show an explicit pending warning instead of silently displaying another term");
+  assert.equal(await unknownCaseVariant.getByRole("button", { name: "Browse selected subject" }).count(), 1,
+    "Unknown STEM term IDs must require an explicit browse-subject fallback");
+  await unknownCaseVariant.close();
 
   await page.locator("#vocabReveal").click();
   const outbound = new URL(await page.locator(".vocab-cross-link").getAttribute("href"));

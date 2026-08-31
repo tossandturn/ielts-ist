@@ -4442,13 +4442,53 @@ const vocabularySubjectByCambridgeCode = Object.freeze({
   "0445": "design-technology", "9705": "design-technology",
 });
 
+function vocabularyIdentifierKey(value) {
+  return String(value ?? "")
+    .normalize("NFKC")
+    .trim()
+    .toLocaleLowerCase("en");
+}
+
+function vocabularyIdentifiersEqual(left, right) {
+  return vocabularyIdentifierKey(left) === vocabularyIdentifierKey(right);
+}
+
+function vocabularyUniqueIdentifiers(values) {
+  const unique = [];
+  for (const value of Array.isArray(values) ? values : []) {
+    const identifier = String(value ?? "").trim();
+    if (!identifier || unique.some((current) => vocabularyIdentifiersEqual(current, identifier))) continue;
+    unique.push(identifier);
+  }
+  return unique;
+}
+
+function vocabularyMatchingRouteTerms(items, termIds) {
+  return vocabularyUniqueIdentifiers(termIds).map((termId) => ({
+    termId,
+    items: items.filter((item) => vocabularyIdentifiersEqual(item.termId, termId)),
+  }));
+}
+
+function vocabularyContextMetadataMatches(context, item) {
+  const questionPartId = vocabularyIdentifierKey(context.questionPartId);
+  return (!context.family || vocabularyIdentifiersEqual(item.family, context.family))
+    && (!context.taxonomyId || vocabularyIdentifiersEqual(item.taxonomyId, context.taxonomyId))
+    && (!context.routeId || vocabularyIdentifiersEqual(item.routeId, context.routeId))
+    && (!context.specificationVersion || vocabularyIdentifiersEqual(item.specificationVersion, context.specificationVersion))
+    && (!context.subjectCode || vocabularyIdentifiersEqual(item.subjectCode, context.subjectCode))
+    && (!context.topicId || vocabularyIdentifiersEqual(item.topicId, context.topicId) || vocabularyIdentifiersEqual(item.topic, context.topicId))
+    && (!context.stage || vocabularyIdentifiersEqual(item.stage, context.stage))
+    && (!questionPartId.startsWith("vocabulary:") || vocabularyIdentifiersEqual(item.questionPartId, context.questionPartId));
+}
+
 function vocabularySubjectFromCambridgeCode(context, items) {
-  const subjectCode = String(context?.subjectCode || "").trim().toLowerCase();
+  const subjectCode = vocabularyIdentifierKey(context?.subjectCode);
   const mappedSubject = vocabularySubjectByCambridgeCode[subjectCode];
   if (mappedSubject) return mappedSubject;
   // STEM may send its canonical subject code when no numeric Cambridge code
   // applies. Accept it only when this vocabulary catalog has that exact subject.
-  return items.some((item) => item.subject === subjectCode) ? subjectCode : "";
+  return items.find((item) => vocabularyIdentifiersEqual(item.subject, subjectCode))?.subject || "";
 }
 
 function normalizeVocabularyMetadata(item, index = 0) {
@@ -4529,7 +4569,7 @@ function vocabularyRouteContextFromLocation() {
     subjectCode: String(value("subjectCode", "subject_code")).trim(),
     topicId: String(value("topicId", "topic_id")).trim(),
     questionPartId: String(value("questionPartId", "question_part_id")).trim(),
-    termIds: [...new Set(termIds)],
+    termIds: vocabularyUniqueIdentifiers(termIds),
     attemptId: String(value("attemptId", "attempt_id")).trim(),
     returnTo: String(value("returnTo", "return_to")).trim(),
     source: String(params.get("source") || "").trim(),
@@ -4566,30 +4606,20 @@ function vocabularyRouteContextKey(context) {
 
 function routeContextSubject(context, items) {
   const exactMatches = items.filter((item) =>
-    (context.termIds || []).includes(item.termId)
-    && (!context.family || item.family === context.family)
-    && (!context.routeId || item.routeId === context.routeId)
-    && (!context.taxonomyId || item.taxonomyId === context.taxonomyId)
-    && (!context.topicId || item.topicId === context.topicId)
-    && (!context.subjectCode || item.subjectCode === context.subjectCode),
+    (context.termIds || []).some((termId) => vocabularyIdentifiersEqual(item.termId, termId))
+    && vocabularyContextMetadataMatches(context, item),
   );
   if (exactMatches.length) return exactMatches[0].subject;
   const mappedSubject = vocabularySubjectFromCambridgeCode(context, items);
   if (mappedSubject) return mappedSubject;
-  const routeMatch = items.find((item) =>
-    (!context.family || item.family === context.family)
-    && (!context.routeId || item.routeId === context.routeId)
-    && (!context.taxonomyId || item.taxonomyId === context.taxonomyId)
-    && (!context.topicId || item.topicId === context.topicId)
-    && (!context.subjectCode || item.subjectCode === context.subjectCode),
-  );
+  const routeMatch = items.find((item) => vocabularyContextMetadataMatches(context, item));
   return routeMatch?.subject || "all";
 }
 
 function hasResolvedStemVocabularyTermPack(items = normalizedCoreVocabularyItems(), context = state.vocabularyRouteContext) {
   if (context?.from !== "stem" || !Array.isArray(context.termIds) || !context.termIds.length) return false;
-  const requested = new Set(context.termIds);
-  return items.some((item) => requested.has(item.termId));
+  const termMatches = vocabularyMatchingRouteTerms(items, context.termIds);
+  return termMatches.length > 0 && termMatches.every((match) => match.items.length === 1);
 }
 
 function applyVocabularyRouteContext(allItems) {
@@ -4613,13 +4643,7 @@ function applyVocabularyRouteContext(allItems) {
     : subject;
   if (!alreadyApplied || state.vocabularyReview.subject === "all") state.vocabularyReview.subject = selectedSubject;
   const subjectItems = allItems.filter((item) => item.subject === selectedSubject);
-  const topicMatch = subjectItems.find((item) =>
-    (!context.family || item.family === context.family)
-    && (!context.taxonomyId || item.taxonomyId === context.taxonomyId)
-    && (!context.topicId || item.topicId === context.topicId || item.topic === context.topicId)
-    && (!context.routeId || item.routeId === context.routeId)
-    && (!context.subjectCode || item.subjectCode === context.subjectCode),
-  );
+  const topicMatch = subjectItems.find((item) => vocabularyContextMetadataMatches(context, item));
   if (topicMatch && (!alreadyApplied || state.vocabularyReview.topic === "all")) state.vocabularyReview.topic = topicMatch.topic;
   if (context.stage && ["IGCSE", "AS", "A2"].includes(context.stage.toUpperCase())) {
     if (!alreadyApplied || state.vocabularyReview.stage === "all") state.vocabularyReview.stage = context.stage.toUpperCase();
@@ -4633,7 +4657,10 @@ function applyVocabularyRouteContext(allItems) {
 
 function buildVocabularyStemUrl(item) {
   const questionPartId = item.relatedQuestionPartIds?.[0] || `vocabulary:${item.termId}`;
-  const termIds = [...new Set([...(state.vocabularyRouteContext.termIds || []), item.termId].filter(Boolean))];
+  const routeTermIds = vocabularyUniqueIdentifiers(state.vocabularyRouteContext.termIds || []);
+  const termIds = routeTermIds.some((termId) => vocabularyIdentifiersEqual(item.termId, termId))
+    ? routeTermIds
+    : [...routeTermIds, item.termId];
   const returnTo = vocabularyReturnToStemUrl() || canonicalProductReturnUrl(window.location.href);
   const params = new URLSearchParams({
     from: "ieltsist",
@@ -4701,16 +4728,9 @@ function vocabularyRouteContextWarning(context, allItems) {
     return "IELTSist glossary sync pending";
   }
   if (!state.vocabularyReview.loaded || !context.termIds.length) return "";
-  const termItems = allItems.filter((item) => context.termIds.includes(item.termId));
-  if (!termItems.length) return "";
-  const mismatched = termItems.some((item) =>
-    (context.family && item.family !== context.family)
-    || (context.taxonomyId && item.taxonomyId !== context.taxonomyId)
-    || (context.routeId && item.routeId !== context.routeId)
-    || (context.specificationVersion && item.specificationVersion !== context.specificationVersion)
-    || (context.topicId && item.topicId !== context.topicId)
-    || (context.subjectCode && item.subjectCode !== context.subjectCode)
-    || (context.questionPartId.startsWith("vocabulary:") && item.questionPartId !== context.questionPartId));
+  const termMatches = vocabularyMatchingRouteTerms(allItems, context.termIds);
+  if (!termMatches.length || termMatches.some((match) => match.items.length !== 1)) return "IELTSist glossary sync pending";
+  const mismatched = termMatches.some((match) => !vocabularyContextMetadataMatches(context, match.items[0]));
   return mismatched ? "This STEM link uses older route metadata. The requested term is shown, but check its subject and topic before continuing." : "";
 }
 
@@ -5000,7 +5020,7 @@ function vocabularySearchRank(item, query) {
 function filteredCoreVocabulary() {
   const review = state.vocabularyReview;
   const query = String(review.query || "").trim().toLowerCase();
-  const routeTermIds = new Set(state.vocabularyRouteContext.termIds || []);
+  const routeTermIds = vocabularyUniqueIdentifiers(state.vocabularyRouteContext.termIds || []);
   const globalSearch = Boolean(query) && review.mode === "all" && state.vocabularyRouteContext.from !== "stem";
   const allItems = normalizedCoreVocabularyItems();
   const resolvedStemTermPack = hasResolvedStemVocabularyTermPack(allItems);
@@ -5011,7 +5031,7 @@ function filteredCoreVocabulary() {
     if (!globalSearch && review.type !== "all" && item.type !== review.type) return false;
     if (review.mode === "notebook" && !vocabularyIsSaved(item)) return false;
     if (review.mode === "due" && (!vocabularyIsSaved(item) || !vocabularyIsDue(item))) return false;
-    if (resolvedStemTermPack && routeTermIds.size && !routeTermIds.has(item.termId)) return false;
+    if (resolvedStemTermPack && routeTermIds.length && !routeTermIds.some((termId) => vocabularyIdentifiersEqual(item.termId, termId))) return false;
     if (!query) return true;
     return [
       item.word, item.meaning, item.definition, item.cn, item.formula, item.formulaExplanation,
@@ -5230,8 +5250,8 @@ function renderVocabularyReviewPage(allItems, subjectCounts, deck, item, knownCo
   const ieltsCoreCount = allItems.filter((entry) => entry.subject === "ielts").length;
   const defaultType = "all";
   const activeFilterCount = [
-    state.vocabularyReview.topic !== "all" && !(isStemRoute && routeContext.topicId && state.vocabularyReview.topic === routeContext.topicId),
-    state.vocabularyReview.stage !== "all" && !(isStemRoute && routeContext.stage && state.vocabularyReview.stage === routeContext.stage),
+    state.vocabularyReview.topic !== "all" && !(isStemRoute && routeContext.topicId && vocabularyIdentifiersEqual(state.vocabularyReview.topic, routeContext.topicId)),
+    state.vocabularyReview.stage !== "all" && !(isStemRoute && routeContext.stage && vocabularyIdentifiersEqual(state.vocabularyReview.stage, routeContext.stage)),
     state.vocabularyReview.type !== defaultType,
   ].filter(Boolean).length;
   const studyLabel = isStemRoute && hasResolvedStemTermPack
