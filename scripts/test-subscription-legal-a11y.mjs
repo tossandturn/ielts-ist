@@ -5,11 +5,26 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { randomUUID } from "node:crypto";
 import { createRequire } from "node:module";
+import net from "node:net";
 
 const require = createRequire(import.meta.url);
 const { chromium } = require("C:/Users/10604/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright");
 const root = new URL("../", import.meta.url);
-const port = 8500 + (process.pid % 300);
+
+function findAvailablePort() {
+  return new Promise((resolvePort, rejectPort) => {
+    const probe = net.createServer();
+    probe.unref();
+    probe.once("error", rejectPort);
+    probe.listen(0, "127.0.0.1", () => {
+      const address = probe.address();
+      const selectedPort = typeof address === "object" && address ? address.port : 0;
+      probe.close((error) => error ? rejectPort(error) : resolvePort(selectedPort));
+    });
+  });
+}
+
+const port = await findAvailablePort();
 const baseUrl = `http://127.0.0.1:${port}`;
 const databasePath = join(tmpdir(), `ieltsist-subscription-${process.pid}-${randomUUID()}.sqlite`);
 const outputDir = resolve("artifacts", "subscription-legal-a11y");
