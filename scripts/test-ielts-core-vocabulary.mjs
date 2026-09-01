@@ -71,8 +71,14 @@ assert.match(appVersion, /^\d{8}-[a-z0-9-]+-v\d+$/, "Frontend assets need a date
 assert.equal(stylesVersion, appVersion, "CSS and JavaScript must use the same cache version");
 assert.equal(
   appVersion,
-  "20260816-objective-text-inputs-v23",
+  "20260901-service-recovery-v24",
   "A changed app bundle must receive a fresh cache version before production release",
 );
+
+for (const pathname of ["content-policy.html", "cookie-policy.html", "privacy.html", "terms.html"]) {
+  const page = await readFile(new URL(`../public/${pathname}`, import.meta.url), "utf8");
+  const pageStylesVersion = page.match(/styles\.css\?v=([^"']+)/)?.[1] || "";
+  assert.equal(pageStylesVersion, appVersion, `${pathname} must use the current shared stylesheet version`);
+}
 
 console.log(`IELTS Core vocabulary checks passed: ${catalog.items.length} items.`);
