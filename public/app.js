@@ -118,6 +118,7 @@
     lastX: 0,
     lastY: 0,
     saveTimer: null,
+    resizeObservers: new Map(),
   },
   help: {
     stream: null,
@@ -12667,6 +12668,11 @@ function resizeAnnotationCanvas(canvas, img) {
 }
 
 function bindPdfAnnotations() {
+  state.annotation.resizeObservers.forEach((observer, canvas) => {
+    if (canvas.isConnected) return;
+    observer.disconnect();
+    state.annotation.resizeObservers.delete(canvas);
+  });
   const canvases = [...document.querySelectorAll(".pdf-annotation-canvas")];
   canvases.forEach((canvas) => {
     const img = canvas.parentElement?.querySelector("img");
@@ -12679,6 +12685,18 @@ function bindPdfAnnotations() {
     if (img.complete) sync();
     else img.addEventListener("load", sync, { once: true });
     window.setTimeout(sync, 50);
+    if (typeof ResizeObserver === "function") {
+      const observer = new ResizeObserver(() => {
+        if (!canvas.isConnected || !img.isConnected) {
+          observer.disconnect();
+          state.annotation.resizeObservers.delete(canvas);
+          return;
+        }
+        sync();
+      });
+      state.annotation.resizeObservers.set(canvas, observer);
+      observer.observe(img);
+    }
     canvas.addEventListener("pointerdown", (event) => {
       if (!state.annotation.enabled) return;
       state.annotation.pointers.add(event.pointerId);
