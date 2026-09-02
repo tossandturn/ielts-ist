@@ -5,7 +5,8 @@
   "type": "commonjs",
   "scripts": {
     "start": "node server.js",
-    "check": "node --check server.js"
+    "check": "node --check server.js",
+    "test:ai-default-config": "node scripts/test-ai-default-config.mjs"
   },
   "dependencies": {
     "@napi-rs/canvas": "^1.0.2",
