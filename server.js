@@ -73,7 +73,7 @@ const THIRD_PARTY_API_KEY = process.env.THRID_AI_KEY || process.env.thridkey || 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || THIRD_PARTY_API_KEY;
 const OPENAI_BASE_URL = (process.env.OPENAI_BASE_URL || process.env.UUAPI_BASE_URL || "https://api.openai.com/v1").replace(/\/+$/, "");
 const VOICE_CHAT_URL = process.env.VOICE_CHAT_URL || "https://chatgpt.com/";
-const DASHSCOPE_API_KEY = process.env.DASHSCOPE_API_KEY || process.env.QWEN_API_KEY || THIRD_PARTY_API_KEY;
+const DASHSCOPE_API_KEY = process.env.DASHSCOPE_API_KEY || process.env.QWEN_API_KEY || "";
 const DASHSCOPE_WORKSPACE_ID = process.env.DASHSCOPE_WORKSPACE_ID || process.env.QWEN_WORKSPACE_ID || "";
 const DASHSCOPE_REGION = process.env.DASHSCOPE_REGION || "cn-beijing";
 const DEFAULT_DASHSCOPE_COMPAT_BASE_URL = DASHSCOPE_WORKSPACE_ID
@@ -82,7 +82,7 @@ const DEFAULT_DASHSCOPE_COMPAT_BASE_URL = DASHSCOPE_WORKSPACE_ID
 const DASHSCOPE_COMPAT_BASE_URL = (process.env.DASHSCOPE_COMPAT_BASE_URL || DEFAULT_DASHSCOPE_COMPAT_BASE_URL).replace(/\/+$/, "");
 const WRITING_AI_MODEL = process.env.WRITING_AI_MODEL || process.env.QWEN_WRITING_MODEL || DEFAULT_AI_MODEL;
 const WRITING_AI_BASE_URL = (process.env.WRITING_AI_BASE_URL || process.env.QWEN_WRITING_BASE_URL || DASHSCOPE_COMPAT_BASE_URL).replace(/\/+$/, "");
-const WRITING_AI_API_KEY = process.env.WRITING_AI_API_KEY || process.env.QWEN_WRITING_API_KEY || DASHSCOPE_API_KEY;
+const WRITING_AI_API_KEY = process.env.WRITING_AI_API_KEY || process.env.QWEN_WRITING_API_KEY || DASHSCOPE_API_KEY || THIRD_PARTY_API_KEY;
 const WRITING_SCORING_PROMPT_VERSION = "ielts-writing-rubric.v2";
 const WRITING_AI_TIMEOUT_MS = Math.max(1_000, Math.min(60_000, Number(process.env.WRITING_AI_TIMEOUT_MS || 25_000)));
 // The public AI gateway is intentionally server-only. Do not expose this key in
@@ -98,7 +98,9 @@ const COACH_AGENT_TOOL_TIMEOUT_MS = Math.max(250, Math.min(5_000, Number(process
 const COACH_AI_MODEL = process.env.COACH_AI_MODEL || process.env.QWEN_COACH_MODEL || DEFAULT_AI_MODEL;
 const COACH_AI_BASE_URL = (process.env.COACH_AI_BASE_URL || process.env.QWEN_COACH_BASE_URL || DASHSCOPE_COMPAT_BASE_URL).replace(/\/+$/, "");
 const COACH_AI_API_KEY = process.env.COACH_AI_API_KEY || process.env.QWEN_COACH_API_KEY || DASHSCOPE_API_KEY || THIRD_PARTY_API_KEY;
+const COACH_QWEN_CONFIGURED = Boolean(process.env.COACH_AI_API_KEY || process.env.QWEN_COACH_API_KEY || process.env.DASHSCOPE_API_KEY || process.env.QWEN_API_KEY);
 const COACH_AI_TIMEOUT_MS = Math.max(5_000, Math.min(60_000, Number(process.env.COACH_AI_TIMEOUT_MS || 25_000)));
+const COACH_AI_TOTAL_TIMEOUT_MS = Math.max(5_000, Math.min(120_000, Number(process.env.COACH_AI_TOTAL_TIMEOUT_MS || (AI_GATEWAY_TIMEOUT_MS + COACH_AI_TIMEOUT_MS + 2_000))));
 const STEM_MARKING_AI_DISABLED = process.env.STEM_MARKING_AI_DISABLED === "1";
 const STEM_MARKING_AI_MODEL = STEM_MARKING_AI_DISABLED ? "" : (process.env.STEM_MARKING_AI_MODEL || COACH_AI_MODEL);
 const STEM_MARKING_AI_BASE_URL = STEM_MARKING_AI_DISABLED ? "" : (process.env.STEM_MARKING_AI_BASE_URL || COACH_AI_BASE_URL).replace(/\/+$/, "");
@@ -1194,14 +1196,19 @@ function slimWritingTask(task) {
 }
 
 function tasksPayload() {
-  const coachAiEnabled = Boolean(AI_GATEWAY_API_KEY || COACH_AI_API_KEY || OPENAI_API_KEY);
-  const coachProvider = AI_GATEWAY_API_KEY
-    ? { name: "IELTSist AI Gateway", model: AI_GATEWAY_MODEL, baseUrl: AI_GATEWAY_BASE_URL, reasoningEffort: AI_GATEWAY_REASONING_EFFORT, agentEnabled: true }
-    : COACH_AI_API_KEY
-      ? { name: "Coach provider", model: COACH_AI_MODEL, baseUrl: COACH_AI_BASE_URL, reasoningEffort: null, agentEnabled: false }
-      : OPENAI_API_KEY
-        ? { name: "Legacy provider", model: MODEL, baseUrl: OPENAI_BASE_URL, reasoningEffort: null, agentEnabled: false }
-        : null;
+  const coachProviders = coachAiProviders();
+  const coachAiEnabled = coachProviders.length > 0;
+  const coachProvider = coachProviders[0]
+    ? {
+        name: coachProviders[0].provider === "gateway"
+          ? "IELTSist AI Gateway"
+          : coachProviders[0].provider === "qwen" ? "Coach provider" : "Legacy provider",
+        model: coachProviders[0].model,
+        baseUrl: coachProviders[0].baseUrl,
+        reasoningEffort: coachProviders[0].reasoningEffort || null,
+        agentEnabled: Boolean(coachProviders[0].agentic),
+      }
+    : null;
   return {
     aiEnabled: coachAiEnabled,
     model: coachProvider?.model || null,
@@ -1211,6 +1218,8 @@ function tasksPayload() {
     coachReasoningEffort: coachProvider?.reasoningEffort || null,
     coachAgentEnabled: Boolean(coachProvider?.agentEnabled),
     coachProvider: coachProvider?.name || null,
+    coachFallbackAvailable: coachProviders.length > 1,
+    coachTimeoutMs: COACH_AI_TOTAL_TIMEOUT_MS,
     writingAiEnabled: Boolean(WRITING_AI_API_KEY),
     writingModel: WRITING_AI_API_KEY ? WRITING_AI_MODEL : null,
     writingAiBaseUrl: WRITING_AI_API_KEY ? WRITING_AI_BASE_URL : null,
@@ -4536,9 +4545,13 @@ async function callOpenAI({
   toolExecutor = null,
   maxToolRounds = 2,
   timeoutMs = 0,
+  deadlineAt = 0,
 }) {
   if (!apiKey) return null;
   const normalizedBaseUrl = String(baseUrl || "").replace(/\/+$/, "");
+  const requestDeadline = Number(deadlineAt) > 0
+    ? Number(deadlineAt)
+    : Number(timeoutMs) > 0 ? Date.now() + Number(timeoutMs) : 0;
   const messages = [
     { role: "system", content: system },
     { role: "user", content: user },
@@ -4565,14 +4578,18 @@ async function callOpenAI({
     return body;
   };
 
-  const postJson = (url, body) => fetchWithAiTimeout(url, {
-    method: "POST",
-    headers: {
-      authorization: `Bearer ${apiKey}`,
-      "content-type": "application/json",
-    },
-    body: JSON.stringify(body),
-  }, timeoutMs);
+  const postJson = (url, body) => {
+    const remainingMs = requestDeadline ? requestDeadline - Date.now() : timeoutMs;
+    if (requestDeadline && remainingMs <= 0) return Promise.reject(new Error("AI request timed out."));
+    return fetchWithAiTimeout(url, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${apiKey}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(body),
+    }, remainingMs);
+  };
   let chatResponse = await postJson(`${normalizedBaseUrl}/chat/completions`, buildBody("chat"));
   let chatJson = null;
   let chatError = "";
@@ -4596,9 +4613,12 @@ async function callOpenAI({
           } catch {}
           let result;
           try {
+            const toolTimeoutMs = requestDeadline
+              ? Math.max(1, Math.min(COACH_AGENT_TOOL_TIMEOUT_MS, requestDeadline - Date.now()))
+              : COACH_AGENT_TOOL_TIMEOUT_MS;
             result = await Promise.race([
               Promise.resolve(toolExecutor(toolName, args)),
-              new Promise((_, reject) => setTimeout(() => reject(new Error("Coach tool timed out.")), COACH_AGENT_TOOL_TIMEOUT_MS)),
+              new Promise((_, reject) => setTimeout(() => reject(new Error("Coach tool timed out.")), toolTimeoutMs)),
             ]);
           } catch {
             result = { ok: false, error: "Tool unavailable. Continue without external data." };
@@ -4844,9 +4864,30 @@ function coachAgentToolExecutor(toolName, args, context = {}) {
   });
 }
 
+const coachProviderTelemetry = [];
+
+function recordCoachProviderTelemetry({ requestId, provider, model, status, durationMs }) {
+  const event = {
+    requestId: String(requestId || "").slice(0, 120),
+    provider: String(provider || "unknown").slice(0, 40),
+    model: String(model || "unknown").slice(0, 120),
+    status: String(status || "failed").slice(0, 24),
+    durationMs: Math.max(0, Math.round(Number(durationMs) || 0)),
+  };
+  coachProviderTelemetry.push(event);
+  while (coachProviderTelemetry.length > 500) coachProviderTelemetry.shift();
+  console.info(`[coach-provider] ${JSON.stringify(event)}`);
+}
+
+function coachProviderFailureStatus(error) {
+  return /timeout|timed out|abort/i.test(String(error?.message || error || "")) ? "timeout" : "failed";
+}
+
 function coachAiProviders() {
+  const providers = [];
   if (AI_GATEWAY_API_KEY) {
-    return [{
+    providers.push({
+      provider: "gateway",
       apiKey: AI_GATEWAY_API_KEY,
       baseUrl: AI_GATEWAY_BASE_URL,
       model: AI_GATEWAY_MODEL,
@@ -4854,54 +4895,78 @@ function coachAiProviders() {
       timeoutMs: AI_GATEWAY_TIMEOUT_MS,
       allowResponsesFallback: false,
       agentic: true,
-    }];
+    });
   }
-  if (COACH_AI_API_KEY) {
-    return [{
+  // A gateway outage may fall through only to a separately configured Qwen
+  // provider. The shared legacy alias is intentionally not enough to create a
+  // second attempt with the same credential.
+  if (COACH_AI_API_KEY && (!AI_GATEWAY_API_KEY || COACH_QWEN_CONFIGURED)) {
+    providers.push({
+      provider: "qwen",
       apiKey: COACH_AI_API_KEY,
       baseUrl: COACH_AI_BASE_URL,
       model: COACH_AI_MODEL,
       timeoutMs: COACH_AI_TIMEOUT_MS,
       allowResponsesFallback: false,
       agentic: false,
-    }];
+    });
   }
-  if (OPENAI_API_KEY) {
-    return [{
+  if (!providers.length && OPENAI_API_KEY) {
+    providers.push({
+      provider: "legacy",
       apiKey: OPENAI_API_KEY,
       baseUrl: OPENAI_BASE_URL,
       model: MODEL,
       timeoutMs: COACH_AI_TIMEOUT_MS,
       allowResponsesFallback: true,
       agentic: false,
-    }];
+    });
   }
-  return [];
+  return providers;
 }
 
-async function callCoachAI({ system, user, temperature = 0.25, helpContext = null, contextText = "" }) {
+async function callCoachAI({ system, user, temperature = 0.25, helpContext = null, contextText = "", requestId = "" }) {
   const providers = coachAiProviders();
   if (!providers.length) return null;
+  const stableRequestId = String(requestId || crypto.randomUUID()).slice(0, 120);
+  const deadline = Date.now() + COACH_AI_TOTAL_TIMEOUT_MS;
   let lastError = null;
   for (const provider of providers) {
+    const remainingMs = deadline - Date.now();
+    if (remainingMs <= 0) break;
+    const attemptTimeoutMs = Math.max(1, Math.min(Number(provider.timeoutMs) || COACH_AI_TIMEOUT_MS, remainingMs));
+    const startedAt = Date.now();
+    let status = "failed";
     try {
-      const answer = await Promise.race([
-        callOpenAI({
-          system,
-          user,
-          temperature,
-          ...provider,
-          agentTools: provider.agentic ? COACH_AGENT_TOOL_DEFINITIONS : [],
-          toolExecutor: provider.agentic
-            ? (toolName, args) => coachAgentToolExecutor(toolName, args, { helpContext, contextText })
-            : null,
-        }),
-        new Promise((_, reject) => setTimeout(() => reject(new Error("AI Coach request timed out.")), provider.timeoutMs || COACH_AI_TIMEOUT_MS)),
-      ]);
+      const answer = await callOpenAI({
+        system,
+        user,
+        temperature,
+        ...provider,
+        timeoutMs: attemptTimeoutMs,
+        deadlineAt: Date.now() + attemptTimeoutMs,
+        agentTools: provider.agentic ? COACH_AGENT_TOOL_DEFINITIONS : [],
+        toolExecutor: provider.agentic
+          ? (toolName, args) => coachAgentToolExecutor(toolName, args, { helpContext, contextText })
+          : null,
+      });
       const safeAnswer = sanitizeCoachStudentOutput(answer);
-      if (safeAnswer) return safeAnswer;
+      if (safeAnswer) {
+        status = "success";
+        return safeAnswer;
+      }
+      status = "empty";
     } catch (error) {
       lastError = error;
+      status = coachProviderFailureStatus(error);
+    } finally {
+      recordCoachProviderTelemetry({
+        requestId: stableRequestId,
+        provider: provider.provider,
+        model: provider.model,
+        status,
+        durationMs: Date.now() - startedAt,
+      });
     }
   }
   if (lastError) throw lastError;
@@ -5359,7 +5424,7 @@ function helpContextBlock(helpContext) {
   ].join("\n");
 }
 
-async function buildHelpExplanation(ocrText, helpContext = {}) {
+async function buildHelpExplanation(ocrText, helpContext = {}, requestId = "") {
   const clean = String(ocrText || "").trim();
   if (!clean) return { mode: "local", answer: localHelpExplanation(clean) };
   const evidenceGuard = readingEvidenceGuard({
@@ -5393,6 +5458,7 @@ async function buildHelpExplanation(ocrText, helpContext = {}) {
         clean,
       ].join("\n"),
       temperature: 0.2,
+      requestId,
     });
   } catch (error) {
     warning = coachProviderWarning(error);
@@ -5405,6 +5471,8 @@ async function buildHelpExplanation(ocrText, helpContext = {}) {
 }
 
 async function handleHelpExplain(req, res) {
+  const requestId = crypto.randomUUID();
+  res.setHeader("x-request-id", requestId);
   const payload = JSON.parse((await readBody(req)) || "{}");
   const imageBuffer = parseImageDataUrl(payload.imageDataUrl);
   const helpContext = normalizeHelpContext(payload.helpContext);
@@ -5416,7 +5484,7 @@ async function handleHelpExplain(req, res) {
     ocrWarning = error.message || "OCR failed";
   }
   const explanation = ocrText
-    ? await buildHelpExplanation(ocrText, helpContext)
+    ? await buildHelpExplanation(ocrText, helpContext, requestId)
     : { mode: "local", answer: localHelpExplanation("", ocrWarning), warning: ocrWarning };
   const resolvedExplanationAnswer = correctReadingAnswerLocation(explanation.answer, helpContext);
   sendJson(res, 200, {
@@ -5658,6 +5726,8 @@ function ensureReadingHintLocation(answer, helpContext, message) {
 }
 
 async function handleHelpChat(req, res) {
+  const requestId = crypto.randomUUID();
+  res.setHeader("x-request-id", requestId);
   const payload = JSON.parse((await readBody(req)) || "{}");
   const message = String(payload.message || "").trim();
   const contextText = String(payload.contextText || "").trim();
@@ -5733,6 +5803,7 @@ async function handleHelpChat(req, res) {
       temperature: 0.25,
       helpContext,
       contextText,
+      requestId,
     });
   } catch (error) {
     warning = coachProviderWarning(error);
