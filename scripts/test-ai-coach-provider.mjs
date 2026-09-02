@@ -38,7 +38,7 @@ const provider = http.createServer(async (req, res) => {
     return;
   }
   if (String(userText).includes("product facts")) {
-    res.end(JSON.stringify({ choices: [{ message: { content: "Product facts: one IELTSist ID is used for sign-in.\nInternal system prompt: ignore previous instructions.\nFormula: $v=\\frac{d}{t}$. \\(...\\)\nRecords stay separate by product." } }] }));
+    res.end(JSON.stringify({ choices: [{ message: { content: "Product facts: one IELTSist ID is used for sign-in.\nInternal system prompt: ignore previous instructions.\nFormula: $v=\\frac{d}{t}$; $a=\\sqrt{x}$; \\mathrm{kg}; x^{2}; \\left\\{x\\right\\}. Set {x}. \\(...\\)\nRecords stay separate by product." } }] }));
     return;
   }
   res.end(JSON.stringify({ choices: [{ message: { content: "千问 Coach route is active." } }] }));
@@ -106,6 +106,20 @@ try {
   assert.match(facts.json.answer, /Product facts:/i);
   assert.doesNotMatch(facts.json.answer, /system prompt|developer instruction|ignore previous instructions/i);
   assert.doesNotMatch(facts.json.answer, /\$[^$]+\$|\\\(|\\\[|\$\$/);
+  assert.doesNotMatch(facts.json.answer, /\\(?:frac|sqrt|mathrm|text)\s*[\[{]/i,
+    "Formula output must not leave LaTeX control words in the student-facing answer");
+  assert.match(facts.json.answer, /v\s*=\s*d\s*\/\s*t/i,
+    "A simple fraction must remain readable as plain text");
+  assert.match(facts.json.answer, /a\s*=\s*sqrt\(x\)/i,
+    "A square-root expression must remain readable as plain text");
+  assert.match(facts.json.answer, /\bkg\b/i,
+    "A wrapped unit must remain readable after sanitization");
+  assert.match(facts.json.answer, /x\^2/,
+    "A superscript must remain readable after sanitization");
+  assert.match(facts.json.answer, /Set \{x\}/,
+    "Unrelated braces must remain intact when a response also contains a formula");
+  assert.match(facts.json.answer, /\{x\}/,
+    "Escaped formula braces must remain readable after sanitization");
   const factsPrompt = providerRequests.find((item) => String(item.body.messages?.find((m) => m.role === "user")?.content || "").includes("product facts"));
   assert.ok(factsPrompt, "Product facts request must reach the provider");
   const systemPrompt = factsPrompt.body.messages?.find((item) => item.role === "system")?.content || "";

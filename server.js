@@ -67,7 +67,8 @@ const READING_OCR_CACHE_PATH = path.join(__dirname, "data", "reading-ocr-page-ca
 const OBJECTIVE_SEMANTIC_TOPICS_PATH = process.env.OBJECTIVE_SEMANTIC_TOPICS_PATH
   ? path.resolve(process.env.OBJECTIVE_SEMANTIC_TOPICS_PATH)
   : path.join(__dirname, "data", "objective-semantic-topics.json");
-const MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
+const DEFAULT_AI_MODEL = "gpt-5.5";
+const MODEL = process.env.OPENAI_MODEL || DEFAULT_AI_MODEL;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
 const OPENAI_BASE_URL = (process.env.OPENAI_BASE_URL || process.env.UUAPI_BASE_URL || "https://api.openai.com/v1").replace(/\/+$/, "");
 const VOICE_CHAT_URL = process.env.VOICE_CHAT_URL || "https://chatgpt.com/";
@@ -78,7 +79,7 @@ const DEFAULT_DASHSCOPE_COMPAT_BASE_URL = DASHSCOPE_WORKSPACE_ID
   ? `https://${DASHSCOPE_WORKSPACE_ID}.${DASHSCOPE_REGION}.maas.aliyuncs.com/compatible-mode/v1`
   : "https://dashscope.aliyuncs.com/compatible-mode/v1";
 const DASHSCOPE_COMPAT_BASE_URL = (process.env.DASHSCOPE_COMPAT_BASE_URL || DEFAULT_DASHSCOPE_COMPAT_BASE_URL).replace(/\/+$/, "");
-const WRITING_AI_MODEL = process.env.WRITING_AI_MODEL || process.env.QWEN_WRITING_MODEL || "qwen3.7-max";
+const WRITING_AI_MODEL = process.env.WRITING_AI_MODEL || process.env.QWEN_WRITING_MODEL || DEFAULT_AI_MODEL;
 const WRITING_AI_BASE_URL = (process.env.WRITING_AI_BASE_URL || process.env.QWEN_WRITING_BASE_URL || DASHSCOPE_COMPAT_BASE_URL).replace(/\/+$/, "");
 const WRITING_AI_API_KEY = process.env.WRITING_AI_API_KEY || process.env.QWEN_WRITING_API_KEY || DASHSCOPE_API_KEY;
 const WRITING_SCORING_PROMPT_VERSION = "ielts-writing-rubric.v2";
@@ -87,13 +88,13 @@ const WRITING_AI_TIMEOUT_MS = Math.max(1_000, Math.min(60_000, Number(process.en
 // /api/tasks, logs, client bundles, or provider error messages.
 const AI_GATEWAY_BASE_URL = (process.env.AI_GATEWAY_BASE_URL || "https://ai.ieltsist.com/v1").replace(/\/+$/, "");
 const AI_GATEWAY_API_KEY = process.env.AI_GATEWAY_API_KEY || "";
-const AI_GATEWAY_MODEL = process.env.AI_GATEWAY_MODEL || "gpt-5.5";
+const AI_GATEWAY_MODEL = process.env.AI_GATEWAY_MODEL || DEFAULT_AI_MODEL;
 const AI_GATEWAY_REASONING_EFFORT = ["low", "medium", "high", "xhigh"].includes(String(process.env.AI_GATEWAY_REASONING_EFFORT || "xhigh").toLowerCase())
   ? String(process.env.AI_GATEWAY_REASONING_EFFORT || "xhigh").toLowerCase()
   : "xhigh";
 const AI_GATEWAY_TIMEOUT_MS = Math.max(5_000, Math.min(90_000, Number(process.env.AI_GATEWAY_TIMEOUT_MS || 45_000)));
 const COACH_AGENT_TOOL_TIMEOUT_MS = Math.max(250, Math.min(5_000, Number(process.env.COACH_AGENT_TOOL_TIMEOUT_MS || 1_500)));
-const COACH_AI_MODEL = process.env.COACH_AI_MODEL || process.env.QWEN_COACH_MODEL || "qwen3.7-max";
+const COACH_AI_MODEL = process.env.COACH_AI_MODEL || process.env.QWEN_COACH_MODEL || DEFAULT_AI_MODEL;
 const COACH_AI_BASE_URL = (process.env.COACH_AI_BASE_URL || process.env.QWEN_COACH_BASE_URL || DASHSCOPE_COMPAT_BASE_URL).replace(/\/+$/, "");
 const COACH_AI_API_KEY = process.env.COACH_AI_API_KEY || process.env.QWEN_COACH_API_KEY || DASHSCOPE_API_KEY;
 const COACH_AI_TIMEOUT_MS = Math.max(5_000, Math.min(60_000, Number(process.env.COACH_AI_TIMEOUT_MS || 25_000)));
@@ -4961,6 +4962,42 @@ function sanitizeCoachMarkdownLinks(value) {
   });
 }
 
+function readableCoachMathText(value) {
+  let text = String(value || "");
+  if (!/\\(?:dfrac|tfrac|frac|sqrt|mathrm|mathbf|mathit|text|operatorname|left|right|times|cdot|div|pm|mp|leq|geq|neq|approx|infty|rightarrow|to|sum|int|degree)(?:\b|(?=\s*[\[{]))|(?:\^|_)\s*\{/.test(text)) {
+    return text;
+  }
+  for (let pass = 0; pass < 8; pass += 1) {
+    const before = text;
+    text = text
+      .replace(/\\(?:dfrac|tfrac|frac)\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, "$1 / $2")
+      .replace(/\\sqrt\s*(?:\[([^\]]*)\])?\s*\{([^{}]*)\}/g, (_match, index, body) => index ? `root ${index} of ${body}` : `sqrt(${body})`)
+      .replace(/\\(?:mathrm|mathbf|mathit|text|operatorname)\s*\{([^{}]*)\}/g, "$1")
+      .replace(/\\(?:left|right)\b/g, "")
+      .replace(/\\(?:times)\b/g, " × ")
+      .replace(/\\(?:cdot)\b/g, " · ")
+      .replace(/\\(?:div)\b/g, " ÷ ")
+      .replace(/\\(?:pm)\b/g, " ± ")
+      .replace(/\\(?:mp)\b/g, " ∓ ")
+      .replace(/\\(?:leq|le)\b/g, " ≤ ")
+      .replace(/\\(?:geq|ge)\b/g, " ≥ ")
+      .replace(/\\(?:neq)\b/g, " ≠ ")
+      .replace(/\\(?:approx)\b/g, " ≈ ")
+      .replace(/\\(?:infty)\b/g, "∞")
+      .replace(/\\(?:rightarrow|to)\b/g, " → ")
+      .replace(/\\(?:sum)\b/g, "sum")
+      .replace(/\\(?:int)\b/g, "integral")
+      .replace(/\\(?:degree)\b/g, "°")
+      .replace(/\^\s*\{([^{}]*)\}/g, "^$1")
+      .replace(/_\s*\{([^{}]*)\}/g, "_$1");
+    if (text === before) break;
+  }
+  return text
+    .replace(/\\([{}])/g, "$1")
+    .replace(/\\([A-Za-z]+)\b/g, "$1")
+    .replace(/[ \t]{2,}/g, " ");
+}
+
 function sanitizeCoachStudentOutput(value) {
   const protectedContent = /(?:system|developer|internal)\s*(?:prompt|instruction|message)|ignore\s+(?:all|previous|above)\s+instructions|api[_ -]?key|authorization\s*:/i;
   return String(value || "")
@@ -4969,6 +5006,7 @@ function sanitizeCoachStudentOutput(value) {
     .replace(/\\\(([\s\S]*?)\\\)/g, "$1")
     .replace(/\$\$([\s\S]*?)\$\$/g, "$1")
     .replace(/\$([^$\n]{1,500})\$/g, "$1")
+    .replace(/[\s\S]*/, (match) => readableCoachMathText(match))
     .replace(/```[\s\S]*?```/g, "")
     .replace(/\b(?:Bearer|sk-[A-Za-z0-9_-]{10,}|AIza[A-Za-z0-9_-]{20,})\b/gi, "[redacted]")
     .replace(/\r\n?/g, "\n")
