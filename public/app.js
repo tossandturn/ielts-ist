@@ -8374,7 +8374,9 @@ function coachRequestFailureMessage() {
   return "AI Coach is temporarily unavailable. Please retry in a moment. Your practice and conversation are still saved.";
 }
 
-const coachClientTimeoutMs = 32_000;
+// Leave enough time for the server to try the primary gateway and its bounded
+// Qwen fallback before the browser aborts the request.
+let coachClientTimeoutMs = 75_000;
 
 function syncHelpRequestControls() {
   const busy = Boolean(state.help.busy);
@@ -24321,6 +24323,10 @@ async function init() {
   loadBank();
   loadCoreVocabularyKnown();
   state.data = await fetchTaskDataWithRetry();
+  const advertisedCoachTimeoutMs = Number(state.data.coachTimeoutMs);
+  if (Number.isFinite(advertisedCoachTimeoutMs) && advertisedCoachTimeoutMs > 0) {
+    coachClientTimeoutMs = Math.max(coachClientTimeoutMs, advertisedCoachTimeoutMs + 2_000);
+  }
   const restoredPractice = restorePracticeSessionAfterData(deepLinkPracticeModuleFromLocation());
   $("aiStatus").textContent = state.data.aiEnabled
     ? `AI connected · ${state.data.model}${state.data.ttsEnabled ? " · Fish TTS" : " · Browser TTS"}`

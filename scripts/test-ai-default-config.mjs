@@ -164,6 +164,8 @@ try {
   });
   assert.equal(aliasServer.tasks.model, "gpt-5.5", "The THRID_AI_KEY compatibility alias must select the unified default model");
   assert.equal(aliasServer.tasks.aiBaseUrl, "https://ai.ieltsist.com/v1", "The THRID_AI_KEY compatibility alias must use the primary gateway");
+  assert.equal(aliasServer.tasks.coachFallbackAvailable, false, "The shared alias must not create a fake Qwen fallback attempt");
+  assert.equal(aliasServer.tasks.writingModel, "gpt-5.5", "The THRID_AI_KEY compatibility alias must cover Writing when no provider key is explicit");
   assert.doesNotMatch(JSON.stringify(aliasServer.tasks), /alias-config-test-key/i, "The THRID_AI_KEY alias must never appear in task payloads");
 
   const serverSource = await readFile(new URL("../server.js", import.meta.url), "utf8");
