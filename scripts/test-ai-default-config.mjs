@@ -64,6 +64,7 @@ async function startServer(overrides = {}) {
       DASHSCOPE_REGION: "cn-beijing",
       DASHSCOPE_COMPAT_BASE_URL: "",
       OPENAI_API_KEY: "",
+      THRID_AI_KEY: "",
       thridkey: "",
       OPENAI_MODEL: "",
       OPENAI_BASE_URL: "",
@@ -158,16 +159,17 @@ try {
     COACH_AI_API_KEY: "",
     WRITING_AI_API_KEY: "",
     OPENAI_API_KEY: "",
-    thridkey: "alias-config-test-key",
+    THRID_AI_KEY: "alias-config-test-key",
+    thridkey: "",
   });
-  assert.equal(aliasServer.tasks.model, "gpt-5.5", "The thridkey compatibility alias must select the unified default model");
-  assert.equal(aliasServer.tasks.aiBaseUrl, "https://ai.ieltsist.com/v1", "The thridkey compatibility alias must use the primary gateway");
-  assert.doesNotMatch(JSON.stringify(aliasServer.tasks), /alias-config-test-key/i, "The thridkey alias must never appear in task payloads");
+  assert.equal(aliasServer.tasks.model, "gpt-5.5", "The THRID_AI_KEY compatibility alias must select the unified default model");
+  assert.equal(aliasServer.tasks.aiBaseUrl, "https://ai.ieltsist.com/v1", "The THRID_AI_KEY compatibility alias must use the primary gateway");
+  assert.doesNotMatch(JSON.stringify(aliasServer.tasks), /alias-config-test-key/i, "The THRID_AI_KEY alias must never appear in task payloads");
 
   const serverSource = await readFile(new URL("../server.js", import.meta.url), "utf8");
   const envExample = await readFile(new URL("../deploy/ubuntu/env.example", import.meta.url), "utf8");
   assert.match(serverSource, /const DEFAULT_AI_MODEL = "gpt-5\.5"/, "The application must have one audited default model");
-  assert.match(serverSource, /const THIRD_PARTY_API_KEY = process\.env\.thridkey \|\| ""/);
+  assert.match(serverSource, /const THIRD_PARTY_API_KEY = process\.env\.THRID_AI_KEY \|\| process\.env\.thridkey \|\| ""/);
   assert.match(serverSource, /MODEL = process\.env\.OPENAI_MODEL \|\| DEFAULT_AI_MODEL/);
   assert.match(serverSource, /WRITING_AI_MODEL = process\.env\.WRITING_AI_MODEL \|\| process\.env\.QWEN_WRITING_MODEL \|\| DEFAULT_AI_MODEL/);
   assert.match(serverSource, /AI_GATEWAY_MODEL = process\.env\.AI_GATEWAY_MODEL \|\| DEFAULT_AI_MODEL/);
@@ -177,7 +179,7 @@ try {
   assert.match(envExample, /^AI_GATEWAY_MODEL=gpt-5\.5$/m);
   assert.match(envExample, /^COACH_AI_MODEL=gpt-5\.5$/m);
   assert.match(envExample, /^WRITING_AI_MODEL=gpt-5\.5$/m);
-  assert.doesNotMatch(envExample, /^(?:AI_GATEWAY_API_KEY|COACH_AI_API_KEY|WRITING_AI_API_KEY|OPENAI_API_KEY|DASHSCOPE_API_KEY|thridkey)=.+$/m, "Example configuration must not contain a populated key");
+  assert.doesNotMatch(envExample, /^(?:AI_GATEWAY_API_KEY|COACH_AI_API_KEY|WRITING_AI_API_KEY|OPENAI_API_KEY|DASHSCOPE_API_KEY|THRID_AI_KEY|thridkey)=.+$/m, "Example configuration must not contain a populated key");
   console.log("AI default config contract passed: gpt-5.5 defaults, explicit provider overrides, marking inheritance, and browser key isolation.");
 } finally {
   await stopChild(defaultServer.child);

@@ -69,7 +69,7 @@ const OBJECTIVE_SEMANTIC_TOPICS_PATH = process.env.OBJECTIVE_SEMANTIC_TOPICS_PAT
   : path.join(__dirname, "data", "objective-semantic-topics.json");
 const DEFAULT_AI_MODEL = "gpt-5.5";
 const MODEL = process.env.OPENAI_MODEL || DEFAULT_AI_MODEL;
-const THIRD_PARTY_API_KEY = process.env.thridkey || "";
+const THIRD_PARTY_API_KEY = process.env.THRID_AI_KEY || process.env.thridkey || "";
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || THIRD_PARTY_API_KEY;
 const OPENAI_BASE_URL = (process.env.OPENAI_BASE_URL || process.env.UUAPI_BASE_URL || "https://api.openai.com/v1").replace(/\/+$/, "");
 const VOICE_CHAT_URL = process.env.VOICE_CHAT_URL || "https://chatgpt.com/";
