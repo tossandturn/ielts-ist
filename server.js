@@ -69,10 +69,11 @@ const OBJECTIVE_SEMANTIC_TOPICS_PATH = process.env.OBJECTIVE_SEMANTIC_TOPICS_PAT
   : path.join(__dirname, "data", "objective-semantic-topics.json");
 const DEFAULT_AI_MODEL = "gpt-5.5";
 const MODEL = process.env.OPENAI_MODEL || DEFAULT_AI_MODEL;
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
+const THIRD_PARTY_API_KEY = process.env.thridkey || "";
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || THIRD_PARTY_API_KEY;
 const OPENAI_BASE_URL = (process.env.OPENAI_BASE_URL || process.env.UUAPI_BASE_URL || "https://api.openai.com/v1").replace(/\/+$/, "");
 const VOICE_CHAT_URL = process.env.VOICE_CHAT_URL || "https://chatgpt.com/";
-const DASHSCOPE_API_KEY = process.env.DASHSCOPE_API_KEY || process.env.QWEN_API_KEY || "";
+const DASHSCOPE_API_KEY = process.env.DASHSCOPE_API_KEY || process.env.QWEN_API_KEY || THIRD_PARTY_API_KEY;
 const DASHSCOPE_WORKSPACE_ID = process.env.DASHSCOPE_WORKSPACE_ID || process.env.QWEN_WORKSPACE_ID || "";
 const DASHSCOPE_REGION = process.env.DASHSCOPE_REGION || "cn-beijing";
 const DEFAULT_DASHSCOPE_COMPAT_BASE_URL = DASHSCOPE_WORKSPACE_ID
@@ -87,7 +88,7 @@ const WRITING_AI_TIMEOUT_MS = Math.max(1_000, Math.min(60_000, Number(process.en
 // The public AI gateway is intentionally server-only. Do not expose this key in
 // /api/tasks, logs, client bundles, or provider error messages.
 const AI_GATEWAY_BASE_URL = (process.env.AI_GATEWAY_BASE_URL || "https://ai.ieltsist.com/v1").replace(/\/+$/, "");
-const AI_GATEWAY_API_KEY = process.env.AI_GATEWAY_API_KEY || "";
+const AI_GATEWAY_API_KEY = process.env.AI_GATEWAY_API_KEY || THIRD_PARTY_API_KEY;
 const AI_GATEWAY_MODEL = process.env.AI_GATEWAY_MODEL || DEFAULT_AI_MODEL;
 const AI_GATEWAY_REASONING_EFFORT = ["low", "medium", "high", "xhigh"].includes(String(process.env.AI_GATEWAY_REASONING_EFFORT || "xhigh").toLowerCase())
   ? String(process.env.AI_GATEWAY_REASONING_EFFORT || "xhigh").toLowerCase()
@@ -96,12 +97,12 @@ const AI_GATEWAY_TIMEOUT_MS = Math.max(5_000, Math.min(90_000, Number(process.en
 const COACH_AGENT_TOOL_TIMEOUT_MS = Math.max(250, Math.min(5_000, Number(process.env.COACH_AGENT_TOOL_TIMEOUT_MS || 1_500)));
 const COACH_AI_MODEL = process.env.COACH_AI_MODEL || process.env.QWEN_COACH_MODEL || DEFAULT_AI_MODEL;
 const COACH_AI_BASE_URL = (process.env.COACH_AI_BASE_URL || process.env.QWEN_COACH_BASE_URL || DASHSCOPE_COMPAT_BASE_URL).replace(/\/+$/, "");
-const COACH_AI_API_KEY = process.env.COACH_AI_API_KEY || process.env.QWEN_COACH_API_KEY || DASHSCOPE_API_KEY;
+const COACH_AI_API_KEY = process.env.COACH_AI_API_KEY || process.env.QWEN_COACH_API_KEY || DASHSCOPE_API_KEY || THIRD_PARTY_API_KEY;
 const COACH_AI_TIMEOUT_MS = Math.max(5_000, Math.min(60_000, Number(process.env.COACH_AI_TIMEOUT_MS || 25_000)));
 const STEM_MARKING_AI_DISABLED = process.env.STEM_MARKING_AI_DISABLED === "1";
 const STEM_MARKING_AI_MODEL = STEM_MARKING_AI_DISABLED ? "" : (process.env.STEM_MARKING_AI_MODEL || COACH_AI_MODEL);
 const STEM_MARKING_AI_BASE_URL = STEM_MARKING_AI_DISABLED ? "" : (process.env.STEM_MARKING_AI_BASE_URL || COACH_AI_BASE_URL).replace(/\/+$/, "");
-const STEM_MARKING_AI_API_KEY = STEM_MARKING_AI_DISABLED ? "" : (process.env.STEM_MARKING_AI_API_KEY || COACH_AI_API_KEY);
+const STEM_MARKING_AI_API_KEY = STEM_MARKING_AI_DISABLED ? "" : (process.env.STEM_MARKING_AI_API_KEY || COACH_AI_API_KEY || THIRD_PARTY_API_KEY);
 const STEM_MARKING_QUEUE_DISABLED = process.env.STEM_MARKING_QUEUE_DISABLED === "1";
 const STEM_MARKING_TRUSTED_MANIFEST_PATH = String(process.env.STEM_MARKING_TRUSTED_MANIFEST_PATH || "").trim();
 const STEM_MARKING_MANIFEST_SCHEMA_VERSION = "stem-marking-manifest.v2";

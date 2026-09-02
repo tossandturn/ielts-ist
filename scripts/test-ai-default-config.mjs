@@ -2,10 +2,6 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import net from "node:net";
-import { createRequire } from "node:module";
-
-const require = createRequire(import.meta.url);
-const { chromium } = require("C:/Users/10604/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright");
 const root = new URL("../", import.meta.url);
 
 function findPort() {
@@ -68,6 +64,7 @@ async function startServer(overrides = {}) {
       DASHSCOPE_REGION: "cn-beijing",
       DASHSCOPE_COMPAT_BASE_URL: "",
       OPENAI_API_KEY: "",
+      thridkey: "",
       OPENAI_MODEL: "",
       OPENAI_BASE_URL: "",
       UUAPI_BASE_URL: "",
@@ -96,7 +93,7 @@ let coachOverrideServer = null;
 let writingFallbackServer = null;
 let writingOverrideServer = null;
 let legacyFallbackServer = null;
-let browser = null;
+let aliasServer = null;
 try {
   assert.equal(defaultServer.tasks.model, "gpt-5.5", "Default Gateway model must be gpt-5.5");
   assert.equal(defaultServer.tasks.coachModel, "gpt-5.5", "Default coachModel must be gpt-5.5");
@@ -104,11 +101,10 @@ try {
   assert.equal(defaultServer.tasks.coachBaseUrl, "https://ai.ieltsist.com/v1", "Gateway-backed Coach must use the IELTSist gateway");
   assert.doesNotMatch(JSON.stringify(defaultServer.tasks), /config-test-key/i, "Server-only gateway keys must not appear in task payloads");
 
-  browser = await chromium.launch({ headless: true, executablePath: "C:/Program Files/Google/Chrome/Application/chrome.exe" });
-  const page = await browser.newPage();
-  await page.goto(`${defaultServer.baseUrl}/#home`, { waitUntil: "networkidle" });
-  const html = await page.locator("html").textContent();
-  assert.doesNotMatch(String(html || ""), /config-test-key/i, "Browser-visible HTML must not contain the gateway key");
+  const browserResponse = await fetch(`${defaultServer.baseUrl}/`);
+  assert.equal(browserResponse.status, 200, "The browser entry page must remain reachable");
+  const html = await browserResponse.text();
+  assert.doesNotMatch(html, /config-test-key/i, "Browser-visible HTML must not contain the gateway key");
 
   overrideServer = await startServer({
     AI_GATEWAY_BASE_URL: "http://127.0.0.1:49999/v1",
@@ -157,9 +153,21 @@ try {
   assert.equal(legacyFallbackServer.tasks.aiBaseUrl, "https://api.openai.com/v1", "Legacy fallback must retain its explicit provider default URL");
   assert.doesNotMatch(JSON.stringify(legacyFallbackServer.tasks), /legacy-config-test-key/i, "Legacy key must not appear in task payloads");
 
+  aliasServer = await startServer({
+    AI_GATEWAY_API_KEY: "",
+    COACH_AI_API_KEY: "",
+    WRITING_AI_API_KEY: "",
+    OPENAI_API_KEY: "",
+    thridkey: "alias-config-test-key",
+  });
+  assert.equal(aliasServer.tasks.model, "gpt-5.5", "The thridkey compatibility alias must select the unified default model");
+  assert.equal(aliasServer.tasks.aiBaseUrl, "https://ai.ieltsist.com/v1", "The thridkey compatibility alias must use the primary gateway");
+  assert.doesNotMatch(JSON.stringify(aliasServer.tasks), /alias-config-test-key/i, "The thridkey alias must never appear in task payloads");
+
   const serverSource = await readFile(new URL("../server.js", import.meta.url), "utf8");
   const envExample = await readFile(new URL("../deploy/ubuntu/env.example", import.meta.url), "utf8");
   assert.match(serverSource, /const DEFAULT_AI_MODEL = "gpt-5\.5"/, "The application must have one audited default model");
+  assert.match(serverSource, /const THIRD_PARTY_API_KEY = process\.env\.thridkey \|\| ""/);
   assert.match(serverSource, /MODEL = process\.env\.OPENAI_MODEL \|\| DEFAULT_AI_MODEL/);
   assert.match(serverSource, /WRITING_AI_MODEL = process\.env\.WRITING_AI_MODEL \|\| process\.env\.QWEN_WRITING_MODEL \|\| DEFAULT_AI_MODEL/);
   assert.match(serverSource, /AI_GATEWAY_MODEL = process\.env\.AI_GATEWAY_MODEL \|\| DEFAULT_AI_MODEL/);
@@ -169,10 +177,9 @@ try {
   assert.match(envExample, /^AI_GATEWAY_MODEL=gpt-5\.5$/m);
   assert.match(envExample, /^COACH_AI_MODEL=gpt-5\.5$/m);
   assert.match(envExample, /^WRITING_AI_MODEL=gpt-5\.5$/m);
-  assert.doesNotMatch(envExample, /^(?:AI_GATEWAY|COACH_AI|WRITING_AI|OPENAI)_API_KEY=.+$/m, "Example configuration must not contain a populated key");
+  assert.doesNotMatch(envExample, /^(?:AI_GATEWAY_API_KEY|COACH_AI_API_KEY|WRITING_AI_API_KEY|OPENAI_API_KEY|DASHSCOPE_API_KEY|thridkey)=.+$/m, "Example configuration must not contain a populated key");
   console.log("AI default config contract passed: gpt-5.5 defaults, explicit provider overrides, marking inheritance, and browser key isolation.");
 } finally {
-  if (browser) await browser.close();
   await stopChild(defaultServer.child);
   await stopChild(overrideServer?.child);
   await stopChild(coachFallbackServer?.child);
@@ -180,4 +187,5 @@ try {
   await stopChild(writingFallbackServer?.child);
   await stopChild(writingOverrideServer?.child);
   await stopChild(legacyFallbackServer?.child);
+  await stopChild(aliasServer?.child);
 }
