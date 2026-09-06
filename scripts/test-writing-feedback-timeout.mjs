@@ -62,8 +62,9 @@ const providerPort = await findAvailablePort();
 const appPort = await findAvailablePort();
 const provider = http.createServer(async (req, res) => {
   for await (const _chunk of req) {}
+  res.setHeader("content-type", "application/json");
+  res.flushHeaders();
   setTimeout(() => {
-    res.setHeader("content-type", "application/json");
     res.end(JSON.stringify({
       choices: [{
         message: {
@@ -133,7 +134,7 @@ try {
   assert.equal(json.contract?.provenance?.promptVersion, "ielts-writing-rubric.v2");
   assert.equal((json.contract?.score?.criteria || []).length, 4);
   assert.doesNotMatch(JSON.stringify(json), /writing-timeout-test-key|Late provider response/i);
-  console.log("Writing timeout regression passed: delayed provider aborts into a safe, review-required local contract.");
+  console.log("Writing timeout regression passed: an early HTTP header cannot bypass the response-body deadline; fallback remains review-required.");
 } finally {
   await stopChild(app);
   await closeServer(provider);
