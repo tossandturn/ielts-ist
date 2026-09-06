@@ -11,6 +11,7 @@ import { fileURLToPath } from "node:url";
 const root = fileURLToPath(new URL("../", import.meta.url));
 const dbPath = join(tmpdir(), `ieltsist-wechat-mini-${process.pid}-${randomUUID()}.sqlite`);
 const signingKey = "wechat-mini-auth-test-signing-key";
+const legacyIdentityKey = "legacy-browser-identity-key-must-be-different";
 let providerMode = "ok";
 let providerQuery = null;
 let provider = null;
@@ -92,7 +93,7 @@ try {
       IELTSIST_DB_PATH: dbPath,
       SESSION_COOKIE_SECURE: "0",
       STEM_INTERNAL_AUTH_KEY: signingKey,
-      STEM_IDENTITY_SIGNING_KEY: signingKey,
+      STEM_IDENTITY_SIGNING_KEY: legacyIdentityKey,
       WECHAT_MINIPROGRAM_APP_ID: "wx-test-app",
       WECHAT_MINIPROGRAM_APP_SECRET: "test-secret",
       WECHAT_MINIPROGRAM_CODE2SESSION_URL: mockUrl,
@@ -114,7 +115,7 @@ try {
   assert.equal(providerQuery.get("grant_type"), "authorization_code");
 
   const jwtHeader = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url");
-  const jwtBody = Buffer.from(JSON.stringify({ iss: "ieltsist.com", aud: "stem.ieltsist.com", sub: first.json.identity.id, exp: Math.floor(Date.now() / 1000) + 3600 })).toString("base64url");
+  const jwtBody = Buffer.from(JSON.stringify({ iss: "ieltsist.com", aud: "stem.ieltsist.com", sub: first.json.identity.id, iat: Math.floor(Date.now() / 1000), exp: Math.floor(Date.now() / 1000) + 300 })).toString("base64url");
   const jwtSignature = crypto.createHmac("sha256", signingKey).update(`${jwtHeader}.${jwtBody}`).digest("base64url");
   const identityToken = `${jwtHeader}.${jwtBody}.${jwtSignature}`;
   const nativeResponse = await fetch(`${baseUrl}/api/auth/native-session`, { method: "POST", headers: { "x-stem-identity": identityToken, "content-type": "application/json" }, body: "{}" });
@@ -127,6 +128,16 @@ try {
   assert.equal(me.status, 200);
   const invalidNative = await fetch(`${baseUrl}/api/auth/native-session`, { method: "POST", headers: { "x-stem-identity": identityToken + "x" }, body: "{}" });
   assert.equal(invalidNative.status, 401);
+  const now = Math.floor(Date.now() / 1000);
+  const mint = (claims = {}, key = signingKey, alg = "HS256") => {
+    const h = Buffer.from(JSON.stringify({ alg, typ: "JWT" })).toString("base64url");
+    const b = Buffer.from(JSON.stringify({ iss: "ieltsist.com", aud: "stem.ieltsist.com", sub: "ielts:1", iat: now, exp: now + 300, ...claims })).toString("base64url");
+    return `${h}.${b}.${crypto.createHmac("sha256", key).update(`${h}.${b}`).digest("base64url")}`;
+  };
+  for (const token of [mint({}, legacyIdentityKey), mint({aud:"other-app"}), mint({iss:"other-site"}), mint({exp:now-1}), mint({exp:String(now+300)}), mint({iat:now+600,exp:now+900}), mint({exp:now+7200}), mint({sub:"ielts:999999"}), mint({},signingKey,"none")]) {
+    const denied = await fetch(`${baseUrl}/api/auth/native-session`, { method:"POST", headers:{"x-stem-identity":token}, body:"{}" });
+    assert.equal(denied.status,401,"invalid or legacy-only identity must not mint a native session");
+  }
   const nativeConfig = await (await fetch(`${baseUrl}/api/auth/native-config`)).json();
   assert.equal(nativeConfig.wechatConfigured, true);
   assert.doesNotMatch(JSON.stringify(nativeConfig), /test-secret|must-not-be-stored/);

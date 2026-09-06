@@ -2425,16 +2425,34 @@ function stemInternalIdentity(user) {
   };
 }
 
+function verifyNativeStemIdentity(token) {
+  // STEM's native login signs with the internal account key. The browser SSO
+  // key can legitimately be different: do not change that legacy verifier or
+  // accept an arbitrary client-selected key at this dedicated exchange.
+  if (!STEM_INTERNAL_AUTH_KEY || typeof token !== "string" || token.length > 4096) return null;
+  const parts = token.split(".");
+  if (parts.length !== 3) return null;
+  const [head, body, signature] = parts;
+  try {
+    const header = JSON.parse(Buffer.from(head, "base64url").toString("utf8"));
+    const claims = JSON.parse(Buffer.from(body, "base64url").toString("utf8"));
+    const now = Math.floor(Date.now() / 1000);
+    const match = String(claims.sub || "").match(/^ielts:(\d+)$/);
+    if (header.alg !== "HS256" || header.typ !== "JWT" || claims.iss !== "ieltsist.com" || claims.aud !== "stem.ieltsist.com"
+      || !match || !Number.isSafeInteger(Number(match[1])) || Number(match[1]) < 1
+      || !Number.isInteger(claims.iat) || !Number.isInteger(claims.exp)
+      || claims.iat > now + 300 || claims.exp <= now || claims.exp <= claims.iat || claims.exp - claims.iat > 3600) return null;
+    const expected = crypto.createHmac("sha256", STEM_INTERNAL_AUTH_KEY).update(`${head}.${body}`).digest("base64url");
+    const actualBuffer = Buffer.from(signature), expectedBuffer = Buffer.from(expected);
+    if (actualBuffer.length !== expectedBuffer.length || !crypto.timingSafeEqual(actualBuffer, expectedBuffer)) return null;
+    return { userId: Number(match[1]), expiresAt: claims.exp * 1000 };
+  } catch { return null; }
+}
+
 function handleNativeClientSession(req, res) {
   const token = String(req.headers["x-stem-identity"] || "").trim();
-  const identity = token.length <= 4096 ? verifyStemIdentityToken(token) : null;
-  let claims = null;
-  let header = null;
-  try {
-    header = JSON.parse(Buffer.from(token.split(".")[0] || "", "base64url").toString("utf8"));
-    claims = JSON.parse(Buffer.from(token.split(".")[1] || "", "base64url").toString("utf8"));
-  } catch {}
-  if (!identity || header?.alg !== "HS256" || typeof claims?.exp !== "number" || !Number.isFinite(claims.exp) || claims.exp * 1000 <= Date.now()) {
+  const identity = verifyNativeStemIdentity(token);
+  if (!identity) {
     sendJson(res, 401, { code: "native_identity_invalid", error: "Please sign in again." });
     return;
   }
@@ -2446,10 +2464,14 @@ function handleNativeClientSession(req, res) {
     sendJson(res, 429, { error: "Please wait before signing in again." });
     return;
   }
-  const user = requireStemActor(req);
+  const user = getAppDb().prepare("SELECT * FROM users WHERE id = ?").get(identity.userId);
+  if (!user) {
+    sendJson(res, 401, { code: "native_identity_invalid", error: "Please sign in again." });
+    return;
+  }
   usage.count += 1;
   nativeSessionIssuance.set(identity.userId, usage);
-  const session = createSession(user.id, { ttlMs: Math.min(1800000, claims.exp * 1000 - now) });
+  const session = createSession(user.id, { ttlMs: Math.min(1800000, identity.expiresAt - now) });
   res.setHeader("Cache-Control", "no-store");
   sendJson(res, 200, { protocol: "ielts-native-session-v1", token: session.token, expiresAt: session.expiresAt, user: publicUser(user, currentMembership(user.id)) });
 }
