@@ -11,6 +11,9 @@ const { WebSocketServer } = require("ws");
 const {buildNativeCatalog,nativeTaskDetail}=require("./server/nativeIeltsCatalog.cjs");
 const {nativeReportResponse}=require("./server/nativeReportResponse.cjs");
 const {nativeObjectiveRecord}=require("./server/nativeObjectiveProjection.cjs");
+const {bindWritingSource,sourceImage}=require("./server/nativeWritingSource.cjs");
+const {nativeWritingRecord}=require("./server/nativeWritingResult.cjs");
+const {createNativeTranscriber}=require("./server/nativeTranscription.cjs");
 const { createWorker } = require("tesseract.js");
 const {
   initCoachHistorySchema,
@@ -5886,6 +5889,13 @@ function ensureReadingHintLocation(answer, helpContext, message) {
   return `${label}${withoutLocation ? `\n${withoutLocation}` : ""}`;
 }
 
+const transcribeNativeEssay=createNativeTranscriber({providers:()=>coachAiProviders(),call:request=>callOpenAI(request)});
+async function handleNativeTranscription(req,res){
+  const user=requireUser(req);
+  const payload=JSON.parse((await readBody(req))||"{}");
+  sendJson(res,200,await transcribeNativeEssay(user.id,payload.imageDataUrl));
+}
+
 async function handleHelpChat(req, res) {
   const payload = JSON.parse((await readBody(req)) || "{}");
   const message = String(payload.message || "").trim();
@@ -7735,7 +7745,9 @@ function cleanupWritingFeedbackJobs() {
 }
 
 function parseWritingPayload(payload) {
+  const bind = item => bindWritingSource(item,{findTask:id=>realWritingTasks().find(task=>task.id===id),loadImage:url=>sourceImage(url,path.join(__dirname,"public"))});
   if (Array.isArray(payload.items)) {
+    if(payload.items.length!==2)throw Object.assign(new Error("Exactly Task 1 and Task 2 are required."),{statusCode:422});
     const items = payload.items.slice(0, 2).map((item, index) => ({
       id: String(item?.id || `task${index + 1}`),
       taskNumber: Number(item?.taskNumber || index + 1),
@@ -7748,7 +7760,13 @@ function parseWritingPayload(payload) {
       error.statusCode = 422;
       throw error;
     }
-    return { kind: "pair", items };
+    const bound=items.map(bind);
+    if(bound.some(item=>item.sourceTaskId)){
+      const first=String(bound[0].sourceTaskId||"").match(/^(cam\d+-w-test\d+)-task1$/);
+      if(!first||bound[1].sourceTaskId!==first[1]+"-task2")throw Object.assign(new Error("Select Task 1 and Task 2 from the same published test."),{statusCode:422});
+    }
+    if(bound.some(item=>item.essay.length>20000))throw Object.assign(new Error("Essay is too long."),{statusCode:413});
+    return { kind: "pair", items:bound };
   }
   const prompt = String(payload.prompt || "").trim();
   const essay = String(payload.essay || "").trim();
@@ -7757,7 +7775,9 @@ function parseWritingPayload(payload) {
     error.statusCode = 400;
     throw error;
   }
-  return { kind: "single", prompt, essay };
+  const source=bind({prompt,essay,sourceTaskId:String(payload.taskId||"")});
+  if(essay.length>20000||prompt.length>10000)throw Object.assign(new Error("Writing submission is too large."),{statusCode:413});
+  return { kind: "single", ...source, sourceImages:source.sourceImages||[] };
 }
 
 function roundWritingScore(value) {
@@ -7811,6 +7831,7 @@ function serverWritingEvidence(item, analysis = {}) {
 }
 
 function composeWeightedWritingScore(items, taskResults) {
+  const models=[...new Set(taskResults.map(result=>result.provenance?.model||"local-writing-estimate"))].join(", ");
   const tasks = taskResults.map((result, index) => {
     const criteria = (result.analysis?.criteria || []).slice(0, 4).map((criterion, criterionIndex) => ({
       label: index === 0 && criterionIndex === 0 ? "Task Achievement" : String(criterion.label || "Writing criterion"),
@@ -7864,8 +7885,8 @@ function composeWeightedWritingScore(items, taskResults) {
         : "This is an AI-assisted practice estimate, not an official IELTS result.",
     },
     provenance: {
-      provider: taskResults.every((result) => result.mode?.startsWith("ai:")) ? WRITING_AI_MODEL : "local-writing-estimate",
-      model: taskResults.every((result) => result.mode?.startsWith("ai:")) ? WRITING_AI_MODEL : "local-writing-estimate",
+      provider: taskResults.every((result) => result.mode?.startsWith("ai:")) ? models : "local-writing-estimate",
+      model: models,
       promptVersion: WRITING_SCORING_PROMPT_VERSION,
       rubric: "ielts-writing-four-criteria",
       weighting: "task1:1,task2:2",
@@ -7873,14 +7894,19 @@ function composeWeightedWritingScore(items, taskResults) {
   };
 }
 
-async function buildWritingFeedbackResult(prompt, essay) {
+async function buildWritingFeedbackResult(prompt, essay, source = {}) {
   let ai = null;
   let warning = "";
+  const images=source.sourceImages||[];
+  const visualGateway=images.length>0&&Boolean(AI_GATEWAY_API_KEY);
+  const model=visualGateway?AI_GATEWAY_MODEL:WRITING_AI_MODEL;
+  const text=`Prompt: ${prompt}\n\nStudent essay:\n${essay}`;
+  const user=images.length?[{type:"text",text},...images.map(url=>({type:"image_url",image_url:{url,detail:"high"}}))]:text;
   try {
-    ai = await callWritingAI({
+    ai = await (visualGateway?callOpenAI({system:writingSystemPrompt(),user,apiKey:AI_GATEWAY_API_KEY,baseUrl:AI_GATEWAY_BASE_URL,model:AI_GATEWAY_MODEL,reasoningEffort:AI_GATEWAY_REASONING_EFFORT,allowResponsesFallback:false,timeoutMs:WRITING_AI_TIMEOUT_MS}):callWritingAI({
       system: writingSystemPrompt(),
-      user: `Prompt: ${prompt}\n\nStudent essay:\n${essay}`,
-    });
+      user,
+    }));
   } catch (error) {
     warning = writingProviderWarning(error);
   }
@@ -7890,7 +7916,7 @@ async function buildWritingFeedbackResult(prompt, essay) {
   const pdfDataUrl = await createWritingReportPdfDataUrl(prompt, feedback);
   return addPdfDownloadUrl(
     {
-      mode: ai ? `ai:${WRITING_AI_MODEL}` : "local",
+      mode: ai ? `ai:${model}` : "local",
       feedback,
       analysis,
       review: {
@@ -7899,7 +7925,10 @@ async function buildWritingFeedbackResult(prompt, essay) {
         reason: analysis.reviewReason,
       },
       provenance: {
-        model: ai ? WRITING_AI_MODEL : "local-writing-estimate",
+        model: ai ? model : "local-writing-estimate",
+        sourceTaskId: source.sourceTaskId||"",
+        sourceImageUrls: source.sourceImageUrls||[],
+        sourceImagesSubmitted: images.length,
         promptVersion: WRITING_SCORING_PROMPT_VERSION,
         rubric: "ielts-writing-four-criteria",
       },
@@ -7912,9 +7941,9 @@ async function buildWritingFeedbackResult(prompt, essay) {
 }
 
 async function buildWritingPairFeedbackResult(items) {
-  const taskResults = await Promise.all(items.map((item) => buildWritingFeedbackResult(item.prompt, item.essay)));
+  const taskResults = await Promise.all(items.map((item) => buildWritingFeedbackResult(item.prompt, item.essay, item)));
   const contract = composeWeightedWritingScore(items, taskResults);
-  const feedback = taskResults.map((result, index) => `Task ${index + 1} · Band ${contract.score.tasks[index].overall.toFixed(1)}\n${result.feedback}`).join("\n\n");
+  const feedback = taskResults.map((result, index) => `Task ${index + 1}${contract.review.required ? " · 反馈待复核" : ` · AI practice Band ${contract.score.tasks[index].overall.toFixed(1)}`}\n${result.feedback}`).join("\n\n");
   const analysis = {
     overall: contract.score.overall.value,
     criteria: contract.score.criteria,
@@ -7925,14 +7954,15 @@ async function buildWritingPairFeedbackResult(items) {
       rewriteInstruction: contract.highestImpact.successCriterion,
     },
     taskScores: contract.score.tasks,
+    reviewRequired: contract.review.required,
   };
   const pdfDataUrl = await createWritingReportPdfDataUrl("IELTS Writing Task 1 and Task 2", feedback);
   const allAi = taskResults.every((result) => result.mode?.startsWith("ai:"));
-  return addPdfDownloadUrl({ mode: allAi ? `ai:${WRITING_AI_MODEL}` : "local", feedback, analysis, contract, taskResults, pdfDataUrl, pdfFileName: "ielts-writing-feedback.pdf" }, "ielts-writing-feedback.pdf");
+  return addPdfDownloadUrl({ mode: allAi ? `ai:${contract.provenance.model}` : "local", feedback, analysis, contract, taskResults, pdfDataUrl, pdfFileName: "ielts-writing-feedback.pdf" }, "ielts-writing-feedback.pdf");
 }
 
 function buildSingleWritingContract(prompt, essay, result) {
-  const taskNumber = /\btask\s*1\b|\b(chart|graph|table|map|diagram|process|letter)\b/i.test(prompt) ? 1 : 2;
+  const taskNumber = /task[12]$/.test(result.provenance?.sourceTaskId||"") ? Number(result.provenance.sourceTaskId.slice(-1)) : /\btask\s*1\b|\b(chart|graph|table|map|diagram|process|letter)\b/i.test(prompt) ? 1 : 2;
   const item = { id: `task${taskNumber}`, taskNumber, kind: taskNumber === 1 ? "single-task-1" : "single-task-2", prompt, essay };
   const overall = writingAnalysisScore(result.analysis);
   const criteria = (result.analysis?.criteria || []).slice(0, 4).map((criterion, index) => ({
@@ -7977,8 +8007,8 @@ function buildSingleWritingContract(prompt, essay, result) {
       reason: result.analysis?.reviewReason || "This is an AI-assisted practice estimate, not an official IELTS result.",
     },
     provenance: {
-      provider: result.mode?.startsWith("ai:") ? WRITING_AI_MODEL : "local-writing-estimate",
-      model: result.mode?.startsWith("ai:") ? WRITING_AI_MODEL : "local-writing-estimate",
+      provider: result.provenance?.model || "local-writing-estimate",
+      model: result.provenance?.model || "local-writing-estimate",
       promptVersion: WRITING_SCORING_PROMPT_VERSION,
       rubric: "ielts-writing-four-criteria",
     },
@@ -7987,7 +8017,7 @@ function buildSingleWritingContract(prompt, essay, result) {
 
 async function buildWritingPayloadResult(parsed) {
   if (parsed.kind === "pair") return buildWritingPairFeedbackResult(parsed.items);
-  const result = await buildWritingFeedbackResult(parsed.prompt, parsed.essay);
+  const result = await buildWritingFeedbackResult(parsed.prompt, parsed.essay, parsed);
   return { ...result, contract: buildSingleWritingContract(parsed.prompt, parsed.essay, result) };
 }
 
@@ -7999,11 +8029,19 @@ async function handleWriting(req, res) {
 
 async function handleWritingJobStart(req, res) {
   cleanupWritingFeedbackJobs();
+  const native=req.headers["x-stemist-native"]==="1";
+  const user=native?requireUser(req):optionalUser(req);
   const payload = JSON.parse((await readBody(req)) || "{}");
   const parsed = parseWritingPayload(payload);
+  const requestFingerprint=user?crypto.createHash("sha256").update(String(user.id)+":"+JSON.stringify(parsed,(key,value)=>key==="sourceImages"?undefined:value)).digest("hex"):"";
+  const duplicate=requestFingerprint?[...writingFeedbackJobs.values()].find(job=>job.userId===user.id&&job.requestFingerprint===requestFingerprint&&job.status!=="error"):null;
+  if(duplicate){sendJson(res,202,{jobId:duplicate.id,status:duplicate.status,idempotent:true});return;}
+  if(user&&[...writingFeedbackJobs.values()].filter(job=>job.userId===user.id&&job.status==="pending").length>=2){sendJson(res,429,{error:"Two Writing requests are already running. Please check their results first."});return;}
   const id = crypto.randomUUID();
   const job = {
     id,
+    userId: user?.id || null,
+    requestFingerprint,
     status: "pending",
     createdAt: Date.now(),
     updatedAt: Date.now(),
@@ -8013,6 +8051,14 @@ async function handleWritingJobStart(req, res) {
   writingFeedbackJobs.set(id, job);
   buildWritingPayloadResult(parsed)
     .then((result) => {
+      if(native&&user){
+        const record=nativeWritingRecord(parsed,result,job);
+        const db=getAppDb();
+        const existing=db.prepare("SELECT user_id FROM practice_attempts WHERE attempt_id = ?").get(record.id);
+        if(existing&&Number(existing.user_id)!==user.id)throw new Error("Writing record conflict.");
+        db.prepare("INSERT INTO practice_attempts (attempt_id,user_id,session_id,module,item_id,mode,score_json,result_json,feedback_json,duration_seconds,submitted_at) VALUES (?,?,NULL,'writing',?,?,?,?,?,0,?) ON CONFLICT(attempt_id) DO NOTHING")
+          .run(record.id,user.id,record.itemId,record.mode,safeLearningJson(record.score,"Writing score"),safeLearningJson(record.result,"Writing result"),"{}",record.submittedAt);
+      }
       job.status = "done";
       job.updatedAt = Date.now();
       job.result = result;
@@ -8065,10 +8111,11 @@ async function handleWritingRewrite(req, res) {
 
 function handleWritingJobStatus(req, res) {
   cleanupWritingFeedbackJobs();
+  const user=req.headers["x-stemist-native"]==="1"?requireUser(req):optionalUser(req);
   const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
   const id = decodeURIComponent(url.pathname.replace(/^\/api\/writing\/feedback\/job\//, ""));
   const job = writingFeedbackJobs.get(id);
-  if (!job) {
+  if (!job || job.userId && user?.id !== job.userId) {
     sendJson(res, 404, { error: "Writing feedback job not found or expired." });
     return;
   }
@@ -8470,6 +8517,10 @@ const server = http.createServer(async (req, res) => {
         return;
       }
       serveFile(req, res, resolved, "audio/mpeg");
+      return;
+    }
+    if (req.method === "POST" && req.url === "/api/native/ielts/transcribe") {
+      await handleNativeTranscription(req,res);
       return;
     }
     if (req.method === "POST" && req.url === "/api/writing/feedback/start") {

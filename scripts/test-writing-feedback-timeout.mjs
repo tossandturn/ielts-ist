@@ -95,7 +95,7 @@ const app = spawn(process.execPath, ["server.js"], {
     PORT: String(appPort),
     SERVER_HOST: "127.0.0.1",
     SESSION_COOKIE_SECURE: "0",
-    DATA_DB_PATH: testDbPath,
+    IELTSIST_DB_PATH: testDbPath,
     AI_GATEWAY_API_KEY: "",
     COACH_AI_API_KEY: "",
     OPENAI_API_KEY: "",

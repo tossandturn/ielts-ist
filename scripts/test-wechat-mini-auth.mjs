@@ -20,6 +20,8 @@ let output = "";
 let baseUrl = "";
 let mockUrl = "";
 let nativeRecordId = "";
+let nativeWritingJobId = "";
+let writingCalls = 0;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const listen = (server, portNumber) => new Promise((resolve, reject) => {
@@ -75,7 +77,15 @@ try {
   const mockPort = await findAvailablePort();
   baseUrl = `http://127.0.0.1:${port}`;
   mockUrl = `http://127.0.0.1:${mockPort}/sns/jscode2session`;
-  provider = http.createServer((req, res) => {
+  provider = http.createServer(async (req, res) => {
+    if(req.url==='/v1/chat/completions'){
+      for await(const _chunk of req) {}
+      writingCalls++;
+      res.setHeader('content-type','application/json');
+      const evidence='Public transport reduces congestion.';
+      res.end(JSON.stringify({choices:[{message:{content:JSON.stringify({overall:7,confidence:'high',criteria:['Task Response','Coherence & Cohesion','Lexical Resource','Grammatical Range & Accuracy'].map(label=>({label,score:7,feedback:'Develop evidence.',evidence,bandRationale:'Relevant evidence.'})),fullReport:'Synthetic rubric report; not a real provider evaluation.'})}}]}));
+      return;
+    }
     providerQuery = new URL(req.url, `http://${req.headers.host}`).searchParams;
     res.setHeader("content-type", "application/json");
     if (providerMode === "invalid") {
@@ -98,6 +108,10 @@ try {
       WECHAT_MINIPROGRAM_APP_ID: "wx-test-app",
       WECHAT_MINIPROGRAM_APP_SECRET: "test-secret",
       WECHAT_MINIPROGRAM_CODE2SESSION_URL: mockUrl,
+      WRITING_AI_API_KEY:'local-writing-fixture',
+      WRITING_AI_BASE_URL:`http://127.0.0.1:${mockPort}/v1`,
+      WRITING_AI_MODEL:'fixture-writing',
+      AI_GATEWAY_API_KEY:'',
     },
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -141,6 +155,28 @@ try {
   assert.equal(nativeResponse.headers.get("set-cookie"), null);
   const me = await fetch(`${baseUrl}/api/me`, { headers: { authorization: `Bearer ${nativeSession.token}` } });
   assert.equal(me.status, 200);
+  {
+    const body=JSON.stringify({prompt:'Discuss public transport.',essay:Array(24).fill('Public transport reduces congestion.').join(' ')});
+    const headers={authorization:`Bearer ${nativeSession.token}`,'content-type':'application/json','x-stemist-native':'1'};
+    const denied=await fetch(`${baseUrl}/api/writing/feedback/start`,{method:'POST',headers:{'x-stemist-native':'1'},body});
+    assert.equal(denied.status,401);assert.equal(writingCalls,0,'native auth rejects before provider');
+    const firstStart=await fetch(`${baseUrl}/api/writing/feedback/start`,{method:'POST',headers,body});
+    assert.equal(firstStart.status,202);nativeWritingJobId=(await firstStart.json()).jobId;
+    const secondStart=await (await fetch(`${baseUrl}/api/writing/feedback/start`,{method:'POST',headers,body})).json();
+    assert.equal(secondStart.jobId,nativeWritingJobId,'ambiguous start retry must not create another billable job');
+    let status;
+    for(let i=0;i<40;i++){
+      status=await (await fetch(`${baseUrl}/api/writing/feedback/job/${nativeWritingJobId}`,{headers})).json();
+      if(status.status!=='pending')break;
+      await sleep(100);
+    }
+    assert.equal(status.status,'done');assert.equal(writingCalls,1);
+    assert.equal(status.result.provenance.model,'fixture-writing');
+    assert.doesNotMatch(JSON.stringify(status),/pdfDataUrl|local-writing-fixture/);
+    const cloud=await (await fetch(`${baseUrl}/api/learning/attempts/writing-${nativeWritingJobId}`,{headers})).json();
+    assert.equal(cloud.attempt.module,'writing');assert.equal(cloud.attempt.score.band,7);
+    assert.equal((await fetch(`${baseUrl}/api/writing/feedback/job/${nativeWritingJobId}`)).status,404,'a guessed URL without ownership cannot read essays');
+  }
   if(legacyCatalog.readingTests.length){
     const task=legacyCatalog.readingTests[0],questionIds=task.questions.slice(0,13).map(q=>q.id);
     const headers={authorization:`Bearer ${nativeSession.token}`,'content-type':'application/json','x-stemist-native':'1'};
@@ -175,6 +211,8 @@ try {
     assert.equal(exchange.status,200);const session=await exchange.json();
     const forbidden=await fetch(`${baseUrl}/api/learning/attempts/${nativeRecordId}`,{headers:{authorization:`Bearer ${session.token}`}});
     assert.equal(forbidden.status,404,'another account cannot read the native report');
+    const forbiddenWriting=await fetch(`${baseUrl}/api/writing/feedback/job/${nativeWritingJobId}`,{headers:{authorization:`Bearer ${session.token}`,'x-stemist-native':'1'}});
+    assert.equal(forbiddenWriting.status,404,'another account cannot read a Writing job');
   }
   for (const token of [mint({}, legacyIdentityKey), mint({aud:"other-app"}), mint({iss:"other-site"}), mint({exp:now-1}), mint({exp:String(now+300)}), mint({iat:now+600,exp:now+900}), mint({exp:now+7200}), mint({sub:"ielts:999999"}), mint({},signingKey,"none")]) {
     const denied = await fetch(`${baseUrl}/api/auth/native-session`, { method:"POST", headers:{"x-stem-identity":token}, body:"{}" });

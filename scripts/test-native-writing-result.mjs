@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import { nativeWritingRecord } from '../server/nativeWritingResult.cjs';
+const parsed={kind:'pair',items:[{id:'cam15-w-test1-task1'},{id:'cam15-w-test1-task2'}]};
+const result={mode:'ai:fixture',analysis:{overall:7,criteria:['Task','CC','LR','GRA'].map(label=>({label,score:7}))},feedback:'Reviewed feedback',contract:{review:{required:false}},pdfDataUrl:'data:application/pdf;base64,fixture'};
+const record=nativeWritingRecord(parsed,result,{id:'fixture-job',userId:7,createdAt:1});
+assert.equal(record.itemId,'cam15-test1::writing-full');
+assert.equal(record.score.band,7);
+assert.doesNotMatch(JSON.stringify(record),/base64|pdfDataUrl/);
+const limited=nativeWritingRecord(parsed,{...result,analysis:{...result.analysis,reviewRequired:true}},{id:'fixture-job',userId:7,createdAt:1});
+assert.equal(limited.score.band,undefined);
+assert.equal(limited.result.analysis.overall,null);
+assert.equal(nativeWritingRecord(parsed,result,{id:'job',userId:null}),null);
+console.log('Native Writing cloud projection: owned, source-bound, no fallback score or inline PDF.');
