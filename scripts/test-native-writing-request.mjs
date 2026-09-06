@@ -40,4 +40,9 @@ await assert.rejects(()=>context.build('Task','',{studentImages:['data:image/png
 context.WRITING_VISION_AI_API_KEY='explicit-photo-fixture';context.callOpenAI=async request=>{requests.push(request);return 'vision feedback'};
 const direct=await context.build('Task','',{studentImages:['data:image/png;base64,fixture']});
 assert.equal(requests.at(-1).model,'qwen3.7-plus');assert.equal(requests.at(-1).enableThinking,false);assert.equal(requests.at(-1).timeoutMs,90000);assert.equal(direct.provenance.model,'qwen3.7-plus');assert.equal(requests.at(-1).user[1].type,'image_url');
+assert.equal(requests.at(-1).jsonResponse,true);
+const rubricStart=source.indexOf('function writingSystemPrompt('),rubricEnd=source.indexOf('\nfunction ',rubricStart+12);
+const rubric={AMBER_WRITING_SKILL:'',WRITING_SCORING_PROMPT_VERSION:'fixture'};vm.runInNewContext(source.slice(rubricStart,rubricEnd)+';this.prompt=writingSystemPrompt;',rubric);
+assert.match(rubric.prompt({photo:true}),/Use this schema: \{"transcribedEssay":/,'the required photo evidence field belongs to the actual JSON schema, not only an optional instruction');
+assert.doesNotMatch(rubric.prompt(),/transcribedEssay/,'typed grading keeps its previous schema');
 console.log('Native Writing request: source chart reaches the configured vision model; no image bytes in the result.');
