@@ -11,6 +11,7 @@ const context={AI_GATEWAY_API_KEY:'local-fixture-key',AI_GATEWAY_MODEL:'configur
  callOpenAI:async request=>{requests.push(request);return 'validated feedback'},callWritingAI:async request=>{requests.push(request);return 'text feedback'},
  writingProviderWarning:()=> 'unavailable',localWritingFeedbackAmber:()=> 'local feedback',normalizeWritingAnalysis:()=>({fullReport:'verified feedback',reviewRequired:false}),
  createWritingReportPdfDataUrl:async()=> 'data:application/pdf;base64,fixture',addPdfDownloadUrl:value=>value,parseWritingAnalysisJson:()=>({transcribedEssay:'The student photographed essay.'})};
+Object.assign(context,{WRITING_VISION_AI_API_KEY:'',WRITING_VISION_AI_MODEL:'qwen3.7-plus',WRITING_VISION_AI_BASE_URL:'http://127.0.0.1:1/v1'});
 vm.runInNewContext(source.slice(start,end)+'\nthis.build=buildWritingFeedbackResult;',context);
 const item=bindWritingSource({id:'cam15-w-test1-task1',essay:'Student essay',prompt:'forged'}, {
  findTask:()=>({prompt:'Canonical chart question',writingPageImages:[{url:'/generated/writing-pages/task.webp'}]}),loadImage:()=> 'data:image/webp;base64,fixture'
@@ -36,4 +37,7 @@ context.callOpenAI=async()=>{throw Error('AI request timed out.');};
 await assert.rejects(()=>context.build('Task','',{studentImages:['data:image/png;base64,fixture']}),error=>error.code==='writing_vision_timeout');
 context.callOpenAI=async()=>{throw Error('AI API failed. chat=401: private account message');};
 await assert.rejects(()=>context.build('Task','',{studentImages:['data:image/png;base64,fixture']}),error=>error.code==='writing_vision_configuration'&&!error.message.includes('private account'));
+context.WRITING_VISION_AI_API_KEY='explicit-photo-fixture';context.callOpenAI=async request=>{requests.push(request);return 'vision feedback'};
+const direct=await context.build('Task','',{studentImages:['data:image/png;base64,fixture']});
+assert.equal(requests.at(-1).model,'qwen3.7-plus');assert.equal(requests.at(-1).enableThinking,false);assert.equal(requests.at(-1).timeoutMs,90000);assert.equal(direct.provenance.model,'qwen3.7-plus');assert.equal(requests.at(-1).user[1].type,'image_url');
 console.log('Native Writing request: source chart reaches the configured vision model; no image bytes in the result.');
