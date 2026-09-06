@@ -46,6 +46,17 @@ const STEM_ORGANIZATION_ROLES = new Set(["student", "teacher", "school_admin", "
 const STEM_IDENTITY_SIGNING_KEY = process.env.STEM_IDENTITY_SIGNING_KEY || "";
 const STEM_INTERNAL_AUTH_KEY = process.env.STEM_INTERNAL_AUTH_KEY || STEM_IDENTITY_SIGNING_KEY;
 const STEM_INTERNAL_AUTH_WINDOW_MS = 60_000;
+// WeChat Mini Program credentials stay server-side. The optional endpoint
+// override exists only for isolated contract tests; production defaults to
+// the official Tencent code2session host.
+const WECHAT_MINIPROGRAM_APP_ID = String(process.env.WECHAT_MINIPROGRAM_APP_ID || process.env.WECHAT_MINIPROGRAM_APPID || process.env.WECHAT_APP_ID || process.env.WECHAT_MINI_APPID || "").trim();
+const WECHAT_MINIPROGRAM_APP_SECRET = String(process.env.WECHAT_MINIPROGRAM_APP_SECRET || process.env.WECHAT_MINIPROGRAM_SECRET || process.env.WECHAT_APP_SECRET || process.env.WECHAT_MINI_SECRET || "").trim();
+const WECHAT_MINIPROGRAM_CODE2SESSION_URL = String(process.env.WECHAT_MINIPROGRAM_CODE2SESSION_URL || "https://api.weixin.qq.com/sns/jscode2session").trim();
+const WECHAT_MINIPROGRAM_TIMEOUT_MS = Math.max(2_000, Math.min(15_000, Number(process.env.WECHAT_MINIPROGRAM_TIMEOUT_MS || 8_000)));
+const IELTSIST_PUBLIC_ORIGIN = String(process.env.IELTSIST_PUBLIC_ORIGIN || "https://ieltsist.com").replace(/\/+$/, "");
+const STEM_WEBVIEW_HANDOFF_TTL_MS = 2 * 60 * 1000;
+const stemWebviewHandoffs = new Map();
+const nativeSessionIssuance = new Map();
 const STEM_ALLOWED_ORIGINS = new Set([
   "https://stem.ieltsist.com",
   "http://127.0.0.1:5173",
@@ -2004,6 +2015,18 @@ function getAppDb() {
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS wechat_identities (
+      app_id TEXT NOT NULL,
+      openid TEXT NOT NULL,
+      unionid TEXT,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      last_seen_at TEXT NOT NULL,
+      UNIQUE(app_id, openid),
+      UNIQUE(app_id, unionid)
+    );
+    CREATE INDEX IF NOT EXISTS idx_wechat_identities_user ON wechat_identities(user_id);
     CREATE TABLE IF NOT EXISTS user_roles (
       user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       role TEXT NOT NULL DEFAULT 'student' CHECK (role IN ('student', 'teacher', 'school_admin', 'school_owner', 'staff')),
@@ -2351,11 +2374,12 @@ function requireAdminApiSecret(req) {
   }
 }
 
-function createSession(userId) {
+function createSession(userId, { ttlMs } = {}) {
   const db = getAppDb();
   const token = crypto.randomBytes(32).toString("base64url");
   const createdAt = nowIso();
-  const expiresAt = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString();
+  const duration = ttlMs === undefined ? 90 * 24 * 60 * 60 * 1000 : Math.max(1000, Math.min(1800000, Number(ttlMs) || 1000));
+  const expiresAt = new Date(Date.now() + duration).toISOString();
   db.prepare("INSERT INTO sessions (user_id, token_hash, created_at, expires_at, last_seen_at) VALUES (?, ?, ?, ?, ?)")
     .run(userId, hashToken(token), createdAt, expiresAt, createdAt);
   return { token, expiresAt };
@@ -2401,6 +2425,204 @@ function stemInternalIdentity(user) {
   };
 }
 
+function handleNativeClientSession(req, res) {
+  const token = String(req.headers["x-stem-identity"] || "").trim();
+  const identity = token.length <= 4096 ? verifyStemIdentityToken(token) : null;
+  let claims = null;
+  let header = null;
+  try {
+    header = JSON.parse(Buffer.from(token.split(".")[0] || "", "base64url").toString("utf8"));
+    claims = JSON.parse(Buffer.from(token.split(".")[1] || "", "base64url").toString("utf8"));
+  } catch {}
+  if (!identity || header?.alg !== "HS256" || typeof claims?.exp !== "number" || !Number.isFinite(claims.exp) || claims.exp * 1000 <= Date.now()) {
+    sendJson(res, 401, { code: "native_identity_invalid", error: "Please sign in again." });
+    return;
+  }
+  const now = Date.now();
+  for (const [id, value] of nativeSessionIssuance) if (value.until <= now) nativeSessionIssuance.delete(id);
+  const usage = nativeSessionIssuance.get(identity.userId) || { count: 0, until: now + 60000 };
+  if (usage.count >= 10 || nativeSessionIssuance.size > 5000) {
+    res.setHeader("Retry-After", "60");
+    sendJson(res, 429, { error: "Please wait before signing in again." });
+    return;
+  }
+  const user = requireStemActor(req);
+  usage.count += 1;
+  nativeSessionIssuance.set(identity.userId, usage);
+  const session = createSession(user.id, { ttlMs: Math.min(1800000, claims.exp * 1000 - now) });
+  res.setHeader("Cache-Control", "no-store");
+  sendJson(res, 200, { protocol: "ielts-native-session-v1", token: session.token, expiresAt: session.expiresAt, user: publicUser(user, currentMembership(user.id)) });
+}
+
+function cleanIeltsWebviewReturnPath(value) {
+  let candidate;
+  try { candidate = new URL(String(value || ""), IELTSIST_PUBLIC_ORIGIN); } catch { return ""; }
+  if (candidate.origin !== IELTSIST_PUBLIC_ORIGIN || candidate.protocol !== "https:") return "";
+  for (const key of ["handoff", "token", "access_token", "id_token", "code", "session", "state"]) candidate.searchParams.delete(key);
+  const returnPath = `${candidate.pathname || "/"}${candidate.search}${candidate.hash}`;
+  return returnPath.length <= 2_000 ? returnPath : "";
+}
+
+function pruneStemWebviewHandoffs() {
+  const now = Date.now();
+  for (const [key, value] of stemWebviewHandoffs) if (!value || value.expiresAt <= now) stemWebviewHandoffs.delete(key);
+}
+
+function issueStemWebviewHandoff({ userId, returnTo }) {
+  const normalizedId = String(userId || "").trim();
+  const parsedUserId = Number(normalizedId.replace(/^ielts:/, ""));
+  if (!/^ielts:\d+$/.test(normalizedId) || !Number.isInteger(parsedUserId) || parsedUserId <= 0) {
+    throw Object.assign(new Error("The shared account identity is invalid."), { statusCode: 401, code: "webview_identity_invalid" });
+  }
+  const returnPath = cleanIeltsWebviewReturnPath(returnTo);
+  if (!returnPath) throw Object.assign(new Error("The webview return path is invalid."), { statusCode: 400, code: "webview_return_invalid" });
+  const user = getAppDb().prepare("SELECT id FROM users WHERE id = ?").get(parsedUserId);
+  if (!user) throw Object.assign(new Error("The shared account identity was not found."), { statusCode: 404, code: "webview_identity_not_found" });
+  pruneStemWebviewHandoffs();
+  const code = crypto.randomBytes(32).toString("base64url");
+  const expiresAt = Date.now() + STEM_WEBVIEW_HANDOFF_TTL_MS;
+  stemWebviewHandoffs.set(crypto.createHash("sha256").update(code).digest("hex"), { userId: parsedUserId, returnPath, expiresAt });
+  return { url: `${IELTSIST_PUBLIC_ORIGIN}/api/auth/stem-handoff/consume?code=${encodeURIComponent(code)}`, expiresAt: new Date(expiresAt).toISOString(), oneTime: true };
+}
+
+async function handleStemInternalWebviewHandoff(req, res) {
+  const rawBody = await readBody(req);
+  if (!signedStemInternalRequest(req, rawBody)) {
+    sendJson(res, 403, { error: "STEM webview handoff is not authorised." });
+    return;
+  }
+  let payload;
+  try { payload = JSON.parse(rawBody || "{}"); } catch { sendJson(res, 400, { error: "Webview handoff must be valid JSON." }); return; }
+  try {
+    sendJson(res, 200, issueStemWebviewHandoff({ userId: payload.userId, returnTo: payload.returnTo }));
+  } catch (error) {
+    sendJson(res, error.statusCode || 503, { ...(error.code ? { code: error.code } : {}), error: error.statusCode ? error.message : "Webview handoff is temporarily unavailable." });
+  }
+}
+
+function consumeStemWebviewHandoff(req, res) {
+  const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+  const code = String(url.searchParams.get("code") || "").trim();
+  const key = code ? crypto.createHash("sha256").update(code).digest("hex") : "";
+  pruneStemWebviewHandoffs();
+  const handoff = key ? stemWebviewHandoffs.get(key) : null;
+  if (!handoff || handoff.expiresAt <= Date.now()) {
+    sendJson(res, 401, { code: "webview_handoff_expired", error: "The webview handoff has expired. Return to the app and try again." });
+    return;
+  }
+  stemWebviewHandoffs.delete(key);
+  const session = createSession(handoff.userId);
+  setSessionCookie(res, session.token, session.expiresAt);
+  res.statusCode = 302;
+  res.setHeader("Location", handoff.returnPath);
+  res.setHeader("Cache-Control", "no-store");
+  res.setHeader("Referrer-Policy", "no-referrer");
+  res.end();
+}
+
+function wechatConfigurationError() {
+  return Object.assign(new Error("WeChat sign-in is not configured on the account service."), {
+    statusCode: 503,
+    code: "wechat_auth_not_configured",
+  });
+}
+
+function wechatCodeError() {
+  return Object.assign(new Error("WeChat sign-in could not verify this session. Please try again."), {
+    statusCode: 401,
+    code: "wechat_code_invalid",
+  });
+}
+
+function wechatCode2SessionUrl(code) {
+  if (!WECHAT_MINIPROGRAM_APP_ID || !WECHAT_MINIPROGRAM_APP_SECRET) throw wechatConfigurationError();
+  let endpoint;
+  try {
+    endpoint = new URL(WECHAT_MINIPROGRAM_CODE2SESSION_URL);
+  } catch {
+    throw wechatConfigurationError();
+  }
+  const hostname = endpoint.hostname.toLowerCase();
+  const localTestHost = ["127.0.0.1", "::1", "localhost"].includes(hostname);
+  const officialHost = endpoint.protocol === "https:" && hostname === "api.weixin.qq.com";
+  if (!officialHost && !(process.env.NODE_ENV !== "production" && endpoint.protocol === "http:" && localTestHost)) {
+    throw wechatConfigurationError();
+  }
+  endpoint.search = "";
+  endpoint.searchParams.set("appid", WECHAT_MINIPROGRAM_APP_ID);
+  endpoint.searchParams.set("secret", WECHAT_MINIPROGRAM_APP_SECRET);
+  endpoint.searchParams.set("js_code", String(code || ""));
+  endpoint.searchParams.set("grant_type", "authorization_code");
+  return endpoint;
+}
+
+async function exchangeWeChatCode(code) {
+  const normalizedCode = String(code || "").trim();
+  if (!normalizedCode || normalizedCode.length > 512) throw wechatCodeError();
+  const endpoint = wechatCode2SessionUrl(normalizedCode);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), WECHAT_MINIPROGRAM_TIMEOUT_MS);
+  try {
+    const response = await fetch(endpoint, { method: "GET", signal: controller.signal });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw Object.assign(new Error("WeChat sign-in service is temporarily unavailable."), { statusCode: 503, code: "wechat_provider_unavailable" });
+    if (Number(payload.errcode || 0) !== 0 || !String(payload.openid || "").trim()) throw wechatCodeError();
+    return { openid: String(payload.openid).trim(), unionid: String(payload.unionid || "").trim() };
+  } catch (error) {
+    if (error?.statusCode) throw error;
+    throw Object.assign(new Error(error?.name === "AbortError" ? "WeChat sign-in timed out. Please try again." : "WeChat sign-in service is temporarily unavailable."), {
+      statusCode: 503,
+      code: error?.name === "AbortError" ? "wechat_provider_timeout" : "wechat_provider_unavailable",
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function upsertWeChatUser({ openid, unionid }) {
+  const db = getAppDb();
+  const appId = WECHAT_MINIPROGRAM_APP_ID;
+  const normalizedOpenid = String(openid || "").trim();
+  const normalizedUnionid = String(unionid || "").trim() || null;
+  if (!appId || !normalizedOpenid) throw wechatCodeError();
+  const byOpenid = db.prepare("SELECT * FROM wechat_identities WHERE app_id = ? AND openid = ?").get(appId, normalizedOpenid) || null;
+  const byUnionid = normalizedUnionid
+    ? db.prepare("SELECT * FROM wechat_identities WHERE app_id = ? AND unionid = ?").get(appId, normalizedUnionid) || null
+    : null;
+  if (byOpenid && byUnionid && Number(byOpenid.user_id) !== Number(byUnionid.user_id)) {
+    throw Object.assign(new Error("This WeChat identity is linked to conflicting accounts."), { statusCode: 409, code: "wechat_identity_conflict" });
+  }
+  let userId = Number((byOpenid || byUnionid || {}).user_id || 0);
+  const now = nowIso();
+  if (!userId) {
+    const usernameBase = `wx_${crypto.createHash("sha256").update(`${appId}:${normalizedOpenid}`).digest("hex").slice(0, 16)}`;
+    let username = usernameBase;
+    let suffix = 0;
+    while (db.prepare("SELECT id FROM users WHERE username = ?").get(username)) {
+      suffix += 1;
+      username = `${usernameBase.slice(0, 23 - String(suffix).length)}${suffix}`;
+    }
+    const generatedPassword = crypto.randomBytes(32).toString("base64url");
+    const { salt, passwordHash } = hashPassword(generatedPassword);
+    const result = db.prepare("INSERT INTO users (username, password_hash, salt, created_at, updated_at) VALUES (?, ?, ?, ?, ?)")
+      .run(username, passwordHash, salt, now, now);
+    userId = Number(result.lastInsertRowid);
+  }
+  if (byOpenid) {
+    db.prepare("UPDATE wechat_identities SET unionid = COALESCE(?, unionid), updated_at = ?, last_seen_at = ? WHERE app_id = ? AND openid = ?")
+      .run(normalizedUnionid, now, now, appId, normalizedOpenid);
+  } else {
+    db.prepare("INSERT INTO wechat_identities (app_id, openid, unionid, user_id, created_at, updated_at, last_seen_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
+      .run(appId, normalizedOpenid, normalizedUnionid, userId, now, now, now);
+  }
+  return db.prepare("SELECT * FROM users WHERE id = ?").get(userId);
+}
+
+async function authenticateWeChatCode(code) {
+  const identity = await exchangeWeChatCode(code);
+  return stemInternalIdentity(upsertWeChatUser(identity));
+}
+
 async function handleStemInternalAuthenticate(req, res) {
   const rawBody = await readBody(req);
   if (!signedStemInternalRequest(req, rawBody)) {
@@ -2414,7 +2636,15 @@ async function handleStemInternalAuthenticate(req, res) {
     sendJson(res, 400, { error: "Account request must be valid JSON." });
     return;
   }
-  const mode = payload.mode === "register" ? "register" : payload.mode === "login" ? "login" : "";
+  const mode = payload.mode === "register" ? "register" : payload.mode === "login" ? "login" : payload.mode === "wechat" ? "wechat" : "";
+  if (mode === "wechat") {
+    try {
+      sendJson(res, 200, { identity: await authenticateWeChatCode(payload.code) });
+    } catch (error) {
+      sendJson(res, error.statusCode || 503, { ...(error.code ? { code: error.code } : {}), error: error.statusCode ? error.message : "WeChat sign-in service is temporarily unavailable." });
+    }
+    return;
+  }
   const username = normalizeUsername(payload.username);
   const password = String(payload.password || "");
   if (!mode || !validateUsername(username)) {
@@ -8054,6 +8284,22 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.method === "POST" && requestPathname === "/api/stem/internal/authenticate") {
       await handleStemInternalAuthenticate(req, res);
+      return;
+    }
+    if (req.method === "GET" && requestPathname === "/api/auth/native-config") {
+      sendJson(res, 200, { protocol: "ielts-native-session-v1", wechatConfigured: Boolean(WECHAT_MINIPROGRAM_APP_ID && WECHAT_MINIPROGRAM_APP_SECRET), sharedIdentityConfigured: Boolean(STEM_IDENTITY_SIGNING_KEY), maxSessionSeconds: 1800 });
+      return;
+    }
+    if (req.method === "POST" && requestPathname === "/api/auth/native-session") {
+      handleNativeClientSession(req, res);
+      return;
+    }
+    if (req.method === "POST" && requestPathname === "/api/stem/internal/webview-handoff") {
+      await handleStemInternalWebviewHandoff(req, res);
+      return;
+    }
+    if (req.method === "GET" && requestPathname === "/api/auth/stem-handoff/consume") {
+      consumeStemWebviewHandoff(req, res);
       return;
     }
     if ((req.method === "GET" || req.method === "PUT") && requestPathname === "/api/coach/conversations") {
