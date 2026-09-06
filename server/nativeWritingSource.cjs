@@ -1,4 +1,10 @@
 const fs=require('node:fs'),path=require('node:path')
+function writingPrompt(value,id){
+ const source=String(value||''),task=String(id||'').match(/^cam\d+-w-test\d+-task([12])$/)
+ if(!task)return source
+ const end=new RegExp('Write at least\\s+'+(task[1]==='1'?'150':'250')+'\\s+words\\.?','i').exec(source)
+ return (end?source.slice(0,end.index+end[0].length):source).replace(/^\s*\|\s*$/gm,'').replace(/\n{3,}/g,'\n\n').trim()
+}
 function sourceImage(url,publicRoot){
  try {
  const clean=decodeURIComponent(String(url||''))
@@ -22,8 +28,8 @@ function bindWritingSource(item,{findTask,loadImage}){
  const urls=taskNumber===1||!task.prompt?(task.writingPageImages||[]).map(image=>image.url):[]
  if((taskNumber===1||!task.prompt)&&(!urls.length||urls.length>4))throw Object.assign(Error('The original Writing question is not ready for marking.'),{statusCode:422})
  const images=urls.map(loadImage)
- const bound={...item,sourceTaskId:id,taskNumber,kind:taskNumber===1?'academic-task-1':'task-2',sourceImageUrls:urls,prompt:String(task.prompt||task.data||('IELTS Writing Task '+taskNumber+'. Use the attached original question.'))}
+ const bound={...item,sourceTaskId:id,taskNumber,kind:taskNumber===1?'academic-task-1':'task-2',sourceImageUrls:urls,prompt:writingPrompt(task.prompt||task.data||('IELTS Writing Task '+taskNumber+'. Use the attached original question.'),id)}
  Object.defineProperty(bound,'sourceImages',{value:images,enumerable:false})
  return bound
 }
-module.exports={bindWritingSource,sourceImage}
+module.exports={bindWritingSource,sourceImage,writingPrompt}
