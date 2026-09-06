@@ -8,6 +8,7 @@ const { execFile } = require("child_process");
 const PDFDocument = require("pdfkit");
 const WebSocket = require("ws");
 const { WebSocketServer } = require("ws");
+const {buildNativeCatalog,nativeTaskDetail}=require("./server/nativeIeltsCatalog.cjs");
 const { createWorker } = require("tesseract.js");
 const {
   initCoachHistorySchema,
@@ -1919,11 +1920,13 @@ function sendCompressedJson(req, res, status, value, cacheControl = "no-store") 
 function getTasksPayloadCache() {
   const now = Date.now();
   if (tasksPayloadCache && now - tasksPayloadCache.createdAt < TASKS_CACHE_TTL_MS) return tasksPayloadCache;
-  const json = JSON.stringify(tasksPayload());
+  const payload = tasksPayload();
+  const json = JSON.stringify(payload);
   const etag = `"tasks-${crypto.createHash("sha1").update(json).digest("hex").slice(0, 16)}"`;
   const gzip = zlib.gzipSync(json, { level: 6 });
   tasksPayloadCache = {
     createdAt: now,
+    payload,
     json,
     gzip,
     etag,
@@ -8380,6 +8383,19 @@ const server = http.createServer(async (req, res) => {
     const objectiveReviewMatch = requestPathname.match(/^\/api\/objective\/attempts\/([^/]+)\/review$/);
     if (req.method === "GET" && objectiveReviewMatch) {
       handleObjectiveAttemptReview(req, res, decodeURIComponent(objectiveReviewMatch[1]));
+      return;
+    }
+    if (req.method === "GET" && requestPathname === "/api/native/ielts/catalog") {
+      const cache = getTasksPayloadCache();
+      cache.nativeIndex ||= buildNativeCatalog(cache.payload);
+      sendJson(res, 200, cache.nativeIndex);
+      return;
+    }
+    const nativeTaskMatch=requestPathname.match(/^\/api\/native\/ielts\/tasks\/(listening|reading|writing|speaking)\/([-a-zA-Z0-9_]+)$/);
+    if(req.method==="GET" && nativeTaskMatch){
+      const task=nativeTaskDetail(getTasksPayloadCache().payload,nativeTaskMatch[1],nativeTaskMatch[2]);
+      if(!task){sendJson(res,404,{error:"Task not found."});return;}
+      sendJson(res,200,{schemaVersion:"native-ielts-task-v1",task});
       return;
     }
     if ((req.method === "GET" || req.method === "HEAD") && req.url.startsWith("/api/tasks")) {

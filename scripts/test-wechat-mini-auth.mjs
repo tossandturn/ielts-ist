@@ -103,6 +103,19 @@ try {
   child.stdout.on("data", (chunk) => { output += chunk; });
   child.stderr.on("data", (chunk) => { output += chunk; });
   await waitForServer();
+  const legacyCatalog=await (await fetch(`${baseUrl}/api/tasks`)).json();
+  const nativeCatalogResponse=await fetch(`${baseUrl}/api/native/ielts/catalog`);
+  const nativeCatalog=await nativeCatalogResponse.json();
+  assert.equal(nativeCatalogResponse.status,200);
+  assert.equal(nativeCatalog.schemaVersion,'native-ielts-catalog-v1');
+  assert.deepEqual(nativeCatalog.readingTests.map(t=>t.id),legacyCatalog.readingTests.map(t=>t.id));
+  assert.doesNotMatch(JSON.stringify(nativeCatalog),/"(?:questions|answer|answerKey|aiBaseUrl|prompt)"\s*:/);
+  if(nativeCatalog.readingTests.length){
+    const detail=await (await fetch(`${baseUrl}/api/native/ielts/tasks/reading/${nativeCatalog.readingTests[0].id}`)).json();
+    assert.equal(detail.schemaVersion,'native-ielts-task-v1');assert.equal(detail.task.questions.length,40);
+    assert.doesNotMatch(JSON.stringify(detail),/"(?:answer|answerKey|expected)"\s*:/);
+  }
+  assert.equal((await fetch(`${baseUrl}/api/native/ielts/tasks/reading/not-a-paper`)).status,404);
 
   const first = await internalRequest({ mode: "wechat", code: "one-time-code" });
   assert.equal(first.response.status, 200);
