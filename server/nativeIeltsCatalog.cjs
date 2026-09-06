@@ -34,7 +34,7 @@ function indexItem(task,module){
 }
 
 function buildNativeCatalog(payload){
- const version=crypto.createHash('sha256').update(JSON.stringify(Object.fromEntries(Object.values(BANKS).map(key=>[key,payload[key]||[]])))).digest('hex').slice(0,24)
+ const version=crypto.createHash('sha256').update('native-task-v2|').update(JSON.stringify(Object.fromEntries(Object.values(BANKS).map(key=>[key,payload[key]||[]])))).digest('hex').slice(0,24)
  return {schemaVersion:'native-ielts-catalog-v1',version,...Object.fromEntries(Object.entries(BANKS).map(([module,key])=>[key,(payload[key]||[]).map(task=>indexItem(task,module))]))}
 }
 
@@ -43,6 +43,16 @@ function nativeTaskDetail(payload,module,id){
  const task=(payload[BANKS[module]]||[]).find(task=>task.id===id)
  if(!task)return null
  const result={...Object.fromEntries(ALLOWED.filter(key=>task[key]!==undefined).map(key=>[key,task[key]])),nativeSections:sourceSections(task,module)}
+ if(module==='listening'){
+  const match=String(id).match(/^cam(\d+)-l-test(\d+)$/)
+  const reading=match?(payload.readingTests||[]).find(item=>item.id===`cam${match[1]}-r-test${match[2]}`):null
+  const boundary=Number(reading?.readingPassageStartPages?.[1])
+  // The same physical PDF and complete question anchors are required. Never
+  // guess a cut from the word "reading" or drop an unlocated continuation.
+  if(reading&&task.sourceUrl===reading.sourceUrl&&/(?:\.pdf(?:[?#]|$)|^\/cambridge15\/pdf$)/i.test(String(task.sourceUrl||''))&&Number.isInteger(boundary)&&boundary>0&&task.questions?.length===40&&task.questions.every(q=>Number(q.questionPage)>0&&Number(q.questionPage)<boundary)){
+   result.questionPageImages=(result.questionPageImages||[]).filter(image=>Number(image.page)<boundary)
+  }
+ }
  if(result.questions)result.questions=result.questions.map(q=>Object.fromEntries(['id','text','type','typeLabel','questionPage','options','selectionLimit','optionGroupId'].filter(key=>q[key]!==undefined).map(key=>[key,q[key]])))
  return result
 }

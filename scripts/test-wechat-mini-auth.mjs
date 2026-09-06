@@ -104,10 +104,11 @@ try {
   child.stderr.on("data", (chunk) => { output += chunk; });
   await waitForServer();
   const legacyCatalog=await (await fetch(`${baseUrl}/api/tasks`)).json();
-  const nativeCatalogResponse=await fetch(`${baseUrl}/api/native/ielts/catalog`);
+  const nativeCatalogResponse=await fetch(`${baseUrl}/api/native/ielts/catalog`,{headers:{'accept-encoding':'gzip'}});
   const nativeCatalog=await nativeCatalogResponse.json();
   assert.equal(nativeCatalogResponse.status,200);
   assert.equal(nativeCatalog.schemaVersion,'native-ielts-catalog-v1');
+  if(JSON.stringify(nativeCatalog).length>1024)assert.equal(nativeCatalogResponse.headers.get('content-encoding'),'gzip');
   assert.deepEqual(nativeCatalog.readingTests.map(t=>t.id),legacyCatalog.readingTests.map(t=>t.id));
   assert.doesNotMatch(JSON.stringify(nativeCatalog),/"(?:questions|answer|answerKey|aiBaseUrl|prompt)"\s*:/);
   if(nativeCatalog.readingTests.length){

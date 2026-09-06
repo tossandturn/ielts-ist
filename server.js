@@ -9,6 +9,7 @@ const PDFDocument = require("pdfkit");
 const WebSocket = require("ws");
 const { WebSocketServer } = require("ws");
 const {buildNativeCatalog,nativeTaskDetail}=require("./server/nativeIeltsCatalog.cjs");
+const {nativeReportResponse}=require("./server/nativeReportResponse.cjs");
 const { createWorker } = require("tesseract.js");
 const {
   initCoachHistorySchema,
@@ -1749,7 +1750,9 @@ function getSpeakingSets() {
     : fallbackSpeakingSets;
 }
 
-function sendJson(res, status, value) {
+function sendJson(res, status, value, plain = false) {
+  value = nativeReportResponse(res.req, value);
+  if (!plain && res.req?.headers?.["x-stemist-native"] === "1") return sendCompressedJson(res.req, res, status, value);
   res.writeHead(status, {
     "content-type": "application/json; charset=utf-8",
     "cache-control": "no-store",
@@ -1891,12 +1894,12 @@ function handleSpeakingRecordingDownload(req, res) {
 }
 
 function sendCompressedJson(req, res, status, value, cacheControl = "no-store") {
-  const json = JSON.stringify(value);
+  const json = JSON.stringify(nativeReportResponse(req, value));
   const acceptsGzip = /\bgzip\b/i.test(req.headers["accept-encoding"] || "");
   if (acceptsGzip && Buffer.byteLength(json) > 1024) {
     zlib.gzip(json, { level: 6 }, (error, compressed) => {
       if (error) {
-        sendJson(res, status, value);
+        sendJson(res, status, value, true);
         return;
       }
       res.writeHead(status, {
@@ -8388,7 +8391,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method === "GET" && requestPathname === "/api/native/ielts/catalog") {
       const cache = getTasksPayloadCache();
       cache.nativeIndex ||= buildNativeCatalog(cache.payload);
-      sendJson(res, 200, cache.nativeIndex);
+      sendCompressedJson(req, res, 200, cache.nativeIndex, "public, max-age=60");
       return;
     }
     const nativeTaskMatch=requestPathname.match(/^\/api\/native\/ielts\/tasks\/(listening|reading|writing|speaking)\/([-a-zA-Z0-9_]+)$/);
@@ -8396,7 +8399,7 @@ const server = http.createServer(async (req, res) => {
       const cache=getTasksPayloadCache();cache.nativeIndex ||= buildNativeCatalog(cache.payload);
       const task=nativeTaskDetail(cache.payload,nativeTaskMatch[1],nativeTaskMatch[2]);
       if(!task){sendJson(res,404,{error:"Task not found."});return;}
-      sendJson(res,200,{schemaVersion:"native-ielts-task-v1",version:cache.nativeIndex.version,task});
+      sendCompressedJson(req,res,200,{schemaVersion:"native-ielts-task-v1",version:cache.nativeIndex.version,task},"public, max-age=60");
       return;
     }
     if ((req.method === "GET" || req.method === "HEAD") && req.url.startsWith("/api/tasks")) {

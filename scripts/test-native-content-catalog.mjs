@@ -18,4 +18,8 @@ assert.equal(sourceSections({...reading,questions:reading.questions.map((q,i)=>i
 assert.equal(sourceSections(listening,'listening').length,4)
 assert.equal(nativeTaskDetail(payload,'reading','../../server'),null)
 assert.equal(nativeTaskDetail(payload,'speaking',reading.id),null)
+const sameDocument={...payload,listeningTests:[{...listening,sourceUrl:'/cambridge15/pdf',questions:listening.questions.map(q=>({...q,questionPage:8})),questionPageImages:[{page:8,url:'/listening'},{page:10,url:'/reading'}]}],readingTests:[{...reading,sourceUrl:'/cambridge15/pdf'}]}
+assert.equal(nativeTaskDetail(sameDocument,'listening',listening.id).questionPageImages.length,1)
+sameDocument.listeningTests[0].questions[39].questionPage=null
+assert.equal(nativeTaskDetail(sameDocument,'listening',listening.id).questionPageImages.length,2,'unknown continuation must not be silently dropped')
 console.log('Native catalog: bounded index, exact source-page sections, detail isolation and no guessed Reading boundaries passed.')
