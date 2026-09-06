@@ -10,6 +10,7 @@ const WebSocket = require("ws");
 const { WebSocketServer } = require("ws");
 const {buildNativeCatalog,nativeTaskDetail}=require("./server/nativeIeltsCatalog.cjs");
 const {nativeReportResponse}=require("./server/nativeReportResponse.cjs");
+const {nativeObjectiveRecord}=require("./server/nativeObjectiveProjection.cjs");
 const { createWorker } = require("tesseract.js");
 const {
   initCoachHistorySchema,
@@ -3374,7 +3375,9 @@ async function handleLearningApi(req, res) {
     const db = getAppDb();
     const activeSession = db.prepare("SELECT * FROM practice_sessions WHERE user_id = ? AND status = 'in_progress' ORDER BY updated_at DESC LIMIT 1").get(user.id);
     const activeSessions = db.prepare("SELECT * FROM practice_sessions WHERE user_id = ? AND status = 'in_progress' ORDER BY updated_at DESC LIMIT 100").all(user.id);
-    const attempts = db.prepare("SELECT * FROM practice_attempts WHERE user_id = ? ORDER BY submitted_at DESC LIMIT 20").all(user.id);
+    const summary = url.searchParams.get("summary") === "1";
+    const attemptFields = summary ? "attempt_id, session_id, module, item_id, mode, score_json, duration_seconds, submitted_at" : "*";
+    const attempts = db.prepare(`SELECT ${attemptFields} FROM practice_attempts WHERE user_id = ? ORDER BY submitted_at DESC LIMIT 20`).all(user.id);
     const completedItems = db.prepare(`
       WITH ranked_completions AS (
         SELECT module, item_id, submitted_at, attempt_id, score_json, rowid,
@@ -3404,6 +3407,13 @@ async function handleLearningApi(req, res) {
   }
   const sessionMatch = url.pathname.match(/^\/api\/learning\/sessions\/([^/]+)$/);
   if (sessionMatch) return handleLearningSession(req, res, decodeURIComponent(sessionMatch[1]));
+  const attemptMatch = url.pathname.match(/^\/api\/learning\/attempts\/([A-Za-z0-9_-]{8,100})$/);
+  if(attemptMatch && req.method === "GET"){
+    const user=requireUser(req);
+    const row=getAppDb().prepare("SELECT * FROM practice_attempts WHERE attempt_id = ? AND user_id = ?").get(attemptMatch[1],user.id);
+    if(!row){sendJson(res,404,{error:"Learning record not found."});return;}
+    sendJson(res,200,{attempt:publicPracticeAttempt(row)});return;
+  }
   if (url.pathname === "/api/learning/attempts") return handleLearningAttempts(req, res);
   const weakMatch = url.pathname.match(/^\/api\/learning\/weak-areas(?:\/([^/]+))?$/);
   if (weakMatch) return handleLearningWeakAreas(req, res, weakMatch[1] ? decodeURIComponent(weakMatch[1]) : "");
@@ -6856,6 +6866,20 @@ function submitObjectiveBatch(req, res, specifications, options = {}) {
       : null;
     const submissions = prepared.map(commitObjectiveSubmission);
     if (typeof options.afterCommit === "function") options.afterCommit(batchState, prepared, submissions, db);
+    if(req.headers["x-stemist-native"]==="1"){
+      for(const submission of submissions){
+        const row=db.prepare("SELECT * FROM objective_attempts WHERE attempt_id = ?").get(submission.attemptId);
+        if(!row?.user_id)continue;
+        const source=canonicalObjectiveTest(row.module,row.task_id);
+        const task=row.module==="reading"?slimReadingTest(source):slimListeningTest(source);
+        const record=nativeObjectiveRecord(row,parseStoredJson(row.result_json,{}),task);
+        if(!record)continue;
+        const existing=db.prepare("SELECT user_id FROM practice_attempts WHERE attempt_id = ?").get(record.id);
+        if(existing&&Number(existing.user_id)!==record.userId)throw objectiveAttemptError("Learning record ownership mismatch.",409,"objective_record_conflict");
+        db.prepare("INSERT INTO practice_attempts (attempt_id,user_id,session_id,module,item_id,mode,score_json,result_json,feedback_json,duration_seconds,submitted_at) VALUES (?,?,NULL,?,?,?,?,?,?,0,?) ON CONFLICT(attempt_id) DO UPDATE SET module=excluded.module,item_id=excluded.item_id,mode=excluded.mode,score_json=excluded.score_json,result_json=excluded.result_json,feedback_json=excluded.feedback_json,submitted_at=excluded.submitted_at WHERE practice_attempts.user_id=excluded.user_id")
+          .run(record.id,record.userId,record.module,record.itemId,record.mode,JSON.stringify(record.score),JSON.stringify(record.result),JSON.stringify(record.feedback),record.submittedAt);
+      }
+    }
     db.exec("COMMIT");
     return submissions;
   } catch (error) {

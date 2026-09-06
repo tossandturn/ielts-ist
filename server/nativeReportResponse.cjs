@@ -5,7 +5,7 @@ function omitInlinePdf(value){
 }
 function nativeReportResponse(request,payload){
  const path=String(request?.url||'').split('?')[0]
- if(request?.headers?.['x-stemist-native']!=='1'||!/^\/api\/(?:writing\/feedback(?:\/job\/[a-zA-Z0-9_-]+)?|speaking\/feedback|exam\/report)$/.test(path))return payload
+ if(request?.headers?.['x-stemist-native']!=='1'||!/^\/api\/(?:writing\/feedback(?:\/job\/[a-zA-Z0-9_-]+)?|speaking\/feedback|exam\/report|learning\/attempts\/[a-zA-Z0-9_-]+)$/.test(path))return payload
  return omitInlinePdf(payload)
 }
 module.exports={nativeReportResponse}

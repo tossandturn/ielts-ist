@@ -19,6 +19,7 @@ let child = null;
 let output = "";
 let baseUrl = "";
 let mockUrl = "";
+let nativeRecordId = "";
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const listen = (server, portNumber) => new Promise((resolve, reject) => {
@@ -140,6 +141,25 @@ try {
   assert.equal(nativeResponse.headers.get("set-cookie"), null);
   const me = await fetch(`${baseUrl}/api/me`, { headers: { authorization: `Bearer ${nativeSession.token}` } });
   assert.equal(me.status, 200);
+  if(legacyCatalog.readingTests.length){
+    const task=legacyCatalog.readingTests[0],questionIds=task.questions.slice(0,13).map(q=>q.id);
+    const headers={authorization:`Bearer ${nativeSession.token}`,'content-type':'application/json','x-stemist-native':'1'};
+    const start=await fetch(`${baseUrl}/api/objective/attempts`,{method:'POST',headers,body:JSON.stringify({clientAttemptKey:'native-record-fixture',context:'single',module:'reading',taskId:task.id,questionIds})});
+    assert.equal(start.status,201);const capability=await start.json();
+    nativeRecordId=capability.attemptId;
+    const body=JSON.stringify({...capability,taskId:task.id,questionIds,answers:{q1:'qa-response'}});
+    for(let i=0;i<2;i++)assert.equal((await fetch(`${baseUrl}/api/reading/score`,{method:'POST',headers,body})).status,200);
+    const state=await (await fetch(`${baseUrl}/api/learning/state`,{headers})).json();
+    const rows=state.attempts.filter(a=>a.attemptId===capability.attemptId);
+    assert.equal(rows.length,1,'native submission creates one immutable cloud record, including retries');
+    assert.ok(rows[0].itemId.includes('::'),'a subset must not complete the whole source test');
+    assert.equal(rows[0].score.band,undefined);assert.equal(rows[0].result.band,undefined);
+    const summary=await (await fetch(`${baseUrl}/api/learning/state?summary=1`,{headers})).json();
+    assert.deepEqual(summary.attempts[0].result,{},'lists do not eagerly ship full report bodies');
+    const report=await (await fetch(`${baseUrl}/api/learning/attempts/${capability.attemptId}`,{headers})).json();
+    assert.equal(report.attempt.result.details.length,13);
+    assert.equal((await fetch(`${baseUrl}/api/learning/attempts/${capability.attemptId}`)).status,401);
+  }
   const invalidNative = await fetch(`${baseUrl}/api/auth/native-session`, { method: "POST", headers: { "x-stem-identity": identityToken + "x" }, body: "{}" });
   assert.equal(invalidNative.status, 401);
   const now = Math.floor(Date.now() / 1000);
@@ -148,6 +168,14 @@ try {
     const b = Buffer.from(JSON.stringify({ iss: "ieltsist.com", aud: "stem.ieltsist.com", sub: "ielts:1", iat: now, exp: now + 300, ...claims })).toString("base64url");
     return `${h}.${b}.${crypto.createHmac("sha256", key).update(`${h}.${b}`).digest("base64url")}`;
   };
+  if(nativeRecordId){
+    const second=await internalRequest({mode:'register',username:'native_second',password:'fixture-password-only'});
+    assert.equal(second.response.status,200);
+    const exchange=await fetch(`${baseUrl}/api/auth/native-session`,{method:'POST',headers:{'x-stem-identity':mint({sub:second.json.identity.id})},body:'{}'});
+    assert.equal(exchange.status,200);const session=await exchange.json();
+    const forbidden=await fetch(`${baseUrl}/api/learning/attempts/${nativeRecordId}`,{headers:{authorization:`Bearer ${session.token}`}});
+    assert.equal(forbidden.status,404,'another account cannot read the native report');
+  }
   for (const token of [mint({}, legacyIdentityKey), mint({aud:"other-app"}), mint({iss:"other-site"}), mint({exp:now-1}), mint({exp:String(now+300)}), mint({iat:now+600,exp:now+900}), mint({exp:now+7200}), mint({sub:"ielts:999999"}), mint({},signingKey,"none")]) {
     const denied = await fetch(`${baseUrl}/api/auth/native-session`, { method:"POST", headers:{"x-stem-identity":token}, body:"{}" });
     assert.equal(denied.status,401,"invalid or legacy-only identity must not mint a native session");
