@@ -1,4 +1,5 @@
 const BANKS={listening:'listeningTests',reading:'readingTests',writing:'writingTasks',speaking:'speakingSets'}
+const crypto=require('node:crypto')
 const ALLOWED=['id','module','title','type','source','period','minutes','sourceUrl','audioUrls','questionPageImages','questions','contentTopics','contentVersion','contentLifecycle','humanReviewStatus','readingPageImages','readingPassagePageImages','readingQuestionPageImages','readingPassageStartPages','writingPageImages','speakingPageImages','prompt','data','visual','part1Topic','part1','part2','part3']
 const number=(q,index)=>Number(String(q.id||'').match(/^(?:q)?(\d+)$/)?.[1])||index+1
 
@@ -33,7 +34,8 @@ function indexItem(task,module){
 }
 
 function buildNativeCatalog(payload){
- return {schemaVersion:'native-ielts-catalog-v1',...Object.fromEntries(Object.entries(BANKS).map(([module,key])=>[key,(payload[key]||[]).map(task=>indexItem(task,module))]))}
+ const version=crypto.createHash('sha256').update(JSON.stringify(Object.fromEntries(Object.values(BANKS).map(key=>[key,payload[key]||[]])))).digest('hex').slice(0,24)
+ return {schemaVersion:'native-ielts-catalog-v1',version,...Object.fromEntries(Object.entries(BANKS).map(([module,key])=>[key,(payload[key]||[]).map(task=>indexItem(task,module))]))}
 }
 
 function nativeTaskDetail(payload,module,id){

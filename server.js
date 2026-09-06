@@ -8393,9 +8393,10 @@ const server = http.createServer(async (req, res) => {
     }
     const nativeTaskMatch=requestPathname.match(/^\/api\/native\/ielts\/tasks\/(listening|reading|writing|speaking)\/([-a-zA-Z0-9_]+)$/);
     if(req.method==="GET" && nativeTaskMatch){
-      const task=nativeTaskDetail(getTasksPayloadCache().payload,nativeTaskMatch[1],nativeTaskMatch[2]);
+      const cache=getTasksPayloadCache();cache.nativeIndex ||= buildNativeCatalog(cache.payload);
+      const task=nativeTaskDetail(cache.payload,nativeTaskMatch[1],nativeTaskMatch[2]);
       if(!task){sendJson(res,404,{error:"Task not found."});return;}
-      sendJson(res,200,{schemaVersion:"native-ielts-task-v1",task});
+      sendJson(res,200,{schemaVersion:"native-ielts-task-v1",version:cache.nativeIndex.version,task});
       return;
     }
     if ((req.method === "GET" || req.method === "HEAD") && req.url.startsWith("/api/tasks")) {

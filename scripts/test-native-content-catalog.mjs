@@ -5,6 +5,8 @@ const listening={id:'cam15-l-test1',audioUrls:['one','two','three','four'],quest
 const payload={readingTests:[reading],listeningTests:[listening],writingTasks:[],speakingSets:[],aiBaseUrl:'not-part-of-native-catalog'}
 const catalog=buildNativeCatalog(payload)
 assert.equal(catalog.schemaVersion,'native-ielts-catalog-v1')
+assert.match(catalog.version,/^[a-f0-9]{24}$/)
+assert.notEqual(buildNativeCatalog({...payload,readingTests:[{...reading,title:'Updated source'}]}).version,catalog.version)
 assert.equal(catalog.readingTests[0].questionCount,40)
 assert.equal(catalog.readingTests[0].sections[0].questionCount,14,'source pages, not a hard-coded 13-question Passage 1')
 assert.doesNotMatch(JSON.stringify(catalog),/questionPage|Question 1|aiBaseUrl|questionIds/)
