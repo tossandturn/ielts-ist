@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {nativeExamWriting} from '../server/nativeExamWriting.cjs';
+const expected=['cam15-w-test1-task1','cam16-w-test2-task2'];
+const jobs=expected.map((id,index)=>({userId:7,sourceTaskIds:[id],status:'done',result:{mode:'ai:test',analysis:{overall:6},contract:{attempt:{items:[{prompt:'Canonical source '+index,response:'Model-anchored photo response '+index}]}}}}));
+const writing={feedbackJobIds:['a','b'],tasks:expected.map(id=>({id,essay:'forged client essay'}))};
+const getJob=id=>id==='a'?jobs[0]:id==='b'?jobs[1]:null;
+const result=nativeExamWriting(7,writing,{writingSourceIds:expected},getJob);
+assert.equal(result.items[0].essay,'Model-anchored photo response 0');assert.doesNotMatch(JSON.stringify(result),/forged/);
+assert.throws(()=>nativeExamWriting(8,writing,{writingSourceIds:expected},getJob),error=>error.statusCode===404);
+assert.throws(()=>nativeExamWriting(7,{...writing,feedbackJobIds:['b','a']},{writingSourceIds:expected},getJob),error=>error.code==='writing_feedback_source_mismatch');
+assert.throws(()=>nativeExamWriting(7,{...writing,tasks:[{id:'cam99-w-test1-task1'},writing.tasks[1]]},{writingSourceIds:expected},getJob));
+jobs[0].status='pending';assert.throws(()=>nativeExamWriting(7,writing,{writingSourceIds:expected},getJob),error=>error.code==='writing_feedback_pending');
+console.log('Native full-exam Writing uses only owned, completed, source-bound grading jobs; client score/text claims cannot replace photo evidence.');

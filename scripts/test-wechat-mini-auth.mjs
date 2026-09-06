@@ -22,6 +22,9 @@ let mockUrl = "";
 let nativeRecordId = "";
 let nativeWritingJobId = "";
 let writingCalls = 0;
+let photoCalls=0;
+let photoProviderFailure=false;
+let lastPhotoRequest=null;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const listen = (server, portNumber) => new Promise((resolve, reject) => {
@@ -79,11 +82,14 @@ try {
   mockUrl = `http://127.0.0.1:${mockPort}/sns/jscode2session`;
   provider = http.createServer(async (req, res) => {
     if(req.url==='/v1/chat/completions'){
-      for await(const _chunk of req) {}
+      let body='';for await(const chunk of req)body+=chunk;
+      const request=JSON.parse(body);
+      const images=(request.messages||[]).flatMap(message=>Array.isArray(message.content)?message.content.filter(part=>part.type==='image_url'):[]);
+      if(images.length){photoCalls++;lastPhotoRequest=request;if(photoProviderFailure){res.writeHead(503,{'content-type':'application/json'});res.end(JSON.stringify({error:{message:'private fixture provider detail'}}));return;}}
       writingCalls++;
       res.setHeader('content-type','application/json');
       const evidence='Public transport reduces congestion.';
-      res.end(JSON.stringify({choices:[{message:{content:JSON.stringify({overall:7,confidence:'high',criteria:['Task Response','Coherence & Cohesion','Lexical Resource','Grammatical Range & Accuracy'].map(label=>({label,score:7,feedback:'Develop evidence.',evidence,bandRationale:'Relevant evidence.'})),fullReport:'Synthetic rubric report; not a real provider evaluation.'})}}]}));
+      res.end(JSON.stringify({choices:[{message:{content:JSON.stringify({overall:7,confidence:'high',criteria:['Task Response','Coherence & Cohesion','Lexical Resource','Grammatical Range & Accuracy'].map(label=>({label,score:7,feedback:'Develop evidence.',evidence,bandRationale:'Relevant evidence.'})),transcribedEssay:images.length?Array(55).fill(evidence).join(' '):undefined,fullReport:'Synthetic rubric report; not a real provider evaluation.'})}}]}));
       return;
     }
     providerQuery = new URL(req.url, `http://${req.headers.host}`).searchParams;
@@ -111,7 +117,13 @@ try {
       WRITING_AI_API_KEY:'local-writing-fixture',
       WRITING_AI_BASE_URL:`http://127.0.0.1:${mockPort}/v1`,
       WRITING_AI_MODEL:'fixture-writing',
-      AI_GATEWAY_API_KEY:'',
+      AI_GATEWAY_API_KEY:'local-vision-fixture',
+      AI_GATEWAY_BASE_URL:`http://127.0.0.1:${mockPort}/v1`,
+      AI_GATEWAY_MODEL:'gpt-5.5',
+      AI_GATEWAY_REASONING_EFFORT:'xhigh',
+      COACH_AI_API_KEY:'local-coach-fixture',
+      COACH_AI_BASE_URL:`http://127.0.0.1:${mockPort}/v1`,
+      COACH_AI_MODEL:'qwen3.5-plus',
     },
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -176,6 +188,31 @@ try {
     const cloud=await (await fetch(`${baseUrl}/api/learning/attempts/writing-${nativeWritingJobId}`,{headers})).json();
     assert.equal(cloud.attempt.module,'writing');assert.equal(cloud.attempt.score.band,7);
     assert.equal((await fetch(`${baseUrl}/api/writing/feedback/job/${nativeWritingJobId}`)).status,404,'a guessed URL without ownership cannot read essays');
+  }
+  {
+    const headers={authorization:`Bearer ${nativeSession.token}`,'content-type':'application/json','x-stemist-native':'1'};
+    const image='data:image/png;base64,'+Buffer.from([137,80,78,71,13,10,26,10,0,1,2,3]).toString('base64');
+    const payload={prompt:'Discuss public transport.',essay:'',imageDataUrls:[image]};
+    const start=await fetch(`${baseUrl}/api/writing/feedback/start`,{method:'POST',headers,body:JSON.stringify(payload)});
+    assert.equal(start.status,202);const id=(await start.json()).jobId;
+    let job;
+    for(let i=0;i<40;i++){job=await(await fetch(`${baseUrl}/api/writing/feedback/job/${id}`,{headers})).json();if(job.status!=='pending')break;await sleep(100);}
+    assert.equal(job.status,'done');assert.equal(photoCalls,1);assert.equal(job.result.provenance.studentImagesSubmitted,1);assert.equal(job.result.analysis.reviewRequired,false);
+    assert.equal(lastPhotoRequest.model,'gpt-5.5');assert.equal(lastPhotoRequest.reasoning_effort,'xhigh');
+    assert.equal(lastPhotoRequest.messages.find(message=>message.role==='user').content.find(part=>part.type==='image_url').image_url.url,image);
+    assert.doesNotMatch(JSON.stringify(job.result),/data:image|local-vision-fixture|pdfDataUrl/);
+    const repeat=await(await fetch(`${baseUrl}/api/writing/feedback/start`,{method:'POST',headers,body:JSON.stringify(payload)})).json();assert.equal(repeat.jobId,id);assert.equal(photoCalls,1);
+    const bad=await fetch(`${baseUrl}/api/writing/feedback/start`,{method:'POST',headers,body:JSON.stringify({...payload,imageDataUrls:'not-an-array'})});assert.equal(bad.status,422);assert.equal(photoCalls,1);
+    photoProviderFailure=true;
+    const broken=await(await fetch(`${baseUrl}/api/writing/feedback/start`,{method:'POST',headers,body:JSON.stringify({...payload,prompt:'A different fixture task'})})).json();
+    for(let i=0;i<40;i++){job=await(await fetch(`${baseUrl}/api/writing/feedback/job/${broken.jobId}`,{headers})).json();if(job.status!=='pending')break;await sleep(100);}
+    assert.equal(job.status,'error');assert.equal(job.result,null,'failed vision must not grade an empty transcript');assert.doesNotMatch(JSON.stringify(job),/private fixture provider detail/);
+    photoProviderFailure=false;
+    const beforeCoach=photoCalls;
+    const help=await fetch(`${baseUrl}/api/help/chat`,{method:'POST',headers,body:JSON.stringify({message:'Explain my photographed answer.',imageDataUrl:image,helpContext:{activeModule:'writing'}})});
+    assert.equal(help.status,200);const helpResult=await help.json();assert.equal(helpResult.mode,'ai');assert.equal(photoCalls,beforeCoach+1);
+    assert.equal(lastPhotoRequest.messages.find(message=>message.role==='user').content.find(part=>part.type==='image_url').image_url.url,image,'photo Coach must send pixels directly to the model');
+    const deniedHelp=await fetch(`${baseUrl}/api/help/chat`,{method:'POST',headers:{'x-stemist-native':'1','content-type':'application/json'},body:JSON.stringify({message:'Photo',imageDataUrl:image})});assert.equal(deniedHelp.status,401);assert.equal(photoCalls,beforeCoach+1);
   }
   if(legacyCatalog.readingTests.length){
     const task=legacyCatalog.readingTests[0],questionIds=task.questions.slice(0,13).map(q=>q.id);

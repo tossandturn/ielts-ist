@@ -92,6 +92,7 @@ const app = spawn(process.execPath, ["server.js"], {
   cwd: root,
   env: {
     ...process.env,
+    NODE_ENV: 'test',
     PORT: String(appPort),
     SERVER_HOST: "127.0.0.1",
     SESSION_COOKIE_SECURE: "0",
