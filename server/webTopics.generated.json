@@ -1,0 +1,5348 @@
+{
+  "schemaVersion": "ieltsist-web-topic-projection-v1",
+  "source": "public/app.js",
+  "sourceHash": "781eaac6ae2422fb9c0f4d07162cc6eee8341296b55e7dbf3e05a00ee4f911e6",
+  "writing": [
+    {
+      "id": "public-writing-practical-education-task2",
+      "module": "writing",
+      "type": "Task 2",
+      "minutes": 40,
+      "source": "Public topics",
+      "period": "Curated practice",
+      "topicCategory": "education",
+      "title": "Practical education",
+      "prompt": "Some people believe schools should spend more time teaching practical skills such as managing money and basic cooking. Others think schools should focus mainly on academic subjects. Discuss both views and give your own opinion."
+    },
+    {
+      "id": "public-writing-homework-task2",
+      "module": "writing",
+      "type": "Task 2",
+      "minutes": 40,
+      "source": "Public topics",
+      "period": "Curated practice",
+      "topicCategory": "education",
+      "title": "Homework",
+      "prompt": "Some people think schoolchildren should receive homework every day, while others believe homework places unnecessary pressure on them. Discuss both views and give your own opinion."
+    },
+    {
+      "id": "public-writing-university-access-task2",
+      "module": "writing",
+      "type": "Task 2",
+      "minutes": 40,
+      "source": "Public topics",
+      "period": "Curated practice",
+      "topicCategory": "education",
+      "title": "University access",
+      "prompt": "University education should be free for all students, regardless of their financial background. To what extent do you agree or disagree?"
+    },
+    {
+      "id": "public-writing-ai-decisions-task2",
+      "module": "writing",
+      "type": "Task 2",
+      "minutes": 40,
+      "source": "Public topics",
+      "period": "Curated practice",
+      "topicCategory": "technology",
+      "title": "AI decisions",
+      "prompt": "Artificial intelligence is increasingly used to make decisions in areas such as recruitment, banking and public services. Do the advantages of this development outweigh the disadvantages?"
+    },
+    {
+      "id": "public-writing-social-media-news-task2",
+      "module": "writing",
+      "type": "Task 2",
+      "minutes": 40,
+      "source": "Public topics",
+      "period": "Curated practice",
+      "topicCategory": "technology",
+      "title": "Social media news",
+      "prompt": "More people now get their news from social media rather than newspapers or television. Why has this happened, and is it a positive or negative development?"
+    },
+    {
+      "id": "public-writing-online-privacy-task2",
+      "module": "writing",
+      "type": "Task 2",
+      "minutes": 40,
+      "source": "Public topics",
+      "period": "Curated practice",
+      "topicCategory": "technology",
+      "title": "Online privacy",
+      "prompt": "Many online services collect large amounts of personal data from their users. What problems can this cause, and what measures should individuals and governments take to protect privacy?"
+    },
+    {
+      "id": "public-writing-remote-work-task2",
+      "module": "writing",
+      "type": "Task 2",
+      "minutes": 40,
+      "source": "Public topics",
+      "period": "Curated practice",
+      "topicCategory": "work",
+      "title": "Remote work",
+      "prompt": "Working from home is becoming common in many professions. Do the advantages of remote work for employees and employers outweigh the disadvantages?"
+    },
+    {
+      "id": "public-writing-job-satisfaction-task2",
+      "module": "writing",
+      "type": "Task 2",
+      "minutes": 40,
+      "source": "Public topics",
+      "period": "Curated practice",
+      "topicCategory": "work",
+      "title": "Job satisfaction",
+      "prompt": "Some people believe a high salary is the most important factor when choosing a job. Others think job satisfaction is more important. Discuss both views and give your own opinion."
+    },
+    {
+      "id": "public-writing-retirement-age-task2",
+      "module": "writing",
+      "type": "Task 2",
+      "minutes": 40,
+      "source": "Public topics",
+      "period": "Curated practice",
+      "topicCategory": "work",
+      "title": "Retirement age",
+      "prompt": "As people live longer, some governments are raising the official retirement age. What are the advantages and disadvantages of this policy?"
+    },
+    {
+      "id": "public-writing-carbon-tax-task2",
+      "module": "writing",
+      "type": "Task 2",
+      "minutes": 40,
+      "source": "Public topics",
+      "period": "Curated practice",
+      "topicCategory": "nature",
+      "title": "Carbon tax",
+      "prompt": "The most effective way to reduce carbon emissions is to increase the cost of fuel and other forms of energy. To what extent do you agree or disagree?"
+    },
+    {
+      "id": "public-writing-wildlife-tourism-task2",
+      "module": "writing",
+      "type": "Task 2",
+      "minutes": 40,
+      "source": "Public topics",
+      "period": "Curated practice",
+      "topicCategory": "nature",
+      "title": "Wildlife tourism",
+      "prompt": "Tourism in areas with rare wildlife can create jobs but may also damage natural habitats. How can governments balance economic benefits with environmental protection?"
+    },
+    {
+      "id": "public-writing-recycling-task2",
+      "module": "writing",
+      "type": "Task 2",
+      "minutes": 40,
+      "source": "Public topics",
+      "period": "Curated practice",
+      "topicCategory": "nature",
+      "title": "Recycling",
+      "prompt": "Household recycling rates remain low in many countries. Why is this the case, and what can be done to encourage people to recycle more?"
+    },
+    {
+      "id": "public-writing-free-transport-task2",
+      "module": "writing",
+      "type": "Task 2",
+      "minutes": 40,
+      "source": "Public topics",
+      "period": "Curated practice",
+      "topicCategory": "place",
+      "title": "Free transport",
+      "prompt": "Public transport in large cities should be free in order to reduce traffic congestion and pollution. To what extent do you agree or disagree?"
+    },
+    {
+      "id": "public-writing-high-rise-housing-task2",
+      "module": "writing",
+      "type": "Task 2",
+      "minutes": 40,
+      "source": "Public topics",
+      "period": "Curated practice",
+      "topicCategory": "place",
+      "title": "High-rise housing",
+      "prompt": "In crowded cities, building high-rise apartments is the best way to solve housing shortages. What are the advantages and disadvantages of this approach?"
+    },
+    {
+      "id": "public-writing-urban-green-space-task2",
+      "module": "writing",
+      "type": "Task 2",
+      "minutes": 40,
+      "source": "Public topics",
+      "period": "Curated practice",
+      "topicCategory": "place",
+      "title": "Green spaces",
+      "prompt": "Some cities use valuable land for parks and public gardens, while others use it for housing and business development. Discuss both views and give your own opinion."
+    },
+    {
+      "id": "public-writing-preventive-health-task2",
+      "module": "writing",
+      "type": "Task 2",
+      "minutes": 40,
+      "source": "Public topics",
+      "period": "Curated practice",
+      "topicCategory": "lifestyle",
+      "title": "Preventive health",
+      "prompt": "Governments should spend more money preventing illness through education and lifestyle programmes than treating people who are already ill. To what extent do you agree or disagree?"
+    },
+    {
+      "id": "public-writing-sugar-tax-task2",
+      "module": "writing",
+      "type": "Task 2",
+      "minutes": 40,
+      "source": "Public topics",
+      "period": "Curated practice",
+      "topicCategory": "lifestyle",
+      "title": "Sugar tax",
+      "prompt": "Some people think foods and drinks with high levels of sugar should be taxed to improve public health. Others believe consumers should be free to make their own choices. Discuss both views and give your own opinion."
+    },
+    {
+      "id": "public-writing-workplace-exercise-task2",
+      "module": "writing",
+      "type": "Task 2",
+      "minutes": 40,
+      "source": "Public topics",
+      "period": "Curated practice",
+      "topicCategory": "lifestyle",
+      "title": "Workplace exercise",
+      "prompt": "Employers should provide time during the working day for employees to exercise. Do the advantages of this policy outweigh the disadvantages?"
+    },
+    {
+      "id": "public-writing-ageing-population-task2",
+      "module": "writing",
+      "type": "Task 2",
+      "minutes": 40,
+      "source": "Public topics",
+      "period": "Curated practice",
+      "topicCategory": "society",
+      "title": "Ageing population",
+      "prompt": "In many countries, the proportion of older people is increasing. What problems can this create for society, and what measures can be taken to address them?"
+    },
+    {
+      "id": "public-writing-community-service-task2",
+      "module": "writing",
+      "type": "Task 2",
+      "minutes": 40,
+      "source": "Public topics",
+      "period": "Curated practice",
+      "topicCategory": "society",
+      "title": "Community service",
+      "prompt": "All young people should be required to do unpaid community service for a period of time. To what extent do you agree or disagree?"
+    },
+    {
+      "id": "public-writing-crime-rehabilitation-task2",
+      "module": "writing",
+      "type": "Task 2",
+      "minutes": 40,
+      "source": "Public topics",
+      "period": "Curated practice",
+      "topicCategory": "society",
+      "title": "Rehabilitation",
+      "prompt": "Some people believe longer prison sentences are the best way to reduce crime. Others think education and rehabilitation are more effective. Discuss both views and give your own opinion."
+    },
+    {
+      "id": "public-writing-free-museums-task2",
+      "module": "writing",
+      "type": "Task 2",
+      "minutes": 40,
+      "source": "Public topics",
+      "period": "Curated practice",
+      "topicCategory": "media",
+      "title": "Free museums",
+      "prompt": "Museums and art galleries should be free for everyone because they preserve culture and educate the public. To what extent do you agree or disagree?"
+    },
+    {
+      "id": "public-writing-local-traditions-task2",
+      "module": "writing",
+      "type": "Task 2",
+      "minutes": 40,
+      "source": "Public topics",
+      "period": "Curated practice",
+      "topicCategory": "media",
+      "title": "Local traditions",
+      "prompt": "Globalisation is causing many local traditions and customs to disappear. Why is this happening, and what can communities do to preserve them?"
+    },
+    {
+      "id": "public-writing-local-films-task2",
+      "module": "writing",
+      "type": "Task 2",
+      "minutes": 40,
+      "source": "Public topics",
+      "period": "Curated practice",
+      "topicCategory": "media",
+      "title": "Local films",
+      "prompt": "Governments should provide financial support for local films and music rather than allowing the entertainment market to be dominated by foreign productions. To what extent do you agree or disagree?"
+    }
+  ],
+  "speaking": [
+    {
+      "id": "public-speaking-work-study",
+      "module": "speaking",
+      "title": "Work / Study / Routine",
+      "source": "Public topics",
+      "period": "Public examples",
+      "topicKeywords": "work, study, routine",
+      "part1Topic": "Work or study",
+      "part1": [
+        "Do you work or study?",
+        "What do you like most about your work or studies?",
+        "Do you prefer studying in the morning or in the evening?"
+      ],
+      "part2": "Describe a subject or skill you enjoyed learning. You should say what it was, where you learned it, who helped you, and explain why you enjoyed learning it.",
+      "part3Topics": [
+        "education",
+        "motivation",
+        "future skills"
+      ],
+      "part3": [
+        "What makes a subject difficult for students?",
+        "How can teachers make lessons more practical?",
+        "What skills will be important for young people in the future?"
+      ]
+    },
+    {
+      "id": "public-speaking-hometown",
+      "module": "speaking",
+      "title": "Hometown / City / Local Area",
+      "source": "Public topics",
+      "period": "Public examples",
+      "topicKeywords": "hometown, city, local area",
+      "part1Topic": "Hometown",
+      "part1": [
+        "Where is your hometown?",
+        "What do people usually do there at weekends?",
+        "Has your hometown changed much in recent years?"
+      ],
+      "part2": "Describe an interesting place in your hometown. You should say where it is, what people can do there, how often you go there, and explain why it is interesting.",
+      "part3Topics": [
+        "urban change",
+        "community",
+        "public facilities"
+      ],
+      "part3": [
+        "Why do some people move away from their hometowns?",
+        "What public facilities should every city have?",
+        "How can cities preserve their local culture?"
+      ]
+    },
+    {
+      "id": "public-speaking-home",
+      "module": "speaking",
+      "title": "Home / Room / Living Place",
+      "source": "Public topics",
+      "period": "Public examples",
+      "topicKeywords": "home, room, living place",
+      "part1Topic": "Home",
+      "part1": [
+        "Do you live in a house or an apartment?",
+        "Which room do you spend the most time in?",
+        "What would you like to change about your home?"
+      ],
+      "part2": "Describe a room where you feel relaxed. You should say where it is, what it looks like, what you usually do there, and explain why it helps you relax.",
+      "part3Topics": [
+        "housing",
+        "design",
+        "living habits"
+      ],
+      "part3": [
+        "What makes a home comfortable?",
+        "Do people in your country prefer large homes?",
+        "How might homes change in the future?"
+      ]
+    },
+    {
+      "id": "public-speaking-family-friends",
+      "module": "speaking",
+      "title": "Family / Friends / Relationships",
+      "source": "Public topics",
+      "period": "Public examples",
+      "topicKeywords": "family, friends, relationships",
+      "part1Topic": "Family and friends",
+      "part1": [
+        "Do you spend more time with family or friends?",
+        "How do you usually keep in touch with friends?",
+        "What kind of person do you like to make friends with?"
+      ],
+      "part2": "Describe a person who has helped you. You should say who this person is, how you know them, what they did for you, and explain how you felt about their help.",
+      "part3Topics": [
+        "friendship",
+        "generations",
+        "support"
+      ],
+      "part3": [
+        "Why is friendship important?",
+        "Do people make friends differently now than in the past?",
+        "Should young people rely more on family or friends for advice?"
+      ]
+    },
+    {
+      "id": "public-speaking-daily-routine",
+      "module": "speaking",
+      "title": "Daily Routine / Time / Habits",
+      "source": "Public topics",
+      "period": "Public examples",
+      "topicKeywords": "daily routine, time, habits",
+      "part1Topic": "Daily routine",
+      "part1": [
+        "What is your daily routine like?",
+        "Are you usually busy during the week?",
+        "What time of day do you feel most productive?"
+      ],
+      "part2": "Describe a useful habit you have developed. You should say what the habit is, when you started it, how it helps you, and explain why you want to keep it.",
+      "part3Topics": [
+        "time management",
+        "discipline",
+        "modern life"
+      ],
+      "part3": [
+        "Why do some people find it hard to manage time?",
+        "Do routines make life easier or less interesting?",
+        "How has technology changed people's daily habits?"
+      ]
+    },
+    {
+      "id": "public-speaking-hobbies",
+      "module": "speaking",
+      "title": "Hobbies / Free Time / Interests",
+      "source": "Public topics",
+      "period": "Public examples",
+      "topicKeywords": "hobbies, free time, interests",
+      "part1Topic": "Free time",
+      "part1": [
+        "What do you do in your free time?",
+        "Did you have a hobby when you were a child?",
+        "Would you like to try a new hobby?"
+      ],
+      "part2": "Describe an activity you do in your free time. You should say what it is, where you do it, who you do it with, and explain why you enjoy it.",
+      "part3Topics": [
+        "leisure",
+        "stress",
+        "work-life balance"
+      ],
+      "part3": [
+        "Why do people need leisure activities?",
+        "Are hobbies becoming more expensive?",
+        "Should schools give students more time for hobbies?"
+      ]
+    },
+    {
+      "id": "public-speaking-travel-journey",
+      "module": "speaking",
+      "title": "Travel / City / Journey",
+      "source": "Public topics",
+      "period": "Public examples",
+      "topicKeywords": "travel, city, journey",
+      "part1Topic": "Travel",
+      "part1": [
+        "Do you like travelling?",
+        "Which city would you like to visit again?",
+        "How do you usually plan a trip?"
+      ],
+      "part2": "Describe a memorable journey you took. You should say where you went, who you went with, what happened during the journey, and explain why it was memorable.",
+      "part3Topics": [
+        "tourism",
+        "local communities",
+        "visitor limits"
+      ],
+      "part3": [
+        "How has tourism changed local communities?",
+        "What are the advantages and disadvantages of travelling abroad?",
+        "Should popular tourist places limit visitor numbers?"
+      ]
+    },
+    {
+      "id": "public-speaking-technology-daily-life",
+      "module": "speaking",
+      "title": "Technology / Smartphone / Communication",
+      "source": "Public topics",
+      "period": "Public examples",
+      "topicKeywords": "technology, smartphone, communication",
+      "part1Topic": "Technology",
+      "part1": [
+        "What technology do you use every day?",
+        "Do you prefer texting or calling people?",
+        "Has technology changed the way you study?"
+      ],
+      "part2": "Describe a piece of technology that helps you in daily life. You should say what it is, how often you use it, what you use it for, and explain why it is useful.",
+      "part3Topics": [
+        "communication",
+        "age groups",
+        "over-reliance"
+      ],
+      "part3": [
+        "How has technology changed communication?",
+        "Do older people and young people use technology differently?",
+        "What problems can happen when people rely too much on technology?"
+      ]
+    },
+    {
+      "id": "public-speaking-environment-recycling",
+      "module": "speaking",
+      "title": "Environment / Recycling / Pollution",
+      "source": "Public topics",
+      "period": "Public examples",
+      "topicKeywords": "environment, recycling, pollution",
+      "part1Topic": "Environment",
+      "part1": [
+        "Do you try to recycle things in your daily life?",
+        "What environmental problem is common in your city?",
+        "Did you learn about environmental protection at school?"
+      ],
+      "part2": "Describe a place in your area that has been affected by pollution. You should say where it is, what kind of pollution it has, how people are affected, and explain what could be done to improve it.",
+      "part3Topics": [
+        "public responsibility",
+        "schools",
+        "technology"
+      ],
+      "part3": [
+        "Who should take more responsibility for protecting the environment, individuals or governments?",
+        "How can schools encourage children to care about nature?",
+        "Do you think technology can solve environmental problems?"
+      ]
+    },
+    {
+      "id": "public-speaking-food-cooking",
+      "module": "speaking",
+      "title": "Food / Cooking / Restaurants",
+      "source": "Public topics",
+      "period": "Public examples",
+      "topicKeywords": "food, cooking, restaurants",
+      "part1Topic": "Food",
+      "part1": [
+        "What food do you like eating?",
+        "Do you often cook at home?",
+        "Do you prefer eating at home or in restaurants?"
+      ],
+      "part2": "Describe a meal you enjoyed. You should say what you ate, where you had it, who you were with, and explain why you enjoyed the meal.",
+      "part3Topics": [
+        "healthy eating",
+        "food culture",
+        "restaurants"
+      ],
+      "part3": [
+        "Why do people like eating out?",
+        "How important is traditional food to a culture?",
+        "Should schools teach children how to cook healthy meals?"
+      ]
+    },
+    {
+      "id": "public-speaking-health-fitness",
+      "module": "speaking",
+      "title": "Health / Fitness / Lifestyle",
+      "source": "Public topics",
+      "period": "Public examples",
+      "topicKeywords": "health, fitness, lifestyle",
+      "part1Topic": "Health",
+      "part1": [
+        "How do you keep healthy?",
+        "Do you think you get enough exercise?",
+        "What healthy habit would you like to develop?"
+      ],
+      "part2": "Describe something you do to stay healthy. You should say what it is, how often you do it, who encouraged you to do it, and explain how it benefits you.",
+      "part3Topics": [
+        "public health",
+        "exercise",
+        "modern lifestyle"
+      ],
+      "part3": [
+        "Why are many people less active than before?",
+        "Should governments encourage people to exercise more?",
+        "How can companies help employees stay healthy?"
+      ]
+    },
+    {
+      "id": "public-speaking-sports",
+      "module": "speaking",
+      "title": "Sports / Games / Competition",
+      "source": "Public topics",
+      "period": "Public examples",
+      "topicKeywords": "sports, games, competition",
+      "part1Topic": "Sports",
+      "part1": [
+        "Do you like playing sports?",
+        "What sports are popular in your country?",
+        "Did you play sports when you were a child?"
+      ],
+      "part2": "Describe a sport or game you enjoy watching or playing. You should say what it is, how you became interested in it, how often you do it or watch it, and explain why you enjoy it.",
+      "part3Topics": [
+        "teamwork",
+        "competition",
+        "professional sports"
+      ],
+      "part3": [
+        "What can children learn from playing team sports?",
+        "Is competition always good for young people?",
+        "Why do professional athletes earn high salaries?"
+      ]
+    },
+    {
+      "id": "public-speaking-music",
+      "module": "speaking",
+      "title": "Music / Concerts / Songs",
+      "source": "Public topics",
+      "period": "Public examples",
+      "topicKeywords": "music, concerts, songs",
+      "part1Topic": "Music",
+      "part1": [
+        "What kind of music do you like?",
+        "Do you often listen to music while studying or working?",
+        "Have you ever been to a concert?"
+      ],
+      "part2": "Describe a song or piece of music you like. You should say what it is, when you first heard it, what it is about, and explain why you like it.",
+      "part3Topics": [
+        "culture",
+        "media",
+        "children"
+      ],
+      "part3": [
+        "Why is music important in many cultures?",
+        "Do people listen to music differently now than in the past?",
+        "Should children learn to play a musical instrument?"
+      ]
+    },
+    {
+      "id": "public-speaking-reading-books",
+      "module": "speaking",
+      "title": "Reading / Books / Stories",
+      "source": "Public topics",
+      "period": "Public examples",
+      "topicKeywords": "reading, books, stories",
+      "part1Topic": "Reading",
+      "part1": [
+        "Do you enjoy reading?",
+        "What kinds of books do you like?",
+        "Do you prefer paper books or e-books?"
+      ],
+      "part2": "Describe a book or story that you remember well. You should say what it was about, when you read it, who recommended it, and explain why you remember it.",
+      "part3Topics": [
+        "reading habits",
+        "education",
+        "digital media"
+      ],
+      "part3": [
+        "Why do some people read less nowadays?",
+        "How can parents encourage children to read?",
+        "Will printed books remain popular in the future?"
+      ]
+    },
+    {
+      "id": "public-speaking-shopping",
+      "module": "speaking",
+      "title": "Shopping / Money / Online Stores",
+      "source": "Public topics",
+      "period": "Public examples",
+      "topicKeywords": "shopping, money, online stores",
+      "part1Topic": "Shopping",
+      "part1": [
+        "Do you enjoy shopping?",
+        "What do you usually buy online?",
+        "Do you compare prices before buying things?"
+      ],
+      "part2": "Describe something useful you bought recently. You should say what it was, where you bought it, how much you use it, and explain why it was a good purchase.",
+      "part3Topics": [
+        "consumer habits",
+        "online shopping",
+        "advertising"
+      ],
+      "part3": [
+        "Why has online shopping become popular?",
+        "Do advertisements influence what people buy?",
+        "Should people be taught how to manage money at school?"
+      ]
+    },
+    {
+      "id": "public-speaking-transport",
+      "module": "speaking",
+      "title": "Transport / Commuting / Traffic",
+      "source": "Public topics",
+      "period": "Public examples",
+      "topicKeywords": "transport, commuting, traffic",
+      "part1Topic": "Transport",
+      "part1": [
+        "How do you usually travel around your city?",
+        "Do you prefer public transport or private cars?",
+        "Is traffic a problem where you live?"
+      ],
+      "part2": "Describe a journey you make regularly. You should say where you go, how you travel, how long it takes, and explain how you feel about this journey.",
+      "part3Topics": [
+        "public transport",
+        "traffic",
+        "city planning"
+      ],
+      "part3": [
+        "How can cities reduce traffic congestion?",
+        "Should public transport be cheaper?",
+        "Will people use fewer cars in the future?"
+      ]
+    },
+    {
+      "id": "public-speaking-weather",
+      "module": "speaking",
+      "title": "Weather / Seasons / Climate",
+      "source": "Public topics",
+      "period": "Public examples",
+      "topicKeywords": "weather, seasons, climate",
+      "part1Topic": "Weather",
+      "part1": [
+        "What kind of weather do you like?",
+        "Does the weather affect your mood?",
+        "What is the weather like in your hometown?"
+      ],
+      "part2": "Describe a time when the weather changed your plans. You should say what the weather was like, what you planned to do, how your plan changed, and explain how you felt.",
+      "part3Topics": [
+        "climate",
+        "work",
+        "travel"
+      ],
+      "part3": [
+        "How does weather affect people's daily lives?",
+        "Do different jobs depend on the weather?",
+        "How should cities prepare for extreme weather?"
+      ]
+    },
+    {
+      "id": "public-speaking-education",
+      "module": "speaking",
+      "title": "Education / Teachers / Exams",
+      "source": "Public topics",
+      "period": "Public examples",
+      "topicKeywords": "education, teachers, exams",
+      "part1Topic": "Education",
+      "part1": [
+        "What was your favorite subject at school?",
+        "Do you prefer learning alone or with others?",
+        "Are exams useful for students?"
+      ],
+      "part2": "Describe a teacher who impressed you. You should say who the teacher was, what subject they taught, what they were like, and explain why they impressed you.",
+      "part3Topics": [
+        "school systems",
+        "testing",
+        "online learning"
+      ],
+      "part3": [
+        "What qualities should a good teacher have?",
+        "Are exams the best way to measure students' ability?",
+        "Will online learning replace traditional classrooms?"
+      ]
+    },
+    {
+      "id": "public-speaking-festivals",
+      "module": "speaking",
+      "title": "Festivals / Celebrations / Culture",
+      "source": "Public topics",
+      "period": "Public examples",
+      "topicKeywords": "festivals, celebrations, culture",
+      "part1Topic": "Festivals",
+      "part1": [
+        "What festivals are important in your country?",
+        "Do you prefer celebrating with family or friends?",
+        "Did you enjoy festivals more when you were a child?"
+      ],
+      "part2": "Describe a celebration you enjoyed. You should say what the celebration was, where it took place, who was there, and explain why it was enjoyable.",
+      "part3Topics": [
+        "traditions",
+        "community",
+        "commercialisation"
+      ],
+      "part3": [
+        "Why are traditional festivals important?",
+        "Do festivals bring people closer together?",
+        "Have festivals become too commercial?"
+      ]
+    },
+    {
+      "id": "public-speaking-future-plans",
+      "module": "speaking",
+      "title": "Future Plans / Goals / Ambition",
+      "source": "Public topics",
+      "period": "Public examples",
+      "topicKeywords": "future plans, goals, ambition",
+      "part1Topic": "Future plans",
+      "part1": [
+        "Do you often make plans for the future?",
+        "What goal are you working towards now?",
+        "Do you prefer short-term or long-term plans?"
+      ],
+      "part2": "Describe a goal you would like to achieve. You should say what the goal is, why you want to achieve it, what you need to do, and explain how you would feel if you achieved it.",
+      "part3Topics": [
+        "ambition",
+        "planning",
+        "young people"
+      ],
+      "part3": [
+        "Why do some people find it difficult to make long-term plans?",
+        "Is ambition always a positive quality?",
+        "How can young people choose a suitable career goal?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-friends",
+      "module": "speaking",
+      "title": "Friends",
+      "displayTitle": "Friends",
+      "emoji": "👥",
+      "category": "people",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "relationships, social, trust",
+      "popularity": 139,
+      "part1Topic": "Friends",
+      "part1": [
+        "Do you often talk about friends?",
+        "Was friends important to you when you were younger?",
+        "Would you like to learn more about friends in the future?"
+      ],
+      "part2": "Describe something related to friends. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "relationships",
+        "social",
+        "trust"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards friends?",
+        "Do young people and older people think differently about friends?",
+        "What problems or benefits can friends bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-favourite",
+      "module": "speaking",
+      "title": "Favourite",
+      "displayTitle": "Favourite",
+      "emoji": "💗",
+      "category": "lifestyle",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "like, best, preferences",
+      "popularity": 138,
+      "part1Topic": "Favourite",
+      "part1": [
+        "Do you often talk about favourite?",
+        "Was favourite important to you when you were younger?",
+        "Would you like to learn more about favourite in the future?"
+      ],
+      "part2": "Describe something related to favourite. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "like",
+        "best",
+        "preferences"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards favourite?",
+        "Do young people and older people think differently about favourite?",
+        "What problems or benefits can favourite bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-colour",
+      "module": "speaking",
+      "title": "Colour",
+      "displayTitle": "Colour",
+      "emoji": "🎨",
+      "category": "media",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "art, design, preferences",
+      "popularity": 137,
+      "part1Topic": "Colour",
+      "part1": [
+        "Do you often talk about colour?",
+        "Was colour important to you when you were younger?",
+        "Would you like to learn more about colour in the future?"
+      ],
+      "part2": "Describe something related to colour. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "art",
+        "design",
+        "preferences"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards colour?",
+        "Do young people and older people think differently about colour?",
+        "What problems or benefits can colour bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-clothes",
+      "module": "speaking",
+      "title": "Clothes",
+      "displayTitle": "Clothes",
+      "emoji": "👕",
+      "category": "lifestyle",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "fashion, shopping, style",
+      "popularity": 136,
+      "part1Topic": "Clothes",
+      "part1": [
+        "Do you often talk about clothes?",
+        "Was clothes important to you when you were younger?",
+        "Would you like to learn more about clothes in the future?"
+      ],
+      "part2": "Describe something related to clothes. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "fashion",
+        "shopping",
+        "style"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards clothes?",
+        "Do young people and older people think differently about clothes?",
+        "What problems or benefits can clothes bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-sport",
+      "module": "speaking",
+      "title": "Sport",
+      "displayTitle": "Sport",
+      "emoji": "🏟️",
+      "category": "lifestyle",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "exercise, games, athletes",
+      "popularity": 135,
+      "part1Topic": "Sport",
+      "part1": [
+        "Do you often talk about sport?",
+        "Was sport important to you when you were younger?",
+        "Would you like to learn more about sport in the future?"
+      ],
+      "part2": "Describe something related to sport. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "exercise",
+        "games",
+        "athletes"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards sport?",
+        "Do young people and older people think differently about sport?",
+        "What problems or benefits can sport bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-news",
+      "module": "speaking",
+      "title": "News",
+      "displayTitle": "News",
+      "emoji": "📰",
+      "category": "media",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "events, media, information",
+      "popularity": 134,
+      "part1Topic": "News",
+      "part1": [
+        "Do you often talk about news?",
+        "Was news important to you when you were younger?",
+        "Would you like to learn more about news in the future?"
+      ],
+      "part2": "Describe something related to news. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "events",
+        "media",
+        "information"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards news?",
+        "Do young people and older people think differently about news?",
+        "What problems or benefits can news bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-books",
+      "module": "speaking",
+      "title": "Books",
+      "displayTitle": "Books",
+      "emoji": "📘",
+      "category": "education",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "reading, novels, authors",
+      "popularity": 133,
+      "part1Topic": "Books",
+      "part1": [
+        "Do you often talk about books?",
+        "Was books important to you when you were younger?",
+        "Would you like to learn more about books in the future?"
+      ],
+      "part2": "Describe something related to books. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "reading",
+        "novels",
+        "authors"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards books?",
+        "Do young people and older people think differently about books?",
+        "What problems or benefits can books bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-films",
+      "module": "speaking",
+      "title": "Films",
+      "displayTitle": "Films",
+      "emoji": "🎬",
+      "category": "media",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "movies, cinema, actors",
+      "popularity": 132,
+      "part1Topic": "Films",
+      "part1": [
+        "Do you often talk about films?",
+        "Was films important to you when you were younger?",
+        "Would you like to learn more about films in the future?"
+      ],
+      "part2": "Describe something related to films. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "movies",
+        "cinema",
+        "actors"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards films?",
+        "Do young people and older people think differently about films?",
+        "What problems or benefits can films bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-house",
+      "module": "speaking",
+      "title": "House",
+      "displayTitle": "House",
+      "emoji": "🏡",
+      "category": "place",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "apartment, room, living",
+      "popularity": 131,
+      "part1Topic": "House",
+      "part1": [
+        "Do you often talk about house?",
+        "Was house important to you when you were younger?",
+        "Would you like to learn more about house in the future?"
+      ],
+      "part2": "Describe something related to house. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "apartment",
+        "room",
+        "living"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards house?",
+        "Do young people and older people think differently about house?",
+        "What problems or benefits can house bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-animals",
+      "module": "speaking",
+      "title": "Animals",
+      "displayTitle": "Animals",
+      "emoji": "🐾",
+      "category": "nature",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "pets, wildlife, animals",
+      "popularity": 130,
+      "part1Topic": "Animals",
+      "part1": [
+        "Do you often talk about animals?",
+        "Was animals important to you when you were younger?",
+        "Would you like to learn more about animals in the future?"
+      ],
+      "part2": "Describe something related to animals. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "pets",
+        "wildlife",
+        "animals"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards animals?",
+        "Do young people and older people think differently about animals?",
+        "What problems or benefits can animals bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-celebrations",
+      "module": "speaking",
+      "title": "Celebrations",
+      "displayTitle": "Celebrations",
+      "emoji": "🎁",
+      "category": "society",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "festivals, holidays, parties",
+      "popularity": 129,
+      "part1Topic": "Celebrations",
+      "part1": [
+        "Do you often talk about celebrations?",
+        "Was celebrations important to you when you were younger?",
+        "Would you like to learn more about celebrations in the future?"
+      ],
+      "part2": "Describe something related to celebrations. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "festivals",
+        "holidays",
+        "parties"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards celebrations?",
+        "Do young people and older people think differently about celebrations?",
+        "What problems or benefits can celebrations bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-childhood",
+      "module": "speaking",
+      "title": "Childhood",
+      "displayTitle": "Childhood",
+      "emoji": "🧸",
+      "category": "people",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "memories, games, school",
+      "popularity": 128,
+      "part1Topic": "Childhood",
+      "part1": [
+        "Do you often talk about childhood?",
+        "Was childhood important to you when you were younger?",
+        "Would you like to learn more about childhood in the future?"
+      ],
+      "part2": "Describe something related to childhood. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "memories",
+        "games",
+        "school"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards childhood?",
+        "Do young people and older people think differently about childhood?",
+        "What problems or benefits can childhood bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-neighbours",
+      "module": "speaking",
+      "title": "Neighbours",
+      "displayTitle": "Neighbours",
+      "emoji": "🏘️",
+      "category": "society",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "community, nearby, support",
+      "popularity": 127,
+      "part1Topic": "Neighbours",
+      "part1": [
+        "Do you often talk about neighbours?",
+        "Was neighbours important to you when you were younger?",
+        "Would you like to learn more about neighbours in the future?"
+      ],
+      "part2": "Describe something related to neighbours. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "community",
+        "nearby",
+        "support"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards neighbours?",
+        "Do young people and older people think differently about neighbours?",
+        "What problems or benefits can neighbours bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-teachers",
+      "module": "speaking",
+      "title": "Teachers",
+      "displayTitle": "Teachers",
+      "emoji": "👩‍🏫",
+      "category": "education",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "lessons, advice, influence",
+      "popularity": 126,
+      "part1Topic": "Teachers",
+      "part1": [
+        "Do you often talk about teachers?",
+        "Was teachers important to you when you were younger?",
+        "Would you like to learn more about teachers in the future?"
+      ],
+      "part2": "Describe something related to teachers. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "lessons",
+        "advice",
+        "influence"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards teachers?",
+        "Do young people and older people think differently about teachers?",
+        "What problems or benefits can teachers bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-languages",
+      "module": "speaking",
+      "title": "Languages",
+      "displayTitle": "Languages",
+      "emoji": "🗣️",
+      "category": "education",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "English, communication, learning",
+      "popularity": 125,
+      "part1Topic": "Languages",
+      "part1": [
+        "Do you often talk about languages?",
+        "Was languages important to you when you were younger?",
+        "Would you like to learn more about languages in the future?"
+      ],
+      "part2": "Describe something related to languages. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "English",
+        "communication",
+        "learning"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards languages?",
+        "Do young people and older people think differently about languages?",
+        "What problems or benefits can languages bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-dreams",
+      "module": "speaking",
+      "title": "Dreams",
+      "displayTitle": "Dreams",
+      "emoji": "🌙",
+      "category": "lifestyle",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "goals, sleep, imagination",
+      "popularity": 124,
+      "part1Topic": "Dreams",
+      "part1": [
+        "Do you often talk about dreams?",
+        "Was dreams important to you when you were younger?",
+        "Would you like to learn more about dreams in the future?"
+      ],
+      "part2": "Describe something related to dreams. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "goals",
+        "sleep",
+        "imagination"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards dreams?",
+        "Do young people and older people think differently about dreams?",
+        "What problems or benefits can dreams bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-gifts",
+      "module": "speaking",
+      "title": "Gifts",
+      "displayTitle": "Gifts",
+      "emoji": "🎀",
+      "category": "society",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "giving, receiving, occasions",
+      "popularity": 123,
+      "part1Topic": "Gifts",
+      "part1": [
+        "Do you often talk about gifts?",
+        "Was gifts important to you when you were younger?",
+        "Would you like to learn more about gifts in the future?"
+      ],
+      "part2": "Describe something related to gifts. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "giving",
+        "receiving",
+        "occasions"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards gifts?",
+        "Do young people and older people think differently about gifts?",
+        "What problems or benefits can gifts bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-photography",
+      "module": "speaking",
+      "title": "Photography",
+      "displayTitle": "Photography",
+      "emoji": "📷",
+      "category": "media",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "photos, memories, camera",
+      "popularity": 122,
+      "part1Topic": "Photography",
+      "part1": [
+        "Do you often talk about photography?",
+        "Was photography important to you when you were younger?",
+        "Would you like to learn more about photography in the future?"
+      ],
+      "part2": "Describe something related to photography. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "photos",
+        "memories",
+        "camera"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards photography?",
+        "Do young people and older people think differently about photography?",
+        "What problems or benefits can photography bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-history",
+      "module": "speaking",
+      "title": "History",
+      "displayTitle": "History",
+      "emoji": "🏛️",
+      "category": "education",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "past, museum, culture",
+      "popularity": 121,
+      "part1Topic": "History",
+      "part1": [
+        "Do you often talk about history?",
+        "Was history important to you when you were younger?",
+        "Would you like to learn more about history in the future?"
+      ],
+      "part2": "Describe something related to history. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "past",
+        "museum",
+        "culture"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards history?",
+        "Do young people and older people think differently about history?",
+        "What problems or benefits can history bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-art",
+      "module": "speaking",
+      "title": "Art",
+      "displayTitle": "Art",
+      "emoji": "🖼️",
+      "category": "media",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "painting, galleries, creativity",
+      "popularity": 120,
+      "part1Topic": "Art",
+      "part1": [
+        "Do you often talk about art?",
+        "Was art important to you when you were younger?",
+        "Would you like to learn more about art in the future?"
+      ],
+      "part2": "Describe something related to art. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "painting",
+        "galleries",
+        "creativity"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards art?",
+        "Do young people and older people think differently about art?",
+        "What problems or benefits can art bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-apps",
+      "module": "speaking",
+      "title": "Apps",
+      "displayTitle": "Apps",
+      "emoji": "📱",
+      "category": "technology",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "phone, tools, online",
+      "popularity": 119,
+      "part1Topic": "Apps",
+      "part1": [
+        "Do you often talk about apps?",
+        "Was apps important to you when you were younger?",
+        "Would you like to learn more about apps in the future?"
+      ],
+      "part2": "Describe something related to apps. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "phone",
+        "tools",
+        "online"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards apps?",
+        "Do young people and older people think differently about apps?",
+        "What problems or benefits can apps bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-museums",
+      "module": "speaking",
+      "title": "Museums",
+      "displayTitle": "Museums",
+      "emoji": "🏺",
+      "category": "place",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "exhibitions, history, learning",
+      "popularity": 118,
+      "part1Topic": "Museums",
+      "part1": [
+        "Do you often talk about museums?",
+        "Was museums important to you when you were younger?",
+        "Would you like to learn more about museums in the future?"
+      ],
+      "part2": "Describe something related to museums. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "exhibitions",
+        "history",
+        "learning"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards museums?",
+        "Do young people and older people think differently about museums?",
+        "What problems or benefits can museums bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-science",
+      "module": "speaking",
+      "title": "Science",
+      "displayTitle": "Science",
+      "emoji": "🔬",
+      "category": "education",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "research, experiments, discovery",
+      "popularity": 117,
+      "part1Topic": "Science",
+      "part1": [
+        "Do you often talk about science?",
+        "Was science important to you when you were younger?",
+        "Would you like to learn more about science in the future?"
+      ],
+      "part2": "Describe something related to science. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "research",
+        "experiments",
+        "discovery"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards science?",
+        "Do young people and older people think differently about science?",
+        "What problems or benefits can science bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-sleep",
+      "module": "speaking",
+      "title": "Sleep",
+      "displayTitle": "Sleep",
+      "emoji": "🛌",
+      "category": "lifestyle",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "rest, dreams, routine",
+      "popularity": 116,
+      "part1Topic": "Sleep",
+      "part1": [
+        "Do you often talk about sleep?",
+        "Was sleep important to you when you were younger?",
+        "Would you like to learn more about sleep in the future?"
+      ],
+      "part2": "Describe something related to sleep. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "rest",
+        "dreams",
+        "routine"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards sleep?",
+        "Do young people and older people think differently about sleep?",
+        "What problems or benefits can sleep bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-gardens",
+      "module": "speaking",
+      "title": "Gardens",
+      "displayTitle": "Gardens",
+      "emoji": "🌷",
+      "category": "nature",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "plants, flowers, relaxing",
+      "popularity": 115,
+      "part1Topic": "Gardens",
+      "part1": [
+        "Do you often talk about gardens?",
+        "Was gardens important to you when you were younger?",
+        "Would you like to learn more about gardens in the future?"
+      ],
+      "part2": "Describe something related to gardens. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "plants",
+        "flowers",
+        "relaxing"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards gardens?",
+        "Do young people and older people think differently about gardens?",
+        "What problems or benefits can gardens bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-maps",
+      "module": "speaking",
+      "title": "Maps",
+      "displayTitle": "Maps",
+      "emoji": "🗺️",
+      "category": "place",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "directions, travel, location",
+      "popularity": 114,
+      "part1Topic": "Maps",
+      "part1": [
+        "Do you often talk about maps?",
+        "Was maps important to you when you were younger?",
+        "Would you like to learn more about maps in the future?"
+      ],
+      "part2": "Describe something related to maps. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "directions",
+        "travel",
+        "location"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards maps?",
+        "Do young people and older people think differently about maps?",
+        "What problems or benefits can maps bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-money",
+      "module": "speaking",
+      "title": "Money",
+      "displayTitle": "Money",
+      "emoji": "💳",
+      "category": "society",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "saving, spending, budgeting",
+      "popularity": 113,
+      "part1Topic": "Money",
+      "part1": [
+        "Do you often talk about money?",
+        "Was money important to you when you were younger?",
+        "Would you like to learn more about money in the future?"
+      ],
+      "part2": "Describe something related to money. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "saving",
+        "spending",
+        "budgeting"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards money?",
+        "Do young people and older people think differently about money?",
+        "What problems or benefits can money bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-emails",
+      "module": "speaking",
+      "title": "Emails",
+      "displayTitle": "Emails",
+      "emoji": "✉️",
+      "category": "technology",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "messages, work, communication",
+      "popularity": 112,
+      "part1Topic": "Emails",
+      "part1": [
+        "Do you often talk about emails?",
+        "Was emails important to you when you were younger?",
+        "Would you like to learn more about emails in the future?"
+      ],
+      "part2": "Describe something related to emails. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "messages",
+        "work",
+        "communication"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards emails?",
+        "Do young people and older people think differently about emails?",
+        "What problems or benefits can emails bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-internet",
+      "module": "speaking",
+      "title": "Internet",
+      "displayTitle": "Internet",
+      "emoji": "🌐",
+      "category": "technology",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "online, websites, information",
+      "popularity": 111,
+      "part1Topic": "Internet",
+      "part1": [
+        "Do you often talk about internet?",
+        "Was internet important to you when you were younger?",
+        "Would you like to learn more about internet in the future?"
+      ],
+      "part2": "Describe something related to internet. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "online",
+        "websites",
+        "information"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards internet?",
+        "Do young people and older people think differently about internet?",
+        "What problems or benefits can internet bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-media",
+      "module": "speaking",
+      "title": "Media",
+      "displayTitle": "Media",
+      "emoji": "📺",
+      "category": "media",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "television, news, social",
+      "popularity": 110,
+      "part1Topic": "Media",
+      "part1": [
+        "Do you often talk about media?",
+        "Was media important to you when you were younger?",
+        "Would you like to learn more about media in the future?"
+      ],
+      "part2": "Describe something related to media. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "television",
+        "news",
+        "social"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards media?",
+        "Do young people and older people think differently about media?",
+        "What problems or benefits can media bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-games",
+      "module": "speaking",
+      "title": "Games",
+      "displayTitle": "Games",
+      "emoji": "🎮",
+      "category": "lifestyle",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "play, competition, fun",
+      "popularity": 109,
+      "part1Topic": "Games",
+      "part1": [
+        "Do you often talk about games?",
+        "Was games important to you when you were younger?",
+        "Would you like to learn more about games in the future?"
+      ],
+      "part2": "Describe something related to games. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "play",
+        "competition",
+        "fun"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards games?",
+        "Do young people and older people think differently about games?",
+        "What problems or benefits can games bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-parks",
+      "module": "speaking",
+      "title": "Parks",
+      "displayTitle": "Parks",
+      "emoji": "🌳",
+      "category": "place",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "green space, exercise, families",
+      "popularity": 108,
+      "part1Topic": "Parks",
+      "part1": [
+        "Do you often talk about parks?",
+        "Was parks important to you when you were younger?",
+        "Would you like to learn more about parks in the future?"
+      ],
+      "part2": "Describe something related to parks. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "green space",
+        "exercise",
+        "families"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards parks?",
+        "Do young people and older people think differently about parks?",
+        "What problems or benefits can parks bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-beaches",
+      "module": "speaking",
+      "title": "Beaches",
+      "displayTitle": "Beaches",
+      "emoji": "🏖️",
+      "category": "place",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "sea, holiday, swimming",
+      "popularity": 107,
+      "part1Topic": "Beaches",
+      "part1": [
+        "Do you often talk about beaches?",
+        "Was beaches important to you when you were younger?",
+        "Would you like to learn more about beaches in the future?"
+      ],
+      "part2": "Describe something related to beaches. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "sea",
+        "holiday",
+        "swimming"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards beaches?",
+        "Do young people and older people think differently about beaches?",
+        "What problems or benefits can beaches bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-mountains",
+      "module": "speaking",
+      "title": "Mountains",
+      "displayTitle": "Mountains",
+      "emoji": "⛰️",
+      "category": "nature",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "hiking, scenery, adventure",
+      "popularity": 106,
+      "part1Topic": "Mountains",
+      "part1": [
+        "Do you often talk about mountains?",
+        "Was mountains important to you when you were younger?",
+        "Would you like to learn more about mountains in the future?"
+      ],
+      "part2": "Describe something related to mountains. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "hiking",
+        "scenery",
+        "adventure"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards mountains?",
+        "Do young people and older people think differently about mountains?",
+        "What problems or benefits can mountains bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-restaurants",
+      "module": "speaking",
+      "title": "Restaurants",
+      "displayTitle": "Restaurants",
+      "emoji": "🍜",
+      "category": "lifestyle",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "service, food, friends",
+      "popularity": 105,
+      "part1Topic": "Restaurants",
+      "part1": [
+        "Do you often talk about restaurants?",
+        "Was restaurants important to you when you were younger?",
+        "Would you like to learn more about restaurants in the future?"
+      ],
+      "part2": "Describe something related to restaurants. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "service",
+        "food",
+        "friends"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards restaurants?",
+        "Do young people and older people think differently about restaurants?",
+        "What problems or benefits can restaurants bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-cafes",
+      "module": "speaking",
+      "title": "Cafes",
+      "displayTitle": "Cafes",
+      "emoji": "☕",
+      "category": "lifestyle",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "coffee, study, meeting",
+      "popularity": 104,
+      "part1Topic": "Cafes",
+      "part1": [
+        "Do you often talk about cafes?",
+        "Was cafes important to you when you were younger?",
+        "Would you like to learn more about cafes in the future?"
+      ],
+      "part2": "Describe something related to cafes. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "coffee",
+        "study",
+        "meeting"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards cafes?",
+        "Do young people and older people think differently about cafes?",
+        "What problems or benefits can cafes bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-cooking",
+      "module": "speaking",
+      "title": "Cooking",
+      "displayTitle": "Cooking",
+      "emoji": "🍳",
+      "category": "lifestyle",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "recipes, kitchen, family",
+      "popularity": 103,
+      "part1Topic": "Cooking",
+      "part1": [
+        "Do you often talk about cooking?",
+        "Was cooking important to you when you were younger?",
+        "Would you like to learn more about cooking in the future?"
+      ],
+      "part2": "Describe something related to cooking. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "recipes",
+        "kitchen",
+        "family"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards cooking?",
+        "Do young people and older people think differently about cooking?",
+        "What problems or benefits can cooking bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-snacks",
+      "module": "speaking",
+      "title": "Snacks",
+      "displayTitle": "Snacks",
+      "emoji": "🍪",
+      "category": "lifestyle",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "taste, convenience, health",
+      "popularity": 102,
+      "part1Topic": "Snacks",
+      "part1": [
+        "Do you often talk about snacks?",
+        "Was snacks important to you when you were younger?",
+        "Would you like to learn more about snacks in the future?"
+      ],
+      "part2": "Describe something related to snacks. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "taste",
+        "convenience",
+        "health"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards snacks?",
+        "Do young people and older people think differently about snacks?",
+        "What problems or benefits can snacks bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-water",
+      "module": "speaking",
+      "title": "Water",
+      "displayTitle": "Water",
+      "emoji": "💧",
+      "category": "nature",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "drinking, rivers, conservation",
+      "popularity": 101,
+      "part1Topic": "Water",
+      "part1": [
+        "Do you often talk about water?",
+        "Was water important to you when you were younger?",
+        "Would you like to learn more about water in the future?"
+      ],
+      "part2": "Describe something related to water. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "drinking",
+        "rivers",
+        "conservation"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards water?",
+        "Do young people and older people think differently about water?",
+        "What problems or benefits can water bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-flowers",
+      "module": "speaking",
+      "title": "Flowers",
+      "displayTitle": "Flowers",
+      "emoji": "🌸",
+      "category": "nature",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "gardens, gifts, beauty",
+      "popularity": 100,
+      "part1Topic": "Flowers",
+      "part1": [
+        "Do you often talk about flowers?",
+        "Was flowers important to you when you were younger?",
+        "Would you like to learn more about flowers in the future?"
+      ],
+      "part2": "Describe something related to flowers. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "gardens",
+        "gifts",
+        "beauty"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards flowers?",
+        "Do young people and older people think differently about flowers?",
+        "What problems or benefits can flowers bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-trees",
+      "module": "speaking",
+      "title": "Trees",
+      "displayTitle": "Trees",
+      "emoji": "🌲",
+      "category": "nature",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "parks, shade, environment",
+      "popularity": 99,
+      "part1Topic": "Trees",
+      "part1": [
+        "Do you often talk about trees?",
+        "Was trees important to you when you were younger?",
+        "Would you like to learn more about trees in the future?"
+      ],
+      "part2": "Describe something related to trees. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "parks",
+        "shade",
+        "environment"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards trees?",
+        "Do young people and older people think differently about trees?",
+        "What problems or benefits can trees bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-libraries",
+      "module": "speaking",
+      "title": "Libraries",
+      "displayTitle": "Libraries",
+      "emoji": "📚",
+      "category": "education",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "books, quiet, study",
+      "popularity": 98,
+      "part1Topic": "Libraries",
+      "part1": [
+        "Do you often talk about libraries?",
+        "Was libraries important to you when you were younger?",
+        "Would you like to learn more about libraries in the future?"
+      ],
+      "part2": "Describe something related to libraries. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "books",
+        "quiet",
+        "study"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards libraries?",
+        "Do young people and older people think differently about libraries?",
+        "What problems or benefits can libraries bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-bicycles",
+      "module": "speaking",
+      "title": "Bicycles",
+      "displayTitle": "Bicycles",
+      "emoji": "🚲",
+      "category": "place",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "cycling, transport, exercise",
+      "popularity": 97,
+      "part1Topic": "Bicycles",
+      "part1": [
+        "Do you often talk about bicycles?",
+        "Was bicycles important to you when you were younger?",
+        "Would you like to learn more about bicycles in the future?"
+      ],
+      "part2": "Describe something related to bicycles. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "cycling",
+        "transport",
+        "exercise"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards bicycles?",
+        "Do young people and older people think differently about bicycles?",
+        "What problems or benefits can bicycles bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-cars",
+      "module": "speaking",
+      "title": "Cars",
+      "displayTitle": "Cars",
+      "emoji": "🚙",
+      "category": "place",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "driving, traffic, safety",
+      "popularity": 96,
+      "part1Topic": "Cars",
+      "part1": [
+        "Do you often talk about cars?",
+        "Was cars important to you when you were younger?",
+        "Would you like to learn more about cars in the future?"
+      ],
+      "part2": "Describe something related to cars. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "driving",
+        "traffic",
+        "safety"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards cars?",
+        "Do young people and older people think differently about cars?",
+        "What problems or benefits can cars bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-trains",
+      "module": "speaking",
+      "title": "Trains",
+      "displayTitle": "Trains",
+      "emoji": "🚆",
+      "category": "place",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "journeys, stations, public",
+      "popularity": 95,
+      "part1Topic": "Trains",
+      "part1": [
+        "Do you often talk about trains?",
+        "Was trains important to you when you were younger?",
+        "Would you like to learn more about trains in the future?"
+      ],
+      "part2": "Describe something related to trains. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "journeys",
+        "stations",
+        "public"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards trains?",
+        "Do young people and older people think differently about trains?",
+        "What problems or benefits can trains bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-planes",
+      "module": "speaking",
+      "title": "Planes",
+      "displayTitle": "Planes",
+      "emoji": "🛫",
+      "category": "place",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "flights, airports, travel",
+      "popularity": 94,
+      "part1Topic": "Planes",
+      "part1": [
+        "Do you often talk about planes?",
+        "Was planes important to you when you were younger?",
+        "Would you like to learn more about planes in the future?"
+      ],
+      "part2": "Describe something related to planes. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "flights",
+        "airports",
+        "travel"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards planes?",
+        "Do young people and older people think differently about planes?",
+        "What problems or benefits can planes bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-hotels",
+      "module": "speaking",
+      "title": "Hotels",
+      "displayTitle": "Hotels",
+      "emoji": "🏨",
+      "category": "place",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "travel, service, accommodation",
+      "popularity": 93,
+      "part1Topic": "Hotels",
+      "part1": [
+        "Do you often talk about hotels?",
+        "Was hotels important to you when you were younger?",
+        "Would you like to learn more about hotels in the future?"
+      ],
+      "part2": "Describe something related to hotels. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "travel",
+        "service",
+        "accommodation"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards hotels?",
+        "Do young people and older people think differently about hotels?",
+        "What problems or benefits can hotels bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-tourism",
+      "module": "speaking",
+      "title": "Tourism",
+      "displayTitle": "Tourism",
+      "emoji": "🧳",
+      "category": "society",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "visitors, culture, economy",
+      "popularity": 92,
+      "part1Topic": "Tourism",
+      "part1": [
+        "Do you often talk about tourism?",
+        "Was tourism important to you when you were younger?",
+        "Would you like to learn more about tourism in the future?"
+      ],
+      "part2": "Describe something related to tourism. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "visitors",
+        "culture",
+        "economy"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards tourism?",
+        "Do young people and older people think differently about tourism?",
+        "What problems or benefits can tourism bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-culture",
+      "module": "speaking",
+      "title": "Culture",
+      "displayTitle": "Culture",
+      "emoji": "🏮",
+      "category": "society",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "traditions, identity, values",
+      "popularity": 91,
+      "part1Topic": "Culture",
+      "part1": [
+        "Do you often talk about culture?",
+        "Was culture important to you when you were younger?",
+        "Would you like to learn more about culture in the future?"
+      ],
+      "part2": "Describe something related to culture. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "traditions",
+        "identity",
+        "values"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards culture?",
+        "Do young people and older people think differently about culture?",
+        "What problems or benefits can culture bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-volunteering",
+      "module": "speaking",
+      "title": "Volunteering",
+      "displayTitle": "Volunteering",
+      "emoji": "🤝",
+      "category": "society",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "help, community, charity",
+      "popularity": 90,
+      "part1Topic": "Volunteering",
+      "part1": [
+        "Do you often talk about volunteering?",
+        "Was volunteering important to you when you were younger?",
+        "Would you like to learn more about volunteering in the future?"
+      ],
+      "part2": "Describe something related to volunteering. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "help",
+        "community",
+        "charity"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards volunteering?",
+        "Do young people and older people think differently about volunteering?",
+        "What problems or benefits can volunteering bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-teamwork",
+      "module": "speaking",
+      "title": "Teamwork",
+      "displayTitle": "Teamwork",
+      "emoji": "👥",
+      "category": "work",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "cooperation, roles, success",
+      "popularity": 89,
+      "part1Topic": "Teamwork",
+      "part1": [
+        "Do you often talk about teamwork?",
+        "Was teamwork important to you when you were younger?",
+        "Would you like to learn more about teamwork in the future?"
+      ],
+      "part2": "Describe something related to teamwork. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "cooperation",
+        "roles",
+        "success"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards teamwork?",
+        "Do young people and older people think differently about teamwork?",
+        "What problems or benefits can teamwork bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-leadership",
+      "module": "speaking",
+      "title": "Leadership",
+      "displayTitle": "Leadership",
+      "emoji": "⭐",
+      "category": "work",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "management, responsibility, decisions",
+      "popularity": 88,
+      "part1Topic": "Leadership",
+      "part1": [
+        "Do you often talk about leadership?",
+        "Was leadership important to you when you were younger?",
+        "Would you like to learn more about leadership in the future?"
+      ],
+      "part2": "Describe something related to leadership. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "management",
+        "responsibility",
+        "decisions"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards leadership?",
+        "Do young people and older people think differently about leadership?",
+        "What problems or benefits can leadership bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-decisions",
+      "module": "speaking",
+      "title": "Decisions",
+      "displayTitle": "Decisions",
+      "emoji": "🧭",
+      "category": "society",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "choices, pressure, advice",
+      "popularity": 87,
+      "part1Topic": "Decisions",
+      "part1": [
+        "Do you often talk about decisions?",
+        "Was decisions important to you when you were younger?",
+        "Would you like to learn more about decisions in the future?"
+      ],
+      "part2": "Describe something related to decisions. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "choices",
+        "pressure",
+        "advice"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards decisions?",
+        "Do young people and older people think differently about decisions?",
+        "What problems or benefits can decisions bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-advice",
+      "module": "speaking",
+      "title": "Advice",
+      "displayTitle": "Advice",
+      "emoji": "💬",
+      "category": "people",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "support, experience, guidance",
+      "popularity": 86,
+      "part1Topic": "Advice",
+      "part1": [
+        "Do you often talk about advice?",
+        "Was advice important to you when you were younger?",
+        "Would you like to learn more about advice in the future?"
+      ],
+      "part2": "Describe something related to advice. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "support",
+        "experience",
+        "guidance"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards advice?",
+        "Do young people and older people think differently about advice?",
+        "What problems or benefits can advice bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-mistakes",
+      "module": "speaking",
+      "title": "Mistakes",
+      "displayTitle": "Mistakes",
+      "emoji": "🧩",
+      "category": "education",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "learning, improvement, experience",
+      "popularity": 85,
+      "part1Topic": "Mistakes",
+      "part1": [
+        "Do you often talk about mistakes?",
+        "Was mistakes important to you when you were younger?",
+        "Would you like to learn more about mistakes in the future?"
+      ],
+      "part2": "Describe something related to mistakes. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "learning",
+        "improvement",
+        "experience"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards mistakes?",
+        "Do young people and older people think differently about mistakes?",
+        "What problems or benefits can mistakes bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-success",
+      "module": "speaking",
+      "title": "Success",
+      "displayTitle": "Success",
+      "emoji": "🏆",
+      "category": "work",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "achievement, effort, goals",
+      "popularity": 84,
+      "part1Topic": "Success",
+      "part1": [
+        "Do you often talk about success?",
+        "Was success important to you when you were younger?",
+        "Would you like to learn more about success in the future?"
+      ],
+      "part2": "Describe something related to success. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "achievement",
+        "effort",
+        "goals"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards success?",
+        "Do young people and older people think differently about success?",
+        "What problems or benefits can success bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-patience",
+      "module": "speaking",
+      "title": "Patience",
+      "displayTitle": "Patience",
+      "emoji": "🧘",
+      "category": "lifestyle",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "waiting, calm, practice",
+      "popularity": 83,
+      "part1Topic": "Patience",
+      "part1": [
+        "Do you often talk about patience?",
+        "Was patience important to you when you were younger?",
+        "Would you like to learn more about patience in the future?"
+      ],
+      "part2": "Describe something related to patience. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "waiting",
+        "calm",
+        "practice"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards patience?",
+        "Do young people and older people think differently about patience?",
+        "What problems or benefits can patience bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-memory",
+      "module": "speaking",
+      "title": "Memory",
+      "displayTitle": "Memory",
+      "emoji": "🧠",
+      "category": "education",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "remembering, childhood, study",
+      "popularity": 82,
+      "part1Topic": "Memory",
+      "part1": [
+        "Do you often talk about memory?",
+        "Was memory important to you when you were younger?",
+        "Would you like to learn more about memory in the future?"
+      ],
+      "part2": "Describe something related to memory. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "remembering",
+        "childhood",
+        "study"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards memory?",
+        "Do young people and older people think differently about memory?",
+        "What problems or benefits can memory bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-focus",
+      "module": "speaking",
+      "title": "Focus",
+      "displayTitle": "Focus",
+      "emoji": "🎯",
+      "category": "education",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "concentration, distraction, study",
+      "popularity": 81,
+      "part1Topic": "Focus",
+      "part1": [
+        "Do you often talk about focus?",
+        "Was focus important to you when you were younger?",
+        "Would you like to learn more about focus in the future?"
+      ],
+      "part2": "Describe something related to focus. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "concentration",
+        "distraction",
+        "study"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards focus?",
+        "Do young people and older people think differently about focus?",
+        "What problems or benefits can focus bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-noise",
+      "module": "speaking",
+      "title": "Noise",
+      "displayTitle": "Noise",
+      "emoji": "🔊",
+      "category": "society",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "cities, neighbours, concentration",
+      "popularity": 80,
+      "part1Topic": "Noise",
+      "part1": [
+        "Do you often talk about noise?",
+        "Was noise important to you when you were younger?",
+        "Would you like to learn more about noise in the future?"
+      ],
+      "part2": "Describe something related to noise. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "cities",
+        "neighbours",
+        "concentration"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards noise?",
+        "Do young people and older people think differently about noise?",
+        "What problems or benefits can noise bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-crowds",
+      "module": "speaking",
+      "title": "Crowds",
+      "displayTitle": "Crowds",
+      "emoji": "🚶",
+      "category": "society",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "public places, events, transport",
+      "popularity": 79,
+      "part1Topic": "Crowds",
+      "part1": [
+        "Do you often talk about crowds?",
+        "Was crowds important to you when you were younger?",
+        "Would you like to learn more about crowds in the future?"
+      ],
+      "part2": "Describe something related to crowds. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "public places",
+        "events",
+        "transport"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards crowds?",
+        "Do young people and older people think differently about crowds?",
+        "What problems or benefits can crowds bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-handwriting",
+      "module": "speaking",
+      "title": "Handwriting",
+      "displayTitle": "Handwriting",
+      "emoji": "✍️",
+      "category": "education",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "letters, school, notes",
+      "popularity": 78,
+      "part1Topic": "Handwriting",
+      "part1": [
+        "Do you often talk about handwriting?",
+        "Was handwriting important to you when you were younger?",
+        "Would you like to learn more about handwriting in the future?"
+      ],
+      "part2": "Describe something related to handwriting. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "letters",
+        "school",
+        "notes"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards handwriting?",
+        "Do young people and older people think differently about handwriting?",
+        "What problems or benefits can handwriting bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-puzzles",
+      "module": "speaking",
+      "title": "Puzzles",
+      "displayTitle": "Puzzles",
+      "emoji": "🧩",
+      "category": "lifestyle",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "thinking, games, challenge",
+      "popularity": 77,
+      "part1Topic": "Puzzles",
+      "part1": [
+        "Do you often talk about puzzles?",
+        "Was puzzles important to you when you were younger?",
+        "Would you like to learn more about puzzles in the future?"
+      ],
+      "part2": "Describe something related to puzzles. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "thinking",
+        "games",
+        "challenge"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards puzzles?",
+        "Do young people and older people think differently about puzzles?",
+        "What problems or benefits can puzzles bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-birthdays",
+      "module": "speaking",
+      "title": "Birthdays",
+      "displayTitle": "Birthdays",
+      "emoji": "🎂",
+      "category": "society",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "parties, gifts, family",
+      "popularity": 76,
+      "part1Topic": "Birthdays",
+      "part1": [
+        "Do you often talk about birthdays?",
+        "Was birthdays important to you when you were younger?",
+        "Would you like to learn more about birthdays in the future?"
+      ],
+      "part2": "Describe something related to birthdays. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "parties",
+        "gifts",
+        "family"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards birthdays?",
+        "Do young people and older people think differently about birthdays?",
+        "What problems or benefits can birthdays bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-weddings",
+      "module": "speaking",
+      "title": "Weddings",
+      "displayTitle": "Weddings",
+      "emoji": "💍",
+      "category": "society",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "tradition, family, celebration",
+      "popularity": 75,
+      "part1Topic": "Weddings",
+      "part1": [
+        "Do you often talk about weddings?",
+        "Was weddings important to you when you were younger?",
+        "Would you like to learn more about weddings in the future?"
+      ],
+      "part2": "Describe something related to weddings. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "tradition",
+        "family",
+        "celebration"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards weddings?",
+        "Do young people and older people think differently about weddings?",
+        "What problems or benefits can weddings bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-uniforms",
+      "module": "speaking",
+      "title": "Uniforms",
+      "displayTitle": "Uniforms",
+      "emoji": "🧥",
+      "category": "education",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "school, work, identity",
+      "popularity": 74,
+      "part1Topic": "Uniforms",
+      "part1": [
+        "Do you often talk about uniforms?",
+        "Was uniforms important to you when you were younger?",
+        "Would you like to learn more about uniforms in the future?"
+      ],
+      "part2": "Describe something related to uniforms. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "school",
+        "work",
+        "identity"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards uniforms?",
+        "Do young people and older people think differently about uniforms?",
+        "What problems or benefits can uniforms bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-shoes",
+      "module": "speaking",
+      "title": "Shoes",
+      "displayTitle": "Shoes",
+      "emoji": "👟",
+      "category": "lifestyle",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "comfort, fashion, sports",
+      "popularity": 73,
+      "part1Topic": "Shoes",
+      "part1": [
+        "Do you often talk about shoes?",
+        "Was shoes important to you when you were younger?",
+        "Would you like to learn more about shoes in the future?"
+      ],
+      "part2": "Describe something related to shoes. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "comfort",
+        "fashion",
+        "sports"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards shoes?",
+        "Do young people and older people think differently about shoes?",
+        "What problems or benefits can shoes bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-bags",
+      "module": "speaking",
+      "title": "Bags",
+      "displayTitle": "Bags",
+      "emoji": "🎒",
+      "category": "lifestyle",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "school, travel, design",
+      "popularity": 72,
+      "part1Topic": "Bags",
+      "part1": [
+        "Do you often talk about bags?",
+        "Was bags important to you when you were younger?",
+        "Would you like to learn more about bags in the future?"
+      ],
+      "part2": "Describe something related to bags. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "school",
+        "travel",
+        "design"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards bags?",
+        "Do young people and older people think differently about bags?",
+        "What problems or benefits can bags bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-furniture",
+      "module": "speaking",
+      "title": "Furniture",
+      "displayTitle": "Furniture",
+      "emoji": "🪑",
+      "category": "place",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "home, comfort, design",
+      "popularity": 71,
+      "part1Topic": "Furniture",
+      "part1": [
+        "Do you often talk about furniture?",
+        "Was furniture important to you when you were younger?",
+        "Would you like to learn more about furniture in the future?"
+      ],
+      "part2": "Describe something related to furniture. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "home",
+        "comfort",
+        "design"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards furniture?",
+        "Do young people and older people think differently about furniture?",
+        "What problems or benefits can furniture bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-decoration",
+      "module": "speaking",
+      "title": "Decoration",
+      "displayTitle": "Decoration",
+      "emoji": "🖼️",
+      "category": "place",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "style, home, festivals",
+      "popularity": 70,
+      "part1Topic": "Decoration",
+      "part1": [
+        "Do you often talk about decoration?",
+        "Was decoration important to you when you were younger?",
+        "Would you like to learn more about decoration in the future?"
+      ],
+      "part2": "Describe something related to decoration. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "style",
+        "home",
+        "festivals"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards decoration?",
+        "Do young people and older people think differently about decoration?",
+        "What problems or benefits can decoration bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-light",
+      "module": "speaking",
+      "title": "Light",
+      "displayTitle": "Light",
+      "emoji": "💡",
+      "category": "place",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "home, mood, energy",
+      "popularity": 69,
+      "part1Topic": "Light",
+      "part1": [
+        "Do you often talk about light?",
+        "Was light important to you when you were younger?",
+        "Would you like to learn more about light in the future?"
+      ],
+      "part2": "Describe something related to light. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "home",
+        "mood",
+        "energy"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards light?",
+        "Do young people and older people think differently about light?",
+        "What problems or benefits can light bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-rain",
+      "module": "speaking",
+      "title": "Rain",
+      "displayTitle": "Rain",
+      "emoji": "🌧️",
+      "category": "nature",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "weather, plans, mood",
+      "popularity": 68,
+      "part1Topic": "Rain",
+      "part1": [
+        "Do you often talk about rain?",
+        "Was rain important to you when you were younger?",
+        "Would you like to learn more about rain in the future?"
+      ],
+      "part2": "Describe something related to rain. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "weather",
+        "plans",
+        "mood"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards rain?",
+        "Do young people and older people think differently about rain?",
+        "What problems or benefits can rain bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-snow",
+      "module": "speaking",
+      "title": "Snow",
+      "displayTitle": "Snow",
+      "emoji": "❄️",
+      "category": "nature",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "winter, travel, childhood",
+      "popularity": 67,
+      "part1Topic": "Snow",
+      "part1": [
+        "Do you often talk about snow?",
+        "Was snow important to you when you were younger?",
+        "Would you like to learn more about snow in the future?"
+      ],
+      "part2": "Describe something related to snow. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "winter",
+        "travel",
+        "childhood"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards snow?",
+        "Do young people and older people think differently about snow?",
+        "What problems or benefits can snow bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-summer",
+      "module": "speaking",
+      "title": "Summer",
+      "displayTitle": "Summer",
+      "emoji": "☀️",
+      "category": "nature",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "holiday, heat, activities",
+      "popularity": 66,
+      "part1Topic": "Summer",
+      "part1": [
+        "Do you often talk about summer?",
+        "Was summer important to you when you were younger?",
+        "Would you like to learn more about summer in the future?"
+      ],
+      "part2": "Describe something related to summer. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "holiday",
+        "heat",
+        "activities"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards summer?",
+        "Do young people and older people think differently about summer?",
+        "What problems or benefits can summer bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-winter",
+      "module": "speaking",
+      "title": "Winter",
+      "displayTitle": "Winter",
+      "emoji": "🧣",
+      "category": "nature",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "cold, festivals, clothes",
+      "popularity": 65,
+      "part1Topic": "Winter",
+      "part1": [
+        "Do you often talk about winter?",
+        "Was winter important to you when you were younger?",
+        "Would you like to learn more about winter in the future?"
+      ],
+      "part2": "Describe something related to winter. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "cold",
+        "festivals",
+        "clothes"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards winter?",
+        "Do young people and older people think differently about winter?",
+        "What problems or benefits can winter bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-weekends",
+      "module": "speaking",
+      "title": "Weekends",
+      "displayTitle": "Weekends",
+      "emoji": "📅",
+      "category": "lifestyle",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "relaxing, friends, plans",
+      "popularity": 64,
+      "part1Topic": "Weekends",
+      "part1": [
+        "Do you often talk about weekends?",
+        "Was weekends important to you when you were younger?",
+        "Would you like to learn more about weekends in the future?"
+      ],
+      "part2": "Describe something related to weekends. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "relaxing",
+        "friends",
+        "plans"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards weekends?",
+        "Do young people and older people think differently about weekends?",
+        "What problems or benefits can weekends bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-mornings",
+      "module": "speaking",
+      "title": "Mornings",
+      "displayTitle": "Mornings",
+      "emoji": "🌅",
+      "category": "lifestyle",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "routine, energy, breakfast",
+      "popularity": 63,
+      "part1Topic": "Mornings",
+      "part1": [
+        "Do you often talk about mornings?",
+        "Was mornings important to you when you were younger?",
+        "Would you like to learn more about mornings in the future?"
+      ],
+      "part2": "Describe something related to mornings. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "routine",
+        "energy",
+        "breakfast"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards mornings?",
+        "Do young people and older people think differently about mornings?",
+        "What problems or benefits can mornings bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-evenings",
+      "module": "speaking",
+      "title": "Evenings",
+      "displayTitle": "Evenings",
+      "emoji": "🌆",
+      "category": "lifestyle",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "relaxing, dinner, study",
+      "popularity": 62,
+      "part1Topic": "Evenings",
+      "part1": [
+        "Do you often talk about evenings?",
+        "Was evenings important to you when you were younger?",
+        "Would you like to learn more about evenings in the future?"
+      ],
+      "part2": "Describe something related to evenings. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "relaxing",
+        "dinner",
+        "study"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards evenings?",
+        "Do young people and older people think differently about evenings?",
+        "What problems or benefits can evenings bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-holidays",
+      "module": "speaking",
+      "title": "Holidays",
+      "displayTitle": "Holidays",
+      "emoji": "🏝️",
+      "category": "lifestyle",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "travel, rest, family",
+      "popularity": 61,
+      "part1Topic": "Holidays",
+      "part1": [
+        "Do you often talk about holidays?",
+        "Was holidays important to you when you were younger?",
+        "Would you like to learn more about holidays in the future?"
+      ],
+      "part2": "Describe something related to holidays. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "travel",
+        "rest",
+        "family"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards holidays?",
+        "Do young people and older people think differently about holidays?",
+        "What problems or benefits can holidays bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-jobs",
+      "module": "speaking",
+      "title": "Jobs",
+      "displayTitle": "Jobs",
+      "emoji": "🧑‍💼",
+      "category": "work",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "career, salary, skills",
+      "popularity": 60,
+      "part1Topic": "Jobs",
+      "part1": [
+        "Do you often talk about jobs?",
+        "Was jobs important to you when you were younger?",
+        "Would you like to learn more about jobs in the future?"
+      ],
+      "part2": "Describe something related to jobs. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "career",
+        "salary",
+        "skills"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards jobs?",
+        "Do young people and older people think differently about jobs?",
+        "What problems or benefits can jobs bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-salaries",
+      "module": "speaking",
+      "title": "Salaries",
+      "displayTitle": "Salaries",
+      "emoji": "💰",
+      "category": "work",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "money, motivation, fairness",
+      "popularity": 59,
+      "part1Topic": "Salaries",
+      "part1": [
+        "Do you often talk about salaries?",
+        "Was salaries important to you when you were younger?",
+        "Would you like to learn more about salaries in the future?"
+      ],
+      "part2": "Describe something related to salaries. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "money",
+        "motivation",
+        "fairness"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards salaries?",
+        "Do young people and older people think differently about salaries?",
+        "What problems or benefits can salaries bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-interviews",
+      "module": "speaking",
+      "title": "Interviews",
+      "displayTitle": "Interviews",
+      "emoji": "🎙️",
+      "category": "work",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "jobs, confidence, questions",
+      "popularity": 58,
+      "part1Topic": "Interviews",
+      "part1": [
+        "Do you often talk about interviews?",
+        "Was interviews important to you when you were younger?",
+        "Would you like to learn more about interviews in the future?"
+      ],
+      "part2": "Describe something related to interviews. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "jobs",
+        "confidence",
+        "questions"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards interviews?",
+        "Do young people and older people think differently about interviews?",
+        "What problems or benefits can interviews bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-office",
+      "module": "speaking",
+      "title": "Office",
+      "displayTitle": "Office",
+      "emoji": "🏢",
+      "category": "work",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "colleagues, meetings, routine",
+      "popularity": 57,
+      "part1Topic": "Office",
+      "part1": [
+        "Do you often talk about office?",
+        "Was office important to you when you were younger?",
+        "Would you like to learn more about office in the future?"
+      ],
+      "part2": "Describe something related to office. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "colleagues",
+        "meetings",
+        "routine"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards office?",
+        "Do young people and older people think differently about office?",
+        "What problems or benefits can office bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-school",
+      "module": "speaking",
+      "title": "School",
+      "displayTitle": "School",
+      "emoji": "🏫",
+      "category": "education",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "classes, teachers, friends",
+      "popularity": 56,
+      "part1Topic": "School",
+      "part1": [
+        "Do you often talk about school?",
+        "Was school important to you when you were younger?",
+        "Would you like to learn more about school in the future?"
+      ],
+      "part2": "Describe something related to school. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "classes",
+        "teachers",
+        "friends"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards school?",
+        "Do young people and older people think differently about school?",
+        "What problems or benefits can school bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-university",
+      "module": "speaking",
+      "title": "University",
+      "displayTitle": "University",
+      "emoji": "🎓",
+      "category": "education",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "major, campus, future",
+      "popularity": 55,
+      "part1Topic": "University",
+      "part1": [
+        "Do you often talk about university?",
+        "Was university important to you when you were younger?",
+        "Would you like to learn more about university in the future?"
+      ],
+      "part2": "Describe something related to university. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "major",
+        "campus",
+        "future"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards university?",
+        "Do young people and older people think differently about university?",
+        "What problems or benefits can university bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-exams",
+      "module": "speaking",
+      "title": "Exams",
+      "displayTitle": "Exams",
+      "emoji": "📝",
+      "category": "education",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "pressure, preparation, results",
+      "popularity": 54,
+      "part1Topic": "Exams",
+      "part1": [
+        "Do you often talk about exams?",
+        "Was exams important to you when you were younger?",
+        "Would you like to learn more about exams in the future?"
+      ],
+      "part2": "Describe something related to exams. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "pressure",
+        "preparation",
+        "results"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards exams?",
+        "Do young people and older people think differently about exams?",
+        "What problems or benefits can exams bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-robots",
+      "module": "speaking",
+      "title": "Robots",
+      "displayTitle": "Robots",
+      "emoji": "🤖",
+      "category": "technology",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "automation, future, jobs",
+      "popularity": 53,
+      "part1Topic": "Robots",
+      "part1": [
+        "Do you often talk about robots?",
+        "Was robots important to you when you were younger?",
+        "Would you like to learn more about robots in the future?"
+      ],
+      "part2": "Describe something related to robots. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "automation",
+        "future",
+        "jobs"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards robots?",
+        "Do young people and older people think differently about robots?",
+        "What problems or benefits can robots bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-privacy",
+      "module": "speaking",
+      "title": "Privacy",
+      "displayTitle": "Privacy",
+      "emoji": "🔒",
+      "category": "technology",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "data, internet, safety",
+      "popularity": 52,
+      "part1Topic": "Privacy",
+      "part1": [
+        "Do you often talk about privacy?",
+        "Was privacy important to you when you were younger?",
+        "Would you like to learn more about privacy in the future?"
+      ],
+      "part2": "Describe something related to privacy. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "data",
+        "internet",
+        "safety"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards privacy?",
+        "Do young people and older people think differently about privacy?",
+        "What problems or benefits can privacy bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-advertising",
+      "module": "speaking",
+      "title": "Advertising",
+      "displayTitle": "Advertising",
+      "emoji": "📣",
+      "category": "media",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "shopping, brands, influence",
+      "popularity": 51,
+      "part1Topic": "Advertising",
+      "part1": [
+        "Do you often talk about advertising?",
+        "Was advertising important to you when you were younger?",
+        "Would you like to learn more about advertising in the future?"
+      ],
+      "part2": "Describe something related to advertising. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "shopping",
+        "brands",
+        "influence"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards advertising?",
+        "Do young people and older people think differently about advertising?",
+        "What problems or benefits can advertising bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-influencers",
+      "module": "speaking",
+      "title": "Influencers",
+      "displayTitle": "Influencers",
+      "emoji": "📲",
+      "category": "media",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "social media, fame, trust",
+      "popularity": 50,
+      "part1Topic": "Influencers",
+      "part1": [
+        "Do you often talk about influencers?",
+        "Was influencers important to you when you were younger?",
+        "Would you like to learn more about influencers in the future?"
+      ],
+      "part2": "Describe something related to influencers. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "social media",
+        "fame",
+        "trust"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards influencers?",
+        "Do young people and older people think differently about influencers?",
+        "What problems or benefits can influencers bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-newspapers",
+      "module": "speaking",
+      "title": "Newspapers",
+      "displayTitle": "Newspapers",
+      "emoji": "🗞️",
+      "category": "media",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "news, reading, information",
+      "popularity": 49,
+      "part1Topic": "Newspapers",
+      "part1": [
+        "Do you often talk about newspapers?",
+        "Was newspapers important to you when you were younger?",
+        "Would you like to learn more about newspapers in the future?"
+      ],
+      "part2": "Describe something related to newspapers. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "news",
+        "reading",
+        "information"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards newspapers?",
+        "Do young people and older people think differently about newspapers?",
+        "What problems or benefits can newspapers bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-television",
+      "module": "speaking",
+      "title": "Television",
+      "displayTitle": "Television",
+      "emoji": "📺",
+      "category": "media",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "programmes, family, entertainment",
+      "popularity": 48,
+      "part1Topic": "Television",
+      "part1": [
+        "Do you often talk about television?",
+        "Was television important to you when you were younger?",
+        "Would you like to learn more about television in the future?"
+      ],
+      "part2": "Describe something related to television. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "programmes",
+        "family",
+        "entertainment"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards television?",
+        "Do young people and older people think differently about television?",
+        "What problems or benefits can television bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-podcasts",
+      "module": "speaking",
+      "title": "Podcasts",
+      "displayTitle": "Podcasts",
+      "emoji": "🎧",
+      "category": "media",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "listening, stories, learning",
+      "popularity": 47,
+      "part1Topic": "Podcasts",
+      "part1": [
+        "Do you often talk about podcasts?",
+        "Was podcasts important to you when you were younger?",
+        "Would you like to learn more about podcasts in the future?"
+      ],
+      "part2": "Describe something related to podcasts. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "listening",
+        "stories",
+        "learning"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards podcasts?",
+        "Do young people and older people think differently about podcasts?",
+        "What problems or benefits can podcasts bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-concerts",
+      "module": "speaking",
+      "title": "Concerts",
+      "displayTitle": "Concerts",
+      "emoji": "🎤",
+      "category": "media",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "music, crowds, performance",
+      "popularity": 46,
+      "part1Topic": "Concerts",
+      "part1": [
+        "Do you often talk about concerts?",
+        "Was concerts important to you when you were younger?",
+        "Would you like to learn more about concerts in the future?"
+      ],
+      "part2": "Describe something related to concerts. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "music",
+        "crowds",
+        "performance"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards concerts?",
+        "Do young people and older people think differently about concerts?",
+        "What problems or benefits can concerts bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-dancing",
+      "module": "speaking",
+      "title": "Dancing",
+      "displayTitle": "Dancing",
+      "emoji": "💃",
+      "category": "media",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "music, exercise, culture",
+      "popularity": 45,
+      "part1Topic": "Dancing",
+      "part1": [
+        "Do you often talk about dancing?",
+        "Was dancing important to you when you were younger?",
+        "Would you like to learn more about dancing in the future?"
+      ],
+      "part2": "Describe something related to dancing. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "music",
+        "exercise",
+        "culture"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards dancing?",
+        "Do young people and older people think differently about dancing?",
+        "What problems or benefits can dancing bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-singing",
+      "module": "speaking",
+      "title": "Singing",
+      "displayTitle": "Singing",
+      "emoji": "🎙️",
+      "category": "media",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "songs, confidence, performance",
+      "popularity": 44,
+      "part1Topic": "Singing",
+      "part1": [
+        "Do you often talk about singing?",
+        "Was singing important to you when you were younger?",
+        "Would you like to learn more about singing in the future?"
+      ],
+      "part2": "Describe something related to singing. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "songs",
+        "confidence",
+        "performance"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards singing?",
+        "Do young people and older people think differently about singing?",
+        "What problems or benefits can singing bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-painting",
+      "module": "speaking",
+      "title": "Painting",
+      "displayTitle": "Painting",
+      "emoji": "🖌️",
+      "category": "media",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "art, creativity, colour",
+      "popularity": 43,
+      "part1Topic": "Painting",
+      "part1": [
+        "Do you often talk about painting?",
+        "Was painting important to you when you were younger?",
+        "Would you like to learn more about painting in the future?"
+      ],
+      "part2": "Describe something related to painting. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "art",
+        "creativity",
+        "colour"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards painting?",
+        "Do young people and older people think differently about painting?",
+        "What problems or benefits can painting bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-writing",
+      "module": "speaking",
+      "title": "Writing",
+      "displayTitle": "Writing",
+      "emoji": "✒️",
+      "category": "education",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "stories, notes, expression",
+      "popularity": 42,
+      "part1Topic": "Writing",
+      "part1": [
+        "Do you often talk about writing?",
+        "Was writing important to you when you were younger?",
+        "Would you like to learn more about writing in the future?"
+      ],
+      "part2": "Describe something related to writing. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "stories",
+        "notes",
+        "expression"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards writing?",
+        "Do young people and older people think differently about writing?",
+        "What problems or benefits can writing bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-poetry",
+      "module": "speaking",
+      "title": "Poetry",
+      "displayTitle": "Poetry",
+      "emoji": "📜",
+      "category": "media",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "language, emotion, culture",
+      "popularity": 41,
+      "part1Topic": "Poetry",
+      "part1": [
+        "Do you often talk about poetry?",
+        "Was poetry important to you when you were younger?",
+        "Would you like to learn more about poetry in the future?"
+      ],
+      "part2": "Describe something related to poetry. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "language",
+        "emotion",
+        "culture"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards poetry?",
+        "Do young people and older people think differently about poetry?",
+        "What problems or benefits can poetry bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-fashion",
+      "module": "speaking",
+      "title": "Fashion",
+      "displayTitle": "Fashion",
+      "emoji": "👗",
+      "category": "lifestyle",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "clothes, trends, identity",
+      "popularity": 40,
+      "part1Topic": "Fashion",
+      "part1": [
+        "Do you often talk about fashion?",
+        "Was fashion important to you when you were younger?",
+        "Would you like to learn more about fashion in the future?"
+      ],
+      "part2": "Describe something related to fashion. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "clothes",
+        "trends",
+        "identity"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards fashion?",
+        "Do young people and older people think differently about fashion?",
+        "What problems or benefits can fashion bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-beauty",
+      "module": "speaking",
+      "title": "Beauty",
+      "displayTitle": "Beauty",
+      "emoji": "💄",
+      "category": "lifestyle",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "appearance, confidence, media",
+      "popularity": 39,
+      "part1Topic": "Beauty",
+      "part1": [
+        "Do you often talk about beauty?",
+        "Was beauty important to you when you were younger?",
+        "Would you like to learn more about beauty in the future?"
+      ],
+      "part2": "Describe something related to beauty. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "appearance",
+        "confidence",
+        "media"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards beauty?",
+        "Do young people and older people think differently about beauty?",
+        "What problems or benefits can beauty bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-exercise",
+      "module": "speaking",
+      "title": "Exercise",
+      "displayTitle": "Exercise",
+      "emoji": "🏃",
+      "category": "lifestyle",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "fitness, health, routine",
+      "popularity": 38,
+      "part1Topic": "Exercise",
+      "part1": [
+        "Do you often talk about exercise?",
+        "Was exercise important to you when you were younger?",
+        "Would you like to learn more about exercise in the future?"
+      ],
+      "part2": "Describe something related to exercise. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "fitness",
+        "health",
+        "routine"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards exercise?",
+        "Do young people and older people think differently about exercise?",
+        "What problems or benefits can exercise bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-doctors",
+      "module": "speaking",
+      "title": "Doctors",
+      "displayTitle": "Doctors",
+      "emoji": "🩺",
+      "category": "society",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "healthcare, advice, hospitals",
+      "popularity": 37,
+      "part1Topic": "Doctors",
+      "part1": [
+        "Do you often talk about doctors?",
+        "Was doctors important to you when you were younger?",
+        "Would you like to learn more about doctors in the future?"
+      ],
+      "part2": "Describe something related to doctors. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "healthcare",
+        "advice",
+        "hospitals"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards doctors?",
+        "Do young people and older people think differently about doctors?",
+        "What problems or benefits can doctors bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-safety",
+      "module": "speaking",
+      "title": "Safety",
+      "displayTitle": "Safety",
+      "emoji": "🛡️",
+      "category": "society",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "rules, cities, children",
+      "popularity": 36,
+      "part1Topic": "Safety",
+      "part1": [
+        "Do you often talk about safety?",
+        "Was safety important to you when you were younger?",
+        "Would you like to learn more about safety in the future?"
+      ],
+      "part2": "Describe something related to safety. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "rules",
+        "cities",
+        "children"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards safety?",
+        "Do young people and older people think differently about safety?",
+        "What problems or benefits can safety bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-rules",
+      "module": "speaking",
+      "title": "Rules",
+      "displayTitle": "Rules",
+      "emoji": "📏",
+      "category": "society",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "school, work, fairness",
+      "popularity": 35,
+      "part1Topic": "Rules",
+      "part1": [
+        "Do you often talk about rules?",
+        "Was rules important to you when you were younger?",
+        "Would you like to learn more about rules in the future?"
+      ],
+      "part2": "Describe something related to rules. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "school",
+        "work",
+        "fairness"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards rules?",
+        "Do young people and older people think differently about rules?",
+        "What problems or benefits can rules bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-queues",
+      "module": "speaking",
+      "title": "Queues",
+      "displayTitle": "Queues",
+      "emoji": "🧍",
+      "category": "society",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "waiting, public, patience",
+      "popularity": 34,
+      "part1Topic": "Queues",
+      "part1": [
+        "Do you often talk about queues?",
+        "Was queues important to you when you were younger?",
+        "Would you like to learn more about queues in the future?"
+      ],
+      "part2": "Describe something related to queues. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "waiting",
+        "public",
+        "patience"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards queues?",
+        "Do young people and older people think differently about queues?",
+        "What problems or benefits can queues bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-promises",
+      "module": "speaking",
+      "title": "Promises",
+      "displayTitle": "Promises",
+      "emoji": "🤞",
+      "category": "people",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "trust, responsibility, friendship",
+      "popularity": 33,
+      "part1Topic": "Promises",
+      "part1": [
+        "Do you often talk about promises?",
+        "Was promises important to you when you were younger?",
+        "Would you like to learn more about promises in the future?"
+      ],
+      "part2": "Describe something related to promises. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "trust",
+        "responsibility",
+        "friendship"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards promises?",
+        "Do young people and older people think differently about promises?",
+        "What problems or benefits can promises bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-apologies",
+      "module": "speaking",
+      "title": "Apologies",
+      "displayTitle": "Apologies",
+      "emoji": "🙏",
+      "category": "people",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "mistakes, manners, relationships",
+      "popularity": 32,
+      "part1Topic": "Apologies",
+      "part1": [
+        "Do you often talk about apologies?",
+        "Was apologies important to you when you were younger?",
+        "Would you like to learn more about apologies in the future?"
+      ],
+      "part2": "Describe something related to apologies. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "mistakes",
+        "manners",
+        "relationships"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards apologies?",
+        "Do young people and older people think differently about apologies?",
+        "What problems or benefits can apologies bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-creativity",
+      "module": "speaking",
+      "title": "Creativity",
+      "displayTitle": "Creativity",
+      "emoji": "✨",
+      "category": "education",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "ideas, art, problem-solving",
+      "popularity": 31,
+      "part1Topic": "Creativity",
+      "part1": [
+        "Do you often talk about creativity?",
+        "Was creativity important to you when you were younger?",
+        "Would you like to learn more about creativity in the future?"
+      ],
+      "part2": "Describe something related to creativity. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "ideas",
+        "art",
+        "problem-solving"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards creativity?",
+        "Do young people and older people think differently about creativity?",
+        "What problems or benefits can creativity bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-innovation",
+      "module": "speaking",
+      "title": "Innovation",
+      "displayTitle": "Innovation",
+      "emoji": "🚀",
+      "category": "technology",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "ideas, business, future",
+      "popularity": 30,
+      "part1Topic": "Innovation",
+      "part1": [
+        "Do you often talk about innovation?",
+        "Was innovation important to you when you were younger?",
+        "Would you like to learn more about innovation in the future?"
+      ],
+      "part2": "Describe something related to innovation. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "ideas",
+        "business",
+        "future"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards innovation?",
+        "Do young people and older people think differently about innovation?",
+        "What problems or benefits can innovation bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-energy",
+      "module": "speaking",
+      "title": "Energy",
+      "displayTitle": "Energy",
+      "emoji": "⚡",
+      "category": "nature",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "electricity, conservation, future",
+      "popularity": 29,
+      "part1Topic": "Energy",
+      "part1": [
+        "Do you often talk about energy?",
+        "Was energy important to you when you were younger?",
+        "Would you like to learn more about energy in the future?"
+      ],
+      "part2": "Describe something related to energy. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "electricity",
+        "conservation",
+        "future"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards energy?",
+        "Do young people and older people think differently about energy?",
+        "What problems or benefits can energy bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-space",
+      "module": "speaking",
+      "title": "Space",
+      "displayTitle": "Space",
+      "emoji": "🪐",
+      "category": "science",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "planets, exploration, future",
+      "popularity": 28,
+      "part1Topic": "Space",
+      "part1": [
+        "Do you often talk about space?",
+        "Was space important to you when you were younger?",
+        "Would you like to learn more about space in the future?"
+      ],
+      "part2": "Describe something related to space. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "planets",
+        "exploration",
+        "future"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards space?",
+        "Do young people and older people think differently about space?",
+        "What problems or benefits can space bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-farming",
+      "module": "speaking",
+      "title": "Farming",
+      "displayTitle": "Farming",
+      "emoji": "🌾",
+      "category": "nature",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "food, countryside, technology",
+      "popularity": 27,
+      "part1Topic": "Farming",
+      "part1": [
+        "Do you often talk about farming?",
+        "Was farming important to you when you were younger?",
+        "Would you like to learn more about farming in the future?"
+      ],
+      "part2": "Describe something related to farming. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "food",
+        "countryside",
+        "technology"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards farming?",
+        "Do young people and older people think differently about farming?",
+        "What problems or benefits can farming bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-markets",
+      "module": "speaking",
+      "title": "Markets",
+      "displayTitle": "Markets",
+      "emoji": "🏪",
+      "category": "society",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "shopping, local, bargaining",
+      "popularity": 26,
+      "part1Topic": "Markets",
+      "part1": [
+        "Do you often talk about markets?",
+        "Was markets important to you when you were younger?",
+        "Would you like to learn more about markets in the future?"
+      ],
+      "part2": "Describe something related to markets. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "shopping",
+        "local",
+        "bargaining"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards markets?",
+        "Do young people and older people think differently about markets?",
+        "What problems or benefits can markets bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-banks",
+      "module": "speaking",
+      "title": "Banks",
+      "displayTitle": "Banks",
+      "emoji": "🏦",
+      "category": "society",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "money, saving, service",
+      "popularity": 25,
+      "part1Topic": "Banks",
+      "part1": [
+        "Do you often talk about banks?",
+        "Was banks important to you when you were younger?",
+        "Would you like to learn more about banks in the future?"
+      ],
+      "part2": "Describe something related to banks. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "money",
+        "saving",
+        "service"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards banks?",
+        "Do young people and older people think differently about banks?",
+        "What problems or benefits can banks bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-police",
+      "module": "speaking",
+      "title": "Police",
+      "displayTitle": "Police",
+      "emoji": "🚓",
+      "category": "society",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "safety, law, community",
+      "popularity": 24,
+      "part1Topic": "Police",
+      "part1": [
+        "Do you often talk about police?",
+        "Was police important to you when you were younger?",
+        "Would you like to learn more about police in the future?"
+      ],
+      "part2": "Describe something related to police. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "safety",
+        "law",
+        "community"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards police?",
+        "Do young people and older people think differently about police?",
+        "What problems or benefits can police bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-hospitals",
+      "module": "speaking",
+      "title": "Hospitals",
+      "displayTitle": "Hospitals",
+      "emoji": "🏥",
+      "category": "society",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "health, doctors, public",
+      "popularity": 23,
+      "part1Topic": "Hospitals",
+      "part1": [
+        "Do you often talk about hospitals?",
+        "Was hospitals important to you when you were younger?",
+        "Would you like to learn more about hospitals in the future?"
+      ],
+      "part2": "Describe something related to hospitals. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "health",
+        "doctors",
+        "public"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards hospitals?",
+        "Do young people and older people think differently about hospitals?",
+        "What problems or benefits can hospitals bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-bridges",
+      "module": "speaking",
+      "title": "Bridges",
+      "displayTitle": "Bridges",
+      "emoji": "🌉",
+      "category": "place",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "cities, transport, design",
+      "popularity": 22,
+      "part1Topic": "Bridges",
+      "part1": [
+        "Do you often talk about bridges?",
+        "Was bridges important to you when you were younger?",
+        "Would you like to learn more about bridges in the future?"
+      ],
+      "part2": "Describe something related to bridges. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "cities",
+        "transport",
+        "design"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards bridges?",
+        "Do young people and older people think differently about bridges?",
+        "What problems or benefits can bridges bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-rivers",
+      "module": "speaking",
+      "title": "Rivers",
+      "displayTitle": "Rivers",
+      "emoji": "🏞️",
+      "category": "nature",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "water, cities, pollution",
+      "popularity": 21,
+      "part1Topic": "Rivers",
+      "part1": [
+        "Do you often talk about rivers?",
+        "Was rivers important to you when you were younger?",
+        "Would you like to learn more about rivers in the future?"
+      ],
+      "part2": "Describe something related to rivers. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "water",
+        "cities",
+        "pollution"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards rivers?",
+        "Do young people and older people think differently about rivers?",
+        "What problems or benefits can rivers bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-lakes",
+      "module": "speaking",
+      "title": "Lakes",
+      "displayTitle": "Lakes",
+      "emoji": "🚣",
+      "category": "nature",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "relaxing, scenery, sports",
+      "popularity": 20,
+      "part1Topic": "Lakes",
+      "part1": [
+        "Do you often talk about lakes?",
+        "Was lakes important to you when you were younger?",
+        "Would you like to learn more about lakes in the future?"
+      ],
+      "part2": "Describe something related to lakes. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "relaxing",
+        "scenery",
+        "sports"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards lakes?",
+        "Do young people and older people think differently about lakes?",
+        "What problems or benefits can lakes bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-villages",
+      "module": "speaking",
+      "title": "Villages",
+      "displayTitle": "Villages",
+      "emoji": "🏘️",
+      "category": "place",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "countryside, community, quiet",
+      "popularity": 19,
+      "part1Topic": "Villages",
+      "part1": [
+        "Do you often talk about villages?",
+        "Was villages important to you when you were younger?",
+        "Would you like to learn more about villages in the future?"
+      ],
+      "part2": "Describe something related to villages. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "countryside",
+        "community",
+        "quiet"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards villages?",
+        "Do young people and older people think differently about villages?",
+        "What problems or benefits can villages bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-cities",
+      "module": "speaking",
+      "title": "Cities",
+      "displayTitle": "Cities",
+      "emoji": "🌆",
+      "category": "place",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "traffic, jobs, buildings",
+      "popularity": 18,
+      "part1Topic": "Cities",
+      "part1": [
+        "Do you often talk about cities?",
+        "Was cities important to you when you were younger?",
+        "Would you like to learn more about cities in the future?"
+      ],
+      "part2": "Describe something related to cities. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "traffic",
+        "jobs",
+        "buildings"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards cities?",
+        "Do young people and older people think differently about cities?",
+        "What problems or benefits can cities bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-teenagers",
+      "module": "speaking",
+      "title": "Teenagers",
+      "displayTitle": "Teenagers",
+      "emoji": "🧑",
+      "category": "people",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "school, friends, independence",
+      "popularity": 17,
+      "part1Topic": "Teenagers",
+      "part1": [
+        "Do you often talk about teenagers?",
+        "Was teenagers important to you when you were younger?",
+        "Would you like to learn more about teenagers in the future?"
+      ],
+      "part2": "Describe something related to teenagers. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "school",
+        "friends",
+        "independence"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards teenagers?",
+        "Do young people and older people think differently about teenagers?",
+        "What problems or benefits can teenagers bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-parents",
+      "module": "speaking",
+      "title": "Parents",
+      "displayTitle": "Parents",
+      "emoji": "👪",
+      "category": "people",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "support, rules, advice",
+      "popularity": 16,
+      "part1Topic": "Parents",
+      "part1": [
+        "Do you often talk about parents?",
+        "Was parents important to you when you were younger?",
+        "Would you like to learn more about parents in the future?"
+      ],
+      "part2": "Describe something related to parents. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "support",
+        "rules",
+        "advice"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards parents?",
+        "Do young people and older people think differently about parents?",
+        "What problems or benefits can parents bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-children",
+      "module": "speaking",
+      "title": "Children",
+      "displayTitle": "Children",
+      "emoji": "🧒",
+      "category": "people",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "games, learning, family",
+      "popularity": 15,
+      "part1Topic": "Children",
+      "part1": [
+        "Do you often talk about children?",
+        "Was children important to you when you were younger?",
+        "Would you like to learn more about children in the future?"
+      ],
+      "part2": "Describe something related to children. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "games",
+        "learning",
+        "family"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards children?",
+        "Do young people and older people think differently about children?",
+        "What problems or benefits can children bring to society?"
+      ]
+    },
+    {
+      "id": "public-speaking-expanded-elders",
+      "module": "speaking",
+      "title": "Elders",
+      "displayTitle": "Elders",
+      "emoji": "🧓",
+      "category": "people",
+      "source": "Public topics",
+      "period": "Public topics",
+      "topicKeywords": "experience, respect, support",
+      "popularity": 14,
+      "part1Topic": "Elders",
+      "part1": [
+        "Do you often talk about elders?",
+        "Was elders important to you when you were younger?",
+        "Would you like to learn more about elders in the future?"
+      ],
+      "part2": "Describe something related to elders. You should say what it is, when you first became interested in it, who you usually talk about it with, and explain why this topic is important or interesting to you.",
+      "part3Topics": [
+        "experience",
+        "respect",
+        "support"
+      ],
+      "part3": [
+        "How has modern life changed people's attitude towards elders?",
+        "Do young people and older people think differently about elders?",
+        "What problems or benefits can elders bring to society?"
+      ]
+    }
+  ],
+  "speakingTaxonomy": [
+    [
+      "Friends",
+      "👥",
+      "people",
+      [
+        "friends",
+        "friendship",
+        "relationships",
+        "social",
+        "important friends"
+      ],
+      [
+        "relationships",
+        "trust",
+        "social"
+      ]
+    ],
+    [
+      "Family",
+      "👨‍👩‍👧",
+      "people",
+      [
+        "family",
+        "parents",
+        "siblings",
+        "children",
+        "relatives"
+      ],
+      [
+        "parents",
+        "siblings",
+        "home"
+      ]
+    ],
+    [
+      "Teachers",
+      "👩‍🏫",
+      "education",
+      [
+        "teacher",
+        "teachers",
+        "tutor",
+        "education influence"
+      ],
+      [
+        "lessons",
+        "advice",
+        "influence"
+      ]
+    ],
+    [
+      "People",
+      "🧑",
+      "people",
+      [
+        "person",
+        "people",
+        "someone",
+        "famous person",
+        "old person",
+        "teenagers",
+        "elders"
+      ],
+      [
+        "personality",
+        "experience",
+        "support"
+      ]
+    ],
+    [
+      "Hometown",
+      "🏠",
+      "place",
+      [
+        "hometown",
+        "local area",
+        "where you live"
+      ],
+      [
+        "city",
+        "local area",
+        "community"
+      ]
+    ],
+    [
+      "Home",
+      "🏡",
+      "place",
+      [
+        "home",
+        "room",
+        "living place",
+        "apartment",
+        "house"
+      ],
+      [
+        "room",
+        "living place",
+        "comfort"
+      ]
+    ],
+    [
+      "Place",
+      "📍",
+      "place",
+      [
+        "place",
+        "historic place",
+        "interesting place",
+        "quiet place",
+        "public place",
+        "building",
+        "park"
+      ],
+      [
+        "location",
+        "public",
+        "visit"
+      ]
+    ],
+    [
+      "Cities",
+      "🌆",
+      "place",
+      [
+        "city",
+        "cities",
+        "urban",
+        "buildings",
+        "architecture"
+      ],
+      [
+        "traffic",
+        "jobs",
+        "buildings"
+      ]
+    ],
+    [
+      "Travel",
+      "✈️",
+      "lifestyle",
+      [
+        "travel",
+        "journey",
+        "trip",
+        "plane",
+        "tourism",
+        "holiday abroad"
+      ],
+      [
+        "journey",
+        "tourism",
+        "holiday"
+      ]
+    ],
+    [
+      "Transport",
+      "🚗",
+      "place",
+      [
+        "transport",
+        "traffic",
+        "commuting",
+        "bus",
+        "train",
+        "car",
+        "bicycle"
+      ],
+      [
+        "public",
+        "vehicles",
+        "traffic"
+      ]
+    ],
+    [
+      "Food",
+      "🍽️",
+      "lifestyle",
+      [
+        "food",
+        "meal",
+        "cooking",
+        "restaurant",
+        "snack",
+        "cafe"
+      ],
+      [
+        "cooking",
+        "restaurants",
+        "healthy"
+      ]
+    ],
+    [
+      "Health",
+      "💗",
+      "lifestyle",
+      [
+        "health",
+        "fitness",
+        "exercise",
+        "doctor",
+        "hospital",
+        "diet"
+      ],
+      [
+        "fitness",
+        "medicine",
+        "diet"
+      ]
+    ],
+    [
+      "Sport",
+      "🏟️",
+      "lifestyle",
+      [
+        "sport",
+        "sports",
+        "game",
+        "competition",
+        "athlete"
+      ],
+      [
+        "games",
+        "competition",
+        "teamwork"
+      ]
+    ],
+    [
+      "Routine",
+      "📅",
+      "lifestyle",
+      [
+        "daily routine",
+        "routine",
+        "time",
+        "habit",
+        "weekday",
+        "morning",
+        "evening"
+      ],
+      [
+        "time",
+        "habits",
+        "schedule"
+      ]
+    ],
+    [
+      "Hobbies",
+      "🎯",
+      "lifestyle",
+      [
+        "hobby",
+        "hobbies",
+        "free time",
+        "leisure",
+        "interest"
+      ],
+      [
+        "free time",
+        "interests",
+        "relaxing"
+      ]
+    ],
+    [
+      "Shopping",
+      "🛍️",
+      "lifestyle",
+      [
+        "shopping",
+        "market",
+        "buying",
+        "online stores",
+        "clothes",
+        "fashion"
+      ],
+      [
+        "buying",
+        "markets",
+        "style"
+      ]
+    ],
+    [
+      "Money",
+      "💳",
+      "society",
+      [
+        "money",
+        "salary",
+        "bank",
+        "saving",
+        "spending",
+        "bills"
+      ],
+      [
+        "saving",
+        "spending",
+        "budgeting"
+      ]
+    ],
+    [
+      "Work",
+      "💼",
+      "work",
+      [
+        "work study routine",
+        "work study",
+        "work or study",
+        "work",
+        "job",
+        "career",
+        "office",
+        "company",
+        "interview"
+      ],
+      [
+        "job",
+        "career",
+        "company"
+      ]
+    ],
+    [
+      "Study",
+      "🎓",
+      "education",
+      [
+        "study",
+        "school",
+        "university",
+        "subject",
+        "student"
+      ],
+      [
+        "school",
+        "learning",
+        "subject"
+      ]
+    ],
+    [
+      "Exams",
+      "📝",
+      "education",
+      [
+        "exam",
+        "exams",
+        "test",
+        "homework",
+        "marks"
+      ],
+      [
+        "pressure",
+        "preparation",
+        "results"
+      ]
+    ],
+    [
+      "Books",
+      "📘",
+      "education",
+      [
+        "reading",
+        "book",
+        "books",
+        "story",
+        "novel",
+        "library"
+      ],
+      [
+        "reading",
+        "novels",
+        "authors"
+      ]
+    ],
+    [
+      "Languages",
+      "🗣️",
+      "education",
+      [
+        "language",
+        "languages",
+        "english",
+        "communication"
+      ],
+      [
+        "English",
+        "communication",
+        "learning"
+      ]
+    ],
+    [
+      "Technology",
+      "🖥️",
+      "technology",
+      [
+        "technology",
+        "computer",
+        "internet",
+        "smartphone",
+        "phone",
+        "app",
+        "digital"
+      ],
+      [
+        "computer",
+        "internet",
+        "apps"
+      ]
+    ],
+    [
+      "Internet",
+      "🌐",
+      "technology",
+      [
+        "internet",
+        "online",
+        "website",
+        "websites",
+        "social media"
+      ],
+      [
+        "online",
+        "websites",
+        "information"
+      ]
+    ],
+    [
+      "Robots",
+      "🤖",
+      "technology",
+      [
+        "robot",
+        "robots",
+        "automation",
+        "ai",
+        "artificial intelligence"
+      ],
+      [
+        "automation",
+        "future",
+        "jobs"
+      ]
+    ],
+    [
+      "Privacy",
+      "🔒",
+      "technology",
+      [
+        "privacy",
+        "data",
+        "security",
+        "password"
+      ],
+      [
+        "data",
+        "internet",
+        "safety"
+      ]
+    ],
+    [
+      "Music",
+      "🎵",
+      "media",
+      [
+        "music",
+        "song",
+        "songs",
+        "concert",
+        "instrument",
+        "singing"
+      ],
+      [
+        "songs",
+        "instruments",
+        "concerts"
+      ]
+    ],
+    [
+      "Films",
+      "🎬",
+      "media",
+      [
+        "film",
+        "films",
+        "movie",
+        "movies",
+        "cinema",
+        "tv programme",
+        "television"
+      ],
+      [
+        "movies",
+        "cinema",
+        "actors"
+      ]
+    ],
+    [
+      "News",
+      "📰",
+      "media",
+      [
+        "news",
+        "newspaper",
+        "media",
+        "information",
+        "current events"
+      ],
+      [
+        "events",
+        "media",
+        "information"
+      ]
+    ],
+    [
+      "Art",
+      "🖼️",
+      "media",
+      [
+        "art",
+        "painting",
+        "drawing",
+        "gallery",
+        "museum",
+        "creative"
+      ],
+      [
+        "painting",
+        "galleries",
+        "creativity"
+      ]
+    ],
+    [
+      "Photography",
+      "📷",
+      "media",
+      [
+        "photo",
+        "photos",
+        "photography",
+        "camera",
+        "picture"
+      ],
+      [
+        "photos",
+        "memories",
+        "camera"
+      ]
+    ],
+    [
+      "Environment",
+      "🌿",
+      "nature",
+      [
+        "environment",
+        "pollution",
+        "recycling",
+        "climate",
+        "planet"
+      ],
+      [
+        "recycling",
+        "pollution",
+        "planet"
+      ]
+    ],
+    [
+      "Weather",
+      "🌦️",
+      "nature",
+      [
+        "weather",
+        "season",
+        "seasons",
+        "rain",
+        "snow",
+        "summer",
+        "winter"
+      ],
+      [
+        "seasons",
+        "climate",
+        "temperature"
+      ]
+    ],
+    [
+      "Animals",
+      "🐾",
+      "nature",
+      [
+        "animal",
+        "animals",
+        "pet",
+        "pets",
+        "wildlife"
+      ],
+      [
+        "pets",
+        "wildlife",
+        "animals"
+      ]
+    ],
+    [
+      "Nature",
+      "🌳",
+      "nature",
+      [
+        "nature",
+        "garden",
+        "flowers",
+        "trees",
+        "river",
+        "lake",
+        "mountain",
+        "beach"
+      ],
+      [
+        "plants",
+        "scenery",
+        "relaxing"
+      ]
+    ],
+    [
+      "Science",
+      "🔬",
+      "education",
+      [
+        "science",
+        "research",
+        "experiment",
+        "space",
+        "farming"
+      ],
+      [
+        "research",
+        "experiments",
+        "discovery"
+      ]
+    ],
+    [
+      "Festivals",
+      "🎁",
+      "society",
+      [
+        "festival",
+        "festivals",
+        "celebration",
+        "celebrations",
+        "holiday",
+        "birthday",
+        "wedding"
+      ],
+      [
+        "festivals",
+        "holidays",
+        "parties"
+      ]
+    ],
+    [
+      "Culture",
+      "🏮",
+      "society",
+      [
+        "culture",
+        "tradition",
+        "traditions",
+        "history",
+        "museum"
+      ],
+      [
+        "traditions",
+        "identity",
+        "values"
+      ]
+    ],
+    [
+      "Society",
+      "🌍",
+      "society",
+      [
+        "society",
+        "community",
+        "government",
+        "rules",
+        "safety",
+        "police"
+      ],
+      [
+        "community",
+        "rules",
+        "public"
+      ]
+    ],
+    [
+      "Plans",
+      "🧭",
+      "society",
+      [
+        "future plans",
+        "plans",
+        "goals",
+        "ambition",
+        "success",
+        "decision"
+      ],
+      [
+        "goals",
+        "choices",
+        "future"
+      ]
+    ],
+    [
+      "Gifts",
+      "🎀",
+      "society",
+      [
+        "gift",
+        "gifts",
+        "present",
+        "presents"
+      ],
+      [
+        "giving",
+        "receiving",
+        "occasions"
+      ]
+    ],
+    [
+      "Fashion",
+      "👗",
+      "lifestyle",
+      [
+        "fashion",
+        "beauty",
+        "appearance",
+        "shoes",
+        "bags",
+        "uniforms"
+      ],
+      [
+        "clothes",
+        "trends",
+        "identity"
+      ]
+    ],
+    [
+      "Sleep",
+      "🛌",
+      "lifestyle",
+      [
+        "sleep",
+        "dreams",
+        "rest"
+      ],
+      [
+        "rest",
+        "dreams",
+        "routine"
+      ]
+    ],
+    [
+      "Memory",
+      "🧠",
+      "education",
+      [
+        "memory",
+        "memories",
+        "remember",
+        "childhood"
+      ],
+      [
+        "remembering",
+        "childhood",
+        "study"
+      ]
+    ],
+    [
+      "Communication",
+      "💬",
+      "people",
+      [
+        "communication",
+        "email",
+        "messages",
+        "advice",
+        "apologies",
+        "promises"
+      ],
+      [
+        "messages",
+        "support",
+        "manners"
+      ]
+    ]
+  ],
+  "writingRules": [
+    {
+      "key": "food-agriculture",
+      "label": "Food & agriculture",
+      "emoji": "🍽️",
+      "pattern": "\\b(food|meal|restaurant|coffee|tea|noodle|agriculture|agricultural|farm|farming|crop)\\b",
+      "flags": "i"
+    },
+    {
+      "key": "education-learning",
+      "label": "Education & learning",
+      "emoji": "📝",
+      "pattern": "\\b(school|student|education|university|teacher|learning|homework|subject|course|academic|tuition|classroom)\\b",
+      "flags": "i"
+    },
+    {
+      "key": "technology-digital",
+      "label": "Digital technology",
+      "emoji": "🖥️",
+      "pattern": "\\b(technology|internet|computer|online|digital|robot|automation|ai|smartphone|algorithm|data|privacy)\\b",
+      "flags": "i"
+    },
+    {
+      "key": "work-career",
+      "label": "Work & careers",
+      "emoji": "💼",
+      "pattern": "\\b(work|job|jobs|career|employee|employer|employment|office|salary|profession|business|company|workplace|retirement|sector)\\b",
+      "flags": "i"
+    },
+    {
+      "key": "environment-climate",
+      "label": "Environment & climate",
+      "emoji": "🌦️",
+      "pattern": "\\b(environment|climate|pollution|recycle|recycling|carbon|emission|energy|electricity|power|water|wildlife|habitat|animal|plant|nature|green|desert)\\b",
+      "flags": "i"
+    },
+    {
+      "key": "transport-mobility",
+      "label": "Transport & travel",
+      "emoji": "🚆",
+      "pattern": "\\b(transport|traffic|congestion|commute|road|car|vehicle|rail|bus|cycling|pedestrian|fuel|travel|tourist|tourists|tourism|airport|harbour|harbor)\\b",
+      "flags": "i"
+    },
+    {
+      "key": "cities-housing",
+      "label": "Cities & housing",
+      "emoji": "🏙️",
+      "pattern": "\\b(city|cities|urban|housing|apartment|high-rise|residential|land|neighbourhood|neighborhood|public space|park)\\b",
+      "flags": "i"
+    },
+    {
+      "key": "health-lifestyle",
+      "label": "Health & lifestyle",
+      "emoji": "💗",
+      "pattern": "\\b(health|healthy|hospital|doctor|exercise|sport|diet|medical|wellbeing|fitness|sugar|illness|disease)\\b",
+      "flags": "i"
+    },
+    {
+      "key": "family-children",
+      "label": "Family & children",
+      "emoji": "👨‍👩‍👧",
+      "pattern": "\\b(family|families|children|child|parent|parents|mother|father|elderly|older people|ageing|aging)\\b",
+      "flags": "i"
+    },
+    {
+      "key": "crime-law",
+      "label": "Crime & law",
+      "emoji": "⚖️",
+      "pattern": "\\b(crime|criminal|prison|punishment|sentence|law|legal|police|rehabilitation|offender)\\b",
+      "flags": "i"
+    },
+    {
+      "key": "government-public",
+      "label": "Government & public services",
+      "emoji": "🏛️",
+      "pattern": "\\b(government|public service|policy|tax|funding|spend|spending|community service|citizen|society|population)\\b",
+      "flags": "i"
+    },
+    {
+      "key": "culture-traditions",
+      "label": "Culture & traditions",
+      "emoji": "🎬",
+      "pattern": "\\b(culture|art|music|museum|library|history|tradition|custom|festival|heritage|local film)\\b",
+      "flags": "i"
+    },
+    {
+      "key": "media-advertising",
+      "label": "Media & advertising",
+      "emoji": "📰",
+      "pattern": "\\b(media|news|newspaper|television|advertising|advertisement|social media|film|entertainment)\\b",
+      "flags": "i"
+    },
+    {
+      "key": "globalisation-language",
+      "label": "Globalisation & language",
+      "emoji": "🌍",
+      "pattern": "\\b(globalisation|globalization|international|foreign|overseas|language|multicultural|border)\\b",
+      "flags": "i"
+    },
+    {
+      "key": "consumerism-money",
+      "label": "Consumerism & money",
+      "emoji": "🛍️",
+      "pattern": "\\b(consumer|consumption|shopping|shop|shops|export|exports|income|money|finance|financial|bank|salary|wealth|cost|price|prices)\\b",
+      "flags": "i"
+    },
+    {
+      "key": "science-research",
+      "label": "Science & research",
+      "emoji": "🔬",
+      "pattern": "\\b(science|scientific|research|experiment|space|discovery|medicine|innovation)\\b",
+      "flags": "i"
+    },
+    {
+      "key": "charts-data",
+      "label": "Charts & data",
+      "emoji": "📊",
+      "pattern": "$^",
+      "flags": ""
+    },
+    {
+      "key": "essay-general",
+      "label": "General essays",
+      "emoji": "✨",
+      "pattern": "$^",
+      "flags": ""
+    }
+  ]
+}

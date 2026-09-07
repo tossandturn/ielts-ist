@@ -1,7 +1,17 @@
 const BANKS={listening:'listeningTests',reading:'readingTests',writing:'writingTasks',speaking:'speakingSets'}
 const crypto=require('node:crypto')
-const ALLOWED=['id','module','title','type','source','period','minutes','sourceUrl','audioUrls','questionPageImages','questions','contentTopics','contentVersion','contentLifecycle','humanReviewStatus','readingPageImages','readingPassagePageImages','readingQuestionPageImages','readingPassageStartPages','writingPageImages','speakingPageImages','prompt','data','visual','part1Topic','part1','part2','part3']
+const {topicMetadata,publicTasks,sourceHash}=require('./nativeTopicMetadata.cjs')
+const ALLOWED=['id','module','title','type','source','sourceKind','formalProgressEligible','period','minutes','sourceUrl','audioUrls','questionPageImages','questions','contentTopics','contentVersion','contentLifecycle','humanReviewStatus','readingPageImages','readingPassagePageImages','readingQuestionPageImages','readingPassageStartPages','writingPageImages','speakingPageImages','prompt','data','visual','part1Topic','part1','part2','part3','part3Topics','topicKeywords','displayTitle','emoji','category','topicCategory','topicSubcategory']
 const number=(q,index)=>Number(String(q.id||'').match(/^(?:q)?(\d+)$/)?.[1])||index+1
+function tasksFor(payload,module,includePublicTopics){
+ const tasks=(payload[BANKS[module]]||[]).slice(),seen=new Map(tasks.map(t=>[t.id,t]))
+ if(includePublicTopics)for(const task of publicTasks(module)){
+  const previous=seen.get(task.id)
+  if(previous){const evidence=t=>JSON.stringify([t.prompt||'',t.part1||[],t.part2||'',t.part3||[]]);if(previous.source!=='Public topics'||evidence(previous)!==evidence(task))throw Error('Conflicting published public-topic ID');continue}
+  tasks.push(task);seen.set(task.id,task)
+ }
+ return tasks
+}
 
 function sourceSections(task,module){
  if(!['listening','reading'].includes(module)||!Array.isArray(task.questions)||task.questions.length!==40)return []
@@ -20,29 +30,30 @@ function sourceSections(task,module){
  return Array.from({length:count},(_,index)=>{
   const section=index+1,topic=task.contentTopics?.[section]||{}
   return {number:section,label:(module==='reading'?'Passage ':'Section ')+section,
-   topicKey:String(topic.key||''),topicLabel:String(topic.label||''),title:String(topic.title||'').slice(0,220),
+   topicKey:String(topic.key||''),topicLabel:String(topic.label||''),topicIcon:String(topic.icon||topic.key||''),topicEmoji:String(topic.emoji||''),title:String(topic.title||'').slice(0,220),
    questionIds:grouped.get(section),questionCount:grouped.get(section).length,minutes:module==='reading'?20:10}
  })
 }
 
 function indexItem(task,module){
- return {id:task.id,module,title:String(task.title||''),type:String(task.type||''),source:String(task.source||''),
+ return {id:task.id,module,title:String(task.title||''),type:String(task.type||''),source:String(task.source||''),sourceKind:task.sourceKind||(/^cam\d+-/.test(task.id)?'cambridge':'published'),...topicMetadata(task,module),
   book:Number(String(task.id).match(/^cam(\d+)/)?.[1])||0,test:Number(String(task.id).match(/test(\d+)/)?.[1])||0,
   minutes:Number(task.minutes)||({listening:40,reading:60,writing:40,speaking:15})[module],
   questionCount:Array.isArray(task.questions)?task.questions.length:0,
   sections:sourceSections(task,module).map(({questionIds,...section})=>section)}
 }
 
-function buildNativeCatalog(payload){
- const version=crypto.createHash('sha256').update('native-task-v2|').update(JSON.stringify(Object.fromEntries(Object.values(BANKS).map(key=>[key,payload[key]||[]])))).digest('hex').slice(0,24)
- return {schemaVersion:'native-ielts-catalog-v1',version,...Object.fromEntries(Object.entries(BANKS).map(([module,key])=>[key,(payload[key]||[]).map(task=>indexItem(task,module))]))}
+function buildNativeCatalog(payload,{includePublicTopics=false}={}){
+ const baseVersion=crypto.createHash('sha256').update('native-task-v2|').update(JSON.stringify(Object.fromEntries(Object.values(BANKS).map(key=>[key,payload[key]||[]])))).digest('hex').slice(0,24)
+ const version=crypto.createHash('sha256').update('native-task-v3-topics|'+baseVersion+'|'+sourceHash+'|'+includePublicTopics).digest('hex').slice(0,24)
+ return {schemaVersion:'native-ielts-catalog-v1',version,baseVersion,topicVersion:sourceHash,...Object.fromEntries(Object.entries(BANKS).map(([module,key])=>[key,tasksFor(payload,module,includePublicTopics).map(task=>indexItem(task,module))]))}
 }
 
-function nativeTaskDetail(payload,module,id){
+function nativeTaskDetail(payload,module,id,{includePublicTopics=false}={}){
  if(!BANKS[module]||!/^[-a-zA-Z0-9_]+$/.test(String(id)))return null
- const task=(payload[BANKS[module]]||[]).find(task=>task.id===id)
+ const task=tasksFor(payload,module,includePublicTopics).find(task=>task.id===id)
  if(!task)return null
- const result={...Object.fromEntries(ALLOWED.filter(key=>task[key]!==undefined).map(key=>[key,task[key]])),nativeSections:sourceSections(task,module)}
+ const result={...Object.fromEntries(ALLOWED.filter(key=>task[key]!==undefined).map(key=>[key,task[key]])),...topicMetadata(task,module),nativeSections:sourceSections(task,module)}
  if(module==='listening'){
   const match=String(id).match(/^cam(\d+)-l-test(\d+)$/)
   const reading=match?(payload.readingTests||[]).find(item=>item.id===`cam${match[1]}-r-test${match[2]}`):null
@@ -53,7 +64,7 @@ function nativeTaskDetail(payload,module,id){
    result.questionPageImages=(result.questionPageImages||[]).filter(image=>Number(image.page)<boundary)
   }
  }
- if(result.questions)result.questions=result.questions.map(q=>Object.fromEntries(['id','text','type','typeLabel','questionPage','options','selectionLimit','optionGroupId'].filter(key=>q[key]!==undefined).map(key=>[key,q[key]])))
+ if(result.questions)result.questions=result.questions.map(q=>Object.fromEntries(['id','text','type','typeLabel','questionPage','options','optionsVerified','selectionLimit','optionGroupId'].filter(key=>q[key]!==undefined).map(key=>[key,q[key]])))
  return result
 }
 module.exports={buildNativeCatalog,nativeTaskDetail,sourceSections}

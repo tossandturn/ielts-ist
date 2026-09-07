@@ -8528,14 +8528,14 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.method === "GET" && requestPathname === "/api/native/ielts/catalog") {
       const cache = getTasksPayloadCache();
-      cache.nativeIndex ||= buildNativeCatalog(cache.payload);
+      cache.nativeIndex ||= buildNativeCatalog(cache.payload, { includePublicTopics: true });
       sendCompressedJson(req, res, 200, cache.nativeIndex, "public, max-age=60");
       return;
     }
     const nativeTaskMatch=requestPathname.match(/^\/api\/native\/ielts\/tasks\/(listening|reading|writing|speaking)\/([-a-zA-Z0-9_]+)$/);
     if(req.method==="GET" && nativeTaskMatch){
-      const cache=getTasksPayloadCache();cache.nativeIndex ||= buildNativeCatalog(cache.payload);
-      const task=nativeTaskDetail(cache.payload,nativeTaskMatch[1],nativeTaskMatch[2]);
+      const cache=getTasksPayloadCache();cache.nativeIndex ||= buildNativeCatalog(cache.payload, { includePublicTopics: true });
+      const task=nativeTaskDetail(cache.payload,nativeTaskMatch[1],nativeTaskMatch[2], { includePublicTopics: true });
       if(!task){sendJson(res,404,{error:"Task not found."});return;}
       sendCompressedJson(req,res,200,{schemaVersion:"native-ielts-task-v1",version:cache.nativeIndex.version,task},"public, max-age=60");
       return;
