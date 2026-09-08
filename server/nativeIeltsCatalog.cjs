@@ -1,6 +1,7 @@
 const BANKS={listening:'listeningTests',reading:'readingTests',writing:'writingTasks',speaking:'speakingSets'}
 const crypto=require('node:crypto')
 const {topicMetadata,publicTasks,sourceHash}=require('./nativeTopicMetadata.cjs')
+const {WRITING_SOURCE_POLICY_VERSION,writingSourcePublicMetadata,writingSourceTask}=require('./writingSourcePolicy.cjs')
 const ALLOWED=['id','module','title','type','source','sourceKind','formalProgressEligible','period','minutes','sourceUrl','audioUrls','questionPageImages','questions','contentTopics','contentVersion','contentLifecycle','humanReviewStatus','readingPageImages','readingPassagePageImages','readingQuestionPageImages','readingPassageStartPages','writingPageImages','speakingPageImages','prompt','data','visual','part1Topic','part1','part2','part3','part3Topics','topicKeywords','displayTitle','emoji','category','topicCategory','topicSubcategory']
 const number=(q,index)=>Number(String(q.id||'').match(/^(?:q)?(\d+)$/)?.[1])||index+1
 function tasksFor(payload,module,includePublicTopics){
@@ -35,8 +36,10 @@ function sourceSections(task,module){
  })
 }
 
-function indexItem(task,module){
+function indexItem(inputTask,module){
+ const task=module==='writing'?writingSourceTask(inputTask):inputTask
  return {id:task.id,module,title:String(task.title||''),type:String(task.type||''),source:String(task.source||''),sourceKind:task.sourceKind||(/^cam\d+-/.test(task.id)?'cambridge':'published'),...topicMetadata(task,module),
+  ...(module==='writing'?writingSourcePublicMetadata(inputTask):{}),
   book:Number(String(task.id).match(/^cam(\d+)/)?.[1])||0,test:Number(String(task.id).match(/test(\d+)/)?.[1])||0,
   minutes:Number(task.minutes)||({listening:40,reading:60,writing:40,speaking:15})[module],
   questionCount:Array.isArray(task.questions)?task.questions.length:0,
@@ -44,16 +47,17 @@ function indexItem(task,module){
 }
 
 function buildNativeCatalog(payload,{includePublicTopics=false}={}){
- const baseVersion=crypto.createHash('sha256').update('native-task-v2|').update(JSON.stringify(Object.fromEntries(Object.values(BANKS).map(key=>[key,payload[key]||[]])))).digest('hex').slice(0,24)
+ const baseVersion=crypto.createHash('sha256').update('native-task-v2|writing-source-policy:').update(WRITING_SOURCE_POLICY_VERSION).update('|').update(JSON.stringify(Object.fromEntries(Object.values(BANKS).map(key=>[key,payload[key]||[]])))).digest('hex').slice(0,24)
  const version=includePublicTopics?crypto.createHash('sha256').update('native-task-v3-topics|'+baseVersion+'|'+sourceHash+'|'+includePublicTopics).digest('hex').slice(0,24):baseVersion
  return {schemaVersion:'native-ielts-catalog-v1',version,baseVersion,topicVersion:sourceHash,...Object.fromEntries(Object.entries(BANKS).map(([module,key])=>[key,tasksFor(payload,module,includePublicTopics).map(task=>indexItem(task,module))]))}
 }
 
 function nativeTaskDetail(payload,module,id,{includePublicTopics=false}={}){
  if(!BANKS[module]||!/^[-a-zA-Z0-9_]+$/.test(String(id)))return null
- const task=tasksFor(payload,module,includePublicTopics).find(task=>task.id===id)
- if(!task)return null
- const result={...Object.fromEntries(ALLOWED.filter(key=>task[key]!==undefined).map(key=>[key,task[key]])),...topicMetadata(task,module),nativeSections:sourceSections(task,module)}
+ const inputTask=tasksFor(payload,module,includePublicTopics).find(task=>task.id===id)
+ if(!inputTask)return null
+ const task=module==='writing'?writingSourceTask(inputTask):inputTask
+ const result={...Object.fromEntries(ALLOWED.filter(key=>task[key]!==undefined).map(key=>[key,task[key]])),...topicMetadata(task,module),...(module==='writing'?writingSourcePublicMetadata(inputTask):{}),nativeSections:sourceSections(task,module)}
  if(module==='listening'){
   const match=String(id).match(/^cam(\d+)-l-test(\d+)$/)
   const reading=match?(payload.readingTests||[]).find(item=>item.id===`cam${match[1]}-r-test${match[2]}`):null

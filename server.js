@@ -16,7 +16,8 @@ const originalMaterialAssets=require("./server/originalMaterialAssets.json");
 const {parseSourceByteRange}=require("./server/sourceByteRange.cjs");
 const {nativeReportResponse}=require("./server/nativeReportResponse.cjs");
 const {nativeObjectiveRecord}=require("./server/nativeObjectiveProjection.cjs");
-const {bindWritingSource,sourceImage}=require("./server/nativeWritingSource.cjs");
+const {bindWritingSource,resolveWritingSource,sourceImage}=require("./server/nativeWritingSource.cjs");
+const {writingSourcePublicMetadata,writingSourceTask}=require("./server/writingSourcePolicy.cjs");
 const {nativeWritingRecord}=require("./server/nativeWritingResult.cjs");
 const {nativeExamWriting}=require("./server/nativeExamWriting.cjs");
 const {imageEvidence}=require("./server/nativeTranscription.cjs");
@@ -1209,7 +1210,8 @@ async function readingContextPayload(id, requestedQuestion = 0) {
   };
 }
 
-function slimWritingTask(task) {
+function slimWritingTask(rawTask) {
+  const task=writingSourceTask(rawTask);
   return {
     id: task.id,
     module: task.module,
@@ -1223,6 +1225,7 @@ function slimWritingTask(task) {
     prompt: task.prompt || "",
     data: task.data || "",
     visual: task.visual || null,
+    ...writingSourcePublicMetadata(rawTask),
   };
 }
 
@@ -7777,37 +7780,41 @@ function cleanupWritingFeedbackJobs() {
 }
 
 function parseWritingPayload(payload,{allowMixedSources=false}={}) {
-  const bind = item => {
+  const sourceOptions={findTask:id=>realWritingTasks().find(task=>task.id===id),loadImage:url=>sourceImage(url,path.join(__dirname,"public"))};
+  const resolve = item => /^cam\d+-w-test\d+-task[12]$/.test(String(item?.sourceTaskId||item?.id||""))?resolveWritingSource(item,sourceOptions):null;
+  const bind = (item,resolvedSource) => {
     if(item.imageDataUrls!==undefined&&!Array.isArray(item.imageDataUrls))throw Object.assign(new Error("Photographs must be supplied as an image list."),{statusCode:422,code:"invalid_writing_images"});
     const images=Array.isArray(item.imageDataUrls)?item.imageDataUrls:[];
     if(images.length>2)throw Object.assign(new Error("Use at most two photographs per essay."),{statusCode:422});
     const studentImages=images.map(imageEvidence);
     const {imageDataUrls,...textItem}=item;
-    const bound=bindWritingSource(textItem,{findTask:id=>realWritingTasks().find(task=>task.id===id),loadImage:url=>sourceImage(url,path.join(__dirname,"public"))});
+    const bound=bindWritingSource(textItem,{...sourceOptions,resolvedSource});
     Object.defineProperty(bound,"studentImages",{value:studentImages,enumerable:false});
     return bound;
   };
   if (Array.isArray(payload.items)) {
     if(payload.items.length!==2)throw Object.assign(new Error("Exactly Task 1 and Task 2 are required."),{statusCode:422});
     const items = payload.items.slice(0, 2).map((item, index) => ({
-      id: String(item?.id || `task${index + 1}`),
+      id: String(item?.sourceTaskId || item?.id || `task${index + 1}`),
       taskNumber: Number(item?.taskNumber || index + 1),
       kind: String(item?.kind || (index === 0 ? "academic-task-1" : "task-2")),
       prompt: String(item?.prompt || "").trim(),
       essay: String(item?.essay || item?.response || "").trim(),
       imageDataUrls: item?.imageDataUrls,
+      sourceRevision: String(item?.sourceRevision || "").trim(),
     }));
     if (items.length !== 2 || items.some((item) => !item.prompt || (!item.essay&&!item.imageDataUrls?.length))) {
       const error = new Error("Complete Task 1 and Task 2 are required for a full Writing score.");
       error.statusCode = 422;
       throw error;
     }
-    const bound=items.map(bind);
-    if(bound.some(item=>!item.essay&&!item.studentImages.length))throw Object.assign(new Error("Each task requires text or a photograph."),{statusCode:422});
-    if(bound.some(item=>item.sourceTaskId)){
-      const first=String(bound[0].sourceTaskId||"").match(/^(cam\d+-w-test\d+)-task1$/);
-      if(!first||!/-task2$/.test(bound[1].sourceTaskId||"")||!allowMixedSources&&bound[1].sourceTaskId!==first[1]+"-task2")throw Object.assign(new Error("Select Task 1 and Task 2 from the same published test."),{statusCode:422});
+    const resolved=items.map(resolve);
+    if(resolved.some(Boolean)){
+      const first=String(resolved[0]?.id||"").match(/^(cam\d+-w-test\d+)-task1$/);
+      if(!first||!/-task2$/.test(resolved[1]?.id||"")||!allowMixedSources&&resolved[1].id!==first[1]+"-task2")throw Object.assign(new Error("Select Task 1 and Task 2 from the same published test."),{statusCode:422});
     }
+    const bound=items.map((item,index)=>bind(item,resolved[index]));
+    if(bound.some(item=>!item.essay&&!item.studentImages.length))throw Object.assign(new Error("Each task requires text or a photograph."),{statusCode:422});
     if(bound.some(item=>item.essay.length>20000))throw Object.assign(new Error("Essay is too long."),{statusCode:413});
     return { kind: "pair", items:bound };
   }
@@ -7818,13 +7825,41 @@ function parseWritingPayload(payload,{allowMixedSources=false}={}) {
     error.statusCode = 400;
     throw error;
   }
-  const source=bind({prompt,essay,sourceTaskId:String(payload.taskId||""),imageDataUrls:payload.imageDataUrls});
+  const sourceItem={prompt,essay,sourceTaskId:String(payload.taskId||payload.sourceTaskId||""),sourceRevision:String(payload.sourceRevision||"").trim(),imageDataUrls:payload.imageDataUrls};
+  const source=bind(sourceItem,resolve(sourceItem));
   if(!essay&&!source.studentImages.length)throw Object.assign(new Error("An essay or photograph is required."),{statusCode:422});
   if(essay.length>20000||prompt.length>10000)throw Object.assign(new Error("Writing submission is too large."),{statusCode:413});
   const parsed={kind:"single",...source};
   Object.defineProperty(parsed,"sourceImages",{value:source.sourceImages||[],enumerable:false});
   Object.defineProperty(parsed,"studentImages",{value:source.studentImages,enumerable:false});
   return parsed;
+}
+
+function validateFullExamWritingSources(payload,options={}) {
+  const native=options.native===true;
+  const getJob=typeof options.getJob==="function"?options.getJob:()=>null;
+  const writing=payload?.writing&&typeof payload.writing==="object"?payload.writing:{};
+  const tasks=Array.isArray(writing.tasks)?writing.tasks.slice(0,2):[];
+  const expected=Array.isArray(payload?.fullExamManifest?.writingSourceIds)?payload.fullExamManifest.writingSourceIds.slice(0,2).map(id=>String(id||"")):[];
+  const count=Math.max(tasks.length,expected.length);
+  if(!count)return [];
+  const feedbackJobIds=Array.isArray(writing.feedbackJobIds)?writing.feedbackJobIds.slice(0,2):[];
+  const sourceOptions={findTask:id=>realWritingTasks().find(task=>task.id===id)};
+  const items=Array.from({length:count},(_,index)=>{
+    const task=tasks[index]&&typeof tasks[index]==="object"?tasks[index]:{};
+    const suppliedId=String(task.sourceTaskId||task.sourceId||task.id||"");
+    const id=expected[index]||suppliedId;
+    if(expected[index]&&suppliedId&&suppliedId!==expected[index])throw Object.assign(new Error("Writing feedback belongs to another task."),{statusCode:409,code:"writing_feedback_source_mismatch"});
+    const job=native?getJob(String(feedbackJobIds[index]||"")):null;
+    return {id,sourceRevision:native?String(job?.sourceRevisions?.[0]||""):String(task.sourceRevision||"")};
+  });
+  if(!items.some(item=>/^cam\d+-w-test\d+-task[12]$/.test(item.id)))return [];
+  if(items.length!==2||items.some(item=>!/^cam\d+-w-test\d+-task[12]$/.test(item.id)))throw Object.assign(new Error("Complete source-bound Task 1 and Task 2 are required for this Writing report."),{statusCode:422});
+  const resolved=items.map(item=>resolveWritingSource(item,sourceOptions));
+  const first=String(resolved[0]?.id||"").match(/^(cam\d+-w-test\d+)-task1$/);
+  const second=String(resolved[1]?.id||"");
+  if(!first||!/-task2$/.test(second)||payload.examContext==="same-test"&&second!==first[1]+"-task2")throw Object.assign(new Error("Select Task 1 and Task 2 from the required exam source."),{statusCode:422});
+  return resolved;
 }
 
 function roundWritingScore(value) {
@@ -7937,6 +7972,8 @@ function composeWeightedWritingScore(items, taskResults) {
       promptVersion: WRITING_SCORING_PROMPT_VERSION,
       rubric: "ielts-writing-four-criteria",
       weighting: "task1:1,task2:2",
+      sourceTaskIds: items.map((item) => item.sourceTaskId || item.id || ""),
+      sourceRevisions: items.map((item) => item.sourceRevision || ""),
     },
   };
 }
@@ -7992,6 +8029,8 @@ async function buildWritingFeedbackResult(prompt, essay, source = {}) {
       provenance: {
         model: ai ? model : "local-writing-estimate",
         sourceTaskId: source.sourceTaskId||"",
+        sourceAvailability: source.sourceAvailability||"",
+        sourceRevision: source.sourceRevision||"",
         sourceImageUrls: source.sourceImageUrls||[],
         sourceImagesSubmitted: images.length,
         studentImagesSubmitted: studentImages.length,
@@ -8077,6 +8116,9 @@ function buildSingleWritingContract(prompt, essay, result) {
       model: result.provenance?.model || "local-writing-estimate",
       promptVersion: WRITING_SCORING_PROMPT_VERSION,
       rubric: "ielts-writing-four-criteria",
+      sourceTaskId: result.provenance?.sourceTaskId || "",
+      sourceAvailability: result.provenance?.sourceAvailability || "",
+      sourceRevision: result.provenance?.sourceRevision || "",
     },
   };
 }
@@ -8099,7 +8141,7 @@ async function handleWritingJobStart(req, res) {
   const user=native?requireUser(req):optionalUser(req);
   const payload = JSON.parse((await readBody(req)) || "{}");
   const parsed = parseWritingPayload(payload);
-  const fingerprintItems=(parsed.kind==="pair"?parsed.items:[parsed]).map(item=>({id:item.sourceTaskId||item.id,prompt:item.prompt,essay:item.essay,imageHashes:(item.studentImages||[]).map(image=>crypto.createHash("sha256").update(image).digest("hex"))}));
+  const fingerprintItems=(parsed.kind==="pair"?parsed.items:[parsed]).map(item=>({id:item.sourceTaskId||item.id,sourceRevision:item.sourceRevision||"",prompt:item.prompt,essay:item.essay,imageHashes:(item.studentImages||[]).map(image=>crypto.createHash("sha256").update(image).digest("hex"))}));
   const requestFingerprint=user?crypto.createHash("sha256").update(String(user.id)+":"+JSON.stringify(fingerprintItems)).digest("hex"):"";
   const duplicate=requestFingerprint?[...writingFeedbackJobs.values()].find(job=>job.userId===user.id&&job.requestFingerprint===requestFingerprint&&job.status!=="error"):null;
   if(duplicate){sendJson(res,202,{jobId:duplicate.id,status:duplicate.status,idempotent:true});return;}
@@ -8109,6 +8151,7 @@ async function handleWritingJobStart(req, res) {
     id,
     userId: user?.id || null,
     sourceTaskIds:(parsed.kind==="pair"?parsed.items:[parsed]).map(item=>item.sourceTaskId||item.id||""),
+    sourceRevisions:(parsed.kind==="pair"?parsed.items:[parsed]).map(item=>item.sourceRevision||""),
     requestFingerprint,
     status: "pending",
     createdAt: Date.now(),
@@ -8316,7 +8359,9 @@ async function handleFullExam(req, res) {
   const examContext = ["same-test", "random-exam"].includes(payload.examContext) ? payload.examContext : "";
   if (!examContext) throw objectiveAttemptError("A valid exam submission context is required.", 409, "objective_attempt_required");
   const native=req.headers["x-stemist-native"]==="1";
-  const preparedWriting=native?nativeExamWriting(requireUser(req).id,payload.writing,payload.fullExamManifest,id=>writingFeedbackJobs.get(id)):null;
+  const nativeUser=native?requireUser(req):null;
+  validateFullExamWritingSources(payload,{native,getJob:id=>writingFeedbackJobs.get(id)});
+  const preparedWriting=native?nativeExamWriting(nativeUser.id,payload.writing,payload.fullExamManifest,id=>writingFeedbackJobs.get(id)):null;
   const submissions = submitObjectiveAttemptPair(req, res, payload, examContext);
   const listeningSubmission = submissions.listening;
   const readingSubmission = submissions.reading;
@@ -8625,6 +8670,10 @@ const server = http.createServer(async (req, res) => {
       await handleSpeakingTurn(req, res);
       return;
     }
+    if (req.method === "POST" && req.url === "/api/speaking/realtime-ticket") {
+      handleQwenRealtimeTicket(req, res);
+      return;
+    }
     if (req.method === "POST" && req.url === "/api/tts") {
       await handleTts(req, res);
       return;
@@ -8683,9 +8732,78 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-const qwenWss = new WebSocketServer({ noServer: true });
+const {
+  REALTIME_PURPOSE,
+  createProviderStartGate,
+  createRealtimeAccessControl,
+  createRealtimeUsageGuard,
+  parseQwenClientConfig,
+  parseQwenClientEvent,
+  qwenResponsePolicy,
+  qwenSessionPolicy,
+} = require("./server/qwenRealtimeAccess.cjs");
+const qwenRealtimeAccess = createRealtimeAccessControl();
+const QWEN_REALTIME_MAX_PAYLOAD_BYTES = 512 * 1024;
+const QWEN_REALTIME_MAX_AUDIO_BYTES = 48 * 1024 * 1024;
+const QWEN_REALTIME_MAX_SESSION_MS = 20 * 60 * 1000;
+const qwenWss = new WebSocketServer({ noServer: true, maxPayload: QWEN_REALTIME_MAX_PAYLOAD_BYTES });
 const qwenAsrWss = new WebSocketServer({ noServer: true });
 const qwenHttpSessions = new Map();
+
+function activeRealtimeTicketSession(record) {
+  const row = getAppDb().prepare("SELECT expires_at FROM sessions WHERE user_id = ? AND token_hash = ?")
+    .get(record.userId, record.sessionTokenHash);
+  return Boolean(row && Date.parse(row.expires_at) > Date.now());
+}
+
+function handleQwenRealtimeTicket(req, res) {
+  const user = requireUser(req);
+  const requestToken = getRequestToken(req);
+  const issued = qwenRealtimeAccess.issue({
+    userId: user.id,
+    sessionTokenHash: hashToken(requestToken),
+    sessionExpiresAt: Date.parse(user.session_expires_at),
+    purpose: REALTIME_PURPOSE,
+  });
+  res.setHeader("Cache-Control", "no-store");
+  res.setHeader("Pragma", "no-cache");
+  sendJson(res, 201, {
+    protocol: "ielts-realtime-ticket-v1",
+    purpose: REALTIME_PURPOSE,
+    ticket: issued.ticket,
+    expiresAt: new Date(issued.expiresAtMs).toISOString(),
+  });
+}
+
+function qwenUpgradeIdentity(req) {
+  const ticket = String(req.headers["x-stemist-realtime-ticket"] || "").trim();
+  if (ticket) {
+    return qwenRealtimeAccess.consume(ticket, {
+      purpose: REALTIME_PURPOSE,
+      sessionIsActive: activeRealtimeTicketSession,
+    });
+  }
+  const browserCookie = requestCookie(req, "ieltsist_session");
+  let sameOrigin = false;
+  try {
+    const origin = new URL(String(req.headers.origin || ""));
+    sameOrigin = ["http:", "https:"].includes(origin.protocol)
+      && origin.host.toLowerCase() === String(req.headers.host || "").toLowerCase();
+  } catch { sameOrigin = false; }
+  if (!browserCookie || !sameOrigin || req.headers.authorization) return null;
+  const user = requireUser(req);
+  return Object.freeze({ userId: Number(user.id), purpose: REALTIME_PURPOSE, auth: "browser-session" });
+}
+
+function qwenUpgradeIp(req) {
+  return String(req.headers["x-forwarded-for"] || req.socket?.remoteAddress || "unknown").split(",")[0].trim();
+}
+
+function rejectQwenUpgrade(socket, statusCode) {
+  const status = statusCode === 429 ? "429 Too Many Requests" : "401 Unauthorized";
+  try { socket.write(`HTTP/1.1 ${status}\r\nConnection: close\r\nCache-Control: no-store\r\nContent-Length: 0\r\n\r\n`); } catch {}
+  socket.destroy();
+}
 
 function createQwenMetrics(source, req) {
   return {
@@ -8765,9 +8883,29 @@ function noteQwenServerEvent(metrics, type) {
 server.on("upgrade", (req, socket, head) => {
   const url = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);
   if (url.pathname === "/qwen-client") {
-    qwenWss.handleUpgrade(req, socket, head, (ws) => {
-      qwenWss.emit("connection", ws, req);
-    });
+    let identity;
+    try { identity = qwenUpgradeIdentity(req); } catch { identity = null; }
+    if (!identity) {
+      rejectQwenUpgrade(socket, 401);
+      return;
+    }
+    const release = qwenRealtimeAccess.claimConnection({ userId: identity.userId, ip: qwenUpgradeIp(req) });
+    if (!release) {
+      rejectQwenUpgrade(socket, 429);
+      return;
+    }
+    req.qwenIdentity = identity;
+    req.qwenConnectionRelease = release;
+    socket.once("close", release);
+    try {
+      qwenWss.handleUpgrade(req, socket, head, (ws) => {
+        ws.once("close", release);
+        qwenWss.emit("connection", ws, req);
+      });
+    } catch {
+      release();
+      rejectQwenUpgrade(socket, 401);
+    }
     return;
   }
   {
@@ -8778,11 +8916,19 @@ server.on("upgrade", (req, socket, head) => {
 
 qwenWss.on("connection", (client, req) => {
   let upstream;
+  const identity = req.qwenIdentity || null;
+  const providerGate = createProviderStartGate(identity);
+  const usage = createRealtimeUsageGuard({ maxAudioBytes: QWEN_REALTIME_MAX_AUDIO_BYTES });
   const metrics = createQwenMetrics("ws", req);
   qwenMetricsLog(metrics, "client-connected", {
     remote: metrics.remote,
     ua: metrics.userAgent.slice(0, 120),
   });
+
+  if (!identity) {
+    client.close(1008, "authentication required");
+    return;
+  }
 
   const sendClient = (message) => {
     if (message?.type === "event") noteQwenServerEvent(metrics, message.eventType || message.payload?.type || "");
@@ -8792,8 +8938,31 @@ qwenWss.on("connection", (client, req) => {
   };
 
   const closeUpstream = () => {
-    if (upstream?.readyState === WebSocket.OPEN) upstream.close(1000, "client closed");
+    if (upstream && [WebSocket.CONNECTING, WebSocket.OPEN].includes(upstream.readyState)) {
+      try { upstream.close(1000, "client closed"); } catch {}
+    }
     upstream = undefined;
+  };
+
+  const closeSession = () => {
+    clearTimeout(sessionTimer);
+    closeUpstream();
+    req.qwenConnectionRelease?.();
+  };
+
+  const sessionTimer = setTimeout(() => {
+    sendClient({ type: "error", message: "The speaking session reached its 20-minute safety limit." });
+    closeUpstream();
+    client.close(1000, "session limit reached");
+  }, QWEN_REALTIME_MAX_SESSION_MS);
+  sessionTimer.unref?.();
+
+  const acceptAudio = (bytes) => {
+    if (usage.acceptAudio(bytes)) return true;
+    sendClient({ type: "error", message: "The speaking session reached its audio safety limit." });
+    closeUpstream();
+    client.close(1009, "audio limit reached");
+    return false;
   };
 
   client.on("message", (raw, isBinary) => {
@@ -8802,7 +8971,9 @@ qwenWss.on("connection", (client, req) => {
         sendClient({ type: "error", message: "Qwen realtime is not connected." });
         return;
       }
-      noteQwenAudio(metrics, raw.length || raw.byteLength || 0);
+      const bytes = raw.length || raw.byteLength || 0;
+      if (!acceptAudio(bytes)) return;
+      noteQwenAudio(metrics, bytes);
       upstream.send(JSON.stringify({
         event_id: `event_${crypto.randomUUID()}`,
         type: "input_audio_buffer.append",
@@ -8810,17 +8981,21 @@ qwenWss.on("connection", (client, req) => {
       }));
       return;
     }
-    let event;
-    try {
-      event = JSON.parse(raw.toString("utf8"));
-    } catch {
-      sendClient({ type: "error", message: "Invalid client message JSON." });
+    const event = parseQwenClientEvent(raw.toString("utf8"));
+    if (!event) {
+      sendClient({ type: "error", message: "Realtime message format is invalid." });
+      client.close(1008, "invalid message envelope");
       return;
     }
 
     if (event.type === "connect") {
-      closeUpstream();
-      upstream = connectQwenRealtime(event, sendClient);
+      const started = providerGate.start(() => connectQwenRealtime({ context: event.context, instructions: event.instructions }, sendClient));
+      if (!started.ok) {
+        sendClient({ type: "error", message: "The realtime provider is already initialized for this connection." });
+        client.close(1008, "provider already initialized");
+        return;
+      }
+      upstream = started.value;
       return;
     }
 
@@ -8841,12 +9016,14 @@ qwenWss.on("connection", (client, req) => {
     }
 
     if (event.type === "session.update") {
-      upstream.send(JSON.stringify(buildQwenSessionUpdate(event)));
+      upstream.send(JSON.stringify(buildQwenSessionUpdate({ context: event.context })));
       return;
     }
 
     if (event.type === "audio.append") {
-      noteQwenAudio(metrics, estimateBase64Bytes(event.audio));
+      const bytes = estimateBase64Bytes(event.audio);
+      if (!acceptAudio(bytes)) return;
+      noteQwenAudio(metrics, bytes);
       upstream.send(JSON.stringify({
         event_id: `event_${crypto.randomUUID()}`,
         type: "input_audio_buffer.append",
@@ -8856,6 +9033,12 @@ qwenWss.on("connection", (client, req) => {
     }
 
     if (event.type === "audio.commit") {
+      if (!usage.acceptCommit()) {
+        sendClient({ type: "error", message: "The speaking session reached its turn safety limit." });
+        closeUpstream();
+        client.close(1008, "turn limit reached");
+        return;
+      }
       noteQwenCommit(metrics);
       upstream.send(JSON.stringify({
         event_id: `event_${crypto.randomUUID()}`,
@@ -8865,19 +9048,26 @@ qwenWss.on("connection", (client, req) => {
     }
 
     if (event.type === "response.create") {
+      if (!usage.acceptResponse()) {
+        sendClient({ type: "error", message: "The speaking session reached its response safety limit." });
+        closeUpstream();
+        client.close(1008, "response limit reached");
+        return;
+      }
+      const responsePolicy = qwenResponsePolicy(event);
       upstream.send(JSON.stringify({
         event_id: `event_${crypto.randomUUID()}`,
         type: "response.create",
         response: {
-          modalities: Array.isArray(event.modalities) && event.modalities.length ? event.modalities : ["text", "audio"],
-          ...(event.instructions ? { instructions: event.instructions } : {}),
+          modalities: responsePolicy.modalities,
+          instructions: responsePolicy.instructions,
         },
       }));
     }
   });
 
-  client.on("close", closeUpstream);
-  client.on("error", closeUpstream);
+  client.on("close", closeSession);
+  client.on("error", closeSession);
 });
 
 function buildQwenAsrSessionUpdate(config = {}) {
@@ -9066,35 +9256,46 @@ qwenAsrWss.on("connection", (client, req) => {
   client.on("error", closeUpstream);
 });
 
-function forwardQwenClientEvent(upstream, event, sendClient, metrics) {
+function forwardQwenClientEvent(session, event, sendClient) {
+  const { upstream, metrics, usage } = session;
   if (event.type === "ping") {
     sendClient({ type: "status", status: "pong", at: event.at || Date.now() });
-    return;
+    return { ok: true };
   }
 
   if (!upstream || upstream.readyState !== WebSocket.OPEN) {
     sendClient({ type: "error", message: "Qwen realtime is not connected." });
-    return;
+    return { ok: true };
   }
 
   if (event.type === "session.update") {
-    upstream.send(JSON.stringify(buildQwenSessionUpdate(event)));
-    return;
+    upstream.send(JSON.stringify(buildQwenSessionUpdate({ context: event.context })));
+    return { ok: true };
   }
 
   if (event.type === "audio.append") {
-    noteQwenAudio(metrics, estimateBase64Bytes(event.audio));
+    const bytes = estimateBase64Bytes(event.audio);
+    if (!usage.acceptAudio(bytes)) {
+      closeQwenHttpSession(session.id);
+      return { ok: false, statusCode: 429, error: "The speaking session reached its audio safety limit." };
+    }
+    noteQwenAudio(metrics, bytes);
     upstream.send(JSON.stringify({
       event_id: `event_${crypto.randomUUID()}`,
       type: "input_audio_buffer.append",
       audio: event.audio,
     }));
-    return;
+    return { ok: true };
   }
 
   if (event.type === "audio.batch" && Array.isArray(event.chunks)) {
-    for (const audio of event.chunks) {
-      if (!audio) continue;
+    const chunks = event.chunks.filter(Boolean).slice(0, 100);
+    const bytes = chunks.reduce((sum, audio) => sum + estimateBase64Bytes(audio), 0);
+    if (!usage.acceptAudio(bytes)) {
+      closeQwenHttpSession(session.id);
+      return { ok: false, statusCode: 429, error: "The speaking session reached its audio safety limit." };
+    }
+    for (const audio of chunks) {
       noteQwenAudio(metrics, estimateBase64Bytes(audio));
       upstream.send(JSON.stringify({
         event_id: `event_${crypto.randomUUID()}`,
@@ -9102,31 +9303,46 @@ function forwardQwenClientEvent(upstream, event, sendClient, metrics) {
         audio,
       }));
     }
-    return;
+    return { ok: true };
   }
 
   if (event.type === "audio.commit") {
+    if (!usage.acceptCommit()) {
+      closeQwenHttpSession(session.id);
+      return { ok: false, statusCode: 429, error: "The speaking session reached its turn safety limit." };
+    }
     noteQwenCommit(metrics);
     upstream.send(JSON.stringify({
       event_id: `event_${crypto.randomUUID()}`,
       type: "input_audio_buffer.commit",
     }));
-    return;
+    return { ok: true };
   }
 
   if (event.type === "response.create") {
+    if (!usage.acceptResponse()) {
+      closeQwenHttpSession(session.id);
+      return { ok: false, statusCode: 429, error: "The speaking session reached its response safety limit." };
+    }
+    const responsePolicy = qwenResponsePolicy(event);
     upstream.send(JSON.stringify({
       event_id: `event_${crypto.randomUUID()}`,
       type: "response.create",
       response: {
-        modalities: Array.isArray(event.modalities) && event.modalities.length ? event.modalities : ["text", "audio"],
-        ...(event.instructions ? { instructions: event.instructions } : {}),
+        modalities: responsePolicy.modalities,
+        instructions: responsePolicy.instructions,
       },
     }));
   }
+  return { ok: true };
 }
 
 function enqueueQwenHttp(session, message) {
+  if (qwenHttpSessions.get(session.id) !== session) return;
+  if (session.queue.length >= 500) {
+    closeQwenHttpSession(session.id);
+    return;
+  }
   session.queue.push(message);
   session.lastSeen = Date.now();
   while (session.waiters.length) {
@@ -9138,8 +9354,11 @@ function enqueueQwenHttp(session, message) {
 function closeQwenHttpSession(id) {
   const session = qwenHttpSessions.get(id);
   if (!session) return;
-  if (session.upstream?.readyState === WebSocket.OPEN) session.upstream.close(1000, "http session closed");
   qwenHttpSessions.delete(id);
+  if (session.upstream && [WebSocket.CONNECTING, WebSocket.OPEN].includes(session.upstream.readyState)) {
+    try { session.upstream.close(1000, "http session closed"); } catch {}
+  }
+  session.release?.();
   while (session.waiters.length) {
     const waiter = session.waiters.shift();
     waiter();
@@ -9151,13 +9370,41 @@ async function handleQwenHttpSession(req, res) {
   const parts = url.pathname.split("/").filter(Boolean);
 
   if (req.method === "POST" && url.pathname === "/api/qwen-session") {
-    const config = JSON.parse((await readBody(req)) || "{}");
+    const user = requireUser(req);
+    let config;
+    try {
+      const body = (await readBufferBody(req, QWEN_REALTIME_MAX_PAYLOAD_BYTES)).toString("utf8");
+      config = parseQwenClientConfig(body || "{}");
+      if (!config) throw new Error("invalid config envelope");
+    } catch {
+      sendJson(res, 400, { error: "Realtime session configuration must be valid bounded JSON." });
+      return;
+    }
+    for (const [sessionId, existing] of qwenHttpSessions) {
+      if (existing.expiresAt <= Date.now() || !activeRealtimeTicketSession(existing)) closeQwenHttpSession(sessionId);
+    }
+    if (qwenHttpSessions.size >= 100) {
+      res.setHeader("Retry-After", "60");
+      sendJson(res, 429, { error: "The speaking service has reached its active session limit." });
+      return;
+    }
+    const release = qwenRealtimeAccess.claimConnection({ userId: user.id, ip: qwenUpgradeIp(req) });
+    if (!release) {
+      res.setHeader("Retry-After", "60");
+      sendJson(res, 429, { error: "Please wait before opening another speaking session." });
+      return;
+    }
     const id = crypto.randomUUID();
     const session = {
       id,
+      userId: Number(user.id),
+      sessionTokenHash: hashToken(getRequestToken(req)),
       queue: [],
       waiters: [],
       upstream: undefined,
+      release,
+      usage: createRealtimeUsageGuard({ maxAudioBytes: QWEN_REALTIME_MAX_AUDIO_BYTES }),
+      expiresAt: Math.min(Date.parse(user.session_expires_at), Date.now() + QWEN_REALTIME_MAX_SESSION_MS),
       lastSeen: Date.now(),
       metrics: createQwenMetrics("http", req),
     };
@@ -9169,32 +9416,60 @@ async function handleQwenHttpSession(req, res) {
     const sendClient = (message) => {
       if (message?.type === "event") noteQwenServerEvent(session.metrics, message.eventType || message.payload?.type || "");
       enqueueQwenHttp(session, message);
+      if (message?.type === "error" || (message?.type === "status" && message.status === "qwen-closed")) {
+        session.release?.();
+        session.release = null;
+      }
     };
-    session.upstream = connectQwenRealtime(config, sendClient);
+    try {
+      const started = createProviderStartGate({ userId: session.userId, purpose: REALTIME_PURPOSE })
+        .start(() => connectQwenRealtime({ context: config.context, instructions: config.instructions }, sendClient));
+      if (!started.ok) throw Object.assign(new Error("The realtime session could not be authorised."), { statusCode: 401 });
+      session.upstream = started.value;
+    } catch (error) {
+      closeQwenHttpSession(id);
+      throw error;
+    }
+    res.setHeader("Cache-Control", "no-store");
     sendJson(res, 200, { id });
     return;
   }
 
+  const user = requireUser(req);
   const id = parts[2];
   const action = parts[3];
   const session = qwenHttpSessions.get(id);
-  if (!session) {
+  const requestTokenHash = hashToken(getRequestToken(req));
+  if (!session || session.userId !== Number(user.id) || session.sessionTokenHash !== requestTokenHash || session.expiresAt <= Date.now()) {
+    if (session && session.expiresAt <= Date.now()) closeQwenHttpSession(id);
     sendJson(res, 404, { error: "Qwen HTTP session not found." });
     return;
   }
   session.lastSeen = Date.now();
 
   if (req.method === "POST" && action === "send") {
-    const event = JSON.parse((await readBody(req)) || "{}");
+    let event;
+    try {
+      const body = (await readBufferBody(req, QWEN_REALTIME_MAX_PAYLOAD_BYTES)).toString("utf8");
+      event = parseQwenClientEvent(body || "{}");
+      if (!event) throw new Error("invalid event envelope");
+    } catch {
+      sendJson(res, 400, { error: "Realtime event must be valid bounded JSON." });
+      return;
+    }
     if (event.type === "disconnect") {
       closeQwenHttpSession(id);
       sendJson(res, 200, { ok: true });
       return;
     }
-    forwardQwenClientEvent(session.upstream, event, (message) => {
+    const result = forwardQwenClientEvent(session, event, (message) => {
       if (message?.type === "event") noteQwenServerEvent(session.metrics, message.eventType || message.payload?.type || "");
       enqueueQwenHttp(session, message);
-    }, session.metrics);
+    });
+    if (!result.ok) {
+      sendJson(res, result.statusCode, { error: result.error });
+      return;
+    }
     sendJson(res, 200, { ok: true });
     return;
   }
@@ -9278,21 +9553,30 @@ async function handleQwenWebRtcOffer(req, res) {
     sendJson(res, 405, { error: "Method not allowed" });
     return;
   }
+  const user = requireUser(req);
+  if (!qwenRealtimeAccess.allowWebRtcOffer({ userId: user.id, ip: qwenUpgradeIp(req) })) {
+    res.setHeader("Retry-After", "60");
+    sendJson(res, 429, { error: "Please wait before reconnecting to the speaking examiner." });
+    return;
+  }
   if (!DASHSCOPE_API_KEY && !QWEN_WEBRTC_EXCHANGE_PROXY_URL) {
     sendJson(res, 500, { error: "Qwen realtime key is not configured on the server." });
     return;
   }
-  const offerSdp = await readBody(req);
+  let offerSdp;
+  try { offerSdp = (await readBufferBody(req, QWEN_REALTIME_MAX_PAYLOAD_BYTES)).toString("utf8"); }
+  catch {
+    sendJson(res, 413, { error: "The WebRTC offer is too large." });
+    return;
+  }
   if (!offerSdp || !/^v=0/m.test(offerSdp)) {
     sendJson(res, 400, { error: "Invalid WebRTC offer SDP." });
     return;
   }
   const answer = await requestQwenWebRtcAnswer(offerSdp, req);
   if (!answer.ok) {
-    sendJson(res, answer.status, {
-      error: `Qwen WebRTC SDP exchange failed: HTTP ${answer.status}`,
-      detail: answer.text.slice(0, 500),
-    });
+    const status = Number(answer.status) >= 400 && Number(answer.status) < 600 ? Number(answer.status) : 502;
+    sendJson(res, status, { code: "qwen_webrtc_unavailable", error: "Qwen WebRTC is temporarily unavailable." });
     return;
   }
   res.writeHead(200, {
@@ -9305,15 +9589,16 @@ async function handleQwenWebRtcOffer(req, res) {
 setInterval(() => {
   const now = Date.now();
   for (const [id, session] of qwenHttpSessions) {
-    if (now - session.lastSeen > 15 * 60_000) closeQwenHttpSession(id);
+    if (session.expiresAt <= now || now - session.lastSeen > 15 * 60_000 || !activeRealtimeTicketSession(session)) closeQwenHttpSession(id);
   }
 }, 60_000).unref();
 
 function connectQwenRealtime(config, sendClient) {
   const apiKey = DASHSCOPE_API_KEY;
   const workspaceId = DASHSCOPE_WORKSPACE_ID;
-  const region = config.region || DASHSCOPE_REGION;
-  const model = config.model || QWEN_REALTIME_MODEL;
+  const region = DASHSCOPE_REGION;
+  const model = QWEN_REALTIME_MODEL;
+  const sessionPolicy = qwenSessionPolicy(config);
 
   if (!apiKey || !workspaceId) {
     queueMicrotask(() => sendClient({
@@ -9337,7 +9622,7 @@ function connectQwenRealtime(config, sendClient) {
 
   upstream.on("open", () => {
     sendClient({ type: "status", status: "qwen-open", region, model });
-    upstream.send(JSON.stringify(buildQwenSessionUpdate(config)));
+    upstream.send(JSON.stringify(buildQwenSessionUpdate(sessionPolicy)));
     upstreamPingTimer = setInterval(() => {
       if (upstream.readyState === WebSocket.OPEN) {
         try {
@@ -9360,46 +9645,43 @@ function connectQwenRealtime(config, sendClient) {
   });
 
   upstream.on("unexpected-response", (_request, response) => {
-    let body = "";
-    response.on("data", (chunk) => { body += chunk.toString("utf8"); });
+    response.resume();
     response.on("end", () => {
       sendClient({
         type: "error",
-        message: `Qwen handshake failed: HTTP ${response.statusCode} ${body.slice(0, 300)}`,
+        message: `Qwen realtime connection failed with HTTP ${response.statusCode}.`,
       });
     });
   });
 
   upstream.on("close", (code, reason) => {
     clearUpstreamPing();
-    const reasonText = reason.toString("utf8");
-    sendClient({ type: "status", status: "qwen-closed", code, reason: reasonText });
+    sendClient({ type: "status", status: "qwen-closed", code, reason: reason?.length ? "provider closed" : "" });
   });
 
   upstream.on("error", (error) => {
     clearUpstreamPing();
-    const detail = error?.message || error?.code || "connection failed or closed before the realtime handshake completed";
-    sendClient({ type: "error", message: `Qwen realtime error: ${detail}` });
+    console.error(`[qwen-realtime] ${String(error?.code || error?.name || "connection_error").slice(0, 80)}`);
+    sendClient({ type: "error", message: "Qwen realtime is temporarily unavailable." });
   });
 
   return upstream;
 }
 
 function buildQwenSessionUpdate(config = {}) {
+  const policy = config.instructions && config.voice === "Ethan" && config.turnDetection === null
+    ? config
+    : qwenSessionPolicy(config);
   return {
     event_id: `event_${crypto.randomUUID()}`,
     type: "session.update",
     session: {
       modalities: ["text", "audio"],
-      voice: config.voice || "Ethan",
+      voice: policy.voice,
       input_audio_format: "pcm",
       output_audio_format: "pcm",
-      instructions: config.instructions || "You are a professional IELTS Speaking examiner. First say a brief greeting statement, then ask exactly one short Part 1 question and wait. Do not ask 'How are you?' or 'Are you ready?'.",
-      turn_detection: config.turnDetection === "manual" ? null : {
-        type: "semantic_vad",
-        threshold: 0.5,
-        silence_duration_ms: Number(config.silenceDurationMs || 1500),
-      },
+      instructions: policy.instructions,
+      turn_detection: policy.turnDetection,
     },
   };
 }
