@@ -1,10 +1,15 @@
 import assert from 'node:assert/strict'
 import {execFileSync} from 'node:child_process'
-import {buildNativeCatalog,nativeTaskDetail} from '../server/nativeIeltsCatalog.cjs'
+import {buildNativeCatalog,nativeTaskDetail,nativeCatalogView} from '../server/nativeIeltsCatalog.cjs'
 import {publicTasks,topicMetadata} from '../server/nativeTopicMetadata.cjs'
 execFileSync(process.execPath,['scripts/build-web-topic-projection.cjs','--check'],{stdio:'pipe'})
 const payload={listeningTests:[],readingTests:[],writingTasks:[{id:'cam15-w-test1-task1',type:'Task 1',title:'A chart',prompt:'Summarise the information.'}],speakingSets:[{id:'cam4-s-test1',title:'Speaking',part1Topic:'Friends'}]}
 const base=buildNativeCatalog(payload),catalog=buildNativeCatalog(payload,{includePublicTopics:true})
+assert.equal(base.version,base.baseVersion,'legacy native clients keep their unchanged Cambridge bundle identity')
+const cache={payload},legacyView=nativeCatalogView(cache,{headers:{}}),sharedView=nativeCatalogView(cache,{headers:{'x-stemist-catalog':'native-topics-v1'}})
+assert.equal(legacyView.catalog.speakingSets.length,1,'old random-exam clients must not receive public topics they cannot isolate')
+assert.equal(sharedView.catalog.speakingSets.length,147)
+assert.equal(nativeCatalogView(cache,{headers:{}}).catalog,legacyView.catalog,'old and new cache entries must not overwrite each other')
 assert.equal(catalog.writingTasks.length,25);assert.equal(catalog.speakingSets.length,147)
 assert.equal(catalog.baseVersion,base.baseVersion,'adding public metadata does not invalidate unchanged Cambridge source bundles')
 assert.notEqual(catalog.version,base.version)

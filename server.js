@@ -8,7 +8,7 @@ const { execFile } = require("child_process");
 const PDFDocument = require("pdfkit");
 const WebSocket = require("ws");
 const { WebSocketServer } = require("ws");
-const {buildNativeCatalog,nativeTaskDetail}=require("./server/nativeIeltsCatalog.cjs");
+const {nativeCatalogView,nativeTaskDetail}=require("./server/nativeIeltsCatalog.cjs");
 const {nativeReportResponse}=require("./server/nativeReportResponse.cjs");
 const {nativeObjectiveRecord}=require("./server/nativeObjectiveProjection.cjs");
 const {bindWritingSource,sourceImage}=require("./server/nativeWritingSource.cjs");
@@ -1908,7 +1908,9 @@ function handleSpeakingRecordingDownload(req, res) {
   res.end(recording.buffer);
 }
 
-function sendCompressedJson(req, res, status, value, cacheControl = "no-store") {
+function sendCompressedJson(req, res, status, value, cacheControl = "no-store", extraVary = "") {
+  const vary = extraVary ? `Accept-Encoding, ${extraVary}` : "Accept-Encoding";
+  res.setHeader("Vary", vary);
   const json = JSON.stringify(nativeReportResponse(req, value));
   const acceptsGzip = /\bgzip\b/i.test(req.headers["accept-encoding"] || "");
   if (acceptsGzip && Buffer.byteLength(json) > 1024) {
@@ -1921,7 +1923,7 @@ function sendCompressedJson(req, res, status, value, cacheControl = "no-store") 
         "content-type": "application/json; charset=utf-8",
         "content-encoding": "gzip",
         "cache-control": cacheControl,
-        "vary": "Accept-Encoding",
+        "vary": vary,
       });
       res.end(compressed);
     });
@@ -1930,7 +1932,7 @@ function sendCompressedJson(req, res, status, value, cacheControl = "no-store") 
   res.writeHead(status, {
     "content-type": "application/json; charset=utf-8",
     "cache-control": cacheControl,
-    "vary": "Accept-Encoding",
+    "vary": vary,
   });
   res.end(json);
 }
@@ -8528,16 +8530,16 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.method === "GET" && requestPathname === "/api/native/ielts/catalog") {
       const cache = getTasksPayloadCache();
-      cache.nativeIndex ||= buildNativeCatalog(cache.payload, { includePublicTopics: true });
-      sendCompressedJson(req, res, 200, cache.nativeIndex, "public, max-age=60");
+      const view = nativeCatalogView(cache, req);
+      sendCompressedJson(req, res, 200, view.catalog, "public, max-age=60", "X-STEMist-Catalog");
       return;
     }
     const nativeTaskMatch=requestPathname.match(/^\/api\/native\/ielts\/tasks\/(listening|reading|writing|speaking)\/([-a-zA-Z0-9_]+)$/);
     if(req.method==="GET" && nativeTaskMatch){
-      const cache=getTasksPayloadCache();cache.nativeIndex ||= buildNativeCatalog(cache.payload, { includePublicTopics: true });
-      const task=nativeTaskDetail(cache.payload,nativeTaskMatch[1],nativeTaskMatch[2], { includePublicTopics: true });
+      const cache=getTasksPayloadCache(),view=nativeCatalogView(cache,req);
+      const task=nativeTaskDetail(cache.payload,nativeTaskMatch[1],nativeTaskMatch[2],view.options);
       if(!task){sendJson(res,404,{error:"Task not found."});return;}
-      sendCompressedJson(req,res,200,{schemaVersion:"native-ielts-task-v1",version:cache.nativeIndex.version,task},"public, max-age=60");
+      sendCompressedJson(req,res,200,{schemaVersion:"native-ielts-task-v1",version:view.catalog.version,task},"public, max-age=60","X-STEMist-Catalog");
       return;
     }
     if ((req.method === "GET" || req.method === "HEAD") && req.url.startsWith("/api/tasks")) {

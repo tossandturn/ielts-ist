@@ -45,7 +45,7 @@ function indexItem(task,module){
 
 function buildNativeCatalog(payload,{includePublicTopics=false}={}){
  const baseVersion=crypto.createHash('sha256').update('native-task-v2|').update(JSON.stringify(Object.fromEntries(Object.values(BANKS).map(key=>[key,payload[key]||[]])))).digest('hex').slice(0,24)
- const version=crypto.createHash('sha256').update('native-task-v3-topics|'+baseVersion+'|'+sourceHash+'|'+includePublicTopics).digest('hex').slice(0,24)
+ const version=includePublicTopics?crypto.createHash('sha256').update('native-task-v3-topics|'+baseVersion+'|'+sourceHash+'|'+includePublicTopics).digest('hex').slice(0,24):baseVersion
  return {schemaVersion:'native-ielts-catalog-v1',version,baseVersion,topicVersion:sourceHash,...Object.fromEntries(Object.entries(BANKS).map(([module,key])=>[key,tasksFor(payload,module,includePublicTopics).map(task=>indexItem(task,module))]))}
 }
 
@@ -67,4 +67,10 @@ function nativeTaskDetail(payload,module,id,{includePublicTopics=false}={}){
  if(result.questions)result.questions=result.questions.map(q=>Object.fromEntries(['id','text','type','typeLabel','questionPage','options','optionsVerified','selectionLimit','optionGroupId'].filter(key=>q[key]!==undefined).map(key=>[key,q[key]])))
  return result
 }
-module.exports={buildNativeCatalog,nativeTaskDetail,sourceSections}
+function nativeCatalogView(cache,request){
+ const includePublicTopics=request?.headers?.['x-stemist-catalog']==='native-topics-v1',key=includePublicTopics?'shared-topics-v1':'legacy-cambridge-v1'
+ cache.nativeIndexes ||= Object.create(null)
+ cache.nativeIndexes[key] ||= buildNativeCatalog(cache.payload,{includePublicTopics})
+ return {catalog:cache.nativeIndexes[key],options:{includePublicTopics}}
+}
+module.exports={buildNativeCatalog,nativeTaskDetail,sourceSections,nativeCatalogView}
