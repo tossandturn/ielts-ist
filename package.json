@@ -5,7 +5,8 @@
   "type": "commonjs",
   "scripts": {
     "start": "node server.js",
-    "check": "node --check server.js && node scripts/build-web-topic-projection.cjs --check && node scripts/test-native-public-topics.mjs && node scripts/test-native-content-catalog.mjs && node scripts/test-native-catalog-negotiation.cjs"
+    "check": "node --check server.js && node scripts/build-web-topic-projection.cjs --check && node scripts/test-native-public-topics.mjs && node scripts/test-native-content-catalog.mjs && node scripts/test-native-catalog-negotiation.cjs && node scripts/test-speaking-source-repairs.cjs && node scripts/test-speaking-source-punctuation.cjs",
+    "test:speaking-source-http": "node scripts/test-speaking-source-http.cjs"
   },
   "dependencies": {
     "@napi-rs/canvas": "^1.0.2",

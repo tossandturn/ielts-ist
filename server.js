@@ -9,6 +9,8 @@ const PDFDocument = require("pdfkit");
 const WebSocket = require("ws");
 const { WebSocketServer } = require("ws");
 const {nativeCatalogView,nativeTaskDetail}=require("./server/nativeIeltsCatalog.cjs");
+const {mergeSpeakingSourceRepairs,createSpeakingPageVerifier,isVerifiedSpeakingSource,carrySpeakingSourceVerification}=require("./server/speakingSourceRepairs.cjs");
+const speakingSourceRepairs=require("./server/speakingSourceRepairs.json");
 const {nativeReportResponse}=require("./server/nativeReportResponse.cjs");
 const {nativeObjectiveRecord}=require("./server/nativeObjectiveProjection.cjs");
 const {bindWritingSource,sourceImage}=require("./server/nativeWritingSource.cjs");
@@ -41,6 +43,7 @@ const SERVER_HOST = process.env.NODE_ENV === "production"
   : String(process.env.IELTSIST_BIND_HOST || "0.0.0.0").trim() || "0.0.0.0";
 const STARTED_AT = Date.now();
 const PUBLIC_DIR = path.join(__dirname, "public");
+const verifySpeakingSourcePage=createSpeakingPageVerifier(PUBLIC_DIR);
 const APP_DB_PATH = process.env.IELTSIST_DB_PATH || path.join(__dirname, "data", "ieltsist.sqlite");
 // Session cookies are only sent over HTTPS by default; set this to 0 for an explicitly HTTP-only local setup.
 const SESSION_COOKIE_SECURE = String(process.env.SESSION_COOKIE_SECURE || "1").trim() !== "0";
@@ -1703,8 +1706,10 @@ function speakingSetQualityIssue(set) {
   if (cueIndex < 1) return "invalid_cue_card_structure";
   const cueTitle = cueLines.slice(0, cueIndex).join(" ").replace(/\s+/g, " ").trim();
   const cueBullets = cueLines.slice(cueIndex + 1);
-  if (!/[.!?]$/.test(cueTitle)
-    || /\b(?:which|who|when|where|why|how|that|to|for|have|wish|minutes)\.?$/i.test(cueTitle)) {
+  // Exact source-verified cue cards can legitimately end in "to have" or
+  // omit a printed full stop. A client-supplied flag cannot grant this status.
+  if (!isVerifiedSpeakingSource(set) && (!/[.!?]$/.test(cueTitle)
+    || /\b(?:which|who|when|where|why|how|that|to|for|have|wish|minutes)\.?$/i.test(cueTitle))) {
     return "truncated_cue_card_title";
   }
   if (cueBullets.length < 3) return "incomplete_cue_card_bullets";
@@ -1721,7 +1726,7 @@ function speakingSetQualityIssue(set) {
     return "incomplete_cue_card_explanation";
   }
   if (/\b(?:what you(?:'|')?re going to|you(?:'|')?re going to|notes to|for 1 to)\b/i.test(part2)) return "ocr_overlay";
-  const questionCount = [...part1, ...part3].filter((question) => /\?\s*$/.test(question)).length;
+  const questionCount = [...part1, ...part3].filter((question) => /\?(?:\s*\[[^\]]+\])?\s*$/.test(question)).length;
   if (questionCount < Math.max(3, Math.floor((part1.length + part3.length) * 0.7))) return "truncated_questions";
   return "";
 }
@@ -1748,17 +1753,19 @@ function speakingContentDescriptor(set) {
 function getSpeakingSets() {
   const bank = loadQuestionBank(SPEAKING_BANK_PATH);
   const sets = Array.isArray(bank.speakingSets) ? bank.speakingSets : [];
-  const visibleSets = sets
+  const previouslyVisible = sets
     .map(correctedSpeakingSet)
-    .filter((set) => isEnabledCambridgeBook(set) && hasPageImages(set, "speakingPageImages") && !speakingSetQualityIssue(set))
+    .filter((set) => isEnabledCambridgeBook(set) && hasPageImages(set, "speakingPageImages") && !speakingSetQualityIssue(set));
+  const visibleSets = mergeSpeakingSourceRepairs({sourceSets:sets,visibleSets:previouslyVisible,document:speakingSourceRepairs,verifyImage:verifySpeakingSourcePage})
+    .filter((set) => !speakingSetQualityIssue(set))
     .map((set) => {
       const content = speakingContentDescriptor(set);
-      return {
+      return carrySpeakingSourceVerification(set, {
         ...set,
         contentVersion: content.contentVersion,
         contentLifecycle: content.lifecycle,
         humanReviewStatus: content.humanReviewStatus,
-      };
+      });
     });
   return visibleSets.length
     ? visibleSets

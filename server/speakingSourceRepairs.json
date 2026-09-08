@@ -1,0 +1,2157 @@
+{
+  "schemaVersion": "ielts-speaking-source-repairs-v1",
+  "repairs": [
+    {
+      "legacySourceId": "cam4-s-test1",
+      "sourceRowSha256": "e160000d1b3f3d188b0d515b74fc23eae4c06a8e6337817d30026250034a76e3",
+      "page": 33,
+      "sourcePageSha256": "545487bc3145849c27e4cd12da1a92fc4e92ed7b827e4139876516e95c9cd664",
+      "sourceImageUrl": "/generated/speaking-pages/cam4/test1/page-33.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "bf413251fec74a1b463a090c21afbaab453003aebb2e41325bdb913f56864eff",
+      "independentReceiptSha256": "6ff28a8afb69e1ec4864ef40806fe0f9ed1ae667896709b043d6e7f76ac552da",
+      "content": {
+        "part1Topic": "Friends",
+        "part1": [
+          "Are your friends mostly your age or different ages? [Why?]",
+          "Do you usually see your friends during the week or at weekends? [Why?]",
+          "The last time you saw your friends, what did you do together?",
+          "In what ways are your friends important to you?"
+        ],
+        "cuePrompt": "Describe an interesting historic place.",
+        "cueBullets": [
+          "what it is",
+          "where it is located",
+          "what you can see there now"
+        ],
+        "cueExplanation": "and explain why this place is interesting.",
+        "part3Topics": [
+          "Looking after historic places",
+          "The teaching of history at school"
+        ],
+        "part3": [
+          "How do people in your country feel about protecting historic buildings?",
+          "Do you think an area can benefit from having an interesting historic place locally? In what way?",
+          "What do you think will happen to historic places or buildings in the future? Why?",
+          "How were you taught history when you were at school?",
+          "Are there other ways people can learn about history, apart from at school? How?",
+          "Do you think history will still be a school subject in the future? Why?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam4-s-test2",
+      "sourceRowSha256": "be33993010443a6a7925d4a9bf112ddcfcc1e75516dfc05412c5e68997f6ad23",
+      "page": 56,
+      "sourcePageSha256": "8845220a049c83cbe1710163f54363c3adf9921c4e107041cd92e295c28558ca",
+      "sourceImageUrl": "/generated/speaking-pages/cam4/test2/page-56.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "8242a7bd3c5de2d3e7fb589f27662224de6f1dc8e8a6f0d0bc0ecb220df1f038",
+      "independentReceiptSha256": "d25dc6ea2bdcf5b80131c9897eb3cae867fbde34575320da08d1b9bc15e7ef99",
+      "content": {
+        "part1Topic": "Food and cooking",
+        "part1": [
+          "What kinds of food do you like to eat?",
+          "What kind of new food would you like to try? [Why?]",
+          "Do you like cooking? [Why/Why not?]",
+          "What was the last meal you cooked?",
+          "Do you prefer home-cooked food or food from restaurants? [Why?]"
+        ],
+        "cuePrompt": "Describe an interest or hobby that you enjoy.",
+        "cueBullets": [
+          "how you became interested in it",
+          "how long you have been doing it",
+          "why you enjoy it"
+        ],
+        "cueExplanation": "and explain what benefits you get from this interest or hobby.",
+        "part3Topics": [
+          "The social benefits of hobbies",
+          "Leisure time"
+        ],
+        "part3": [
+          "Do you think having a hobby is good for people's social life? In what way?",
+          "Are there any negative effects of a person spending too much time on their hobby? What are they?",
+          "Why do you think people need to have an interest or hobby?",
+          "In your country, how much time do people spend on work and how much time on leisure? Is this a good balance, do you think?",
+          "Would you say the amount of free time has changed much in the last fifty years?",
+          "Do you think people will have more or less free time in the future? Why?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam4-s-test3",
+      "sourceRowSha256": "93c2731e9560ddea2caa588f7d51ea912c4440e5f9ffcefadc6e058295cafbfd",
+      "page": 102,
+      "sourcePageSha256": "675753fc307c78d5cfa034734177f9d8fffd78ef66bbb8bc1e56cf9c3254cdd3",
+      "sourceImageUrl": "/generated/speaking-pages/cam4/test3/page-102.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "36eb5275811612b43676a71e35d29db0911274a4fac5dd9f66c3779a7472fa9c",
+      "independentReceiptSha256": "15825fac2060a9904700609e67bbd1ec44433f5d2656e16367f88ff88b7207c9",
+      "content": {
+        "part1Topic": "Your favourite place",
+        "part1": [
+          "What place do you most like to visit?",
+          "How often do you visit this place?",
+          "Why do you like it so much?",
+          "Is it popular with many other people?",
+          "Has it changed very much since you first went there? [In what way?]"
+        ],
+        "cuePrompt": "Describe a useful website you have visited.",
+        "cueBullets": [
+          "what the website was",
+          "how you found the address for this website",
+          "what the website contained"
+        ],
+        "cueExplanation": "and explain why it was useful to you.",
+        "part3Topics": [
+          "The Internet and communication",
+          "The Internet and shopping"
+        ],
+        "part3": [
+          "What effect has the Internet had on the way people generally communicate with each other?",
+          "Why do you think the Internet is being used more and more for communication?",
+          "How reliable do you think information from the Internet is? Why? What about the news on the Internet?",
+          "Why do you think some people use the Internet for shopping? Why doesn't everyone use it in this way?",
+          "What kinds of things are easy to buy and sell online? Can you give me some examples?",
+          "Do you think shopping on the Internet will be more or less popular in the future? Why?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam5-s-test2",
+      "sourceRowSha256": "2caaa2c721bf53da9cdf047038f651d0dd7515e0a0dba2317f0a112ed450b549",
+      "page": 54,
+      "sourcePageSha256": "eb715b31272ab072691ca704d8954bec34b61051ad46652cd74b0c598134f542",
+      "sourceImageUrl": "/generated/speaking-pages/cam5/test2/page-54.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "5d77dac70160df83c23b1fba1704908c66615cf58f03fd00d4c6afb8f0c4e5e9",
+      "independentReceiptSha256": "595966cc17246f73e0bc5fe9ca5b53135f63e1552ec8e88f2f643bb65b9b9a83",
+      "content": {
+        "part1Topic": "Colour",
+        "part1": [
+          "What's your favourite colour? [Why?]",
+          "Do you like the same colours now as you did when you were younger? [Why/Why not?]",
+          "What can you learn about a person from the colours they like?",
+          "Do any colours have a special meaning in your culture?"
+        ],
+        "cuePrompt": "Describe a song or a piece of music you like.",
+        "cueBullets": [
+          "what the song or music is",
+          "what kind of song or music it is",
+          "where you first heard it"
+        ],
+        "cueExplanation": "and explain why you like it.",
+        "part3Topics": [
+          "Music and young people",
+          "Music and society"
+        ],
+        "part3": [
+          "What kinds of music are popular with young people in your culture?",
+          "What do you think influences a young person's taste in music?",
+          "How has technology affected the kinds of music popular with young people?",
+          "Tell me about any traditional music in your culture.",
+          "How important is it for a culture to have musical traditions?",
+          "Why do you think countries have national anthems or songs?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam5-s-test4",
+      "sourceRowSha256": "87ad3aa4cd7be5b12c039a0a82f6cd09b1b45d0ca33683af4fdc4c67ec65d4d6",
+      "page": 100,
+      "sourcePageSha256": "de985a1dfa49b22b1c27a332c135de62a4874944e31154b230e7eebd4b4dc616",
+      "sourceImageUrl": "/generated/speaking-pages/cam5/test4/page-100.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "56ae3d8596b312cc7d799a006dd33440a00354d74c8436726c413d8bd1424d87",
+      "independentReceiptSha256": "2c7486443e3878af2dbdd3cbd4936693db14c5fbbd2ff4a066875802b28e15b3",
+      "content": {
+        "part1Topic": "Clothes",
+        "part1": [
+          "How important are clothes and fashion to you? [Why/Why not?]",
+          "What kind of clothes do you dislike? [Why?]",
+          "How different are the clothes you wear now from those you wore 10 years ago?",
+          "What do you think the clothes we wear say about us?"
+        ],
+        "cuePrompt": "Describe a festival that is important in your country.",
+        "cueBullets": [
+          "when the festival occurs",
+          "what you did during it",
+          "what you like or dislike about it"
+        ],
+        "cueExplanation": "and explain why this festival is important.",
+        "part3Topics": [
+          "Purpose of festivals and celebrations",
+          "Festivals and the media"
+        ],
+        "part3": [
+          "Why do you think festivals are important events in the working year?",
+          "Would you agree that the original significance of festivals is often lost today? Is it good or bad, do you think?",
+          "Do you think that new festivals will be introduced in the future? What kind?",
+          "What role does the media play in festivals, do you think?",
+          "Do you think it's good or bad to watch festivals on TV? Why?",
+          "How may globalisation affect different festivals around the world?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam6-s-test1",
+      "sourceRowSha256": "d158526e1ae4c12834cdbc51449cc7b399996ae9f9f00b5c0676ca3cdc91bd09",
+      "page": 33,
+      "sourcePageSha256": "197652d85521a5549718acf7d5a8c247cf0d226afd34851fb6b6bb41c30170a5",
+      "sourceImageUrl": "/generated/speaking-pages/cam6/test1/page-33.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "341a7a9c05f5ba6b9fe25853bfcbe048e0540aba2ee1f97e12f8b33642658a0e",
+      "independentReceiptSha256": "96c6901946d4a8558060639beef127b3f00b20eed52d57af89ff3eb902107f00",
+      "content": {
+        "part1Topic": "Dancing",
+        "part1": [
+          "Do you enjoy dancing? [Why/Why not?]",
+          "Has anyone ever taught you to dance? [Why/Why not?]",
+          "Tell me about any traditional dancing in your country.",
+          "Do you think that traditional dancing will be popular in the future? [Why/Why not?]"
+        ],
+        "cuePrompt": "Describe someone in your family who you like.",
+        "cueBullets": [
+          "how this person is related to you",
+          "what this person looks like",
+          "what kind of person he/she is"
+        ],
+        "cueExplanation": "and explain why you like this person.",
+        "part3Topics": [
+          "Family similarities",
+          "Genetic research"
+        ],
+        "part3": [
+          "In what ways can people in a family be similar to each other?",
+          "Do you think that daughters are always more similar to mothers than to male relatives?",
+          "What about sons and fathers?",
+          "In terms of personality, are people more influenced by their family or by their friends? In what ways?",
+          "Where can people in your country get information about genetic research?",
+          "How do people in your country feel about genetic research?",
+          "Should this research be funded by governments or private companies? Why?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam6-s-test2",
+      "sourceRowSha256": "b2518ad4c089f989e52e1ff4e3cdcfd3d978262e1b221605075b4ee3ce2a30af",
+      "page": 78,
+      "sourcePageSha256": "10db19e44792ebc5f465152a3cc6f127caf03d3ed5fe3d6c38973b017a0498a7",
+      "sourceImageUrl": "/generated/speaking-pages/cam6/test2/page-78.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "39842f56e9778c93dd512115671727c38f481de3c393c75f8706f9381b369910",
+      "independentReceiptSha256": "2f74714afc64fd6508daeed61887957047064d4ee8a4272fc17412f1fea50de6",
+      "content": {
+        "part1Topic": "Traffic where you live",
+        "part1": [
+          "How do most people travel to work where you live?",
+          "What traffic problems are there in your area? [Why?]",
+          "How do traffic problems affect you?",
+          "How would you reduce the traffic problems in your area?"
+        ],
+        "cuePrompt": "Describe a game or sport you enjoy playing.",
+        "cueBullets": [
+          "what kind of game or sport it is",
+          "who you play it with",
+          "where you play it"
+        ],
+        "cueExplanation": "and explain why you enjoy playing it.",
+        "part3Topics": [
+          "Children's games",
+          "Games and competition"
+        ],
+        "part3": [
+          "How have games changed from the time when you were a child?",
+          "Do you think this has been a positive change? Why?",
+          "Why do you think children like playing games?",
+          "Do you think competitive games are good or bad for children? In what ways?",
+          "How can games sometimes help to unite people?",
+          "Why is competition often seen as important in today's society?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam6-s-test4",
+      "sourceRowSha256": "dfea32aee37e2be976aad24f0b5053b87581280134c2383abfd32e14047ffe15",
+      "page": 101,
+      "sourcePageSha256": "8e85f95a70af2ef033781abc5d090329c8dd79ec276ca5407417680164599c69",
+      "sourceImageUrl": "/generated/speaking-pages/cam6/test4/page-101.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "057fec375dc0bd996b2e0d9de6cbb6dcf41a3c87ad0096f91f35ab60ca535176",
+      "independentReceiptSha256": "0d9feb42aaa4be1896544b741ed8722942c589f02010490b2d56dd908e3c7976",
+      "content": {
+        "part1Topic": "Your friends",
+        "part1": [
+          "Do you prefer to have one particular friend or a group of friends? [Why?]",
+          "What do you like doing most with your friend/s?",
+          "Do you think it's important to keep in contact with friends you knew as a child? [Why/Why not?]",
+          "What makes a friend into a good friend?"
+        ],
+        "cuePrompt": "Describe an important choice you had to make in your life.",
+        "cueBullets": [
+          "when you had to make this choice",
+          "what you had to choose between",
+          "whether you made a good choice"
+        ],
+        "cueExplanation": "and explain how you felt when you were making this choice.",
+        "part3Topics": [
+          "Important choices",
+          "Choices in everyday life"
+        ],
+        "part3": [
+          "What are the typical choices people make at different stages of their lives?",
+          "Should important choices be made by parents rather than by young adults?",
+          "Why do some people like to discuss choices with other people?",
+          "What kind of choices do people have to make in their everyday life?",
+          "Why do some people choose to do the same things every day? Are there any disadvantages in this?",
+          "Do you think that people today have more choices to make today than in the past?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam7-s-test1",
+      "sourceRowSha256": "76912497579252785f0cc43b485827042f01774a76e829f3e0a60afd55badf76",
+      "page": 36,
+      "sourcePageSha256": "a82d21b1f21e63b1b1445b5a754fd35f8db7d7a8c2699b7b0a0639000f0ce259",
+      "sourceImageUrl": "/generated/speaking-pages/cam7/test1/page-36.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "9d651d22e1e0168b09e9cbb90482d3fccb0da6079a675ae991bc37bb1ccfab84",
+      "independentReceiptSha256": "dbdd4907378f7710077377206d989f76f0924d30e3adbaa420fbe411eb3d0342",
+      "content": {
+        "part1Topic": "Keeping in contact with people",
+        "part1": [
+          "How do you usually contact your friends? [Why?]",
+          "Do you prefer to contact different people in different ways? [Why?]",
+          "Do you find it easy to keep in contact with friends and family? [Why/Why not?]",
+          "In your country, did people in the past keep in contact in the same ways as they do today? [Why/Why not?]"
+        ],
+        "cuePrompt": "Describe a party that you enjoyed.",
+        "cueBullets": [
+          "whose party it was and what it was celebrating",
+          "where the party was held and who went to it",
+          "what people did during the party"
+        ],
+        "cueExplanation": "and explain what you enjoyed about this party.",
+        "part3Topics": [
+          "Family parties",
+          "National celebrations"
+        ],
+        "part3": [
+          "What are the main reasons why people organise family parties in your country?",
+          "In some places people spend a lot of money on parties that celebrate special family events. Is this ever true in your country? Do you think this is a good trend or a bad trend?",
+          "Are there many differences between family parties and parties given by friends? Why do you think this is?",
+          "What kinds of national celebration do you have in your country?",
+          "Who tends to enjoy national celebrations more: young people or old people? Why?",
+          "Why do you think some people think that national celebrations are a waste of government money? Would you agree or disagree with this view? Why?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam7-s-test2",
+      "sourceRowSha256": "94c651aaacf56d8f6860b7c6fcb13b8dda77a5dd4dc9268a677233bb49c53c8e",
+      "page": 59,
+      "sourcePageSha256": "ddbdd507c5d71184a11b41f96032bd098b7bfe68eadc6bbeaf75e1217181691b",
+      "sourceImageUrl": "/generated/speaking-pages/cam7/test2/page-59.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "aaad36154034f4db5b6c9bf878818b7b922c2f9bd34eb4251ab93b8bcaeff68c",
+      "independentReceiptSha256": "4466f8aad6b88e5f1cca98524dacc187a73c65d593765acdca36c1fad49a2505",
+      "content": {
+        "part1Topic": "Laughing",
+        "part1": [
+          "What kinds of thing make you laugh?",
+          "Do you like making other people laugh? [Why/Why not?]",
+          "Do you think it's important for people to laugh? [Why/Why not?]",
+          "Is laughing the same as feeling happy, do you think? [Why/Why not?]"
+        ],
+        "cuePrompt": "Describe an idea you had for improving something at work or college.",
+        "cueBullets": [
+          "when and where you had your idea",
+          "what your idea was",
+          "who you told about your idea"
+        ],
+        "cueExplanation": "and explain why you thought your idea would make an improvement.",
+        "part3Topics": [
+          "Ideas and education",
+          "Ideas in the workplace"
+        ],
+        "part3": [
+          "Some people think that education should be about memorising the important ideas of the past. Do you agree or disagree? Why?",
+          "Should education encourage students to have their own new ideas? Why?",
+          "How do you think teachers could help students to develop and share their own ideas?",
+          "Should employers encourage their workers to have new ideas about improving the company? Why?",
+          "Do you think people sometimes dislike ideas just because they are new? Why?",
+          "What is more difficult: having new ideas or putting them into practice? Which is more important for a successful company?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam7-s-test3",
+      "sourceRowSha256": "8d0759f06833367a0694637d57790cda965c783b7fc66ca9c0c6b4668e60f2b2",
+      "page": 84,
+      "sourcePageSha256": "fd0e72ee1b9a23f4ea082d856e2da8b97411c9cbc0981df58a0623e1a8b1e496",
+      "sourceImageUrl": "/generated/speaking-pages/cam7/test3/page-84.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "6284f8db29f93d106bc59cc9576410f253760b7205396ef2fe84c96494d35764",
+      "independentReceiptSha256": "f555908224b9d0b2e8b8df85b7806dc62da4237924d386bf9d00be642fa544da",
+      "content": {
+        "part1Topic": "Cold weather",
+        "part1": [
+          "Have you ever been in very cold weather? [When?]",
+          "How often is the weather cold where you come from?",
+          "Are some parts of your country colder than others? [Why?]",
+          "Would you prefer to live in a hot place or a cold place? [Why?]"
+        ],
+        "cuePrompt": "Describe a competition (e.g. TV, college/work or sports competition) that you took part in.",
+        "cueBullets": [
+          "what kind of competition it was and how you found out about it",
+          "what you had to do",
+          "what the prizes were"
+        ],
+        "cueExplanation": "and explain why you chose to take part in this competition.",
+        "part3Topics": [
+          "Competitions in school",
+          "Sporting competitions"
+        ],
+        "part3": [
+          "Why do you think some school teachers use competitions as class activities?",
+          "Do you think it is a good thing to give prizes to children who do well at school? Why?",
+          "Would you say that schools for young children have become more or less competitive since you were that age? Why?",
+          "What are the advantages and disadvantages of intensive training for young sportspeople?",
+          "Some people think that competition leads to a better performance from sports stars. Others think it just makes players feel insecure. What is your opinion?",
+          "Do you think that it is possible to become too competitive in sport? In what way?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam7-s-test4",
+      "sourceRowSha256": "afa2013b94bb7bcede5858235561401b2fa92bfccb9d55cf54bbb4013e1bec00",
+      "page": 107,
+      "sourcePageSha256": "99fcfe0dc85318e5e6678e26a73de5ba087347d962ca7cc8d70588a251da10aa",
+      "sourceImageUrl": "/generated/speaking-pages/cam7/test4/page-107.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "0c04e0f75eb293647078ce0e1b796fc012076c35a579b73eae4ebb19717b80a6",
+      "independentReceiptSha256": "3de1bb192efac4f72dc5882ac025b72d5954fe4c2fbd5bf0beb421042c8c9d10",
+      "content": {
+        "part1Topic": "Travelling to work or college",
+        "part1": [
+          "How do you usually travel to work or college? [Why?]",
+          "Have you always travelled to work/college in the same way? [Why/Why not?]",
+          "What do you like about travelling to work/college this way?",
+          "What changes would improve the way you travel to work/college? [Why?]"
+        ],
+        "cuePrompt": "Describe a piece of electronic equipment that you find useful.",
+        "cueBullets": [
+          "what it is",
+          "how you learned to use it",
+          "how long you have had it"
+        ],
+        "cueExplanation": "and explain why you find this piece of electronic equipment useful.",
+        "part3Topics": [
+          "Technology and housework",
+          "Technology in the workplace"
+        ],
+        "part3": [
+          "What kinds of machine are used for housework in modern homes in your country?",
+          "How have these machines benefited people? Are there any negative effects of using them?",
+          "Do you think all new homes will be equipped with household machines in the future? Why?",
+          "What kinds of equipment do most workers need to use in offices today?",
+          "How have developments in technology affected employment in your country?",
+          "Some people think that technology has brought more stress than benefits to employed people nowadays. Would you agree or disagree? Why?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam8-s-test1",
+      "sourceRowSha256": "34af2ecf19874907b0e0d19bb12c9167b10e620711b2d06c20f71fb7dbfccb47",
+      "page": 31,
+      "sourcePageSha256": "283965155463ad0bc613c6d95c56ebcac5700f7ac508dc9ea1c9fc596fae379f",
+      "sourceImageUrl": "/generated/speaking-pages/cam8/test1/page-31.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "6aae1dbeff517b7e4802756d9a0d32a47f3226db57a878d5c17940a1543d0f9d",
+      "independentReceiptSha256": "19e3abc77bebcf14231d0e569a94fb1da41fb4fa8b09597599a0a4323d7e0f28",
+      "content": {
+        "part1Topic": "Neighbours",
+        "part1": [
+          "How well do you know the people who live next door to you?",
+          "How often do you see them? [Why/Why not?]",
+          "What kinds of problem do people sometimes have with their neighbours?",
+          "How do you think neighbours can help each other?"
+        ],
+        "cuePrompt": "Describe a time when you were asked to give your opinion in a questionnaire or survey",
+        "cueBullets": [
+          "what the questionnaire/survey was about",
+          "why you were asked to give your opinions",
+          "what opinions you gave"
+        ],
+        "cueExplanation": "and explain how you felt about giving your opinions in this questionnaire/survey.",
+        "part3Topics": [
+          "Asking questions",
+          "Questionnaires in school"
+        ],
+        "part3": [
+          "What kinds of organisation want to find out about people's opinions?",
+          "Do you think that questionnaires or surveys are good ways of finding out people's opinions?",
+          "What reasons might people have for not wanting to give their opinions?",
+          "Do you think it would be a good idea for schools to ask students their opinions about lessons?",
+          "What would the advantages for schools be if they asked students their opinions?",
+          "Would there be any disadvantages in asking students' opinions?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam8-s-test2",
+      "sourceRowSha256": "d55a0de5ec621f1e248cfffcaa0bcbbb830ab318fdcda9c21a12969a62b9af64",
+      "page": 54,
+      "sourcePageSha256": "fc9a480ea0aab98c70d062c855938769442a146473798873fe8d091c4ff44a5b",
+      "sourceImageUrl": "/generated/speaking-pages/cam8/test2/page-54.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "111faac80d3d58c077aa0120924072391d1c6e439d2ebfd7770c13e5f5bfee5c",
+      "independentReceiptSha256": "5ccf2f7b3c4ba5178f1c8572bfd65334dab538196aa648caa15a4a15f6e26ab5",
+      "content": {
+        "part1Topic": "Newspapers and Magazines",
+        "part1": [
+          "Which magazines and newspapers do you read? [Why?]",
+          "What kinds of article are you most interested in? [Why?]",
+          "Have you ever read a newspaper or magazine in a foreign language? [When/Why?]",
+          "Do you think reading a newspaper or magazine in a foreign language is a good way to learn the language? [Why/Why not?]"
+        ],
+        "cuePrompt": "Describe a restaurant that you enjoyed going to.",
+        "cueBullets": [
+          "where the restaurant was",
+          "why you chose this restaurant",
+          "what type of food you ate in this restaurant"
+        ],
+        "cueExplanation": "and explain why you enjoyed eating in this restaurant.",
+        "part3Topics": [
+          "Restaurants",
+          "Producing food"
+        ],
+        "part3": [
+          "Why do you think people go to restaurants when they want to celebrate something?",
+          "Which are more popular in your country: fast food restaurants or traditional restaurants?",
+          "Why do you think that is?",
+          "Some people say that food in an expensive restaurant is always better than food in a cheap restaurant – would you agree?",
+          "Do you think there will be a greater choice of food available in shops in the future, or will there be less choice?",
+          "What effects has modern technology had on the way food is produced?",
+          "How important is it for a country to be able to grow all the food it needs, without importing any from other countries?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam8-s-test4",
+      "sourceRowSha256": "038a2d4ebf8a097bd50996dac0997ad5a12ad65a55d422db11d63b0ab02cfc68",
+      "page": 102,
+      "sourcePageSha256": "68cb3181f2fa06fbaf52f10cfcd0a68b9a3b5c6fcd05b69598daf611b777ef7e",
+      "sourceImageUrl": "/generated/speaking-pages/cam8/test4/page-102.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "314c6fccdf9843638f10ea3401c6216273e6935297bc7144c6f85186f3b36891",
+      "independentReceiptSha256": "707cf2891c76b6c5ce2c3f60f68d1079a27656177fb687ef3bfb5ffefb59a49e",
+      "content": {
+        "part1Topic": "Television",
+        "part1": [
+          "How often do you watch television? [Why/Why not?]",
+          "Which television channel do you usually watch? [Why?]",
+          "Do you enjoy the advertisements on television? [Why/Why not?]",
+          "Do you think most programmes on television are good? [Why/Why not?]"
+        ],
+        "cuePrompt": "Describe a friend of your family you remember from your childhood.",
+        "cueBullets": [
+          "who the person was",
+          "how your family knew this person",
+          "how often this person visited your family"
+        ],
+        "cueExplanation": "and explain why you remember this person.",
+        "part3Topics": [
+          "Friendship",
+          "Influence of friends"
+        ],
+        "part3": [
+          "What do you think makes someone a good friend to a whole family?",
+          "Do you think we meet different kinds of friend at different stages of our lives? In what ways are these types of friend different?",
+          "How easy is it to make friends with people from a different age group?",
+          "Do you think it is possible to be friends with someone if you never meet them in person?",
+          "Is this real friendship?",
+          "What kind of influence can friends have on our lives?",
+          "How important would you say it is to have friends from different cultures?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam9-s-test1",
+      "sourceRowSha256": "a2b4f14355b745962048ea86cd06dbfc01edeeeda212871916638174807e6193",
+      "page": 24,
+      "sourcePageSha256": "e4a448f8423ac67f49af6141d2346edcfc3f66b1e1adc1e33922905ad96310d7",
+      "sourceImageUrl": "/generated/speaking-pages/cam9/test1/page-24.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "21c34b4ef8c669aaa23af7c0de09de52af3597d862348e9639f6ffd1be1e5ff7",
+      "independentReceiptSha256": "7ed257443f3b531184f3122300e24f46d09b32565d9c25c9a31c5bf7d0e1007f",
+      "content": {
+        "part1Topic": "Games",
+        "part1": [
+          "What games are popular in your country? [Why?]",
+          "Do you play any games? [Why/Why not?]",
+          "How do people learn to play games in your country?",
+          "Do you think it's important for people to play games? [Why/Why not?]"
+        ],
+        "cuePrompt": "Describe an open-air or street market which you enjoyed visiting.",
+        "cueBullets": [
+          "where the market is",
+          "what the market sells",
+          "how big the market is"
+        ],
+        "cueExplanation": "and explain why you enjoyed visiting this market.",
+        "part3Topics": [
+          "Shopping at markets",
+          "Shopping in general"
+        ],
+        "part3": [
+          "Do people in your country enjoy going to open-air markets that sell things like food or clothes or old objects? Which type of market is more popular? Why?",
+          "Do you think markets are more suitable places for selling certain types of things? Which ones? Why do you think this is?",
+          "Do you think young people feel the same about shopping at markets as older people? Why is that?",
+          "What do you think are the advantages of buying things from shops rather than markets?",
+          "How does advertising influence what people choose to buy? Is this true for everyone?",
+          "Do you think that any recent changes in the way people live have affected general shopping habits? Why is this?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam9-s-test2",
+      "sourceRowSha256": "dc0f6548a77fb28581d83a08923cdcc4a379cb6b96c1215a31f978d21f953c6d",
+      "page": 47,
+      "sourcePageSha256": "f6836b2ab9347781ffcfdc1d4495e1484dbc86ea3661ae1b900b02d18dc706c4",
+      "sourceImageUrl": "/generated/speaking-pages/cam9/test2/page-47.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "3f1fb868cf6f4faf94f5b7bd91990651454d1a841556b90c86530c0294fa6028",
+      "independentReceiptSha256": "9a8a122b08996f7cf4bd2715a7aa5392bee242294b726483b3016d8f122881b3",
+      "content": {
+        "part1Topic": "Giving gifts",
+        "part1": [
+          "When do people give gifts or presents in your country?",
+          "Do you ever take a gift when you visit someone in their home? [Why/Why not?]",
+          "When did you last receive a gift? [What was it?]",
+          "Do you enjoy looking for gifts for people? [Why/Why not?]"
+        ],
+        "cuePrompt": "Describe something you did that was new or exciting.",
+        "cueBullets": [
+          "what you did",
+          "where and when you did this",
+          "who you shared the activity with"
+        ],
+        "cueExplanation": "and explain why this activity was new or exciting for you.",
+        "part3Topics": [
+          "Doing new things",
+          "Learning new things"
+        ],
+        "part3": [
+          "Why do you think some people like doing new things?",
+          "What problems can people have when they try new activities for the first time?",
+          "Do you think it's best to do new things on your own or with other people? Why?",
+          "What kinds of things do children learn to do when they are very young? How important are these things?",
+          "Do you think children and adults learn to do new things in the same way? How is their learning style different?",
+          "Some people say that it is more important to be able to learn new things now than it was in the past. Do you agree or disagree with that? Why?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam9-s-test3",
+      "sourceRowSha256": "486b54af8ddcf9daae4ac8fc4127ba185eb77fb101f056a63433e022753d49b1",
+      "page": 70,
+      "sourcePageSha256": "2ae9889f47ab6b130257234429eee70098317bf4836eb935031fcd631f126358",
+      "sourceImageUrl": "/generated/speaking-pages/cam9/test3/page-70.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "a0adb3ec3985b2665b91188af86d1ad98016085401540bad7b786f707f660f25",
+      "independentReceiptSha256": "fafaeeafb713a4d5a7b28998057c28f86f041cbc7be02b87e65f5258c5441d5d",
+      "content": {
+        "part1Topic": "Telephoning",
+        "part1": [
+          "How often do you make telephone calls? [Why/Why not?]",
+          "Who do you spend most time talking to on the telephone? [Why?]",
+          "When do you think you'll next make a telephone call? [Why?]",
+          "Do you sometimes prefer to send a text message instead of telephoning? [Why/Why not?]"
+        ],
+        "cuePrompt": "Describe a journey [e.g. by car, plane, boat] that you remember well.",
+        "cueBullets": [
+          "where you went",
+          "how you travelled",
+          "why you went on the journey"
+        ],
+        "cueExplanation": "and explain why you remember this journey well.",
+        "part3Topics": [
+          "Reasons for daily travel",
+          "Benefits of international travel"
+        ],
+        "part3": [
+          "Why do people need to travel every day?",
+          "What problems can people have when they are on their daily journey, for example to work or school? Why is this?",
+          "Some people say that daily journeys like these will not be so common in the future. Do you agree or disagree? Why?",
+          "What do you think people can learn from travelling to other countries? Why?",
+          "Can travel make a positive difference to the economy of a country? How?",
+          "Do you think a society can benefit if its members have experience of travelling to other countries? In what ways?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam11-s-test3",
+      "sourceRowSha256": "df96b69f3490f5dc36a4243f3995b4b5adcf7c1778184a627feca8a60c465448",
+      "page": 78,
+      "sourcePageSha256": "213e59c472ee90b1828f3c7649e9731dedd8806f9fd380b702c30e4629a70dd4",
+      "sourceImageUrl": "/generated/speaking-pages/cam11/test3/page-78.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "aec83899161a2b25bec851eb7612b766a6c22774348ff5d2235280cfe5b4d8de",
+      "independentReceiptSha256": "9fc71a5a6897ebf16465d60f747c09b320a2ea5d0c61eb5c0e6dde565cc8c097",
+      "content": {
+        "part1Topic": "Photographs",
+        "part1": [
+          "What type of photos do you like taking? [Why/Why not?]",
+          "What do you do with photos you take? [Why/Why not?]",
+          "When you visit other places, do you take photos or buy postcards? [Why/Why not?]",
+          "Do you like people taking photos of you? [Why/Why not?]"
+        ],
+        "cuePrompt": "Describe a day when you thought the weather was perfect.",
+        "cueBullets": [
+          "where you were on this day",
+          "what the weather was like on this day",
+          "what you did during the day"
+        ],
+        "cueExplanation": "and explain why you thought the weather was perfect on this day.",
+        "part3Topics": [
+          "Types of weather",
+          "Weather forecasts"
+        ],
+        "part3": [
+          "What types of weather do people in your country dislike most? Why is that?",
+          "What jobs can be affected by different weather conditions? Why?",
+          "Are there any important festivals in your country that celebrate a season or type of weather?",
+          "How important do you think it is for everyone to check what the next day's weather will be? Why?",
+          "What is the best way to get accurate information about the weather?",
+          "How easy or difficult is it to predict the weather in your country? Why is that?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam11-s-test4",
+      "sourceRowSha256": "8fe8f0e2675fa3dec2ff946ccb366bc415a223bb41174ca060eb07d07fe3e671",
+      "page": 101,
+      "sourcePageSha256": "d1d478679d1efb9aa1e5bfe8e58440dcf452ef9a79f4815db2076f9796407594",
+      "sourceImageUrl": "/generated/speaking-pages/cam11/test4/page-101.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "c3f7ae31161a42cd26d5f0880f18602dbbd2202b43382b172b2932302a7310f5",
+      "independentReceiptSha256": "72877a834de3da941ee0fa0380cd8a9547efe86d0499910c6b0de266e6f14acb",
+      "content": {
+        "part1Topic": "Names",
+        "part1": [
+          "How did your parents choose your name(s)?",
+          "Does your name have any special meaning?",
+          "Is your name common or unusual in your country?",
+          "If you could change your name, would you? [Why/Why not?]"
+        ],
+        "cuePrompt": "Describe a TV documentary you watched that was particularly interesting.",
+        "cueBullets": [
+          "what the documentary was about",
+          "why you decided to watch it",
+          "what you learnt during the documentary"
+        ],
+        "cueExplanation": "and explain why the TV documentary was particularly interesting.",
+        "part3Topics": [
+          "Different types of TV programmes",
+          "TV advertising"
+        ],
+        "part3": [
+          "What are the most popular kinds of TV programmes in your country? Why is this?",
+          "Do you think there are too many game shows on TV nowadays? Why?",
+          "Do you think TV is the main way for people to get the news in your country? What other ways are there?",
+          "What types of products are advertised most often on TV?",
+          "Do you think that people pay attention to adverts on TV? Why do you think that is?",
+          "How important are regulations on TV advertising?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam12-s-test5",
+      "sourceRowSha256": "356eec37134ffef0c8491a60e80f6486e1d66709b6246aaa65695355ba48288a",
+      "page": 29,
+      "sourcePageSha256": "ba9936de0885f12f00b875013a31f4c4f35c3169fbfe3fc9be3755f23088ff9b",
+      "sourceImageUrl": "/generated/speaking-pages/cam12/test5/page-29.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "10d80c72af58dd086ac78b0f3778cb650a35a3147a2d7df922bfff57066e056c",
+      "independentReceiptSha256": "a911367e5ab0e7a47aa5e564cba86e05f32711ae9ee276e2aa14cc0037e4b33e",
+      "content": {
+        "part1Topic": "Health",
+        "part1": [
+          "Is it important to you to eat healthy food? [Why?/Why not?]",
+          "If you catch a cold, what do you do to help you feel better? [Why?]",
+          "Do you pay attention to public information about health? [Why?/Why not?]",
+          "What could you do to have a healthier lifestyle?"
+        ],
+        "cuePrompt": "Describe an occasion when you had to wait a long time for someone or something to arrive.",
+        "cueBullets": [
+          "who or what you were waiting for",
+          "how long you had to wait",
+          "why you had to wait a long time"
+        ],
+        "cueExplanation": "and explain how you felt about waiting a long time.",
+        "part3Topics": [
+          "Arriving early",
+          "Being patient"
+        ],
+        "part3": [
+          "In what kinds of situations should people always arrive early?",
+          "How important it is to arrive early in your country?",
+          "How can modern technology help people to arrive early?",
+          "What kinds of jobs require the most patience?",
+          "Is it always better to be patient in work (or studies)?",
+          "Do you agree or disagree that the older people are, the more patient they are?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam12-s-test6",
+      "sourceRowSha256": "4e4c1aca71d828ce4e7df892db85b14ad65eca9ecdbeacdf8e58e814940c3589",
+      "page": 52,
+      "sourcePageSha256": "76fad60cbe297abea465f118e9368be34c2a3edebf0252ff8acdfe085c492159",
+      "sourceImageUrl": "/generated/speaking-pages/cam12/test6/page-52.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "0e9e541451d4e911e421218aaed728bc793133844e806658851c7d22fdc39ef1",
+      "independentReceiptSha256": "4da66de43d9d90cbe66e9a08ad797a07a7e81e453bd19071719ff95795d13422",
+      "content": {
+        "part1Topic": "Songs and singing",
+        "part1": [
+          "Did you enjoy singing when you were younger? [Why?/Why not?]",
+          "How often do you sing now? [Why?]",
+          "Do you have a favourite song you like listening to? [Why?/Why not?]",
+          "How important is singing in your culture? [Why?]"
+        ],
+        "cuePrompt": "Describe a film/movie actor from your country who is very popular.",
+        "cueBullets": [
+          "who this actor is",
+          "what kinds of films/movies he/she acts in",
+          "what you know about this actor's life"
+        ],
+        "cueExplanation": "and explain why this actor is so popular.",
+        "part3Topics": [
+          "Watching films/movies",
+          "Theatre"
+        ],
+        "part3": [
+          "What are the most popular types of films in your country?",
+          "What is the difference between watching a film in the cinema and watching a film at home?",
+          "Do you think cinemas will close in the future?",
+          "How important is the theatre in your country's history?",
+          "How strong a tradition is it today in your country to go to the theatre?",
+          "Do you think the theatre should be run as a business or as a public service?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam12-s-test7",
+      "sourceRowSha256": "3e723db894c6e6837c0d2c2a37fa9cda46d5de8f340f3a4d9acfb9bbdb4a7039",
+      "page": 73,
+      "sourcePageSha256": "c364ab319db6fceb897fb79c9a87c5b43df8cce27d15f0be98e9cefc3cc68958",
+      "sourceImageUrl": "/generated/speaking-pages/cam12/test7/page-73.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "3b94af6b6bb6f87e696996668a1df0c5ade07086f8fa2fe8c16d68d0042f8215",
+      "independentReceiptSha256": "54bb659995d2eb1da3d5174e44a792bb5189fa7647bbea8cf2345725d629c0dd",
+      "content": {
+        "part1Topic": "Clothes",
+        "part1": [
+          "Where do you buy most of your clothes? [Why?]",
+          "How often do you buy new clothes for yourself? [Why?]",
+          "How do you decide which clothes to buy? [Why?]",
+          "Have the kinds of clothes you like changed in recent years? [Why?/Why not?]"
+        ],
+        "cuePrompt": "Describe an interesting discussion you had about how you spend your money.",
+        "cueBullets": [
+          "who you had the discussion with",
+          "why you discussed this topic",
+          "what the result of the discussion was"
+        ],
+        "cueExplanation": "and explain why this discussion was interesting for you.",
+        "part3Topics": [
+          "Money and young people",
+          "Money and society"
+        ],
+        "part3": [
+          "Why do some parents give their children money to spend each week?",
+          "Do you agree that schools should teach children how to manage money?",
+          "Do you think it is a good idea for students to earn money while studying?",
+          "Do you think it is true that in today's society money cannot buy happiness?",
+          "What disadvantages are there in a society where the gap between rich and poor is very large?",
+          "Do you think richer countries have a responsibility to help poorer countries?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam12-s-test8",
+      "sourceRowSha256": "b7b91ed5dd461dc31055fd7339ed5f386c192acea8304f9cd1e5742da40fc506",
+      "page": 94,
+      "sourcePageSha256": "a4ee125210fc44538fdc621605572b3a9f6c632122f85b3938ccfdd5389708d1",
+      "sourceImageUrl": "/generated/speaking-pages/cam12/test8/page-94.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "16191a85de8e27a8052718c664f209126f41f02f23bde9826f322d004bcbe840",
+      "independentReceiptSha256": "776856e7cd4cbb6b8b92fccf97bea1f8692724b329b247152c7777b94e081410",
+      "content": {
+        "part1Topic": "Art",
+        "part1": [
+          "Did you enjoy doing art lessons when you were a child? [Why?/Why not?]",
+          "Do you ever draw or paint pictures now? [Why?/Why not?]",
+          "When was the last time you went to an art gallery or exhibition? [Why?]",
+          "What kind of pictures do you like having in your home? [Why?]"
+        ],
+        "cuePrompt": "Describe a time when you visited a friend or family member at their workplace.",
+        "cueBullets": [
+          "who you visited",
+          "where this person worked",
+          "why you visited this person's workplace"
+        ],
+        "cueExplanation": "and explain how you felt about visiting this person's workplace.",
+        "part3Topics": [
+          "Different kinds of workplaces",
+          "The importance of work"
+        ],
+        "part3": [
+          "What things make an office comfortable to work in?",
+          "Why do some people prefer to work outdoors?",
+          "Do you agree that the building people work in is more important than the colleagues they work with?",
+          "What would life be like if people didn't have to work?",
+          "Are all jobs of equal importance?",
+          "Why do some people become workaholics?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam13-s-test1",
+      "sourceRowSha256": "733274f3ec7b0999b0a875eb9dc59878b0986e745960bb7d2de9cfdef46538b2",
+      "page": 32,
+      "sourcePageSha256": "d0230143d8e5447f7f397eda17669e81078ae7bede562985e1185d8fdb8b68a8",
+      "sourceImageUrl": "/generated/speaking-pages/cam13/test1/page-32.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "f2b92386bcd475f6f72aafbef2efee7a8f556feacdde2fd75032bf2eb0984ab2",
+      "independentReceiptSha256": "a3ebe094d791d7a39e49ec41bb57bc719e7dd940e98d9d17bfa59c23a1b28746",
+      "content": {
+        "part1Topic": "Television programmes",
+        "part1": [
+          "Where do you usually watch TV programmes/shows? [Why?/Why not?]",
+          "What's your favourite TV programme/show? [Why?]",
+          "Are there any programmes/shows you don't like watching? [Why?/Why not?]",
+          "Do you think you will watch more TV or fewer TV programmes/shows in the future? [Why?/Why not?]"
+        ],
+        "cuePrompt": "Describe someone you know who has started a business.",
+        "cueBullets": [
+          "who this person is",
+          "what work this person does",
+          "why this person decided to start a business"
+        ],
+        "cueExplanation": "and explain whether you would like to do the same kind of work as this person.",
+        "part3Topics": [
+          "Choosing work",
+          "Work-Life balance"
+        ],
+        "part3": [
+          "What kinds of jobs do young people not want to do in your country?",
+          "Who is best at advising young people about choosing a job: teachers or parents?",
+          "Is money always the most important thing when choosing a job?",
+          "Do you agree that many people nowadays are under pressure to work longer hours and take less holiday?",
+          "What is the impact on society of people having a poor work-life balance?",
+          "Could you recommend some effective strategies for governments and employers to ensure people have a good work-life balance?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam13-s-test2",
+      "sourceRowSha256": "8445a1aca5d52ae883ab09ce75ad3e0f44e5707ef6994d1542b67590557eed17",
+      "page": 54,
+      "sourcePageSha256": "593b1ac85b16c353df1c91611bfe3c73b653cfd61065d887dea01dfcdd716a25",
+      "sourceImageUrl": "/generated/speaking-pages/cam13/test2/page-54.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "17f46e247d3fb7a61656231821e64cd0d8ea10a7fd91d56c26152587f111160c",
+      "independentReceiptSha256": "38d9163505c0180783d1bc2c64d7dd115c1aae17ebee27404d3009785c14dc4a",
+      "content": {
+        "part1Topic": "Age",
+        "part1": [
+          "Are you happy to be the age you are now? [Why/Why not?]",
+          "When you were a child, did you think a lot about your future? [Why/Why not?]",
+          "Do you think you have changed as you have got older? [Why/Why not?]",
+          "What will be different about your life in the future? [Why]"
+        ],
+        "cuePrompt": "Describe a time when you started using a new technological device (e.g. a new computer or phone).",
+        "cueBullets": [
+          "what device you started using",
+          "why you started using this device",
+          "how easy or difficult it was to use"
+        ],
+        "cueExplanation": "and explain how helpful this device was to you.",
+        "part3Topics": [
+          "Technology and education",
+          "Technology and society"
+        ],
+        "part3": [
+          "What is the best age for children to start computer lessons?",
+          "Do you think that schools should use more technology to help children learn?",
+          "Do you agree or disagree that computers will replace teachers one day?",
+          "How much has technology improved how we communicate with each other?",
+          "Do you agree that there are still many more major technological innovations to be made?",
+          "Could you suggest some reasons why some people are deciding to reduce their use of technology?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam13-s-test3",
+      "sourceRowSha256": "2f78fa486e46b159abf503d7da9cdc37863595df4e2b81252a86a7e9be94d219",
+      "page": 76,
+      "sourcePageSha256": "56d0b5a9d74d63ee75cebf5de3f3cfdb2e97e4a67e1701b322e4a06e3aab09f9",
+      "sourceImageUrl": "/generated/speaking-pages/cam13/test3/page-76.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "ab7b4395e754e328d0255a1009d6672170e27818e9af32926347fad9f1450dda",
+      "independentReceiptSha256": "1d71f06a3c358e5a43c56c3523e156291153ff80ad4eaf98e0dbc7e6bc83624d",
+      "content": {
+        "part1Topic": "Money",
+        "part1": [
+          "When you go shopping, do you prefer to pay for things in cash or by card? [Why?]",
+          "Do you ever save money to buy special things? [Why/Why not?]",
+          "Would you ever take a job which had low pay? [Why/Why not?]",
+          "Would winning a lot of money make a big difference to your life? [Why/Why not?]"
+        ],
+        "cuePrompt": "Describe an interesting discussion you had as part of your work or studies.",
+        "cueBullets": [
+          "what the subject of the discussion was",
+          "who you discussed the subject with",
+          "what opinions were expressed"
+        ],
+        "cueExplanation": "and explain why you found the discussion interesting.",
+        "part3Topics": [
+          "Discussing problems with others",
+          "Communication skills at work"
+        ],
+        "part3": [
+          "Why is it good to discuss problems with other people?",
+          "Do you think that it's better to talk to friends and not family about problems?",
+          "Is it always a good idea to tell lots of people about a problem?",
+          "Which communication skills are most important when taking part in meetings with colleagues?",
+          "What are the possible effects of poor written communication skills at work?",
+          "What do you think will be the future impact of technology on communication in the workplace?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam14-s-test1",
+      "sourceRowSha256": "de7ad9a88eaa49bc3f7d00add4ac823ff581e862bcd2b89d19055e249468ca4a",
+      "page": 31,
+      "sourcePageSha256": "b9e58d59f79ee1b3fb54d29d097cceadd32f4bbd54b8e28814ae6a32e331c98f",
+      "sourceImageUrl": "/generated/speaking-pages/cam14/test1/page-31.webp",
+      "reviewMethod": "two-source-reads-plus-source-adjudication",
+      "reviewStatus": "source-content-adjudicated",
+      "primaryReceiptSha256": "9af155b165afa3b4f1537ebd3404946a12214bb95cb289266768bc7025a86f0e",
+      "independentReceiptSha256": "118e2e41dd1da7ade8d6111baa021e56ea2297b977bc273f09ad8158bef71099",
+      "content": {
+        "part1Topic": "Future",
+        "part1": [
+          "What job would you like to have ten years from now? [Why?]",
+          "How useful will English be for your future? [Why/Why not?]",
+          "How much travelling do you hope to do in the future? [Why/Why not?]",
+          "How do you think your life will change in the future? [Why/Why not?]"
+        ],
+        "cuePrompt": "Describe a book that you enjoyed reading because you had to think a lot.",
+        "cueBullets": [
+          "what this book was",
+          "why you decided to read it",
+          "what reading this book made you think about"
+        ],
+        "cueExplanation": "and explain why you enjoyed reading this book.",
+        "part3Topics": [
+          "Children and reading",
+          "Electronic books"
+        ],
+        "part3": [
+          "What are the most popular types of children's books in your country?",
+          "What are the benefits of parents reading books to their children?",
+          "Should parents always let children choose the books they read?",
+          "How popular are electronic books are in your country?",
+          "What are the advantages of parents reading electronic books (compared to printed books)?",
+          "Will electronic books ever completely replace printed books in the future?"
+        ]
+      },
+      "adjudicationReceiptSha256": "ba547897691175ebca8ed8e7cc11472d955f3ff7093a50542920fec861690b83"
+    },
+    {
+      "legacySourceId": "cam14-s-test2",
+      "sourceRowSha256": "14ac6495b14bd75b0ab9dcf08749e17e0c691b7d0b4d0a55b41000416755029a",
+      "page": 52,
+      "sourcePageSha256": "ab171b8bb8c1b9715abd39469c21fc945df957fd723211b8734777d5e88f4b0e",
+      "sourceImageUrl": "/generated/speaking-pages/cam14/test2/page-52.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "0b28932a803e8c857b8e9985cc188117eaef78d20b0ebf61532109d87948c1f2",
+      "independentReceiptSha256": "b8b307335de4ed758ad33e64c85ddee7ccdbf93fe378d1123a97010d0bc0b956",
+      "content": {
+        "part1Topic": "Social media",
+        "part1": [
+          "Which social media websites do you use?",
+          "How much time do you spend on social media sites? [Why/Why not?]",
+          "What kind of information about yourself have you put on social media? [Why/Why not?]",
+          "Is there anything you don't like about social media? [Why?]"
+        ],
+        "cuePrompt": "Describe something you liked very much which you bought for your home.",
+        "cueBullets": [
+          "what you bought",
+          "when and where you bought it",
+          "why you chose this particular thing"
+        ],
+        "cueExplanation": "and explain why you liked it so much.",
+        "part3Topics": [
+          "Creating a nice home",
+          "Different types of home"
+        ],
+        "part3": [
+          "Why do some people buy lots of things for their home?",
+          "Do you think it is very expensive to make a home look nice?",
+          "Why don't some people care about how their home looks?",
+          "In what ways is living in a flat/apartment better than living in a house?",
+          "Do you think homes will look different in the future?",
+          "Do you agree that the kinds of homes people prefer change as they get older?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam14-s-test3",
+      "sourceRowSha256": "1cc16e82e899a3516f3dcc3ab5d6c534b709e540ab019af9c6f635b2d2b2d159",
+      "page": 74,
+      "sourcePageSha256": "a9d5d391d7ab761e16710b6bf9ef739ce655ee211153d744f64a7dfa0322774a",
+      "sourceImageUrl": "/generated/speaking-pages/cam14/test3/page-74.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "936935c11369d04a53229c1efa47b24ba5d1a4bec07bcef67ca77000a5e573e4",
+      "independentReceiptSha256": "08ef998b13a59fbf23c81e80db5fd9fc22ee1ba3f179395e7b5fcf768ed93d5f",
+      "content": {
+        "part1Topic": "Neighbours",
+        "part1": [
+          "How often do you see your neighbours? [Why/Why not?]",
+          "Do you invite your neighbours to your home? [Why/Why not?]",
+          "Do you think you are a good neighbour? [Why/Why not?]",
+          "Has a neighbour ever helped you? [Why/Why not?]"
+        ],
+        "cuePrompt": "Describe a very difficult task that you succeeded in doing as part of your work or studies.",
+        "cueBullets": [
+          "what task you did",
+          "why this task was very difficult",
+          "how you worked on this task"
+        ],
+        "cueExplanation": "and explain how you felt when you had successfully completed this task.",
+        "part3Topics": [
+          "Difficult jobs",
+          "Personal and career success"
+        ],
+        "part3": [
+          "What are the most difficult jobs that people do?",
+          "Why do you think some people choose to do difficult jobs?",
+          "Do you agree or disagree that all jobs are difficult sometimes?",
+          "How important is it for everyone to have a goal in their personal life?",
+          "Is it always necessary to work hard in order to achieve career success?",
+          "Do you think that successful people are always happy people?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam14-s-test4",
+      "sourceRowSha256": "17e41f21ecebaafc68305256a205583cc791c0335ce1c2c841f2fcda1c6c194d",
+      "page": 96,
+      "sourcePageSha256": "1a098f08423d0f45b49d2da81317bac9a3f7da0df4b24d596be883e8afd8670b",
+      "sourceImageUrl": "/generated/speaking-pages/cam14/test4/page-96.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "202962375a66e2d9f109d6628dab931b04cb15c7e1fcf5ced97d8062e313f948",
+      "independentReceiptSha256": "e5150932c75ca6ed6b4f7b599efb1ab013a498eb6f689a99ff89158143154182",
+      "content": {
+        "part1Topic": "Your neighbourhood",
+        "part1": [
+          "Do you like the neighbourhood you live in? [Why/Why not?]",
+          "What do you do in your neighbourhood in your free time? [Why/Why not?]",
+          "What new things would you like to have in your neighbourhood? [Why/Why not?]",
+          "Would you like to live in another neighbourhood in your town or city? [Why/Why not?]"
+        ],
+        "cuePrompt": "Describe a website you have bought something from.",
+        "cueBullets": [
+          "what the website is",
+          "what you bought from this website",
+          "how satisfied you were with what you bought"
+        ],
+        "cueExplanation": "and explain what you liked and disliked about using this website.",
+        "part3Topics": [
+          "Shopping online",
+          "Online retail businesses"
+        ],
+        "part3": [
+          "What kinds of things do people in your country often buy from online shops?",
+          "Why has online shopping become so popular in many countries?",
+          "What are some possible disadvantages of buying things from online shops?",
+          "Do you agree that the prices of all goods should be lower on internet shopping sites than in shops?",
+          "Will large shopping malls continue to be popular, despite the growth of internet shopping?",
+          "Do you think that some businesses (e.g. banks and travel agents) will only operate online in the future?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam15-s-test1",
+      "sourceRowSha256": "a57bd2e585874a36676a633d86f21ff77755280d74658f8e3ae113dcbf5bc4b0",
+      "page": 32,
+      "sourcePageSha256": "e93906e186c77c381f5583cd7a88195b8d566ef271c8b2cb86c71dc82501ff3b",
+      "sourceImageUrl": "/generated/speaking-pages/cam15/test1/page-32.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "9244fb89b764d9cea5bfc63e5e9e174e0b4e24c5a818ba7a3f5b5f5eb4a8b7e8",
+      "independentReceiptSha256": "07d9ecff1bf10551beaefa000e69be1b48ca6617b24a164f52632a8e9cb96363",
+      "content": {
+        "part1Topic": "Email",
+        "part1": [
+          "What kinds of emails do you receive about your work or studies?",
+          "Do you prefer to email, phone or text your friends? [Why?]",
+          "Do you reply to emails and messages as soon as you receive them? [Why/Why not?]",
+          "Are you happy to receive emails that are advertising things? [Why/Why not?]"
+        ],
+        "cuePrompt": "Describe a hotel that you know.",
+        "cueBullets": [
+          "where this hotel is",
+          "what this hotel looks like",
+          "what facilities this hotel has"
+        ],
+        "cueExplanation": "and explain whether you think this is a nice hotel to stay in.",
+        "part3Topics": [
+          "Staying in hotels",
+          "Working in a hotel"
+        ],
+        "part3": [
+          "What things are important when people are choosing a hotel?",
+          "Why do some people not like staying in hotels?",
+          "Do you think staying in a luxury hotel is a waste of money?",
+          "Do you think hotel work is a good career for life?",
+          "How does working in a big hotel compare with working in a small hotel?",
+          "What skills are needed to be a successful hotel manager?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam15-s-test2",
+      "sourceRowSha256": "52ab1b163d14ca517d6e8d42bdcfeba3e04371285adb1cba804ac16214bd21af",
+      "page": 53,
+      "sourcePageSha256": "d58cf48f8b1611ed89b3b54155245fc48a639cdd34c1c5483efa861f25ce1386",
+      "sourceImageUrl": "/generated/speaking-pages/cam15/test2/page-53.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "88ab644b6e6d7cb906f615ba231b22eb60a10f1d2f6d33fffb202036258b280c",
+      "independentReceiptSha256": "7ab464da12278438f38a0b66f3e5eaf67e4220a1c0434d9178c962edb3fbea29",
+      "content": {
+        "part1Topic": "Languages",
+        "part1": [
+          "How many languages can you speak? [Why/Why not?]",
+          "How useful will English be to you in your future? [Why/Why not?]",
+          "What do you remember about learning languages at school? [Why/Why not?]",
+          "What do you think would be the hardest language for you to learn? [Why?]"
+        ],
+        "cuePrompt": "Describe a website that you bought something from.",
+        "cueBullets": [
+          "what the website is",
+          "what you bought from this website",
+          "how satisfied you were with what you bought"
+        ],
+        "cueExplanation": "and explain what you liked or disliked about using this website.",
+        "part3Topics": [
+          "Shopping online",
+          "The culture of consumerism"
+        ],
+        "part3": [
+          "What kinds of things do people in your country often buy from online shops?",
+          "Why do you think online shopping has become so popular nowadays?",
+          "What are some possible disadvantages of buying things from online shops?",
+          "Why do many people today keep buying things which they do not need?",
+          "Do you believe the benefits of a consumer society outweigh the disadvantages?",
+          "How possible is it to avoid the culture of consumerism?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam15-s-test3",
+      "sourceRowSha256": "f5bc1c165aca936fc2a482462385a1799aef378e0f45effb513018282a47aaa1",
+      "page": 75,
+      "sourcePageSha256": "1aef1fd32c908bdc562940af0cbd99a90572b749d199ddcfbba18d83a7fa4bcf",
+      "sourceImageUrl": "/generated/speaking-pages/cam15/test3/page-75.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "88c71a922f257cd5d0b8b7b62c75714cbed655ee303bc98fb78830d4ebc9fcf7",
+      "independentReceiptSha256": "675cbaf459a92ec99a68a299507575e8684e673d7f826a225e57a2a9db18aeae",
+      "content": {
+        "part1Topic": "Swimming",
+        "part1": [
+          "Did you learn to swim when you were a child? [Why/Why not?]",
+          "How often do you go swimming now? [Why/Why not?]",
+          "What places are there for swimming where you live? [Why?]",
+          "Do you think it would be more enjoyable to go swimming outdoors or at an indoor pool? [Why?]"
+        ],
+        "cuePrompt": "Describe a famous business person that you know about.",
+        "cueBullets": [
+          "who this person is",
+          "what kind of business this person is involved in",
+          "what you know about this business person"
+        ],
+        "cueExplanation": "and explain what you think of this business person.",
+        "part3Topics": [
+          "Famous people today",
+          "Advantages of being famous"
+        ],
+        "part3": [
+          "What kinds of people are most famous in your country today?",
+          "Why are there so many stories about famous people in the news?",
+          "Do you agree or disagree that many young people today want to be famous?",
+          "Do you think it is easy for famous people to earn a lot of money?",
+          "Why might famous people enjoy having fans?",
+          "In what ways could famous people use their influence to do good things in the world?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam15-s-test4",
+      "sourceRowSha256": "50bffec7301988bf491809a606207751664776d4ce9985f36c8b7d0b0677af0d",
+      "page": 97,
+      "sourcePageSha256": "905b569edd6ab7272708bb41b9434f1d2c32e3631878a53f18a0aff84a0c870f",
+      "sourceImageUrl": "/generated/speaking-pages/cam15/test4/page-97.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "48da6fa1f36ce5366c8e2211275468ed446dd461f9910a7c8da5056fcff12372",
+      "independentReceiptSha256": "b1e8dcea2ad20d6ca0a3cfed14c1b746833b9fdae29e81cc57b5afe5c26682d4",
+      "content": {
+        "part1Topic": "Jewellery",
+        "part1": [
+          "How often do you wear jewellery? [Why/Why not?]",
+          "What type of jewellery do you like best? [Why/Why not?]",
+          "When do people like to give jewellery in your country [Why?]",
+          "Have you ever given jewellery to someone as a gift? [Why/Why not?]"
+        ],
+        "cuePrompt": "Describe an interesting TV programme you watched about a science topic.",
+        "cueBullets": [
+          "what science topic this TV programme was about",
+          "when you saw this TV programme",
+          "what you learnt from this TV programme about a science topic"
+        ],
+        "cueExplanation": "and explain why you found this TV programme interesting.",
+        "part3Topics": [
+          "Science and the public",
+          "Scientific discoveries"
+        ],
+        "part3": [
+          "How interested are most people in your country in science?",
+          "Why do you think children today might be better at science than their parents?",
+          "How do you suggest the public can learn more about scientific developments?",
+          "What do you think are the most important scientific discoveries in the last 100 years?",
+          "Do you agree or disagree that there are no more major scientific discoveries left to make?",
+          "Who should pay for scientific research – governments or private companies?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam16-s-test1",
+      "sourceRowSha256": "b0edabe215e4b96be9cf1420a6dcace5d404027afce63eb6ea651e317d79f829",
+      "page": 31,
+      "sourcePageSha256": "e33517e5b2c97b63740560f5663d3518d3379d3090693da10d421ef65a28ffbb",
+      "sourceImageUrl": "/generated/speaking-pages/cam16/test1/page-31.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "56a6849bd22d0673f206c38095b312778bf10b051a2f64014a46b7fe0d35d6c4",
+      "independentReceiptSha256": "bc7e133679bce79aac6ca932cd1393279eb2075c0872d66af8f89aa77d17a832",
+      "content": {
+        "part1Topic": "People you study/work with",
+        "part1": [
+          "Who do you spend most time studying/working with? [Why?]",
+          "What kinds of things do you study/work on with other people? [Why?]",
+          "Are there times when you study/work better by yourself? [Why/Why not?]",
+          "Is it important to like the people you study/work with? [Why/Why not?]"
+        ],
+        "cuePrompt": "Describe a tourist attraction you enjoyed visiting.",
+        "cueBullets": [
+          "what this tourist attraction is",
+          "when and why you visited it",
+          "what you did there"
+        ],
+        "cueExplanation": "and explain why you enjoyed visiting this tourist attraction.",
+        "part3Topics": [
+          "Different kinds of tourist attractions",
+          "The importance of international tourism"
+        ],
+        "part3": [
+          "What are the most popular tourist attractions in your country?",
+          "How do the types of tourist attractions that younger people like to visit compare with those that older people like to visit?",
+          "Do you agree that some tourist attractions (e.g. national museums/galleries) should be free to visit?",
+          "Why is tourism important to a country?",
+          "What are the benefits to individuals of visiting another country as tourists?",
+          "How necessary is it for tourists to learn the language of the country they're visiting?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam16-s-test2",
+      "sourceRowSha256": "ebf55ad7f03423195db44f0a37c08bf8219e5631c21760b5c190fe8e8fd149f0",
+      "page": 97,
+      "sourcePageSha256": "146dd4e7a4ffea040c49e0199dc611c054a8ffce4a03de87e1eb655a6569850d",
+      "sourceImageUrl": "/generated/speaking-pages/cam16/test2/page-97.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "b56d3b7e6f09d1f98d46d208fa7878d9f72c032af0f962ec8a4d040a592d4986",
+      "independentReceiptSha256": "1271e41daf4f412b6e352801c379cff76650518d5ac17c0dfdedfe94845faeba",
+      "content": {
+        "part1Topic": "Fast food",
+        "part1": [
+          "What kinds of fast food have you tried? [Why/Why not?]",
+          "Do you ever use a microwave to cook food quickly? [Why/Why not?]",
+          "How popular are fast food restaurants where you live? [Why/Why not?]",
+          "When would you go to a fast-food restaurant? [Why/Why not?]"
+        ],
+        "cuePrompt": "Describe some technology (e.g. an app, phone, software program) that you decided to stop using.",
+        "cueBullets": [
+          "when and where you got this technology",
+          "why you started using this technology",
+          "why you decided to stop using it"
+        ],
+        "cueExplanation": "and explain how you feel about the decision you made.",
+        "part3Topics": [
+          "Computer games",
+          "Technology in the classroom"
+        ],
+        "part3": [
+          "What kinds of computer games do people play in your country?",
+          "Why do people enjoy playing computer games?",
+          "Do you think that all computer games should have a minimum age for players?",
+          "In what ways can technology in the classroom be helpful?",
+          "Do you agree that students are often better at using technology than their teachers?",
+          "Do you believe that computers will ever replace human teachers?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam17-s-test1",
+      "sourceRowSha256": "94836c4f24d9582db83aaae4d39c9486549e41661a849c4362faac4073bd458e",
+      "page": 30,
+      "sourcePageSha256": "44bd19873edc27b4f49d958b08f3eb08306947e7b1f68ec6bd84d880cb1474f5",
+      "sourceImageUrl": "/generated/speaking-pages/cam17/test1/page-30.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "46eab37ee052dbf6c53f290b1fc2f9f4b1c136a0a8297245164fdaeb44b4635f",
+      "independentReceiptSha256": "fdbf222fab191f2853faf6088adae6aad081416418df0a394032e6b10c35e409",
+      "content": {
+        "part1Topic": "History",
+        "part1": [
+          "What did you study in history lessons when you were at school?",
+          "Did you enjoy studying history at school? [Why/Why not?]",
+          "How often do you watch TV programmes about history now? [Why/Why not?]",
+          "What period in history would you like to learn more about? [Why?]"
+        ],
+        "cuePrompt": "Describe the neighbourhood you lived in when you were a child.",
+        "cueBullets": [
+          "where in your town/city the neighbourhood was",
+          "what kind of people lived there",
+          "what it was like to live in this neighbourhood"
+        ],
+        "cueExplanation": "and explain whether you would like to live in this neighbourhood in the future.",
+        "part3Topics": [
+          "Neighbours",
+          "Facilities in cities"
+        ],
+        "part3": [
+          "What sort of things can neighbours do to help each other?",
+          "How well do people generally know their neighbours in your country?",
+          "How important do you think it is to have good neighbours?",
+          "Which facilities are most important to people living in cities?",
+          "How does shopping in small local shops differ from shopping in large city centre shops?",
+          "Do you think that children should always go to the school nearest to where they live?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam17-s-test2",
+      "sourceRowSha256": "8cd0c1d168fd0356dec05b7ebbb0ca3dea99580d53995e62f0740af021adea1c",
+      "page": 52,
+      "sourcePageSha256": "e71c92b1630e3e05828964e77bdf6654b72935c3417d2c6f67d1a7d46dc8e6e6",
+      "sourceImageUrl": "/generated/speaking-pages/cam17/test2/page-52.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "56b7a574f3fa0a46974bc42725f236e3bd5b7664f5a5059ec0b67cd7654d4bdb",
+      "independentReceiptSha256": "380e031fec12809efb44eaa6e313a3f28fbf8f51b6b2d4c8d428120bb37a2454",
+      "content": {
+        "part1Topic": "Reading",
+        "part1": [
+          "Did you have a favourite book when you were a child? [Why/Why not?]",
+          "How much reading do you do for your work/studies? [Why/Why not?]",
+          "What kinds of books do you read for pleasure? [Why/Why not?]",
+          "Do you prefer to read a newspaper or a magazine online, or to buy a copy? [Why?]"
+        ],
+        "cuePrompt": "Describe a big city you would like to visit.",
+        "cueBullets": [
+          "which big city you would like to visit",
+          "how you would travel there",
+          "what you would do there"
+        ],
+        "cueExplanation": "and explain why you would like to visit this big city.",
+        "part3Topics": [
+          "Visiting cities on holiday",
+          "The growth of cities"
+        ],
+        "part3": [
+          "What are the most interesting things to do while visiting cities on holiday?",
+          "Why can it be expensive to visit cities on holiday?",
+          "Do you think it is better to visit cities alone or in a group with friends?",
+          "Why have cities increased in size in recent years?",
+          "What are the challenges created by ever-growing cities?",
+          "In what ways do you think cities of the future will be different to cities today?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam17-s-test3",
+      "sourceRowSha256": "545e068ad8abc4a128367fe9ddca2e32fab203dc6a930013a2e53d99f91232f0",
+      "page": 74,
+      "sourcePageSha256": "8fdcd511e49aefbe264e7f1a35e21ab060e3c290988d9bc267a5571f27abd7e1",
+      "sourceImageUrl": "/generated/speaking-pages/cam17/test3/page-74.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "03dd44a5c90b3e89669776c8ebacbd47d08bc47e32c1ba6aa3fb131a92c6817f",
+      "independentReceiptSha256": "8a54e50bae2af9962f8787c7bcbf22726e7c44fb243d4739c6a35f85e7b3a471",
+      "content": {
+        "part1Topic": "Drinks",
+        "part1": [
+          "What do you like to drink with your dinner? [Why?]",
+          "Do you drink a lot of water every day? [Why/Why not?]",
+          "Do you prefer drinking tea or coffee? [Why?]",
+          "If people visit you in your home, what do you usually offer them to drink? [Why/Why not?]"
+        ],
+        "cuePrompt": "Describe a monument (e.g., a statue or sculpture) that you like.",
+        "cueBullets": [
+          "what this monument is",
+          "where this monument is",
+          "what it looks like"
+        ],
+        "cueExplanation": "and explain why you like this monument.",
+        "part3Topics": [
+          "Public monuments",
+          "Architecture"
+        ],
+        "part3": [
+          "What kinds of monuments do tourists in your country enjoy visiting?",
+          "Why do you think there are often statues of famous people in public places?",
+          "Do you agree that old monuments and buildings should always be preserved?",
+          "Why is architecture such a popular university subject?",
+          "In what ways has the design of homes changed in recent years?",
+          "To what extent does the design of buildings affect people's moods?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam17-s-test4",
+      "sourceRowSha256": "7964f48d21e424d5be804b5f8f5bd27b2986a9864ca5908fbce266cb184fa6cd",
+      "page": 95,
+      "sourcePageSha256": "ece4e3e985b89167efe0f3b8e592968f7195f777772ff1de4b071870f61dd5a6",
+      "sourceImageUrl": "/generated/speaking-pages/cam17/test4/page-95.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "9fd723f07ca49cb966ed724a0d12fc31e1e212b69bba78e6ec875878649e35ea",
+      "independentReceiptSha256": "9e716339ba3db5af1880a17efd836cea068e0048655cc5585a1684c4e2321c62",
+      "content": {
+        "part1Topic": "Maps",
+        "part1": [
+          "Do you think it's better to use a paper map or a map on your phone? [Why?]",
+          "When was the last time you needed to use a map? [Why/Why not?]",
+          "If you visit a new city, do you always use a map to find your way around? [Why/Why not?]",
+          "In general, do you find it easy to read maps? [Why/Why not?]"
+        ],
+        "cuePrompt": "Describe an occasion when you had to do something in a hurry.",
+        "cueBullets": [
+          "what you had to do",
+          "why you had to do this in a hurry",
+          "how well you did this"
+        ],
+        "cueExplanation": "and explain how you felt about having to do this in a hurry.",
+        "part3Topics": [
+          "Arriving late",
+          "Managing study time"
+        ],
+        "part3": [
+          "Do you think it's OK to arrive late when meeting a friend?",
+          "What should happen to people who arrive late for work?",
+          "Can you suggest how people can make sure they don't arrive late?",
+          "Is it better to study for long periods or in shorter blocks of time?",
+          "What are the likely effects of students not managing their study time well?",
+          "How important is it for students to have enough leisure time?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam18-s-test1",
+      "sourceRowSha256": "9322151fd71e8c979bb306c1b69dd06dff33fff259f6c45a83d1a6e401caa393",
+      "page": 33,
+      "sourcePageSha256": "ef11fb2be311f84c5adf0d78613aeb9daec7df633e8b75457114382e4f543e7c",
+      "sourceImageUrl": "/generated/speaking-pages/cam18/test1/page-33.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "73ce2b82c18a3cb834479715bba2d3ee5807942d23e49ee19876b0f15d1c0d9e",
+      "independentReceiptSha256": "9edd953d570b400b0f9af241a5138540c4db90144d49050077a3774e9c47b983",
+      "content": {
+        "part1Topic": "Paying bills",
+        "part1": [
+          "What kinds of bills do you have to pay?",
+          "How do you usually pay your bills – in cash or by another method? [Why?]",
+          "Have you ever forgotten to pay a bill? [Why/Why not?]",
+          "Is there anything you could do to make your bills cheaper? [Why/Why not?]"
+        ],
+        "cuePrompt": "Describe some food or drink that you learned to prepare.",
+        "cueBullets": [
+          "what food or drink you learned to prepare",
+          "when and where you learned to prepare this",
+          "how you learned to prepare this"
+        ],
+        "cueExplanation": "and explain how you felt about learning to prepare this food or drink.",
+        "part3Topics": [
+          "Young people and cooking",
+          "Working as a chef"
+        ],
+        "part3": [
+          "What kinds of things can children learn to cook?",
+          "Do you think it is important for children to learn to cook?",
+          "Do you think young people should learn to cook at home or at school?",
+          "How enjoyable do you think it would be to work as a professional chef?",
+          "What skills does a person need to be a great chef?",
+          "How much influence do celebrity/TV chefs have on what ordinary people cook?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam18-s-test2",
+      "sourceRowSha256": "ce993ae8c428026845f41d17b5b6e5725aaf37b67a8b649356bd5bf533f32d9d",
+      "page": 56,
+      "sourcePageSha256": "13b48f978d39099fd71f83dda7653c9757f4948f9ceb0b038afa1866f89dedf6",
+      "sourceImageUrl": "/generated/speaking-pages/cam18/test2/page-56.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "9c3a27c5fd07ff9a184ab9a6fd18d8f08c8747a3f6ee70bd57b6e3a4993db80f",
+      "independentReceiptSha256": "da3c857ecc0e3341b59fe8a7a987db182ea289f9bcdf285e13b422968350121e",
+      "content": {
+        "part1Topic": "Science",
+        "part1": [
+          "Did you like studying science when you were at school? [Why/Why not?]",
+          "What do you remember about your science teachers at school?",
+          "How interested are you in science now? [Why/Why not?]",
+          "What do you think has been an important recent scientific development? [Why?]"
+        ],
+        "cuePrompt": "Describe a tourist attraction in your country that you would recommend.",
+        "cueBullets": [
+          "what the tourist attraction is",
+          "where in your country this tourist attraction is",
+          "what visitors can see and do at this tourist attraction"
+        ],
+        "cueExplanation": "and explain why you would recommend this tourist attraction.",
+        "part3Topics": [
+          "Museums and art galleries",
+          "The holiday industry"
+        ],
+        "part3": [
+          "What are the most popular museums and art galleries in ... / where you live?",
+          "Do you believe that all museums and art galleries should be free?",
+          "What kinds of things make a museum or art gallery an interesting place to visit?",
+          "Why, do you think, do some people book package holidays rather than travelling independently?",
+          "Would you say that large numbers of tourists cause problems for local people?",
+          "What sort of impact can large holiday resorts have on the environment?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam18-s-test4",
+      "sourceRowSha256": "149f253ce2b92034c6ae9de3a852c27fe33e90ad2551bd4ca4525371bd06bbad",
+      "page": 100,
+      "sourcePageSha256": "7686763ef7b643e4433b9699bfc10e07a0b7d13951658760556804e4b7fdba68",
+      "sourceImageUrl": "/generated/speaking-pages/cam18/test4/page-100.webp",
+      "reviewMethod": "two-source-reads-plus-source-adjudication",
+      "reviewStatus": "source-content-adjudicated",
+      "primaryReceiptSha256": "0896af08af11cc15ea124b4d273cb751e89209d3480034e7974727b9b2573f81",
+      "independentReceiptSha256": "005f535fd062ae35df63320d4f729d276db4aaba26baf1abaeb2885aea10ff97",
+      "content": {
+        "part1Topic": "Sleep",
+        "part1": [
+          "How many hours do you usually sleep at night?",
+          "Do you sometimes sleep during the day? [Why/Why not?]",
+          "What do you do if you can't get to sleep at night? [Why?]",
+          "Do you ever remember the dreams you've had while you were asleep?"
+        ],
+        "cuePrompt": "Describe a time when you met someone who you became good friends with.",
+        "cueBullets": [
+          "who you met",
+          "when and where you met this person",
+          "what you thought about this person when you first met"
+        ],
+        "cueExplanation": "and explain why you think you became good friends with this person.",
+        "part3Topics": [
+          "Friends at school",
+          "Making new friends"
+        ],
+        "part3": [
+          "How important is it for children to have lots of friends at school?",
+          "Do you think it is wrong for parents to influence which friends their children have?",
+          "Why do you think children often choose different friends as they get older?",
+          "If a person is moving to a new town, what is a good way for them to make friends?",
+          "Can you think of any disadvantages of making new friends online?",
+          "Would you say it is harder for people to make new friends as they get older?"
+        ]
+      },
+      "adjudicationReceiptSha256": "76183d89432afff3cef29fae06061209e8a694833b36b1a72fd3e4d33bef70a0"
+    },
+    {
+      "legacySourceId": "cam19-s-test1",
+      "sourceRowSha256": "b089999cb8bb65aa75c18c0f91c437fc4c2bac738bedeffc625bad16079a0ea6",
+      "page": 34,
+      "sourcePageSha256": "e9d192780bcbf3b073cd9349e7d3b8f00e70303be8f02d7652cbc5621e32ef8f",
+      "sourceImageUrl": "/generated/speaking-pages/cam19/test1/page-34.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "3ec24c52b9b64bcddaed434a194c87182a058d41e0567548c8e132113e81c76c",
+      "independentReceiptSha256": "f32f7d226d91d367ce36038000816dbd8a80b6b4ecd09cc83a8328da00c976e1",
+      "content": {
+        "part1Topic": "International food",
+        "part1": [
+          "Can you find food from many different countries where you live? [Why/Why not?]",
+          "How often do you eat typical food from other countries? [Why/Why not?]",
+          "Have you ever tried making food from another country? [Why/Why not?]",
+          "What food from your country would you recommend to people from other countries? [Why?]"
+        ],
+        "cuePrompt": "Describe a law that was introduced in your country and that you thought was a very good idea.",
+        "cueBullets": [
+          "what the law was",
+          "who introduced it",
+          "when and why it was introduced"
+        ],
+        "cueExplanation": "and explain why you thought this law was such a good idea.",
+        "part3Topics": [
+          "School rules",
+          "Working in the legal profession"
+        ],
+        "part3": [
+          "What kinds of rules are common in a school?",
+          "How important is it to have rules in a school?",
+          "What do you recommend should happen if children break school rules?",
+          "Can you suggest why many students decide to study law at university?",
+          "What are the key personal qualities needed to be a successful lawyer?",
+          "Do you agree that working in the legal profession is very stressful?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam19-s-test2",
+      "sourceRowSha256": "32d8175ca2d59acef5b8e9cddbc1ec907558b2fdfda0b0ff4a235d5461c4ccff",
+      "page": 56,
+      "sourcePageSha256": "f2d4666cf752a8a6cdcec75daed8bc3aa8cc9ca78e03d1eb438f3de4ca3406b5",
+      "sourceImageUrl": "/generated/speaking-pages/cam19/test2/page-56.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "06a4abb3de4ae4187509b365ccd33f0da347e77cce1db31c34e364ea9e334451",
+      "independentReceiptSha256": "8e6854684bf8aa1088ec6fa84810bc68943e1b9b738addbb4c4f693b5a3c35e8",
+      "content": {
+        "part1Topic": "Travelling by plane",
+        "part1": [
+          "Have you travelled a lot by plane? [To where?/Why not?]",
+          "Why do you think some people enjoy travelling by plane?",
+          "Would you like to live near an airport? [Why/Why not?]",
+          "In the future, do you think that you will travel by plane more often? [Why/Why not?]"
+        ],
+        "cuePrompt": "Describe a person from your country who has won a prize, award or medal.",
+        "cueBullets": [
+          "who this person is",
+          "which prize, award or medal they received",
+          "what they did to win this"
+        ],
+        "cueExplanation": "and explain whether you think it was right that this person received this prize, award or medal.",
+        "part3Topics": [
+          "Rewards for children at school",
+          "Rewards for sportspeople"
+        ],
+        "part3": [
+          "What types of school prizes do children in your country receive?",
+          "What do you think are the advantages of rewarding schoolchildren for good work?",
+          "Do you agree that it's more important for children to receive rewards from their parents than from teachers?",
+          "Do you think that some sportspeople (e.g., top footballers) are paid too much money?",
+          "Should everyone on a team get the same prize money when they win?",
+          "Do you agree with the view that, in sport, taking part is more important than winning?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam19-s-test3",
+      "sourceRowSha256": "605a0e3729872cc42e8744ce67a087e4e6aad7f3eb224b0364b5ef4d9db485bf",
+      "page": 79,
+      "sourcePageSha256": "577d546cc8974c3d405221a49fb5120e4dcc7e10403888f820d82a03a4a64a0b",
+      "sourceImageUrl": "/generated/speaking-pages/cam19/test3/page-79.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "b3c6c5ccaef0bc5791d67a72a9bbf5534db0a818eea93e2c56f55e75a5a1e141",
+      "independentReceiptSha256": "8fdfd15fa1f1d3e17405788721a4779f09e99fac1540daef5007f5256ae162cc",
+      "content": {
+        "part1Topic": "Holidays",
+        "part1": [
+          "Do you prefer spending holidays with friends or with family? [Why?]",
+          "What kind of holiday accommodation do you like to stay in? [Why?]",
+          "What plans do you have for your next holiday?",
+          "Is your city or region a good place for other people to visit on holiday? [Why/Why not?]"
+        ],
+        "cuePrompt": "Describe a car journey you made that took longer than expected.",
+        "cueBullets": [
+          "where you were going",
+          "who you were with",
+          "how you felt during the journey"
+        ],
+        "cueExplanation": "and explain why this car journey took longer than expected.",
+        "part3Topics": [
+          "Driving a car",
+          "Electric cars"
+        ],
+        "part3": [
+          "How interested are young people in your country in learning to drive?",
+          "What are the differences between driving in the countryside and driving in the city?",
+          "Do you consider most drivers where you live to be good drivers?",
+          "How popular are electric cars in your country?",
+          "In what ways could more people be persuaded to buy electric cars?",
+          "Do you think all cars will be electric one day?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam19-s-test4",
+      "sourceRowSha256": "39a8c8743b8cd04eb86d66b8531d9ae8f595be85ceb8c98e45d28aad6ed02f5b",
+      "page": 100,
+      "sourcePageSha256": "35437c72d07aa4785bc6ca8e78bd28fbcf8e71860977206817d42ff88e43a319",
+      "sourceImageUrl": "/generated/speaking-pages/cam19/test4/page-100.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "30991761bde7622ae15e652c8efde8be27e6775fc64572d7d2bfcc3106b81203",
+      "independentReceiptSha256": "949fb1d6a86a14504eb62bf162269d6b44fc9e38432275a39ef7e2c8def4e8b0",
+      "content": {
+        "part1Topic": "Cafés",
+        "part1": [
+          "Do you have a favourite café? [Why/Why not?]",
+          "Do you often go to cafés by yourself? [Why/Why not?]",
+          "What do you think helps to make a café very popular? [Why?]",
+          "Why do some people prefer cafés that are part of large chains, rather than small, local cafés?"
+        ],
+        "cuePrompt": "Describe a place you visited that has beautiful views.",
+        "cueBullets": [
+          "where this place is",
+          "when and why you visited it",
+          "what views you can see from this place"
+        ],
+        "cueExplanation": "and explain why you think these views are so beautiful.",
+        "part3Topics": [
+          "The beauty industry",
+          "Beauty and culture"
+        ],
+        "part3": [
+          "Do you agree that most beauty products are a waste of money?",
+          "How does the beauty industry advertise its products so successfully?",
+          "What do you think of the view that beauty products should not be advertised to children?",
+          "Why do many people equate youth with beauty?",
+          "Do you think that being beautiful could affect a person's success in life?",
+          "Why might society's ideas about beauty change over time?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam20-s-test1",
+      "sourceRowSha256": "bc2bc8d22e79493ad32ae835aeaabc5f8f65591ca603d4b6adf31270115ac66b",
+      "page": 33,
+      "sourcePageSha256": "e196c5c7197a4f600ee73556025994da8134c1e3852344187fb049dc1ce9b9fb",
+      "sourceImageUrl": "/generated/speaking-pages/cam20/test1/page-33.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "5408c9be43f846b92c03ab072715276ad89e205132a877f024af1d2cd337e0f8",
+      "independentReceiptSha256": "afcfac65a365cb1a9043f31dc9afb73896d56c914914b5ee8d6445ddd1549801",
+      "content": {
+        "part1Topic": "Walking",
+        "part1": [
+          "How much walking do you do in your daily life?",
+          "Did you walk more when you were at school than now?",
+          "What places are there to go for a walk near where you live?",
+          "Would you ever like to go on a walking holiday?"
+        ],
+        "cuePrompt": "Describe a play or a film you have seen that you would like to see again with friends.",
+        "cueBullets": [
+          "what play or film you'd like to go to see again",
+          "who you would go with",
+          "what other people have said about this play or film"
+        ],
+        "cueExplanation": "and explain why you would like to see this play or film again with friends.",
+        "part3Topics": [
+          "Theatres today",
+          "Actors"
+        ],
+        "part3": [
+          "What are the most popular kinds of plays or shows at theatres in your country?",
+          "How easy is it to get tickets to the theatre?",
+          "Do you think theatres need to do more to attract younger audiences?",
+          "What do you think attracts people to working as an actor?",
+          "What are some of the qualities that a person needs to have if they want to become an actor?",
+          "Can you think of any disadvantages of working as an actor?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam20-s-test2",
+      "sourceRowSha256": "8c02da951bc3d45d513a112f6e41e44b79a5ce20e0c42544736f63a7c9168a50",
+      "page": 54,
+      "sourcePageSha256": "88a9249392e8fde81da1d387da4bef556c92b81f594fb1ecc9e7390032e5a827",
+      "sourceImageUrl": "/generated/speaking-pages/cam20/test2/page-54.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "ab7fb52c76e37862c35babfd9ace761ff6ca2c029544033003c18e0277b143f3",
+      "independentReceiptSha256": "1244dd319568cfd5504462c985634853b26e6f8d628653db36d70df9b7108a92",
+      "content": {
+        "part1Topic": "Fruit",
+        "part1": [
+          "What's your favourite fruit?",
+          "Are there any kinds of fruit that you don't like eating?",
+          "Do you like eating cooked food that has fruit in it?",
+          "Where's the best place to buy fruit where you live?"
+        ],
+        "cuePrompt": "Describe a time when you changed a plan you had made.",
+        "cueBullets": [
+          "what your original plan was",
+          "why you changed it",
+          "what new plan you made"
+        ],
+        "cueExplanation": "and explain how you felt about changing your plan.",
+        "part3Topics": [
+          "Making plans with friends",
+          "Planning a career"
+        ],
+        "part3": [
+          "What kinds of plans do friends make together?",
+          "Do you think it's better to discuss future plans with friends or with family?",
+          "When making plans for the future, is it important not to copy friends?",
+          "When people are choosing what to study, how important is it that their course should lead directly to a career?",
+          "Why is it a good idea to get some work experience before deciding on a future career?",
+          "How easy do you think it is for people to change from one career to another?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam20-s-test3",
+      "sourceRowSha256": "ebd62af7cf76d8578894c924cf2c16f9e95ba2e7428fe335254cd48b86033c43",
+      "page": 76,
+      "sourcePageSha256": "bbb7a9951b89e10be7044113039fd666a2234677443298866e88cf08ee11a349",
+      "sourceImageUrl": "/generated/speaking-pages/cam20/test3/page-76.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "4280930a1aca0f14f2dfe8b1e20e63bd0b1b33de4cf852dc671000f2915a0258",
+      "independentReceiptSha256": "6a5b598a622fa268c13e415482be90024aad25ec88231cf3dd9ef9a58a770704",
+      "content": {
+        "part1Topic": "Museums",
+        "part1": [
+          "Did you enjoy going to museums when you were a child?",
+          "Are there any interesting museums near where you live now?",
+          "Do you think it is best to go to museums by yourself or with friends?",
+          "When you visit another city or country, do you think it's important to go to a museum there?"
+        ],
+        "cuePrompt": "Describe a piece of work you did for your job or your studies that you felt very satisfied with.",
+        "cueBullets": [
+          "what this piece of work was",
+          "why you did this piece of work",
+          "who or what helped you to do this work"
+        ],
+        "cueExplanation": "and explain why you felt so satisfied with this piece of work.",
+        "part3Topics": [
+          "Being satisfied in life",
+          "Job satisfaction"
+        ],
+        "part3": [
+          "What are some aspects of people's lives that they can often be dissatisfied with?",
+          "Would you say that having ambitions in life is always a positive thing?",
+          "What do you believe the most important components are of a satisfying life?",
+          "What makes a job more satisfying: a high salary or having good colleagues?",
+          "Do you think people need to change jobs regularly if they want to stay satisfied at work?",
+          "Is it possible to find job satisfaction in all types of work?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam20-s-test4",
+      "sourceRowSha256": "c7d29e237070182e1c2ea257e59aded366716255ff66b4a4a2f20736834b96e9",
+      "page": 98,
+      "sourcePageSha256": "d1e31127cfe80da62f27171acbfef32b7cc7148a7a820b79ba4c2982ab05826d",
+      "sourceImageUrl": "/generated/speaking-pages/cam20/test4/page-98.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "9a98ba28e52da253c48e9037319cb2ff3cc099adb046cbaefd6ab6816f0a24fa",
+      "independentReceiptSha256": "758f98405a3e48b37168330d3bde8d3a4ea881ca80b952341cd12437e1e6316c",
+      "content": {
+        "part1Topic": "Personal qualities",
+        "part1": [
+          "What do you think your best personal qualities are? [Why?]",
+          "Do you have the same personal qualities as your parents? [Why/Why not?]",
+          "What personal qualities are important to you in a friend? [Why?]",
+          "Do you think you have the personal qualities to be a good/successful leader? [Why/Why not?]"
+        ],
+        "cuePrompt": "Describe a time when you had a long discussion about a news story.",
+        "cueBullets": [
+          "what the news story was about",
+          "who you discussed this news story with",
+          "what people's opinions were"
+        ],
+        "cueExplanation": "and explain why you had such a long discussion about this news story.",
+        "part3Topics": [
+          "The news",
+          "Discussion programmes on TV and radio"
+        ],
+        "part3": [
+          "How do most people find out about the news in your country?",
+          "Are people more interested in local news than national news?",
+          "How important is it to know about international news?",
+          "Why are discussion programmes involving members of the public popular [on TV and radio]?",
+          "What kinds of people want to take part in discussion programmes?",
+          "Do discussion programmes influence people in a good or bad way?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam21-s-test1",
+      "sourceRowSha256": "1cd7ced36a7623d350f0277a6b33db7446afdde1194ff31e5de49b9371cd1b82",
+      "page": 32,
+      "sourcePageSha256": "282d6711d8a2066c6f1f524f79c3d8bdebb20bb14e29ee4ff628d36be63c4ec0",
+      "sourceImageUrl": "/generated/speaking-pages/cam21/test1/page-32.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "ed0337ee13e03932629f5177c3acc9711bd7f472f4207e3c3640965cdd0b16f3",
+      "independentReceiptSha256": "bb66abc238e0fe5ab510350023a77d6057b5a2a53bf2458705ef28e9f561f762",
+      "content": {
+        "part1Topic": "Hairstyles",
+        "part1": [
+          "Where do you go to get a haircut?",
+          "Have you changed your hairstyle recently?",
+          "Would you ever change the colour of your hair?",
+          "Do you enjoy going to the hairdresser/barber?"
+        ],
+        "cuePrompt": "Describe a time when you used information for tourists, for example from a guidebook or online.",
+        "cueBullets": [
+          "where you got this information",
+          "what place this information was about",
+          "what information you got"
+        ],
+        "cueExplanation": "and explain whether this information was very helpful for you.",
+        "part3Topics": [
+          "Different types of holidays",
+          "Tourist attractions"
+        ],
+        "part3": [
+          "What are the most popular kinds of holidays for people from your country to go on?",
+          "Do you think most people prefer to have a holiday abroad rather than in their own country?",
+          "Why do some people want to do absolutely nothing when they go away on holiday?",
+          "What are the kinds of tourist attraction that visitors to your country like to see?",
+          "Do you think tourist attractions such as museums should be free for local people to visit?",
+          "What can make a tourist attraction disappointing for visitors?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam21-s-test2",
+      "sourceRowSha256": "86bf9ba689defcded99136c281c4e6053f338b8f2deb4e790f2b0f171e366968",
+      "page": 54,
+      "sourcePageSha256": "3f30b369fb7b926b497079850b5632570077a3f03cbdc90d017dfd787b0a9e3d",
+      "sourceImageUrl": "/generated/speaking-pages/cam21/test2/page-54.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "08866b41a5dbe9c05a37bc3a4eb425d99c7bbdd7476630a629afa67078517142",
+      "independentReceiptSha256": "44166d527218ac4408eba88de3cc64b15aa8aa8bd7738798fe17f265aca569a5",
+      "content": {
+        "part1Topic": "Cities",
+        "part1": [
+          "How well do you know the capital city of your country?",
+          "Do you think cities are exciting places to live?",
+          "Why do some people dislike living in a city?",
+          "If you could visit any city in the world, where would you go?"
+        ],
+        "cuePrompt": "Describe a time when you read or heard something that you thought was not true.",
+        "cueBullets": [
+          "where you read/heard this",
+          "what you read/heard",
+          "why you thought it was not true"
+        ],
+        "cueExplanation": "and explain how you felt about reading/hearing this thing that you thought was not true.",
+        "part3Topics": [
+          "Honesty and children",
+          "Honesty and advertising"
+        ],
+        "part3": [
+          "Do you think children are more honest than adults?",
+          "Why do adults tell children it's important to be honest?",
+          "Do you think there are sometimes good reasons for adults not to tell children the truth?",
+          "Are there any claims in advertisements that are sometimes not true?",
+          "Why do people still buy things even when they know advertisements aren't completely accurate?",
+          "Do you think advertisements that are dishonest should be banned?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam21-s-test3",
+      "sourceRowSha256": "77b8f9cda9dbb5091e63ee5abd5c7d770264a607fc9e431dbfa850183eb7db2b",
+      "page": 75,
+      "sourcePageSha256": "309d9e36c25dc083a63fa6e974448b9550db14f696408593f3d254db4eb56698",
+      "sourceImageUrl": "/generated/speaking-pages/cam21/test3/page-75.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "5f2d5d9f36300c31b522e1477515a882f4f3fcfe03c175bfbd2e85032c99e959",
+      "independentReceiptSha256": "0bdf7ef6322d7780b42a4e251d075db8517288a2ce048e196919d03de9badb52",
+      "content": {
+        "part1Topic": "Spending and saving money",
+        "part1": [
+          "When you go shopping, do you usually pay for things by cash or by card?",
+          "Are you generally careful about how much money you spend?",
+          "Have you ever spent money on something you didn't need?",
+          "How important is it to you to save money for the future?"
+        ],
+        "cuePrompt": "Describe an interesting garden or park you have seen.",
+        "cueBullets": [
+          "where this garden or park is",
+          "how big it is",
+          "what you saw in this garden/park"
+        ],
+        "cueExplanation": "and explain why you think this garden/park is interesting.",
+        "part3Topics": [
+          "Homes and gardens",
+          "Gardening as a hobby"
+        ],
+        "part3": [
+          "What are the advantages of having a home with a garden?",
+          "How could people living in apartment blocks grow plants and vegetables?",
+          "How interested are people in your country in TV shows and magazines about gardens?",
+          "Do you think that gardening is a hobby mainly for older people?",
+          "What are the benefits for people of gardening as a hobby?",
+          "Will gardening be a more popular hobby in the future?"
+        ]
+      }
+    }
+  ]
+}
