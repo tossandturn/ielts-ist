@@ -1,6 +1,6 @@
 {
   "generatedAt": "2026-07-18T19:48:23.074Z",
-  "sourcePolicy": "Only OCR speaking tests that passed the strict stability gate are included. Missing, incomplete, or noisy pages are skipped.",
+  "sourcePolicy": "Original source rows are preserved. Additional source-page records remain non-student stubs until their hash-bound server restoration is validated.",
   "speakingSets": [
     {
       "id": "cam3-s-test1",
@@ -2208,6 +2208,397 @@
         }
       ],
       "sourceUrl": "/cambridge-local/file/cam21-pdf"
+    },
+    {
+      "id": "cam4-s-page80",
+      "module": "speaking",
+      "title": "Cambridge IELTS 4 source page 80",
+      "source": "Cambridge IELTS 4 source page",
+      "period": "Cambridge 4",
+      "book": 4,
+      "test": 0,
+      "page": 80,
+      "part1Topic": "",
+      "part1": [],
+      "part2": "",
+      "part3Topics": [],
+      "part3": [],
+      "speakingPageImages": [
+        {
+          "page": 80,
+          "url": "/generated/speaking-pages/cam4/test0/page-80.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam4-pdf",
+      "sourcePdfSha256": "30f7d9d86093912e400636bf044e7acd178ecbb53a18fc89a2e4bf72853e892f"
+    },
+    {
+      "id": "cam5-s-page31",
+      "module": "speaking",
+      "title": "Cambridge IELTS 5 source page 31",
+      "source": "Cambridge IELTS 5 source page",
+      "period": "Cambridge 5",
+      "book": 5,
+      "test": 0,
+      "page": 31,
+      "part1Topic": "",
+      "part1": [],
+      "part2": "",
+      "part3Topics": [],
+      "part3": [],
+      "speakingPageImages": [
+        {
+          "page": 31,
+          "url": "/generated/speaking-pages/cam5/test0/page-31.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam5-pdf",
+      "sourcePdfSha256": "0b76722b571c20968b291fddff61cdeccb1cd9740ea419b58f40e548888981a7"
+    },
+    {
+      "id": "cam5-s-page77",
+      "module": "speaking",
+      "title": "Cambridge IELTS 5 source page 77",
+      "source": "Cambridge IELTS 5 source page",
+      "period": "Cambridge 5",
+      "book": 5,
+      "test": 0,
+      "page": 77,
+      "part1Topic": "",
+      "part1": [],
+      "part2": "",
+      "part3Topics": [],
+      "part3": [],
+      "speakingPageImages": [
+        {
+          "page": 77,
+          "url": "/generated/speaking-pages/cam5/test0/page-77.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam5-pdf",
+      "sourcePdfSha256": "0b76722b571c20968b291fddff61cdeccb1cd9740ea419b58f40e548888981a7"
+    },
+    {
+      "id": "cam6-s-page55",
+      "module": "speaking",
+      "title": "Cambridge IELTS 6 source page 55",
+      "source": "Cambridge IELTS 6 source page",
+      "period": "Cambridge 6",
+      "book": 6,
+      "test": 0,
+      "page": 55,
+      "part1Topic": "",
+      "part1": [],
+      "part2": "",
+      "part3Topics": [],
+      "part3": [],
+      "speakingPageImages": [
+        {
+          "page": 55,
+          "url": "/generated/speaking-pages/cam6/test0/page-55.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam6-pdf",
+      "sourcePdfSha256": "5449cfda3e56993fd11cd249812ae5b0ec6394c9b253e48f03a9f0ae7e431369"
+    },
+    {
+      "id": "cam8-s-page79",
+      "module": "speaking",
+      "title": "Cambridge IELTS 8 source page 79",
+      "source": "Cambridge IELTS 8 source page",
+      "period": "Cambridge 8",
+      "book": 8,
+      "test": 0,
+      "page": 79,
+      "part1Topic": "",
+      "part1": [],
+      "part2": "",
+      "part3Topics": [],
+      "part3": [],
+      "speakingPageImages": [
+        {
+          "page": 79,
+          "url": "/generated/speaking-pages/cam8/test0/page-79.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam8-pdf",
+      "sourcePdfSha256": "e3842076d33a0b017ca450c47416af018593a77e977e00b328f9d448d32f75b7"
+    },
+    {
+      "id": "cam9-s-page95",
+      "module": "speaking",
+      "title": "Cambridge IELTS 9 source page 95",
+      "source": "Cambridge IELTS 9 source page",
+      "period": "Cambridge 9",
+      "book": 9,
+      "test": 0,
+      "page": 95,
+      "part1Topic": "",
+      "part1": [],
+      "part2": "",
+      "part3Topics": [],
+      "part3": [],
+      "speakingPageImages": [
+        {
+          "page": 95,
+          "url": "/generated/speaking-pages/cam9/test0/page-95.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam9-pdf",
+      "sourcePdfSha256": "b25f954dd25e058dfc05913c8f3b9ffead6581aa23bb10f8f2e98e6314f7af24"
+    },
+    {
+      "id": "cam10-s-page25",
+      "module": "speaking",
+      "title": "Cambridge IELTS 10 source page 25",
+      "source": "Cambridge IELTS 10 source page",
+      "period": "Cambridge 10",
+      "book": 10,
+      "test": 0,
+      "page": 25,
+      "part1Topic": "",
+      "part1": [],
+      "part2": "",
+      "part3Topics": [],
+      "part3": [],
+      "speakingPageImages": [
+        {
+          "page": 25,
+          "url": "/generated/speaking-pages/cam10/test0/page-25.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam10-pdf",
+      "sourcePdfSha256": "3f1c532893532971b2a1fd1a47425c1895908d3a593f95a9699e4c80ca129c82"
+    },
+    {
+      "id": "cam10-s-page49",
+      "module": "speaking",
+      "title": "Cambridge IELTS 10 source page 49",
+      "source": "Cambridge IELTS 10 source page",
+      "period": "Cambridge 10",
+      "book": 10,
+      "test": 0,
+      "page": 49,
+      "part1Topic": "",
+      "part1": [],
+      "part2": "",
+      "part3Topics": [],
+      "part3": [],
+      "speakingPageImages": [
+        {
+          "page": 49,
+          "url": "/generated/speaking-pages/cam10/test0/page-49.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam10-pdf",
+      "sourcePdfSha256": "3f1c532893532971b2a1fd1a47425c1895908d3a593f95a9699e4c80ca129c82"
+    },
+    {
+      "id": "cam10-s-page72",
+      "module": "speaking",
+      "title": "Cambridge IELTS 10 source page 72",
+      "source": "Cambridge IELTS 10 source page",
+      "period": "Cambridge 10",
+      "book": 10,
+      "test": 0,
+      "page": 72,
+      "part1Topic": "",
+      "part1": [],
+      "part2": "",
+      "part3Topics": [],
+      "part3": [],
+      "speakingPageImages": [
+        {
+          "page": 72,
+          "url": "/generated/speaking-pages/cam10/test0/page-72.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam10-pdf",
+      "sourcePdfSha256": "3f1c532893532971b2a1fd1a47425c1895908d3a593f95a9699e4c80ca129c82"
+    },
+    {
+      "id": "cam10-s-page96",
+      "module": "speaking",
+      "title": "Cambridge IELTS 10 source page 96",
+      "source": "Cambridge IELTS 10 source page",
+      "period": "Cambridge 10",
+      "book": 10,
+      "test": 0,
+      "page": 96,
+      "part1Topic": "",
+      "part1": [],
+      "part2": "",
+      "part3Topics": [],
+      "part3": [],
+      "speakingPageImages": [
+        {
+          "page": 96,
+          "url": "/generated/speaking-pages/cam10/test0/page-96.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam10-pdf",
+      "sourcePdfSha256": "3f1c532893532971b2a1fd1a47425c1895908d3a593f95a9699e4c80ca129c82"
+    },
+    {
+      "id": "cam11-s-page31",
+      "module": "speaking",
+      "title": "Cambridge IELTS 11 source page 31",
+      "source": "Cambridge IELTS 11 source page",
+      "period": "Cambridge 11",
+      "book": 11,
+      "test": 0,
+      "page": 31,
+      "part1Topic": "",
+      "part1": [],
+      "part2": "",
+      "part3Topics": [],
+      "part3": [],
+      "speakingPageImages": [
+        {
+          "page": 31,
+          "url": "/generated/speaking-pages/cam11/test0/page-31.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam11-pdf",
+      "sourcePdfSha256": "2ae431e1e3dc532febcdd52762405703035b10712e35555d9ce4db3a349954f8"
+    },
+    {
+      "id": "cam11-s-page55",
+      "module": "speaking",
+      "title": "Cambridge IELTS 11 source page 55",
+      "source": "Cambridge IELTS 11 source page",
+      "period": "Cambridge 11",
+      "book": 11,
+      "test": 0,
+      "page": 55,
+      "part1Topic": "",
+      "part1": [],
+      "part2": "",
+      "part3Topics": [],
+      "part3": [],
+      "speakingPageImages": [
+        {
+          "page": 55,
+          "url": "/generated/speaking-pages/cam11/test0/page-55.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam11-pdf",
+      "sourcePdfSha256": "2ae431e1e3dc532febcdd52762405703035b10712e35555d9ce4db3a349954f8"
+    },
+    {
+      "id": "cam13-s-page97",
+      "module": "speaking",
+      "title": "Cambridge IELTS 13 source page 97",
+      "source": "Cambridge IELTS 13 source page",
+      "period": "Cambridge 13",
+      "book": 13,
+      "test": 0,
+      "page": 97,
+      "part1Topic": "",
+      "part1": [],
+      "part2": "",
+      "part3Topics": [],
+      "part3": [],
+      "speakingPageImages": [
+        {
+          "page": 97,
+          "url": "/generated/speaking-pages/cam13/test0/page-97.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam13-pdf",
+      "sourcePdfSha256": "e8d5ffc908fb681e48af4c9941cf17f812c037bccab51f0096b574417de369d6"
+    },
+    {
+      "id": "cam16-s-page54",
+      "module": "speaking",
+      "title": "Cambridge IELTS 16 source page 54",
+      "source": "Cambridge IELTS 16 source page",
+      "period": "Cambridge 16",
+      "book": 16,
+      "test": 0,
+      "page": 54,
+      "part1Topic": "",
+      "part1": [],
+      "part2": "",
+      "part3Topics": [],
+      "part3": [],
+      "speakingPageImages": [
+        {
+          "page": 54,
+          "url": "/generated/speaking-pages/cam16/test0/page-54.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam16-pdf",
+      "sourcePdfSha256": "d9c872a8249f2970f6669c0513026d032157294a543880582749e987ba6b5ebc"
+    },
+    {
+      "id": "cam16-s-page75",
+      "module": "speaking",
+      "title": "Cambridge IELTS 16 source page 75",
+      "source": "Cambridge IELTS 16 source page",
+      "period": "Cambridge 16",
+      "book": 16,
+      "test": 0,
+      "page": 75,
+      "part1Topic": "",
+      "part1": [],
+      "part2": "",
+      "part3Topics": [],
+      "part3": [],
+      "speakingPageImages": [
+        {
+          "page": 75,
+          "url": "/generated/speaking-pages/cam16/test0/page-75.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam16-pdf",
+      "sourcePdfSha256": "d9c872a8249f2970f6669c0513026d032157294a543880582749e987ba6b5ebc"
+    },
+    {
+      "id": "cam18-s-page79",
+      "module": "speaking",
+      "title": "Cambridge IELTS 18 source page 79",
+      "source": "Cambridge IELTS 18 source page",
+      "period": "Cambridge 18",
+      "book": 18,
+      "test": 0,
+      "page": 79,
+      "part1Topic": "",
+      "part1": [],
+      "part2": "",
+      "part3Topics": [],
+      "part3": [],
+      "speakingPageImages": [
+        {
+          "page": 79,
+          "url": "/generated/speaking-pages/cam18/test0/page-79.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam18-pdf",
+      "sourcePdfSha256": "6ce16defb207f92689472740739e6b3c9d1b184e6816d2d9e8f1f5ad76426295"
+    },
+    {
+      "id": "cam21-s-page97",
+      "module": "speaking",
+      "title": "Cambridge IELTS 21 source page 97",
+      "source": "Cambridge IELTS 21 source page",
+      "period": "Cambridge 21",
+      "book": 21,
+      "test": 0,
+      "page": 97,
+      "part1Topic": "",
+      "part1": [],
+      "part2": "",
+      "part3Topics": [],
+      "part3": [],
+      "speakingPageImages": [
+        {
+          "page": 97,
+          "url": "/generated/speaking-pages/cam21/test0/page-97.webp"
+        }
+      ],
+      "sourceUrl": "/cambridge-local/file/cam21-pdf",
+      "sourcePdfSha256": "a685672f6385541b7ef0e1433731fc5acb59579264e0d9be9bad53326f108d7d"
     }
   ],
   "skipped": [

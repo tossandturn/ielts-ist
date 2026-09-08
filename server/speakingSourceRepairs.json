@@ -2152,6 +2152,676 @@
           "Will gardening be a more popular hobby in the future?"
         ]
       }
+    },
+    {
+      "legacySourceId": "cam4-s-page80",
+      "sourceRowSha256": "23b0e2e1946ce6119af0bb0f6b1c019494b549a5551ea498ddb70c09e8f44129",
+      "page": 80,
+      "sourcePageSha256": "5bbafd482152b31fdbc38aa25e600f6904ad7b2cbc4d86ffaec1d7b7733d00db",
+      "sourceImageUrl": "/generated/speaking-pages/cam4/test0/page-80.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "254784bc133ae6d22922e778b68d4940939dbd3848e010e8910b47439ae97d2c",
+      "independentReceiptSha256": "4c77439adc6069c69a5d830342003cb081b7f28318c007c71b6fc6053e83583e",
+      "content": {
+        "part1Topic": "Leisure",
+        "part1": [
+          "Do you have any hobbies or interests? [What are they?]",
+          "How did you become interested in (whatever hobby/interest the candidate mentions)?",
+          "What is there to do in your free time in (candidate's home town/village)?",
+          "How do you usually spend your holidays?",
+          "Is there anywhere you would particularly like to visit? [Why?]"
+        ],
+        "cuePrompt": "Describe a river, lake or sea which you like.",
+        "cueBullets": [
+          "what the river, lake or sea is called",
+          "where it is",
+          "what the land near it is like"
+        ],
+        "cueExplanation": "and explain why you like this river, lake or sea.",
+        "part3Topics": [
+          "Water-based leisure activities",
+          "The economic importance of rivers, lakes and the sea"
+        ],
+        "part3": [
+          "What do people enjoy doing when they visit rivers, lakes or the sea? Why do you think these activities are popular?",
+          "What benefits do you think people get from the activities they enjoy in the water?",
+          "What are the different advantages of going to the sea or to a swimming pool to enjoy yourself? What do you think the disadvantages are?",
+          "How does water transport, like boats and ships, compare with other kinds? Are there any advantages/disadvantages of water transport?",
+          "How important is it for a town or city to be located near a river or the sea? Why?",
+          "Have there been any changes in the number of jobs available in fishing and water transport industries, do you think? Why do you think this is?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam5-s-page31",
+      "sourceRowSha256": "2198783bc75fac797b55db354f287c7a02904571bb57c7c44cc5daa56f9967a8",
+      "page": 31,
+      "sourcePageSha256": "ac1bc0e8bc5490de14da3bb952138bb46b10139f306f8c9038d8b956a7bc5605",
+      "sourceImageUrl": "/generated/speaking-pages/cam5/test0/page-31.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "b44b9e900178a918a45850c743548908b89ecc029f2291c51648a738f9c188cb",
+      "independentReceiptSha256": "912161dbffa3633df5dd00115463118d3dbd59f4f340455fe76dffbefa9fdcb4",
+      "content": {
+        "part1Topic": "Your country",
+        "part1": [
+          "Which part of your country do most people live in?",
+          "Tell me about the main industries there.",
+          "How easy is it to travel around your country?",
+          "Has your country changed much since you were a child?"
+        ],
+        "cuePrompt": "Describe a well-known person you like or admire.",
+        "cueBullets": [
+          "who this person is",
+          "what this person has done",
+          "why this person is well known"
+        ],
+        "cueExplanation": "and explain why you admire this person.",
+        "part3Topics": [
+          "Famous people in your country",
+          "Being in the public eye"
+        ],
+        "part3": [
+          "What kind of people become famous people these days?",
+          "Is this different from the kind of achievement that made people famous in the past?",
+          "In what way?",
+          "How do you think people will become famous in the future?",
+          "What are the good things about being famous? Are there any disadvantages?",
+          "How does the media in your country treat famous people?",
+          "Why do you think ordinary people are interested in the lives of famous people?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam5-s-page77",
+      "sourceRowSha256": "851dc5d35e3ce47150f885d216d94076e9af8841dd3cdd27fbb617d419e4e2c1",
+      "page": 77,
+      "sourcePageSha256": "9007df892efaf68c450c38a3da7026531ce954d45713422964a0e676bd3f9b98",
+      "sourceImageUrl": "/generated/speaking-pages/cam5/test0/page-77.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "d79bc307f38b1e107832251600fd459ce0a60366a2469e9bd6dc8b84dcb2a86c",
+      "independentReceiptSha256": "ea4d1f6fff9feab7239f2c7721dca1bc5e033e68cd5edd65081c628a09ec03b7",
+      "content": {
+        "part1Topic": "Entertainment",
+        "part1": [
+          "Do you prefer relaxing at home or going out in the evening? [Why?]",
+          "When you go out for an evening, what do you like to do?",
+          "How popular is this with other people in your country?",
+          "Is there any kind of entertainment you do not like? [Why/Why not?]"
+        ],
+        "cuePrompt": "Describe one of your friends.",
+        "cueBullets": [
+          "how you met",
+          "how long you have known each other",
+          "how you spend time together"
+        ],
+        "cueExplanation": "and explain why you like this person.",
+        "part3Topics": [
+          "Qualities of friends",
+          "Other relationships"
+        ],
+        "part3": [
+          "What do you think are the most important qualities for friends to have?",
+          "Which are more important to people, their family or their friends? Why?",
+          "What do you think causes friendships to break up?",
+          "What other types of relationship, apart from friends or family, are important in people's lives today?",
+          "Have relationships with neighbours where you live changed in recent years? How?",
+          "How important do you think it is for a person to spend some time alone? Why/Why not?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam6-s-page55",
+      "sourceRowSha256": "7df29edd4755239a9499a214be0e4edaac9dc08f81408f18211dec11c3b731b5",
+      "page": 55,
+      "sourcePageSha256": "d8293355fb539b5942b2947b9a6c534de188511e7427a007412c45212026255d",
+      "sourceImageUrl": "/generated/speaking-pages/cam6/test0/page-55.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "a7d3fc9c3ea19260cb641b0d039d8416eb18b06c53f59cd6285dc20e0e08eefe",
+      "independentReceiptSha256": "f8c291e296aac8e4a7e9b4fe873f2304e47f9ccbebb8d28ea225deb864cd3ea1",
+      "content": {
+        "part1Topic": "Musical instruments",
+        "part1": [
+          "Which instrument do you like listening to most? [Why?]",
+          "Have you ever learned to play a musical instrument? [Which one?]",
+          "Do you think children should learn to play a musical instrument at school? [Why/Why not?]",
+          "How easy would it be to learn to play an instrument without a teacher? [Why?]"
+        ],
+        "cuePrompt": "Describe something healthy you enjoy doing.",
+        "cueBullets": [
+          "what you do",
+          "where you do it",
+          "who you do it with"
+        ],
+        "cueExplanation": "and explain why you think doing this is healthy.",
+        "part3Topics": [
+          "Keeping fit and healthy",
+          "Health and modern lifestyles"
+        ],
+        "part3": [
+          "What do most people do to keep fit in your country?",
+          "How important is it for people to do some regular physical exercise?",
+          "Why do some people think that modern lifestyles are not healthy?",
+          "Why do some people choose to lead unhealthy lives?",
+          "Should individuals or governments be responsible for making people's lifestyle healthy?",
+          "What could be done to encourage people to live in a healthy way?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam8-s-page79",
+      "sourceRowSha256": "0c56dc56a39634818d73d172416ef94adce274f32e2b71b2e620836ab9f8a99d",
+      "page": 79,
+      "sourcePageSha256": "bc47af9532202912036bc66ed0fa80fbbf5e645ff097fd319fcf5dac1092d7f1",
+      "sourceImageUrl": "/generated/speaking-pages/cam8/test0/page-79.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "4bb6cc02f07706909b4c2dac6d697e5e812c74c18418aece2131688fe4d7ad1e",
+      "independentReceiptSha256": "7e1165a7e0a45f0fac1f7a9090c71f6d497f822ff98cc600ed1213e4d8507736",
+      "content": {
+        "part1Topic": "Flowers",
+        "part1": [
+          "Do you like to have flowers in your home? [Why/Why not?]",
+          "Where would you go to buy flowers? [Why?]",
+          "On what occasions would you give someone flowers?",
+          "Are flowers important in your culture? [Why/Why not?]"
+        ],
+        "cuePrompt": "Describe a meeting you remember going to at work, college or school.",
+        "cueBullets": [
+          "when and where the meeting was held",
+          "who was at the meeting",
+          "what the people at the meeting talked about"
+        ],
+        "cueExplanation": "and explain why you remember going to this meeting.",
+        "part3Topics": [
+          "Going to meetings",
+          "International meetings"
+        ],
+        "part3": [
+          "What are the different types of meeting that people often go to?",
+          "Some people say that no-one likes to go to meetings – what do you think?",
+          "Why can it sometimes be important to go to meetings?",
+          "Why do you think world leaders often have meetings together?",
+          "What possible difficulties might be involved in organising meetings between world leaders?",
+          "Do you think that meetings between international leaders will become more frequent in the future? Or will there be less need for world leaders to meet?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam9-s-page95",
+      "sourceRowSha256": "4fceb331fc7908585165ff8b8084e5b84aaa09d05d7d44ab3da857cb5aa64416",
+      "page": 95,
+      "sourcePageSha256": "ec88abe97dc4ed3a65f1df3f3aa984730026c4d5bb471f8dd610bb06c857c595",
+      "sourceImageUrl": "/generated/speaking-pages/cam9/test0/page-95.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "678495bd2b4f227e3b64f730f620b3fb5a1e5dc3d0b5409b9270e1c1eabaef85",
+      "independentReceiptSha256": "da11cbe5151e1464adeb1648a2a762909bb0dbb8fd5826e95933184c98c46b69",
+      "content": {
+        "part1Topic": "Bicycles",
+        "part1": [
+          "How popular are bicycles in your home town? [Why?]",
+          "How often do you ride a bicycle? [Why/Why not?]",
+          "Do you think that bicycles are suitable for all ages? [Why/Why not?]",
+          "What are the advantages of a bicycle compared to a car? [Why?]"
+        ],
+        "cuePrompt": "Describe a person who has done a lot of work to help people.",
+        "cueBullets": [
+          "who this person is/was",
+          "where this person lives/lived",
+          "what he/she has done to help people"
+        ],
+        "cueExplanation": "and explain how you know about this person.",
+        "part3Topics": [
+          "Helping other people in the community",
+          "Community Services"
+        ],
+        "part3": [
+          "What are some of the ways people can help others in the community? Which is most important?",
+          "Why do you think some people like to help other people?",
+          "Some people say that people help others in the community more now than they did in the past. Do you agree or disagree? Why?",
+          "What types of services, such as libraries or health centres, are available to the people who live in your area? Do you think there are enough of them?",
+          "Which groups of people generally need most support in a community? Why?",
+          "Who do you think should pay for the services that are available to the people in a community? Should it be the government or individual people?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam10-s-page25",
+      "sourceRowSha256": "a21e29fdd8164c8e06dad4dfddafd0bb2e6cb907152dbd3a60fbe4bc20d23120",
+      "page": 25,
+      "sourcePageSha256": "b09b1b5e7cd0c82563fcb4be33664e2516942cea679c131c5d21763227044955",
+      "sourceImageUrl": "/generated/speaking-pages/cam10/test0/page-25.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "27633f92d2d27d4bca59937576ecbc038dff5d1c6521e83ce881df0481c72b2a",
+      "independentReceiptSha256": "a02921d0446dcdf3cefc8385d951412b8efd625233b2c2d0527b2d12b3596f3f",
+      "content": {
+        "part1Topic": "Weekends",
+        "part1": [
+          "How do you usually spend your weekends? [Why?]",
+          "Which is your favourite part of the weekend? [Why?]",
+          "Do you think your weekends are long enough? [Why/Why not?]",
+          "How important do you think it is to have free time at the weekends? [Why?]"
+        ],
+        "cuePrompt": "Describe someone you know who does something well.",
+        "cueBullets": [
+          "who this person is",
+          "how you know this person",
+          "what they do well"
+        ],
+        "cueExplanation": "and explain why you think this person is so good at doing this.",
+        "part3Topics": [
+          "Skills and abilities",
+          "Salaries for skilled people"
+        ],
+        "part3": [
+          "What skills and abilities do people most want to have today? Why?",
+          "Which skills should children learn at school? Are there any skills which they should learn at home? What are they?",
+          "Which skills do you think will be important in the future? Why?",
+          "Which kinds of jobs have the highest salaries in your country? Why is this?",
+          "Are there any other jobs that you think should have high salaries? Why do you think that?",
+          "Some people say it would be better for society if everyone got the same salary. What do you think about that? Why?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam10-s-page49",
+      "sourceRowSha256": "fe8ab010a46be762b3ef8cb11cdfabbd83e02be8512869378c53b3633e394342",
+      "page": 49,
+      "sourcePageSha256": "da3743b1d3f47ae6387e9d5a6087ecc278e42d19624c7855fda8a1130960a7e2",
+      "sourceImageUrl": "/generated/speaking-pages/cam10/test0/page-49.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "83d37b9780bddedb4c733c452e573b014531f6175ef9da35d68542d89106ca50",
+      "independentReceiptSha256": "0928a86ce8a00c099954aaeb091afe1bc3c16539b5921960ef8e9efd85fb7b4c",
+      "content": {
+        "part1Topic": "Music",
+        "part1": [
+          "What types of music do you like to listen to? [Why?]",
+          "At what times of day do you like to listen to music? [Why?]",
+          "Did you learn to play a musical instrument when you were a child? [Why/Why not?]",
+          "Do you think all children should learn to play a musical instrument? [Why/Why not?]"
+        ],
+        "cuePrompt": "Describe a shop near where you live that you sometimes use.",
+        "cueBullets": [
+          "what sorts of product or service it sells",
+          "what the shop looks like",
+          "where it is located"
+        ],
+        "cueExplanation": "and explain why you use this shop.",
+        "part3Topics": [
+          "Local business",
+          "People and business"
+        ],
+        "part3": [
+          "What types of local business are there in your neighbourhood? Are there any restaurants, shops or dentists for example?",
+          "Do you think local businesses are important for a neighbourhood? In what way?",
+          "How do large shopping malls and commercial centres affect small local businesses?",
+          "Why do you think that is?",
+          "Why do some people want to start their own business?",
+          "Are there any disadvantages to running a business? Which is the most serious?",
+          "What are the most important qualities that a good business person needs? Why is that?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam10-s-page72",
+      "sourceRowSha256": "ba216a2c3e7e2da8edf6d165c97b9d4ffd98ee29041f832c3da0864aad300ab7",
+      "page": 72,
+      "sourcePageSha256": "47760f0f5840682ae03a24071116b069e2134d061512956007085e7a95f02a1a",
+      "sourceImageUrl": "/generated/speaking-pages/cam10/test0/page-72.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "7c2e37e9fb120f4961fc2252d6f94856e2e9ab9d6881f9078cdf42f0c8ec4a1d",
+      "independentReceiptSha256": "1245bc583f8a2021186edb0edfdd727c372b3c2dcac603676455e8eb09c6ef21",
+      "content": {
+        "part1Topic": "Travel",
+        "part1": [
+          "Do you enjoy travelling? [Why/Why not?]",
+          "Have you done much travelling? [Why/Why not?]",
+          "Do you think it's better to travel alone or with other people? [Why?]",
+          "Where would you like to travel in the future? [Why?]"
+        ],
+        "cuePrompt": "Describe a child that you know.",
+        "cueBullets": [
+          "who this child is and how often you see him or her",
+          "how old this child is",
+          "what he or she is like"
+        ],
+        "cueExplanation": "and explain what you feel about this child.",
+        "part3Topics": [
+          "Relationships between parents and children",
+          "Children's free-time activities"
+        ],
+        "part3": [
+          "How much time do children spend with their parents in your country? Do you think that is enough?",
+          "How important do you think spending time together is for the relationships between parents and children? Why?",
+          "Have relationships between parents and children changed in recent years? Why do you think that is?",
+          "What are the most popular free-time activities with children today?",
+          "Do you think the free-time activities children do today are good for their health? Why is that?",
+          "How do you think children's activities will change in the future? Will this be a positive change?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam10-s-page96",
+      "sourceRowSha256": "606c3c08b15e8045bc98e509ff7aec7faf7030c4b3830a57587f932851d62706",
+      "page": 96,
+      "sourcePageSha256": "715118a77bbfd06d291934fe52dc3645c6aacc529a79f598c8226ec93ca0f180",
+      "sourceImageUrl": "/generated/speaking-pages/cam10/test0/page-96.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "812b7ac4e1c9544cbe76393ae49f83079fcd395c7c460a392160d3753a07a854",
+      "independentReceiptSha256": "fe0b87addc165bc1789a583348ad624db534d380a9588897971b06c4a020ff8d",
+      "content": {
+        "part1Topic": "School",
+        "part1": [
+          "Did you go to secondary/high school near to where you lived? [Why/Why not?]",
+          "What did you like about your secondary/high school? [Why?]",
+          "Tell me about anything you didn't like at your school.",
+          "How do you think your school could be improved? [Why/Why not?]"
+        ],
+        "cuePrompt": "Describe something you don't have now but would really like to own in the future.",
+        "cueBullets": [
+          "what this thing is",
+          "how long you have wanted to own it",
+          "where you first saw it"
+        ],
+        "cueExplanation": "and explain why you would like to own it.",
+        "part3Topics": [
+          "Owning things",
+          "Salaries for skilled people"
+        ],
+        "part3": [
+          "What types of things do young people in your country most want to own today?",
+          "Why is this?",
+          "Why do some people feel they need to own things?",
+          "Do you think that owning lots of things makes people happy? Why?",
+          "Do you think television and films can make people want to get new possessions?",
+          "Why do they have this effect?",
+          "Are there any benefits to society of people wanting to get new possessions?",
+          "Why do you think this is?",
+          "Do you think people will consider that having lots of possessions is a sign of success in the future? Why?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam11-s-page31",
+      "sourceRowSha256": "92aea70ebd98497fc15171ff083721960a634fec561acaf3ccfaac0dcd2f88c1",
+      "page": 31,
+      "sourcePageSha256": "d09518f2b31dc0efe9f41009851bf64fbb6c7235d3224b80713c3e238346485a",
+      "sourceImageUrl": "/generated/speaking-pages/cam11/test0/page-31.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "ab8b583be2c92b0082ff521f7c324526380272223eb0d941c4d1cad501951611",
+      "independentReceiptSha256": "9dba88fd3d001c5c3ed43f2bf3975e7a740aa63f9ba7ec0c36c0af2c3c0ea8ef",
+      "content": {
+        "part1Topic": "Food and cooking",
+        "part1": [
+          "What sorts of food do you like eating most? [Why?]",
+          "Who normally does the cooking in your home? [Why/Why not?]",
+          "Do you watch cookery programmes on TV? [Why/Why not?]",
+          "In general, do you prefer eating out or eating at home? [Why?]"
+        ],
+        "cuePrompt": "Describe a house/apartment that someone you know lives in.",
+        "cueBullets": [
+          "whose house/apartment this is",
+          "where the house/apartment is",
+          "what it looks like inside"
+        ],
+        "cueExplanation": "and explain what you like or dislike about this person's house/apartment.",
+        "part3Topics": [
+          "Different types of home",
+          "Finding a place to live"
+        ],
+        "part3": [
+          "What kinds of home are most popular in your country? Why is this?",
+          "What do you think are the advantages of living in a house rather than an apartment?",
+          "Do you think that everyone would like to live in a larger home? Why is that?",
+          "How easy is it to find a place to live in your country?",
+          "Do you think it's better to rent or to buy a place to live in? Why?",
+          "Do you agree that there is a right age for young adults to stop living with their parents? Why is that?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam11-s-page55",
+      "sourceRowSha256": "b947c6e838c490d5c7095fab9c9b254fa1163644ee16eb4a1ac99faf279f0e3e",
+      "page": 55,
+      "sourcePageSha256": "a601d8b437f9d8f70b4a73be1f5397c04d6dc21fed3b2960f1c9be504d9a6350",
+      "sourceImageUrl": "/generated/speaking-pages/cam11/test0/page-55.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "136465c259017cf946a3ef0ed820d68bb5313e38e2ff40fd7fc9ee570fc5561e",
+      "independentReceiptSha256": "72f1a29f29958a7e779785063c94a75f9eabcb74dd66c6600c1be03bc187fcd9",
+      "content": {
+        "part1Topic": "Friends",
+        "part1": [
+          "How often do you go out with friends? [Why/Why not?]",
+          "Tell me about your best friend at school.",
+          "How friendly are you with your neighbours? [Why/Why not?]",
+          "Which is more important to you, friends or family? [Why?]"
+        ],
+        "cuePrompt": "Describe a writer you would like to meet.",
+        "cueBullets": [
+          "who the writer is",
+          "what you know about this writer already",
+          "what you would like to find out about him/her"
+        ],
+        "cueExplanation": "and explain why you would like to meet this writer.",
+        "part3Topics": [
+          "Reading and children",
+          "Reading for different purposes"
+        ],
+        "part3": [
+          "What kinds of book are most popular with children in your country? Why do you think that is?",
+          "Why do you think some children do not read books very often?",
+          "How do you think children can be encouraged to read more?",
+          "Are there any occasions when reading at speed is a useful skill to have? What are they?",
+          "Are there any jobs where people need to read a lot? What are they?",
+          "Do you think that reading novels is more interesting than reading factual books?",
+          "Why is that?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam13-s-page97",
+      "sourceRowSha256": "51fcb07dff6e21002ef3a1c61145aaf4cd9265c3df0677882ef3b2c59f58dfc8",
+      "page": 97,
+      "sourcePageSha256": "a0c4c1e5e0676cf0246fc209748d69954b9454c1ac9d38440630f6a66f881fd9",
+      "sourceImageUrl": "/generated/speaking-pages/cam13/test0/page-97.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "b5ab27a8d68c2118e39237b5aaa8e957bcada1fc1edfcf667283b505ade2749a",
+      "independentReceiptSha256": "ac5dae5b8277d48e17a6d107b177b160dbacaa827d521d037d05d9e2971e1e77",
+      "content": {
+        "part1Topic": "Animals",
+        "part1": [
+          "Are there many animals or birds where you live? [Why/Why not?]",
+          "How often do you watch programmes or read articles about wild animals? [Why?]",
+          "Have you ever been to a zoo or a wildlife park? [Why/Why not?]",
+          "Would you like to have a job working with animals? [Why/Why not?]"
+        ],
+        "cuePrompt": "Describe a website you use that helps you a lot in your work or studies.",
+        "cueBullets": [
+          "what the website is",
+          "how often you use the website",
+          "what information the website gives you"
+        ],
+        "cueExplanation": "and explain how your work or studies would change if this website didn't exist.",
+        "part3Topics": [
+          "The internet",
+          "Social media websites"
+        ],
+        "part3": [
+          "Why do some people find the internet addictive?",
+          "What would the world be like without the internet?",
+          "Do you think that the way people use the internet may change in the future?",
+          "What are the ways that social media can be used for positive purposes?",
+          "Why do some individuals post highly negative comments about other people on social media?",
+          "Do you think that companies' main form of advertising will be via social media in the future?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam16-s-page54",
+      "sourceRowSha256": "a9e972ba7105d56f85dd8f8ce54a9d81acec6d9605fa45851020f756a107971c",
+      "page": 54,
+      "sourcePageSha256": "fdd82d0c20b59ec11d25cb002e8d726d951330ebc76202f2da778ddf36056cc8",
+      "sourceImageUrl": "/generated/speaking-pages/cam16/test0/page-54.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "705a1b22fb95b7635732199e65794b643badd315bbf6e2e51fedab05c1387796",
+      "independentReceiptSha256": "fb5489002e050a80987569450001052699364266fe284acfcd9a2623712b5132",
+      "content": {
+        "part1Topic": "Flowers and plants",
+        "part1": [
+          "Do you have a favourite flower or plant? [Why/Why not?]",
+          "What kinds of flowers and plants grow near where you live? [Why/Why not?]",
+          "Is it important to you to have flowers and plants in your home? [Why/Why not?]",
+          "Have you ever bought flowers for someone else? [Why/Why not?]"
+        ],
+        "cuePrompt": "Describe a review you read about a product or service.",
+        "cueBullets": [
+          "where you read the review",
+          "what the product or service was",
+          "what information the review gave about the product or service"
+        ],
+        "cueExplanation": "and explain what you did as a result of reading this review.",
+        "part3Topics": [
+          "Online reviews",
+          "Customer service"
+        ],
+        "part3": [
+          "What kinds of things do people write online reviews about in your country?",
+          "Why do some people write online reviews?",
+          "Do you think that online reviews are good for both shoppers and companies?",
+          "What do you think it might be like to work in a customer service job?",
+          "Do you agree that customers are more likely to complain nowadays?",
+          "How important is it for companies to take all customer complaints seriously?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam16-s-page75",
+      "sourceRowSha256": "638e18d30ad29f0fd504e8f0516d62812f201e702cc6d92aaf5c01a5e82f9933",
+      "page": 75,
+      "sourcePageSha256": "fa5f7eda0a3c367ad7c140c1778ff6e7b22460667fef9f8b3add59f7c0c9894b",
+      "sourceImageUrl": "/generated/speaking-pages/cam16/test0/page-75.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "d6afda7c71a970277140b9af4c84157b28597a7adcfad4414490da91e0f80022",
+      "independentReceiptSha256": "9bd644ae73045c69cf8b69f09408171c650d02c94514a17a555424aa5094eb88",
+      "content": {
+        "part1Topic": "Summer",
+        "part1": [
+          "Is summer your favourite time of year? [Why/Why not?]",
+          "What do you do in summer when the weather's very hot? [Why?]",
+          "Do you go on holiday every summer? [Why/Why not?]",
+          "Did you enjoy the summer holidays when you were at school? [Why/Why not?]"
+        ],
+        "cuePrompt": "Describe a luxury item you would like to own in the future.",
+        "cueBullets": [
+          "what item you would like to own",
+          "what this item looks like",
+          "why you would like to own this item"
+        ],
+        "cueExplanation": "and explain whether you think you will ever own this item.",
+        "part3Topics": [
+          "Expensive items",
+          "Rich people"
+        ],
+        "part3": [
+          "Which expensive items would many young people (in your country) like to buy?",
+          "How do the expensive items that younger people want to buy differ from those that older people want to buy?",
+          "Do you think that people are more likely to buy expensive items for their friends or for themselves?",
+          "How difficult is it to become very rich in today's world?",
+          "Do you agree that money does not necessarily bring happiness?",
+          "In what ways might rich people use their money to help society?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam18-s-page79",
+      "sourceRowSha256": "c6f86fa0e4ac1e1b9afec2fa498a6dd33e9b87da8e2ef55c04d86605460e6eb6",
+      "page": 79,
+      "sourcePageSha256": "4001b6636904f397809297e4d1656fa8a76fe42a2d85d9419a4933735cb91118",
+      "sourceImageUrl": "/generated/speaking-pages/cam18/test0/page-79.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "28b7fe6bb4f58a5fd1ebd56547efdc88799465bfea4b94412c03a091bb6a5ac3",
+      "independentReceiptSha256": "584353b86b3c2d82d021752aa0b41773abb3912af699ce7b9bb27829a06e1cac",
+      "content": {
+        "part1Topic": "Online shopping",
+        "part1": [
+          "How often do you buy things online? [Why?]",
+          "What was the last thing you bought online?",
+          "Do you ever see things in shops and then buy them online? [Why/Why not?]",
+          "Do you think the popularity of online shopping is changing your town or city centre? [Why/Why not?]"
+        ],
+        "cuePrompt": "Describe a time when you enjoyed visiting a member of your family in their home.",
+        "cueBullets": [
+          "who you visited and where they lived",
+          "why you made this visit",
+          "what happened during this visit"
+        ],
+        "cueExplanation": "and explain what you enjoyed about this visit.",
+        "part3Topics": [
+          "Family occasions",
+          "Everyday life in families"
+        ],
+        "part3": [
+          "When do families celebrate together in your country?",
+          "How often do all the generations in a family come together in your country?",
+          "Why is it that some people might not enjoy attending family occasions?",
+          "Do you think it is a good thing for parents to help their children with schoolwork?",
+          "How important do you think it is for families to eat together at least once a day?",
+          "Do you believe that everyone in a family should share household tasks?"
+        ]
+      }
+    },
+    {
+      "legacySourceId": "cam21-s-page97",
+      "sourceRowSha256": "e81468589e43dc3dc59a941a18f72af8d7efcbdc065b265d8d3dbf31b3cac617",
+      "page": 97,
+      "sourcePageSha256": "44ac570b3a8b949db2cbc95c7aca0b1af4d409af4bcfe168005d2178c5a26377",
+      "sourceImageUrl": "/generated/speaking-pages/cam21/test0/page-97.webp",
+      "reviewMethod": "two-independent-source-page-reads",
+      "reviewStatus": "source-content-agreement",
+      "primaryReceiptSha256": "bee3f841cbbd416db5d8f028a2a90ad8109087fae188ce653efec3e9fdb1e75d",
+      "independentReceiptSha256": "cd468b93680bf3749fd467df7e12bdfaf93efea9fc71c26a52ee1e65680bb8f4",
+      "content": {
+        "part1Topic": "Bread",
+        "part1": [
+          "When do you usually eat bread?",
+          "How important is bread in your culture?",
+          "Have you tried any kinds of bread from other countries?",
+          "Would you be interested in learning how to make bread?"
+        ],
+        "cuePrompt": "Describe a person you know who is very competitive.",
+        "cueBullets": [
+          "who this person is",
+          "what this person is competitive about",
+          "how successful this person is"
+        ],
+        "cueExplanation": "and explain why you think this person is so competitive.",
+        "part3Topics": [
+          "Competitions",
+          "Being competitive in sports"
+        ],
+        "part3": [
+          "What kinds of competitions do people like to enter in your country?",
+          "What do you think is the best kind of prize to win in a competition?",
+          "Why do people like watching quiz shows and other competitions on TV?",
+          "How important is it to be very competitive at sport?",
+          "Do you think sportspeople perform better when they play against competitors who are stronger than they are?",
+          "Why do some people think that taking part in sport is more important than winning?"
+        ]
+      }
     }
   ]
 }
