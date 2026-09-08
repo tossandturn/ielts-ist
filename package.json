@@ -5,7 +5,7 @@
   "type": "commonjs",
   "scripts": {
     "start": "node server.js",
-    "check": "node --check server.js && node scripts/build-web-topic-projection.cjs --check && node scripts/test-native-public-topics.mjs && node scripts/test-native-content-catalog.mjs && node scripts/test-native-catalog-negotiation.cjs && node scripts/test-speaking-source-repairs.cjs && node scripts/test-speaking-source-punctuation.cjs",
+    "check": "node --check server.js && node scripts/build-web-topic-projection.cjs --check && node scripts/test-native-public-topics.mjs && node scripts/test-native-content-catalog.mjs && node scripts/test-native-catalog-negotiation.cjs && node scripts/test-speaking-source-repairs.cjs && node scripts/test-speaking-source-punctuation.cjs && node scripts/test-original-material-assets.cjs && node scripts/test-source-byte-ranges.cjs",
     "test:speaking-source-http": "node scripts/test-speaking-source-http.cjs"
   },
   "dependencies": {

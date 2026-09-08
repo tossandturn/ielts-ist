@@ -11,6 +11,9 @@ const { WebSocketServer } = require("ws");
 const {nativeCatalogView,nativeTaskDetail}=require("./server/nativeIeltsCatalog.cjs");
 const {mergeSpeakingSourceRepairs,createSpeakingPageVerifier,isVerifiedSpeakingSource,carrySpeakingSourceVerification}=require("./server/speakingSourceRepairs.cjs");
 const speakingSourceRepairs=require("./server/speakingSourceRepairs.json");
+const {createOriginalMaterialResolver}=require("./server/originalMaterialAssets.cjs");
+const originalMaterialAssets=require("./server/originalMaterialAssets.json");
+const {parseSourceByteRange}=require("./server/sourceByteRange.cjs");
 const {nativeReportResponse}=require("./server/nativeReportResponse.cjs");
 const {nativeObjectiveRecord}=require("./server/nativeObjectiveProjection.cjs");
 const {bindWritingSource,sourceImage}=require("./server/nativeWritingSource.cjs");
@@ -44,6 +47,7 @@ const SERVER_HOST = process.env.NODE_ENV === "production"
 const STARTED_AT = Date.now();
 const PUBLIC_DIR = path.join(__dirname, "public");
 const verifySpeakingSourcePage=createSpeakingPageVerifier(PUBLIC_DIR);
+const resolveOriginalMaterial=createOriginalMaterialResolver({root:path.join(__dirname,"data","original-materials"),manifest:originalMaterialAssets});
 const APP_DB_PATH = process.env.IELTSIST_DB_PATH || path.join(__dirname, "data", "ieltsist.sqlite");
 // Session cookies are only sent over HTTPS by default; set this to 0 for an explicitly HTTP-only local setup.
 const SESSION_COOKIE_SECURE = String(process.env.SESSION_COOKIE_SECURE || "1").trim() !== "0";
@@ -4730,16 +4734,14 @@ function serveFile(req, res, filePath, contentType) {
       res.end("Not found");
       return;
     }
-    const range = req.headers.range;
+    const range = parseSourceByteRange(req.headers.range, stat.size, req.method);
     if (range) {
-      const match = range.match(/bytes=(\d*)-(\d*)/);
-      const start = match?.[1] ? Number(match[1]) : 0;
-      const end = match?.[2] ? Number(match[2]) : stat.size - 1;
-      if (start >= stat.size || end >= stat.size || start > end) {
+      if (range.unsatisfiable) {
         res.writeHead(416, { "content-range": `bytes */${stat.size}` });
         res.end();
         return;
       }
+      const {start,end}=range;
       res.writeHead(206, {
         "content-type": contentType,
         "content-length": end - start + 1,
@@ -4751,7 +4753,8 @@ function serveFile(req, res, filePath, contentType) {
         res.end();
         return;
       }
-      fs.createReadStream(resolved, { start, end }).pipe(res);
+      const stream=fs.createReadStream(resolved, { start, end });
+      stream.on("error",()=>res.destroy());res.on("close",()=>stream.destroy());stream.pipe(res);
       return;
     }
     res.writeHead(200, {
@@ -4764,11 +4767,12 @@ function serveFile(req, res, filePath, contentType) {
       res.end();
       return;
     }
-    fs.createReadStream(resolved).pipe(res);
+    const stream=fs.createReadStream(resolved);
+    stream.on("error",()=>res.destroy());res.on("close",()=>stream.destroy());stream.pipe(res);
   });
 }
 
-function serveLocalCambridgeFile(req, res) {
+async function serveLocalCambridgeFile(req, res) {
   const url = new URL(req.url, `http://${req.headers.host}`);
   const id = decodeURIComponent(url.pathname.replace("/cambridge-local/file/", ""));
   const file = LOCAL_FILE_INDEX.get(id);
@@ -4777,7 +4781,9 @@ function serveLocalCambridgeFile(req, res) {
     res.end("Not found");
     return;
   }
-  serveFile(req, res, resolvePortableLocalFilePath(file.path), file.contentType || "application/octet-stream");
+  const portable=resolvePortableLocalFilePath(file.path);
+  const resolved=fs.existsSync(portable)?portable:await resolveOriginalMaterial(id);
+  serveFile(req, res, resolved || "", file.contentType || "application/octet-stream");
 }
 
 function resolvePortableLocalFilePath(filePath) {
@@ -8575,11 +8581,11 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     if ((req.method === "GET" || req.method === "HEAD") && req.url === "/cambridge15/pdf") {
-      serveFile(req, res, CAMBRIDGE15_PDF, "application/pdf");
+      serveFile(req, res, fs.existsSync(CAMBRIDGE15_PDF)?CAMBRIDGE15_PDF:await resolveOriginalMaterial("cam15-pdf") || "", "application/pdf");
       return;
     }
     if ((req.method === "GET" || req.method === "HEAD") && req.url.startsWith("/cambridge-local/file/")) {
-      serveLocalCambridgeFile(req, res);
+      await serveLocalCambridgeFile(req, res);
       return;
     }
     if ((req.method === "GET" || req.method === "HEAD") && req.url.startsWith("/cambridge15/audio/")) {

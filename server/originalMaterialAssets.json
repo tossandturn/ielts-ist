@@ -1,0 +1,179 @@
+{
+  "schemaVersion": "ielts-original-material-assets-v1",
+  "assets": {
+    "cam4-pdf": {
+      "file": "30f7d9d86093912e400636bf044e7acd178ecbb53a18fc89a2e4bf72853e892f.pdf",
+      "sha256": "30f7d9d86093912e400636bf044e7acd178ecbb53a18fc89a2e4bf72853e892f",
+      "bytes": 249059247,
+      "contentType": "application/pdf"
+    },
+    "cam4-analysis": {
+      "file": "683e5003a7c66453c0c5f55be0b0d7cd05992e8724bece281060cab1f366c4e9.pdf",
+      "sha256": "683e5003a7c66453c0c5f55be0b0d7cd05992e8724bece281060cab1f366c4e9",
+      "bytes": 258032196,
+      "contentType": "application/pdf"
+    },
+    "cam5-pdf": {
+      "file": "0b76722b571c20968b291fddff61cdeccb1cd9740ea419b58f40e548888981a7.pdf",
+      "sha256": "0b76722b571c20968b291fddff61cdeccb1cd9740ea419b58f40e548888981a7",
+      "bytes": 249058802,
+      "contentType": "application/pdf"
+    },
+    "cam5-analysis": {
+      "file": "683e5003a7c66453c0c5f55be0b0d7cd05992e8724bece281060cab1f366c4e9.pdf",
+      "sha256": "683e5003a7c66453c0c5f55be0b0d7cd05992e8724bece281060cab1f366c4e9",
+      "bytes": 258032196,
+      "contentType": "application/pdf"
+    },
+    "cam6-pdf": {
+      "file": "5449cfda3e56993fd11cd249812ae5b0ec6394c9b253e48f03a9f0ae7e431369.pdf",
+      "sha256": "5449cfda3e56993fd11cd249812ae5b0ec6394c9b253e48f03a9f0ae7e431369",
+      "bytes": 256375005,
+      "contentType": "application/pdf"
+    },
+    "cam6-analysis": {
+      "file": "683e5003a7c66453c0c5f55be0b0d7cd05992e8724bece281060cab1f366c4e9.pdf",
+      "sha256": "683e5003a7c66453c0c5f55be0b0d7cd05992e8724bece281060cab1f366c4e9",
+      "bytes": 258032196,
+      "contentType": "application/pdf"
+    },
+    "cam7-pdf": {
+      "file": "651feb6c5d41200436c95e6401816e5fea6e336504dd4b907c2c8d67263100c4.pdf",
+      "sha256": "651feb6c5d41200436c95e6401816e5fea6e336504dd4b907c2c8d67263100c4",
+      "bytes": 249062628,
+      "contentType": "application/pdf"
+    },
+    "cam7-analysis": {
+      "file": "79d67065f3844b6d83f482cac32ee4987ed28a8b826d8a06795baffdbb1024b9.pdf",
+      "sha256": "79d67065f3844b6d83f482cac32ee4987ed28a8b826d8a06795baffdbb1024b9",
+      "bytes": 49990918,
+      "contentType": "application/pdf"
+    },
+    "cam8-pdf": {
+      "file": "e3842076d33a0b017ca450c47416af018593a77e977e00b328f9d448d32f75b7.pdf",
+      "sha256": "e3842076d33a0b017ca450c47416af018593a77e977e00b328f9d448d32f75b7",
+      "bytes": 4154667,
+      "contentType": "application/pdf"
+    },
+    "cam8-analysis": {
+      "file": "b5ed8fac58ada982a7653118ef74adab32d56489e9ce3385299089cae7661693.pdf",
+      "sha256": "b5ed8fac58ada982a7653118ef74adab32d56489e9ce3385299089cae7661693",
+      "bytes": 53058499,
+      "contentType": "application/pdf"
+    },
+    "cam9-pdf": {
+      "file": "b25f954dd25e058dfc05913c8f3b9ffead6581aa23bb10f8f2e98e6314f7af24.pdf",
+      "sha256": "b25f954dd25e058dfc05913c8f3b9ffead6581aa23bb10f8f2e98e6314f7af24",
+      "bytes": 22193053,
+      "contentType": "application/pdf"
+    },
+    "cam9-analysis": {
+      "file": "a2b38be69393a90e50aec34c3f264f54a7b6c0eba67c4b94952376d1b44d5a7a.pdf",
+      "sha256": "a2b38be69393a90e50aec34c3f264f54a7b6c0eba67c4b94952376d1b44d5a7a",
+      "bytes": 59738189,
+      "contentType": "application/pdf"
+    },
+    "cam10-pdf": {
+      "file": "3f1c532893532971b2a1fd1a47425c1895908d3a593f95a9699e4c80ca129c82.pdf",
+      "sha256": "3f1c532893532971b2a1fd1a47425c1895908d3a593f95a9699e4c80ca129c82",
+      "bytes": 54694298,
+      "contentType": "application/pdf"
+    },
+    "cam10-analysis": {
+      "file": "07302c55711c602a57761907c2a92c0c6a8e94513a90510691f7ce4e1adfbe5a.pdf",
+      "sha256": "07302c55711c602a57761907c2a92c0c6a8e94513a90510691f7ce4e1adfbe5a",
+      "bytes": 55146839,
+      "contentType": "application/pdf"
+    },
+    "cam11-pdf": {
+      "file": "2ae431e1e3dc532febcdd52762405703035b10712e35555d9ce4db3a349954f8.pdf",
+      "sha256": "2ae431e1e3dc532febcdd52762405703035b10712e35555d9ce4db3a349954f8",
+      "bytes": 137474570,
+      "contentType": "application/pdf"
+    },
+    "cam11-analysis": {
+      "file": "353195e88ca4e04337deb740002a5923632cff0bc9c3294f13bc7dd2c94800da.pdf",
+      "sha256": "353195e88ca4e04337deb740002a5923632cff0bc9c3294f13bc7dd2c94800da",
+      "bytes": 123194804,
+      "contentType": "application/pdf"
+    },
+    "cam12-pdf": {
+      "file": "a6eaf3b2bb7d0c5af57009fda036d5714209e1f8439aaf642f42a24fd0b941f1.pdf",
+      "sha256": "a6eaf3b2bb7d0c5af57009fda036d5714209e1f8439aaf642f42a24fd0b941f1",
+      "bytes": 71411952,
+      "contentType": "application/pdf"
+    },
+    "cam12-analysis": {
+      "file": "12e308a6b69f072ceaf9fe0f2a556a63d82b74b62ed02da03f089e7d351aa987.pdf",
+      "sha256": "12e308a6b69f072ceaf9fe0f2a556a63d82b74b62ed02da03f089e7d351aa987",
+      "bytes": 175454490,
+      "contentType": "application/pdf"
+    },
+    "cam13-pdf": {
+      "file": "e8d5ffc908fb681e48af4c9941cf17f812c037bccab51f0096b574417de369d6.pdf",
+      "sha256": "e8d5ffc908fb681e48af4c9941cf17f812c037bccab51f0096b574417de369d6",
+      "bytes": 5391510,
+      "contentType": "application/pdf"
+    },
+    "cam13-analysis": {
+      "file": "4aa78bf3f22a2153fe4af5abcd8658a8512509b37a01ea42f53322aedc760062.pdf",
+      "sha256": "4aa78bf3f22a2153fe4af5abcd8658a8512509b37a01ea42f53322aedc760062",
+      "bytes": 130518129,
+      "contentType": "application/pdf"
+    },
+    "cam14-pdf": {
+      "file": "fba6dc32d6de7fc2c106e8e28d6fcc4a528342d3864a0bcdd72c90d8e6376f84.pdf",
+      "sha256": "fba6dc32d6de7fc2c106e8e28d6fcc4a528342d3864a0bcdd72c90d8e6376f84",
+      "bytes": 69343994,
+      "contentType": "application/pdf"
+    },
+    "cam14-analysis": {
+      "file": "9c16b8692a50e55e2782a2f3c1d35bc99056fe1623d3754d3c7b18d94225b86d.pdf",
+      "sha256": "9c16b8692a50e55e2782a2f3c1d35bc99056fe1623d3754d3c7b18d94225b86d",
+      "bytes": 118422292,
+      "contentType": "application/pdf"
+    },
+    "cam16-pdf": {
+      "file": "d9c872a8249f2970f6669c0513026d032157294a543880582749e987ba6b5ebc.pdf",
+      "sha256": "d9c872a8249f2970f6669c0513026d032157294a543880582749e987ba6b5ebc",
+      "bytes": 61145098,
+      "contentType": "application/pdf"
+    },
+    "cam17-pdf": {
+      "file": "bbb99aa00d8ba08b5b676ec1185eeb4f304b7f81cb86ebe347c313dbda84e16c.pdf",
+      "sha256": "bbb99aa00d8ba08b5b676ec1185eeb4f304b7f81cb86ebe347c313dbda84e16c",
+      "bytes": 2950946,
+      "contentType": "application/pdf"
+    },
+    "cam18-pdf": {
+      "file": "6ce16defb207f92689472740739e6b3c9d1b184e6816d2d9e8f1f5ad76426295.pdf",
+      "sha256": "6ce16defb207f92689472740739e6b3c9d1b184e6816d2d9e8f1f5ad76426295",
+      "bytes": 53619087,
+      "contentType": "application/pdf"
+    },
+    "cam19-pdf": {
+      "file": "679024f4562effe5d601c42daf54b9c8690bddfb2814807cd11654bb8cc527d4.pdf",
+      "sha256": "679024f4562effe5d601c42daf54b9c8690bddfb2814807cd11654bb8cc527d4",
+      "bytes": 87217026,
+      "contentType": "application/pdf"
+    },
+    "cam20-pdf": {
+      "file": "784e377247e9e9d6de9db03b4303a887679a6465edfe5db228bd69386c4a99da.pdf",
+      "sha256": "784e377247e9e9d6de9db03b4303a887679a6465edfe5db228bd69386c4a99da",
+      "bytes": 195099076,
+      "contentType": "application/pdf"
+    },
+    "cam21-pdf": {
+      "file": "a685672f6385541b7ef0e1433731fc5acb59579264e0d9be9bad53326f108d7d.pdf",
+      "sha256": "a685672f6385541b7ef0e1433731fc5acb59579264e0d9be9bad53326f108d7d",
+      "bytes": 43710558,
+      "contentType": "application/pdf"
+    },
+    "cam15-pdf": {
+      "file": "89f7e26116d3d53f7feefbc228b12fafabd54b28634d4f5a7eabad0cab15ddcc.pdf",
+      "sha256": "89f7e26116d3d53f7feefbc228b12fafabd54b28634d4f5a7eabad0cab15ddcc",
+      "bytes": 29245633,
+      "contentType": "application/pdf"
+    }
+  }
+}

@@ -1,0 +1,11 @@
+# Original Cambridge material delivery
+
+The live source index still contained Windows paths for referenced original and analysis PDFs. Generated question pages and audio were present, but the original `/cambridge-local/file/...` PDF URLs and the Cambridge 15 PDF route returned 404 on both the Node origin and public HTTPS.
+
+`originalMaterialAssets.json` maps existing public file IDs to content-addressed PDF objects under the governed `data/original-materials` library. It contains no local user paths or credentials. Twenty-nine logical references share 27 unique byte-identical source objects; the Cambridge 4/5/6 analysis aliases intentionally share one object. Original PDFs are transferred as a separate data artifact, never bundled in the Mini Program or a source-code release. The source file IDs and all existing question/image references remain stable.
+
+The resolver only accepts known Cambridge PDF/analysis IDs, flat SHA-256 filenames, verified PDF signatures, exact lengths and source hashes. It rejects path traversal, unexpected types, missing files and changed content. Integrity checks use bounded asynchronous streams and a stat-identity cache, so whole-book buffers do not block the Node event loop. Existing working local/generated assets keep their original resolution path.
+
+Delivery retains `GET`, `HEAD`, and single byte-range support for large source documents. Suffix and open-ended ranges are resolved correctly; excessive end positions are clamped, integer overflow is avoided, and unsatisfiable ranges return 416 with the resource length. Unsupported units and multipart ranges are deliberately ignored. `HEAD` ignores Range and returns the full representation metadata without a body. These decisions follow [RFC 9110 sections 14.1–14.2](https://www.rfc-editor.org/rfc/rfc9110.html#name-byte-ranges).
+
+Verification: `test-original-material-assets.cjs` covers known IDs, hash/size verification, traversal and tampering; `test-source-byte-ranges.cjs` tests actual HTTP responses for exact, suffix, open-ended, clamped, overflow, unsatisfiable, ignored multi/unknown ranges and HEAD. Client disconnects and file-read errors close the stream safely. Production source-object hashes, public URL checks and rollback coverage are separate release gates.
