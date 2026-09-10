@@ -128,7 +128,7 @@ function buildQwenDirectSession({ config, request, temporaryToken } = {}) {
     }),
     responses: Object.freeze({
       opening: responseTemplate(qwenResponsePolicy({ intent: 'opening' })),
-      next: responseTemplate(qwenResponsePolicy({ intent: 'next-question', context: { elapsedSeconds: request.context.elapsedSeconds } })),
+      next: responseTemplate(qwenResponsePolicy({ intent: 'next-question' })),
       assessment: responseTemplate(qwenResponsePolicy({ intent: 'assessment' })),
     }),
     inputSampleRate: 16_000,
