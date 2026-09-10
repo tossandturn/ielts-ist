@@ -8812,9 +8812,9 @@ async function handleQwenDirectSession(req, res) {
   }
   let request;
   try {
-    const speakingSets = getSpeakingSets();
+    const taskPayload = getTasksPayloadCache().payload;
     request = parseQwenDirectRequest(value, {
-      resolveTask: (taskId) => speakingSets.find((task) => String(task?.id || "") === taskId) || null,
+      resolveTask: (taskId) => nativeTaskDetail(taskPayload, "speaking", taskId, { includePublicTopics: true }),
     });
   } catch (error) {
     sendJson(res, error.statusCode || 400, { code: error.code || "direct_session_invalid", retryable: false, error: error.message });

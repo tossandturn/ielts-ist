@@ -238,6 +238,29 @@ try {
     tokenMode = 'success'
     const afterAbort = await directPost(baseUrl, abortAccount.token, { recovery: true, elapsedSeconds: 51 })
     assert.equal(afterAbort.status, 201, 'disconnect cleanup releases the per-user in-flight limit')
+
+    const sharedCatalogResponse = await fetch(`${baseUrl}/api/native/ielts/catalog`, {
+      headers: { 'X-STEMist-Catalog': 'native-topics-v1' },
+    })
+    assert.equal(sharedCatalogResponse.status, 200)
+    const sharedCatalog = await sharedCatalogResponse.json()
+    const publicAdvice = sharedCatalog.speakingSets.find((task) => task.id === 'public-speaking-expanded-advice')
+    assert.equal(publicAdvice?.sourceKind, 'public-topic')
+    const publicWriting = sharedCatalog.writingTasks.find((task) => task.sourceKind === 'public-topic')
+    assert.ok(publicWriting?.id)
+    const publicAccount = await register(baseUrl, 'public_topic')
+    const beforePublic = tokenCalls
+    const publicWritingAttempt = await directPost(baseUrl, publicAccount.token, { taskId: publicWriting.id })
+    assert.equal(publicWritingAttempt.status, 404, 'a public Writing ID cannot cross into Direct Speaking')
+    const unknownPublicAttempt = await directPost(baseUrl, publicAccount.token, { taskId: 'public-speaking-not-published' })
+    assert.equal(unknownPublicAttempt.status, 404)
+    assert.equal(tokenCalls, beforePublic, 'wrong-module and unknown public IDs initialize zero token providers')
+    const publicAdviceAttempt = await directPost(baseUrl, publicAccount.token, { taskId: publicAdvice.id })
+    if (publicAdviceAttempt.status !== 201) assert.equal(tokenCalls, beforePublic, 'the current public-topic rejection happens before token minting')
+    assert.equal(publicAdviceAttempt.status, 201, 'a canonical shared Speaking topic can start Direct Speaking')
+    const publicAdviceContract = await publicAdviceAttempt.json()
+    assert.match(publicAdviceContract.sessionUpdate.session.instructions, /Advice/)
+    assert.equal(tokenCalls, beforePublic + 1)
     assert.equal((await fetch(`${baseUrl}/healthz`)).status, 200)
     assert.doesNotMatch(output.text, new RegExp(`${dedicatedKey}|${temporaryToken}|provider-private-detail`), 'tokens, keys and provider bodies cannot enter server logs')
   })
