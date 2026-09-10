@@ -1,4 +1,7 @@
 import assert from 'node:assert/strict'
+import { EventEmitter } from 'node:events'
+import fs from 'node:fs'
+import vm from 'node:vm'
 import { createRequire } from 'node:module'
 
 const require = createRequire(import.meta.url)
@@ -9,6 +12,7 @@ const {
   createRealtimeUsageGuard,
   parseQwenClientConfig,
   parseQwenClientEvent,
+  qwenRealtimeFailurePolicy,
   qwenResponsePolicy,
   qwenSessionPolicy,
 } = require('../server/qwenRealtimeAccess.cjs')
@@ -122,5 +126,101 @@ const assessment = qwenResponsePolicy({ intent: 'assessment', modalities: ['text
 assert.deepEqual(assessment.modalities, ['text'])
 assert.match(assessment.instructions, /compact JSON/i)
 assert.equal(qwenResponsePolicy({ modalities: ['text'], instructions: 'Legacy private score note.' }).intent, 'assessment')
+
+// Model a provider failure before the upstream session reaches its open event.
+const timeoutFailure = qwenRealtimeFailurePolicy({ errorCode: 'ETIMEDOUT' })
+assert.deepEqual(timeoutFailure, {
+  code: 'qwen_upstream_timeout',
+  retryable: true,
+  message: 'Qwen realtime is temporarily unavailable.',
+})
+for (const errorCode of ['ECONNRESET', 'EAI_AGAIN', 'ECONNREFUSED']) {
+  assert.deepEqual(qwenRealtimeFailurePolicy({ errorCode }), {
+    code: 'qwen_upstream_unavailable',
+    retryable: true,
+    message: 'Qwen realtime is temporarily unavailable.',
+  })
+}
+assert.deepEqual(qwenRealtimeFailurePolicy({ configured: false }), {
+  code: 'qwen_realtime_not_configured',
+  retryable: false,
+  message: 'Qwen realtime key or workspace is not configured on the server.',
+})
+for (const statusCode of [502, 503, 504]) {
+  assert.deepEqual(qwenRealtimeFailurePolicy({ statusCode }), {
+    code: 'qwen_upstream_unavailable',
+    retryable: true,
+    message: `Qwen realtime connection failed with HTTP ${statusCode}.`,
+  })
+}
+for (const [statusCode, code] of [[401, 'qwen_upstream_auth_failed'], [403, 'qwen_upstream_auth_failed'], [429, 'qwen_upstream_rate_limited']]) {
+  const failure = qwenRealtimeFailurePolicy({ statusCode })
+  assert.equal(failure.code, code)
+  assert.equal(failure.retryable, false, `HTTP ${statusCode} must not signal automatic reconnect`)
+  assert.equal(failure.message, `Qwen realtime connection failed with HTTP ${statusCode}.`)
+}
+assert.deepEqual(qwenRealtimeFailurePolicy({ errorCode: 'CERT_HAS_EXPIRED' }), {
+  code: 'qwen_upstream_unavailable',
+  retryable: false,
+  message: 'Qwen realtime is temporarily unavailable.',
+})
+assert.deepEqual(qwenRealtimeFailurePolicy({ statusCode: 500 }), {
+  code: 'qwen_upstream_unavailable',
+  retryable: false,
+  message: 'Qwen realtime connection failed with HTTP 500.',
+})
+
+const serverSource = fs.readFileSync(new URL('../server.js', import.meta.url), 'utf8')
+const connectStart = serverSource.indexOf('function connectQwenRealtime(')
+const connectEnd = serverSource.indexOf('\nfunction buildQwenSessionUpdate(', connectStart)
+assert.ok(connectStart >= 0 && connectEnd > connectStart, 'server must expose a bounded connectQwenRealtime implementation')
+const connectSource = serverSource.slice(connectStart, connectEnd)
+
+class MockUpstream extends EventEmitter {
+  constructor(url, options) {
+    super()
+    this.url = url
+    this.options = options
+    MockUpstream.instances.push(this)
+  }
+}
+MockUpstream.instances = []
+
+const relayMessages = []
+const relayContext = {
+  WebSocket: MockUpstream,
+  DASHSCOPE_API_KEY: 'test-only-key',
+  DASHSCOPE_WORKSPACE_ID: 'test-workspace',
+  DASHSCOPE_REGION: 'test-region',
+  QWEN_REALTIME_MODEL: 'test-model',
+  qwenSessionPolicy,
+  qwenRealtimeFailurePolicy,
+  console: { error() {} },
+  clearInterval,
+  setInterval,
+}
+vm.createContext(relayContext)
+vm.runInContext(`${connectSource}\nthis.connectQwenRealtime = connectQwenRealtime`, relayContext)
+const upstream = relayContext.connectQwenRealtime({}, (message) => relayMessages.push(message))
+upstream.emit('error', Object.assign(new Error('test timeout'), { code: 'ETIMEDOUT' }))
+assert.equal(relayMessages.some((message) => message.status === 'qwen-open'), false, 'a pre-open timeout must not announce an open session')
+assert.deepEqual(JSON.parse(JSON.stringify(relayMessages.at(-1))), {
+  type: 'error',
+  code: 'qwen_upstream_timeout',
+  retryable: true,
+  message: 'Qwen realtime is temporarily unavailable.',
+})
+
+const authResponse = new EventEmitter()
+authResponse.statusCode = 401
+authResponse.resume = () => {}
+upstream.emit('unexpected-response', null, authResponse)
+authResponse.emit('end')
+assert.deepEqual(JSON.parse(JSON.stringify(relayMessages.at(-1))), {
+  type: 'error',
+  code: 'qwen_upstream_auth_failed',
+  retryable: false,
+  message: 'Qwen realtime connection failed with HTTP 401.',
+})
 
 console.log('Qwen realtime access: short single-use tickets, session binding, provider gate, quotas and fixed examiner policy passed.')

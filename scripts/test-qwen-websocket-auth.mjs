@@ -88,6 +88,28 @@ function websocketInvalidEnvelope(url, headers, payload) {
   })
 }
 
+function websocketConnectError(url, headers = {}) {
+  return new Promise((resolve, reject) => {
+    const ws = new WebSocket(url, { headers, handshakeTimeout: 3_000 })
+    const timer = setTimeout(() => { ws.terminate(); reject(new Error('connect error classification timed out')) }, 4_000)
+    ws.once('open', () => ws.send(JSON.stringify({ type: 'connect', context: { recovery: false } })))
+    ws.on('message', (raw) => {
+      let message
+      try { message = JSON.parse(raw.toString('utf8')) } catch { return }
+      if (message.type !== 'error') return
+      clearTimeout(timer)
+      ws.close()
+      resolve(message)
+    })
+    ws.once('unexpected-response', (_request, response) => {
+      response.resume()
+      clearTimeout(timer)
+      reject(new Error(`authenticated connect rejected with ${response.statusCode}`))
+    })
+    ws.once('error', (error) => { clearTimeout(timer); reject(error) })
+  })
+}
+
 const port = await freePort()
 const baseUrl = `http://127.0.0.1:${port}`
 const wsUrl = `ws://127.0.0.1:${port}/qwen-client`
@@ -189,6 +211,12 @@ try {
   assert.equal(cookieWithoutOrigin.status, 401)
   const browserPong = await websocketPing(wsUrl, { cookie, origin: baseUrl })
   assert.equal(browserPong.status, 'pong', 'the existing same-origin browser cookie remains compatible')
+  const missingConfig = await websocketConnectError(wsUrl, { cookie, origin: baseUrl })
+  assert.deepEqual({ code: missingConfig.code, retryable: missingConfig.retryable, message: missingConfig.message }, {
+    code: 'qwen_realtime_not_configured',
+    retryable: false,
+    message: 'Qwen realtime key or workspace is not configured on the server.',
+  })
 
   const revokedTicketResponse = await fetch(`${baseUrl}/api/speaking/realtime-ticket`, {
     method: 'POST',

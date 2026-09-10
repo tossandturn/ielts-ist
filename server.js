@@ -8670,6 +8670,10 @@ const server = http.createServer(async (req, res) => {
       await handleSpeakingTurn(req, res);
       return;
     }
+    if (req.method === "POST" && req.url === "/api/speaking/direct-session") {
+      await handleQwenDirectSession(req, res);
+      return;
+    }
     if (req.method === "POST" && req.url === "/api/speaking/realtime-ticket") {
       handleQwenRealtimeTicket(req, res);
       return;
@@ -8739,10 +8743,23 @@ const {
   createRealtimeUsageGuard,
   parseQwenClientConfig,
   parseQwenClientEvent,
+  qwenRealtimeFailurePolicy,
   qwenResponsePolicy,
   qwenSessionPolicy,
 } = require("./server/qwenRealtimeAccess.cjs");
+const {
+  buildQwenDirectSession,
+  createQwenDirectSessionLimiter,
+  parseQwenDirectConfig,
+  parseQwenDirectRequest,
+  parseQwenTemporaryToken,
+  qwenDirectProviderFailure,
+} = require("./server/qwenDirectSession.cjs");
 const qwenRealtimeAccess = createRealtimeAccessControl();
+const qwenDirectConfig = parseQwenDirectConfig(process.env);
+const qwenDirectSessionLimiter = createQwenDirectSessionLimiter();
+const QWEN_DIRECT_MAX_BODY_BYTES = 24 * 1024;
+const QWEN_DIRECT_TOKEN_TIMEOUT_MS = 8_000;
 const QWEN_REALTIME_MAX_PAYLOAD_BYTES = 512 * 1024;
 const QWEN_REALTIME_MAX_AUDIO_BYTES = 48 * 1024 * 1024;
 const QWEN_REALTIME_MAX_SESSION_MS = 20 * 60 * 1000;
@@ -8773,6 +8790,105 @@ function handleQwenRealtimeTicket(req, res) {
     ticket: issued.ticket,
     expiresAt: new Date(issued.expiresAtMs).toISOString(),
   });
+}
+
+async function handleQwenDirectSession(req, res) {
+  res.setHeader("Cache-Control", "no-store");
+  res.setHeader("Pragma", "no-cache");
+  if (req.headers["x-stemist-native"] !== "1") {
+    sendJson(res, 403, { code: "direct_native_required", retryable: false, error: "Direct speaking is available only in the native app." });
+    return;
+  }
+  const user = requireUser(req);
+  const originalSessionTokenHash = hashToken(getRequestToken(req));
+  let value;
+  try {
+    const declaredBytes = Number(req.headers["content-length"] || 0);
+    if (Number.isFinite(declaredBytes) && declaredBytes > QWEN_DIRECT_MAX_BODY_BYTES) throw new Error("request too large");
+    value = JSON.parse((await readBufferBody(req, QWEN_DIRECT_MAX_BODY_BYTES)).toString("utf8") || "{}");
+  } catch {
+    sendJson(res, 400, { code: "direct_session_invalid", retryable: false, error: "Direct speaking session configuration is invalid." });
+    return;
+  }
+  let request;
+  try {
+    const speakingSets = getSpeakingSets();
+    request = parseQwenDirectRequest(value, {
+      resolveTask: (taskId) => speakingSets.find((task) => String(task?.id || "") === taskId) || null,
+    });
+  } catch (error) {
+    sendJson(res, error.statusCode || 400, { code: error.code || "direct_session_invalid", retryable: false, error: error.message });
+    return;
+  }
+  if (!qwenDirectConfig) {
+    sendJson(res, 503, { code: "direct_not_configured", retryable: false, error: "Direct speaking is not configured." });
+    return;
+  }
+  const claim = qwenDirectSessionLimiter.begin({ userId: user.id, ip: qwenUpgradeIp(req) });
+  if (!claim.ok) {
+    res.setHeader("Retry-After", String(claim.retryAfterSeconds));
+    sendJson(res, 429, { code: "direct_session_rate_limited", retryable: true, error: "Please wait before reconnecting to the speaking examiner." });
+    return;
+  }
+  const controller = new AbortController();
+  let responseClosed = res.destroyed;
+  const abortMint = () => {
+    if (res.writableEnded) return;
+    responseClosed = true;
+    controller.abort();
+  };
+  const canRespond = () => !responseClosed && !res.destroyed && !res.writableEnded;
+  req.once("aborted", abortMint);
+  res.once("close", abortMint);
+  const timer = setTimeout(() => controller.abort(), QWEN_DIRECT_TOKEN_TIMEOUT_MS);
+  try {
+    if (!canRespond()) return;
+    let response;
+    try {
+      response = await fetch(qwenDirectConfig.tokenEndpoint, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${qwenDirectConfig.apiKey}` },
+        redirect: "error",
+        signal: controller.signal,
+      });
+    } catch (error) {
+      if (!canRespond()) return;
+      const failure = qwenDirectProviderFailure({ errorCode: controller.signal.aborted ? "ETIMEDOUT" : error?.code || error?.cause?.code });
+      const { statusCode, ...body } = failure;
+      sendJson(res, statusCode, body);
+      return;
+    }
+    if (!response.ok) {
+      try { await response.body?.cancel(); } catch {}
+      if (!canRespond()) return;
+      const failure = qwenDirectProviderFailure({ statusCode: response.status });
+      const { statusCode, ...body } = failure;
+      sendJson(res, statusCode, body);
+      return;
+    }
+    let temporaryToken;
+    try {
+      temporaryToken = parseQwenTemporaryToken(await response.json());
+    } catch (error) {
+      if (!canRespond()) return;
+      const failure = qwenDirectProviderFailure({ errorCode: controller.signal.aborted ? "ETIMEDOUT" : error?.code || error?.cause?.code });
+      const { statusCode, ...body } = failure;
+      sendJson(res, statusCode, body);
+      return;
+    }
+    if (!canRespond()) return;
+    const currentUser = requireUser(req);
+    if (Number(currentUser.id) !== Number(user.id) || hashToken(getRequestToken(req)) !== originalSessionTokenHash) {
+      throw Object.assign(new Error("Login expired. Please log in again."), { statusCode: 401 });
+    }
+    if (!canRespond()) return;
+    sendJson(res, 201, buildQwenDirectSession({ config: qwenDirectConfig, request, temporaryToken }));
+  } finally {
+    clearTimeout(timer);
+    req.off("aborted", abortMint);
+    res.off("close", abortMint);
+    claim.release();
+  }
 }
 
 function qwenUpgradeIdentity(req) {
@@ -8933,7 +9049,11 @@ qwenWss.on("connection", (client, req) => {
   const sendClient = (message) => {
     if (message?.type === "event") noteQwenServerEvent(metrics, message.eventType || message.payload?.type || "");
     if (message?.type === "status" && message.status === "qwen-open") qwenMetricsLog(metrics, "qwen-open", { region: message.region, model: message.model });
-    if (message?.type === "error") qwenMetricsLog(metrics, "error", { message: String(message.message || "").slice(0, 220) });
+    if (message?.type === "error") qwenMetricsLog(metrics, "error", {
+      code: String(message.code || "").slice(0, 80),
+      retryable: message.retryable === true,
+      message: String(message.message || "").slice(0, 220),
+    });
     if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify(message));
   };
 
@@ -9601,10 +9721,8 @@ function connectQwenRealtime(config, sendClient) {
   const sessionPolicy = qwenSessionPolicy(config);
 
   if (!apiKey || !workspaceId) {
-    queueMicrotask(() => sendClient({
-      type: "error",
-      message: "Qwen realtime key or workspace is not configured on the server.",
-    }));
+    const failure = qwenRealtimeFailurePolicy({ configured: false });
+    queueMicrotask(() => sendClient({ type: "error", ...failure }));
     return undefined;
   }
 
@@ -9647,10 +9765,8 @@ function connectQwenRealtime(config, sendClient) {
   upstream.on("unexpected-response", (_request, response) => {
     response.resume();
     response.on("end", () => {
-      sendClient({
-        type: "error",
-        message: `Qwen realtime connection failed with HTTP ${response.statusCode}.`,
-      });
+      const failure = qwenRealtimeFailurePolicy({ statusCode: response.statusCode });
+      sendClient({ type: "error", ...failure });
     });
   });
 
@@ -9662,7 +9778,8 @@ function connectQwenRealtime(config, sendClient) {
   upstream.on("error", (error) => {
     clearUpstreamPing();
     console.error(`[qwen-realtime] ${String(error?.code || error?.name || "connection_error").slice(0, 80)}`);
-    sendClient({ type: "error", message: "Qwen realtime is temporarily unavailable." });
+    const failure = qwenRealtimeFailurePolicy({ errorCode: error?.code });
+    sendClient({ type: "error", ...failure });
   });
 
   return upstream;

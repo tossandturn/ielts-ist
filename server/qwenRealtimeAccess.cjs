@@ -31,6 +31,7 @@ const QWEN_CLIENT_EVENT_TYPES = new Set([
   'audio.commit',
   'response.create',
 ])
+const QWEN_RETRYABLE_NETWORK_ERRORS = new Set(['ECONNRESET', 'EAI_AGAIN', 'ECONNREFUSED'])
 
 function parseQwenClientConfig(raw) {
   let value
@@ -291,6 +292,42 @@ function qwenResponsePolicy(event = {}) {
   })
 }
 
+function qwenRealtimeFailurePolicy({ configured = true, errorCode = '', statusCode = 0 } = {}) {
+  if (!configured) {
+    return Object.freeze({
+      code: 'qwen_realtime_not_configured',
+      retryable: false,
+      message: 'Qwen realtime key or workspace is not configured on the server.',
+    })
+  }
+  const status = Number(statusCode)
+  if (Number.isInteger(status) && status > 0) {
+    const code = [401, 403].includes(status)
+      ? 'qwen_upstream_auth_failed'
+      : status === 429
+        ? 'qwen_upstream_rate_limited'
+        : 'qwen_upstream_unavailable'
+    return Object.freeze({
+      code,
+      retryable: [502, 503, 504].includes(status),
+      message: `Qwen realtime connection failed with HTTP ${status}.`,
+    })
+  }
+  const normalizedErrorCode = String(errorCode || '').trim().toUpperCase()
+  if (normalizedErrorCode === 'ETIMEDOUT') {
+    return Object.freeze({
+      code: 'qwen_upstream_timeout',
+      retryable: true,
+      message: 'Qwen realtime is temporarily unavailable.',
+    })
+  }
+  return Object.freeze({
+    code: 'qwen_upstream_unavailable',
+    retryable: QWEN_RETRYABLE_NETWORK_ERRORS.has(normalizedErrorCode),
+    message: 'Qwen realtime is temporarily unavailable.',
+  })
+}
+
 module.exports = {
   REALTIME_PURPOSE,
   createProviderStartGate,
@@ -298,6 +335,7 @@ module.exports = {
   createRealtimeUsageGuard,
   parseQwenClientConfig,
   parseQwenClientEvent,
+  qwenRealtimeFailurePolicy,
   qwenResponsePolicy,
   qwenSessionPolicy,
 }
