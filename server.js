@@ -4642,6 +4642,12 @@ function serveStatic(req, res) {
     res.end("Forbidden");
     return;
   }
+  const ext = path.extname(filePath).toLowerCase();
+  if ([".mp3", ".m4a", ".wav"].includes(ext)) {
+    const audioType = ext === ".mp3" ? "audio/mpeg" : ext === ".m4a" ? "audio/mp4" : "audio/wav";
+    serveFile(req, res, filePath, audioType);
+    return;
+  }
 
   fs.readFile(filePath, (err, data) => {
     if (err) {
@@ -4649,7 +4655,6 @@ function serveStatic(req, res) {
       res.end("Not found");
       return;
     }
-    const ext = path.extname(filePath).toLowerCase();
     const type =
       ext === ".html"
         ? "text/html; charset=utf-8"
@@ -4672,10 +4677,6 @@ function serveStatic(req, res) {
                         : ext === ".wav"
                           ? "audio/wav"
                       : "application/octet-stream";
-    if ([".mp3", ".m4a", ".wav"].includes(ext)) {
-      serveFile(req, res, filePath, type);
-      return;
-    }
     const cacheControl = [".html", ".css", ".js", ".json"].includes(ext)
       ? "no-cache"
       : "public, max-age=31536000, immutable";
