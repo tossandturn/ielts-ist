@@ -7,6 +7,12 @@ const DIRECT_PROTOCOL = 'qwen-direct-session-v1'
 const DIRECT_TOKEN_ENDPOINT = 'https://dashscope.aliyuncs.com/api/v1/tokens?expire_in_seconds=60'
 const DIRECT_MODELS = new Set(['qwen3.5-omni-flash-realtime', 'qwen3.5-omni-plus-realtime'])
 const DIRECT_REQUEST_KEYS = new Set(['taskId', 'recovery', 'completedDialogue', 'elapsedSeconds'])
+const DIRECT_EXAMINER_POLICY = Object.freeze({
+  schemaVersion: 'ielts-native-examiner-v2',
+  part1Seconds: 300,
+  part2PreparationSeconds: 60,
+  part2AnswerSeconds: 120,
+})
 
 function directError(message, statusCode, code) {
   return Object.assign(new Error(message), { statusCode, code })
@@ -114,6 +120,7 @@ function buildQwenDirectSession({ config, request, temporaryToken } = {}) {
     endpoint: config.endpoint,
     token: temporaryToken.token,
     expiresAt: temporaryToken.expiresAt,
+    examinerPolicy: DIRECT_EXAMINER_POLICY,
     sessionUpdate: Object.freeze({
       type: 'session.update',
       session: Object.freeze({
@@ -129,6 +136,8 @@ function buildQwenDirectSession({ config, request, temporaryToken } = {}) {
     responses: Object.freeze({
       opening: responseTemplate(qwenResponsePolicy({ intent: 'opening' })),
       next: responseTemplate(qwenResponsePolicy({ intent: 'next-question' })),
+      part2Cue: responseTemplate(qwenResponsePolicy({ intent: 'part2-cue' })),
+      closing: responseTemplate(qwenResponsePolicy({ intent: 'closing' })),
       assessment: responseTemplate(qwenResponsePolicy({ intent: 'assessment' })),
     }),
     inputSampleRate: 16_000,
