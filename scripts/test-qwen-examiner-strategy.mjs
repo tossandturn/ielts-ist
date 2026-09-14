@@ -68,6 +68,17 @@ const invalidFacts = qwenResponsePolicy({ intent: 'next-question', context: {
 } })
 assert.doesNotMatch(invalidFacts.instructions, /part4|brief-clear/)
 
+const stageControlled = qwenResponsePolicy({ intent: 'next-question', context: {
+  phase: 'part3', inputQuality: 'clear', elapsedSeconds: 360,
+  currentQuestion: 'How could public transport change cities in the future?',
+} })
+assert.match(stageControlled.instructions, /session facts phase.*current client-controlled stage.*overrides.*elapsed/i)
+assert.match(stageControlled.instructions, /never move backward.*Part 3.*Part 2/i)
+assert.match(stageControlled.instructions, /phase is part3.*abstract discussion.*Part 2 theme/i)
+assert.match(stageControlled.instructions, /phase is part2-rounding.*at most one.*short rounding-off question/i)
+assert.match(stageControlled.instructions, /acoustically-unclear repair.*never quote.*ASR fragment/i)
+assert.match(stageControlled.instructions, /does not apply.*audible semantic ambiguity.*genuine clarification/i)
+
 for (const phrase of [
   /acoustically unclear.*I did not catch that/i,
   /valid short answer.*meaningfully resolves/i,
