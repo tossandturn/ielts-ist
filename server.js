@@ -14,6 +14,7 @@ const speakingSourceRepairs=require("./server/speakingSourceRepairs.json");
 const {createOriginalMaterialResolver}=require("./server/originalMaterialAssets.cjs");
 const originalMaterialAssets=require("./server/originalMaterialAssets.json");
 const {parseSourceByteRange}=require("./server/sourceByteRange.cjs");
+const {sourceFileValidator,openValidatedSourceFile}=require("./server/sourceFileValidator.cjs");
 const {nativeReportResponse}=require("./server/nativeReportResponse.cjs");
 const {nativeObjectiveRecord}=require("./server/nativeObjectiveProjection.cjs");
 const {bindWritingSource,resolveWritingSource,sourceImage}=require("./server/nativeWritingSource.cjs");
@@ -4730,49 +4731,78 @@ function serveStatic(req, res) {
   });
 }
 
-function serveFile(req, res, filePath, contentType) {
+function serveFile(req, res, filePath, contentType, attempt = 0) {
   const resolved = path.resolve(filePath);
-  fs.stat(resolved, (statErr, stat) => {
-    if (statErr || !stat.isFile()) {
+  fs.stat(resolved, async (statErr, initialStat) => {
+    if (statErr || !initialStat.isFile()) {
       res.writeHead(404);
       res.end("Not found");
       return;
     }
-    const range = parseSourceByteRange(req.headers.range, stat.size, req.method);
-    if (range) {
-      if (range.unsatisfiable) {
-        res.writeHead(416, { "content-range": `bytes */${stat.size}` });
-        res.end();
-        return;
-      }
-      const {start,end}=range;
-      res.writeHead(206, {
-        "content-type": contentType,
-        "content-length": end - start + 1,
-        "content-range": `bytes ${start}-${end}/${stat.size}`,
-        "accept-ranges": "bytes",
-        "cache-control": "public, max-age=31536000, immutable",
-      });
-      if (req.method === "HEAD") {
-        res.end();
-        return;
-      }
-      const stream=fs.createReadStream(resolved, { start, end });
-      stream.on("error",()=>res.destroy());res.on("close",()=>stream.destroy());stream.pipe(res);
+    let validator;
+    try {
+      validator = await sourceFileValidator(resolved, initialStat);
+    } catch (error) {
+      res.writeHead(error?.code === "ENOENT" ? 404 : 503);
+      res.end(error?.code === "ENOENT" ? "Not found" : "Source file unavailable");
       return;
     }
-    res.writeHead(200, {
+    const { stat, etag, lastModified, signature } = validator;
+    const common = {
       "content-type": contentType,
-      "content-length": stat.size,
       "accept-ranges": "bytes",
       "cache-control": "public, max-age=31536000, immutable",
-    });
-    if (req.method === "HEAD") {
+      etag,
+      "last-modified": lastModified,
+    };
+    const ifNoneMatch = String(req.headers["if-none-match"] || "")
+      .split(",")
+      .map((value) => value.trim())
+      .some((value) => value === "*" || value.replace(/^W\//, "") === etag);
+    if (ifNoneMatch) {
+      res.writeHead(304, common);
       res.end();
       return;
     }
-    const stream=fs.createReadStream(resolved);
-    stream.on("error",()=>res.destroy());res.on("close",()=>stream.destroy());stream.pipe(res);
+    const ifRange = String(req.headers["if-range"] || "");
+    const range = !ifRange || ifRange === etag
+      ? parseSourceByteRange(req.headers.range, stat.size, req.method)
+      : null;
+    if (range?.unsatisfiable) {
+      res.writeHead(416, { ...common, "content-range": `bytes */${stat.size}` });
+      res.end();
+      return;
+    }
+    const status = range ? 206 : 200;
+    const start = range?.start;
+    const end = range?.end;
+    const headers = {
+      ...common,
+      "content-length": range ? end - start + 1 : stat.size,
+      ...(range ? { "content-range": `bytes ${start}-${end}/${stat.size}` } : {}),
+    };
+    if (req.method === "HEAD") {
+      res.writeHead(status, headers);
+      res.end();
+      return;
+    }
+    let handle;
+    try {
+      handle = await openValidatedSourceFile(resolved, signature);
+    } catch (error) {
+      if (error?.code === "source_file_changed" && attempt < 1) {
+        serveFile(req, res, resolved, contentType, attempt + 1);
+        return;
+      }
+      res.writeHead(error?.code === "ENOENT" ? 404 : 503);
+      res.end(error?.code === "ENOENT" ? "Not found" : "Source file changed");
+      return;
+    }
+    res.writeHead(status, headers);
+    const stream = handle.createReadStream(range ? { start, end } : {});
+    stream.on("error", () => res.destroy());
+    res.on("close", () => stream.destroy());
+    stream.pipe(res);
   });
 }
 

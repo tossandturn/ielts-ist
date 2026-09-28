@@ -1,7 +1,7 @@
 // Single byte ranges per RFC 9110 sections 14.1.2 and 14.2.
 // Unsupported units and multipart ranges are deliberately ignored.
 function parseSourceByteRange(header,size,method='GET'){
- if(method!=='GET'||typeof header!=='string'||!Number.isSafeInteger(size)||size<=0)return null
+ if(!['GET','HEAD'].includes(method)||typeof header!=='string'||!Number.isSafeInteger(size)||size<=0)return null
  if(!/^bytes\s*=/i.test(header)||header.includes(','))return null
  const match=/^bytes\s*=\s*(\d*)-(\d*)\s*$/i.exec(header)
  if(!match||!match[1]&&!match[2])return {unsatisfiable:true}
