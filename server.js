@@ -46,6 +46,16 @@ const STEM_ORGANIZATION_ROLES = new Set(["student", "teacher", "school_admin", "
 const STEM_IDENTITY_SIGNING_KEY = process.env.STEM_IDENTITY_SIGNING_KEY || "";
 const STEM_INTERNAL_AUTH_KEY = process.env.STEM_INTERNAL_AUTH_KEY || STEM_IDENTITY_SIGNING_KEY;
 const STEM_INTERNAL_AUTH_WINDOW_MS = 60_000;
+// WeChat Mini Program credentials stay server-side. The optional endpoint
+// override exists only for isolated contract tests; production defaults to
+// the official Tencent code2session host.
+const WECHAT_MINIPROGRAM_APP_ID = String(process.env.WECHAT_MINIPROGRAM_APP_ID || process.env.WECHAT_MINIPROGRAM_APPID || process.env.WECHAT_APP_ID || process.env.WECHAT_MINI_APPID || "").trim();
+const WECHAT_MINIPROGRAM_APP_SECRET = String(process.env.WECHAT_MINIPROGRAM_APP_SECRET || process.env.WECHAT_MINIPROGRAM_SECRET || process.env.WECHAT_APP_SECRET || process.env.WECHAT_MINI_SECRET || "").trim();
+const WECHAT_MINIPROGRAM_CODE2SESSION_URL = String(process.env.WECHAT_MINIPROGRAM_CODE2SESSION_URL || "https://api.weixin.qq.com/sns/jscode2session").trim();
+const WECHAT_MINIPROGRAM_TIMEOUT_MS = Math.max(2_000, Math.min(15_000, Number(process.env.WECHAT_MINIPROGRAM_TIMEOUT_MS || 8_000)));
+const IELTSIST_PUBLIC_ORIGIN = String(process.env.IELTSIST_PUBLIC_ORIGIN || "https://ieltsist.com").replace(/\/+$/, "");
+const STEM_WEBVIEW_HANDOFF_TTL_MS = 2 * 60 * 1000;
+const stemWebviewHandoffs = new Map();
 const STEM_ALLOWED_ORIGINS = new Set([
   "https://stem.ieltsist.com",
   "http://127.0.0.1:5173",
@@ -82,7 +92,7 @@ const DEFAULT_DASHSCOPE_COMPAT_BASE_URL = DASHSCOPE_WORKSPACE_ID
 const DASHSCOPE_COMPAT_BASE_URL = (process.env.DASHSCOPE_COMPAT_BASE_URL || DEFAULT_DASHSCOPE_COMPAT_BASE_URL).replace(/\/+$/, "");
 const WRITING_AI_MODEL = process.env.WRITING_AI_MODEL || process.env.QWEN_WRITING_MODEL || DEFAULT_AI_MODEL;
 const WRITING_AI_BASE_URL = (process.env.WRITING_AI_BASE_URL || process.env.QWEN_WRITING_BASE_URL || DASHSCOPE_COMPAT_BASE_URL).replace(/\/+$/, "");
-const WRITING_AI_API_KEY = process.env.WRITING_AI_API_KEY || process.env.QWEN_WRITING_API_KEY || DASHSCOPE_API_KEY;
+const WRITING_AI_API_KEY = process.env.WRITING_AI_API_KEY || process.env.QWEN_WRITING_API_KEY || DASHSCOPE_API_KEY || THIRD_PARTY_API_KEY;
 const WRITING_SCORING_PROMPT_VERSION = "ielts-writing-rubric.v2";
 const WRITING_AI_TIMEOUT_MS = Math.max(1_000, Math.min(60_000, Number(process.env.WRITING_AI_TIMEOUT_MS || 25_000)));
 // The public AI gateway is intentionally server-only. Do not expose this key in
@@ -98,7 +108,9 @@ const COACH_AGENT_TOOL_TIMEOUT_MS = Math.max(250, Math.min(5_000, Number(process
 const COACH_AI_MODEL = process.env.COACH_AI_MODEL || process.env.QWEN_COACH_MODEL || DEFAULT_AI_MODEL;
 const COACH_AI_BASE_URL = (process.env.COACH_AI_BASE_URL || process.env.QWEN_COACH_BASE_URL || DASHSCOPE_COMPAT_BASE_URL).replace(/\/+$/, "");
 const COACH_AI_API_KEY = process.env.COACH_AI_API_KEY || process.env.QWEN_COACH_API_KEY || DASHSCOPE_API_KEY || THIRD_PARTY_API_KEY;
+const COACH_QWEN_CONFIGURED = Boolean(process.env.COACH_AI_API_KEY || process.env.QWEN_COACH_API_KEY || process.env.DASHSCOPE_API_KEY || process.env.QWEN_API_KEY);
 const COACH_AI_TIMEOUT_MS = Math.max(5_000, Math.min(60_000, Number(process.env.COACH_AI_TIMEOUT_MS || 25_000)));
+const COACH_AI_TOTAL_TIMEOUT_MS = Math.max(5_000, Math.min(120_000, Number(process.env.COACH_AI_TOTAL_TIMEOUT_MS || (AI_GATEWAY_TIMEOUT_MS + COACH_AI_TIMEOUT_MS + 2_000))));
 const STEM_MARKING_AI_DISABLED = process.env.STEM_MARKING_AI_DISABLED === "1";
 const STEM_MARKING_AI_MODEL = STEM_MARKING_AI_DISABLED ? "" : (process.env.STEM_MARKING_AI_MODEL || COACH_AI_MODEL);
 const STEM_MARKING_AI_BASE_URL = STEM_MARKING_AI_DISABLED ? "" : (process.env.STEM_MARKING_AI_BASE_URL || COACH_AI_BASE_URL).replace(/\/+$/, "");
@@ -1194,14 +1206,19 @@ function slimWritingTask(task) {
 }
 
 function tasksPayload() {
-  const coachAiEnabled = Boolean(AI_GATEWAY_API_KEY || COACH_AI_API_KEY || OPENAI_API_KEY);
-  const coachProvider = AI_GATEWAY_API_KEY
-    ? { name: "IELTSist AI Gateway", model: AI_GATEWAY_MODEL, baseUrl: AI_GATEWAY_BASE_URL, reasoningEffort: AI_GATEWAY_REASONING_EFFORT, agentEnabled: true }
-    : COACH_AI_API_KEY
-      ? { name: "Coach provider", model: COACH_AI_MODEL, baseUrl: COACH_AI_BASE_URL, reasoningEffort: null, agentEnabled: false }
-      : OPENAI_API_KEY
-        ? { name: "Legacy provider", model: MODEL, baseUrl: OPENAI_BASE_URL, reasoningEffort: null, agentEnabled: false }
-        : null;
+  const coachProviders = coachAiProviders();
+  const coachAiEnabled = coachProviders.length > 0;
+  const coachProvider = coachProviders[0]
+    ? {
+        name: coachProviders[0].provider === "gateway"
+          ? "IELTSist AI Gateway"
+          : coachProviders[0].provider === "qwen" ? "Coach provider" : "Legacy provider",
+        model: coachProviders[0].model,
+        baseUrl: coachProviders[0].baseUrl,
+        reasoningEffort: coachProviders[0].reasoningEffort || null,
+        agentEnabled: Boolean(coachProviders[0].agentic),
+      }
+    : null;
   return {
     aiEnabled: coachAiEnabled,
     model: coachProvider?.model || null,
@@ -1211,6 +1228,8 @@ function tasksPayload() {
     coachReasoningEffort: coachProvider?.reasoningEffort || null,
     coachAgentEnabled: Boolean(coachProvider?.agentEnabled),
     coachProvider: coachProvider?.name || null,
+    coachFallbackAvailable: coachProviders.length > 1,
+    coachTimeoutMs: COACH_AI_TOTAL_TIMEOUT_MS,
     writingAiEnabled: Boolean(WRITING_AI_API_KEY),
     writingModel: WRITING_AI_API_KEY ? WRITING_AI_MODEL : null,
     writingAiBaseUrl: WRITING_AI_API_KEY ? WRITING_AI_BASE_URL : null,
@@ -2006,6 +2025,18 @@ function getAppDb() {
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS wechat_identities (
+      app_id TEXT NOT NULL,
+      openid TEXT NOT NULL,
+      unionid TEXT,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      last_seen_at TEXT NOT NULL,
+      UNIQUE(app_id, openid),
+      UNIQUE(app_id, unionid)
+    );
+    CREATE INDEX IF NOT EXISTS idx_wechat_identities_user ON wechat_identities(user_id);
     CREATE TABLE IF NOT EXISTS user_roles (
       user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       role TEXT NOT NULL DEFAULT 'student' CHECK (role IN ('student', 'teacher', 'school_admin', 'school_owner', 'staff')),
@@ -2403,6 +2434,183 @@ function stemInternalIdentity(user) {
   };
 }
 
+function cleanIeltsWebviewReturnPath(value) {
+  let candidate;
+  try { candidate = new URL(String(value || ""), IELTSIST_PUBLIC_ORIGIN); } catch { return ""; }
+  if (candidate.origin !== IELTSIST_PUBLIC_ORIGIN || candidate.protocol !== "https:") return "";
+  for (const key of ["handoff", "token", "access_token", "id_token", "code", "session", "state"]) candidate.searchParams.delete(key);
+  const returnPath = `${candidate.pathname || "/"}${candidate.search}${candidate.hash}`;
+  return returnPath.length <= 2_000 ? returnPath : "";
+}
+
+function pruneStemWebviewHandoffs() {
+  const now = Date.now();
+  for (const [key, value] of stemWebviewHandoffs) if (!value || value.expiresAt <= now) stemWebviewHandoffs.delete(key);
+}
+
+function issueStemWebviewHandoff({ userId, returnTo }) {
+  const normalizedId = String(userId || "").trim();
+  const parsedUserId = Number(normalizedId.replace(/^ielts:/, ""));
+  if (!/^ielts:\d+$/.test(normalizedId) || !Number.isInteger(parsedUserId) || parsedUserId <= 0) {
+    throw Object.assign(new Error("The shared account identity is invalid."), { statusCode: 401, code: "webview_identity_invalid" });
+  }
+  const returnPath = cleanIeltsWebviewReturnPath(returnTo);
+  if (!returnPath) throw Object.assign(new Error("The webview return path is invalid."), { statusCode: 400, code: "webview_return_invalid" });
+  const user = getAppDb().prepare("SELECT id FROM users WHERE id = ?").get(parsedUserId);
+  if (!user) throw Object.assign(new Error("The shared account identity was not found."), { statusCode: 404, code: "webview_identity_not_found" });
+  pruneStemWebviewHandoffs();
+  const code = crypto.randomBytes(32).toString("base64url");
+  const expiresAt = Date.now() + STEM_WEBVIEW_HANDOFF_TTL_MS;
+  stemWebviewHandoffs.set(crypto.createHash("sha256").update(code).digest("hex"), { userId: parsedUserId, returnPath, expiresAt });
+  return { url: `${IELTSIST_PUBLIC_ORIGIN}/api/auth/stem-handoff/consume?code=${encodeURIComponent(code)}`, expiresAt: new Date(expiresAt).toISOString(), oneTime: true };
+}
+
+async function handleStemInternalWebviewHandoff(req, res) {
+  const rawBody = await readBody(req);
+  if (!signedStemInternalRequest(req, rawBody)) {
+    sendJson(res, 403, { error: "STEM webview handoff is not authorised." });
+    return;
+  }
+  let payload;
+  try { payload = JSON.parse(rawBody || "{}"); } catch { sendJson(res, 400, { error: "Webview handoff must be valid JSON." }); return; }
+  try {
+    sendJson(res, 200, issueStemWebviewHandoff({ userId: payload.userId, returnTo: payload.returnTo }));
+  } catch (error) {
+    sendJson(res, error.statusCode || 503, { ...(error.code ? { code: error.code } : {}), error: error.statusCode ? error.message : "Webview handoff is temporarily unavailable." });
+  }
+}
+
+function consumeStemWebviewHandoff(req, res) {
+  const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+  const code = String(url.searchParams.get("code") || "").trim();
+  const key = code ? crypto.createHash("sha256").update(code).digest("hex") : "";
+  pruneStemWebviewHandoffs();
+  const handoff = key ? stemWebviewHandoffs.get(key) : null;
+  if (!handoff || handoff.expiresAt <= Date.now()) {
+    sendJson(res, 401, { code: "webview_handoff_expired", error: "The webview handoff has expired. Return to the app and try again." });
+    return;
+  }
+  stemWebviewHandoffs.delete(key);
+  const session = createSession(handoff.userId);
+  setSessionCookie(res, session.token, session.expiresAt);
+  res.statusCode = 302;
+  res.setHeader("Location", handoff.returnPath);
+  res.setHeader("Cache-Control", "no-store");
+  res.setHeader("Referrer-Policy", "no-referrer");
+  res.end();
+}
+
+function wechatConfigurationError() {
+  return Object.assign(new Error("WeChat sign-in is not configured on the account service."), {
+    statusCode: 503,
+    code: "wechat_auth_not_configured",
+  });
+}
+
+function wechatCodeError() {
+  return Object.assign(new Error("WeChat sign-in could not verify this session. Please try again."), {
+    statusCode: 401,
+    code: "wechat_code_invalid",
+  });
+}
+
+function wechatCode2SessionUrl(code) {
+  if (!WECHAT_MINIPROGRAM_APP_ID || !WECHAT_MINIPROGRAM_APP_SECRET) throw wechatConfigurationError();
+  let endpoint;
+  try {
+    endpoint = new URL(WECHAT_MINIPROGRAM_CODE2SESSION_URL);
+  } catch {
+    throw wechatConfigurationError();
+  }
+  const hostname = endpoint.hostname.toLowerCase();
+  const localTestHost = ["127.0.0.1", "::1", "localhost"].includes(hostname);
+  const officialHost = endpoint.protocol === "https:" && hostname === "api.weixin.qq.com";
+  if (!officialHost && !(process.env.NODE_ENV !== "production" && endpoint.protocol === "http:" && localTestHost)) {
+    throw wechatConfigurationError();
+  }
+  endpoint.search = "";
+  endpoint.searchParams.set("appid", WECHAT_MINIPROGRAM_APP_ID);
+  endpoint.searchParams.set("secret", WECHAT_MINIPROGRAM_APP_SECRET);
+  endpoint.searchParams.set("js_code", String(code || ""));
+  endpoint.searchParams.set("grant_type", "authorization_code");
+  return endpoint;
+}
+
+async function exchangeWeChatCode(code) {
+  const normalizedCode = String(code || "").trim();
+  if (!normalizedCode || normalizedCode.length > 512) throw wechatCodeError();
+  const endpoint = wechatCode2SessionUrl(normalizedCode);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), WECHAT_MINIPROGRAM_TIMEOUT_MS);
+  try {
+    const response = await fetch(endpoint, { method: "GET", signal: controller.signal });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw Object.assign(new Error("WeChat sign-in service is temporarily unavailable."), { statusCode: 503, code: "wechat_provider_unavailable" });
+    if (Number(payload.errcode || 0) !== 0 || !String(payload.openid || "").trim()) throw wechatCodeError();
+    return { openid: String(payload.openid).trim(), unionid: String(payload.unionid || "").trim() };
+  } catch (error) {
+    if (error?.statusCode) throw error;
+    throw Object.assign(new Error(error?.name === "AbortError" ? "WeChat sign-in timed out. Please try again." : "WeChat sign-in service is temporarily unavailable."), {
+      statusCode: 503,
+      code: error?.name === "AbortError" ? "wechat_provider_timeout" : "wechat_provider_unavailable",
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function upsertWeChatUser({ openid, unionid }) {
+  const db = getAppDb();
+  const appId = WECHAT_MINIPROGRAM_APP_ID;
+  const normalizedOpenid = String(openid || "").trim();
+  const normalizedUnionid = String(unionid || "").trim() || null;
+  if (!appId || !normalizedOpenid) throw wechatCodeError();
+  const byOpenid = db.prepare("SELECT * FROM wechat_identities WHERE app_id = ? AND openid = ?").get(appId, normalizedOpenid) || null;
+  const byUnionid = normalizedUnionid
+    ? db.prepare("SELECT * FROM wechat_identities WHERE app_id = ? AND unionid = ?").get(appId, normalizedUnionid) || null
+    : null;
+  if (byOpenid && byUnionid && Number(byOpenid.user_id) !== Number(byUnionid.user_id)) {
+    throw Object.assign(new Error("This WeChat identity is linked to conflicting accounts."), { statusCode: 409, code: "wechat_identity_conflict" });
+  }
+  let userId = Number((byOpenid || byUnionid || {}).user_id || 0);
+  const now = nowIso();
+  if (!userId) {
+    const usernameBase = `wx_${crypto.createHash("sha256").update(`${appId}:${normalizedOpenid}`).digest("hex").slice(0, 16)}`;
+    let username = usernameBase;
+    let suffix = 0;
+    while (db.prepare("SELECT id FROM users WHERE username = ?").get(username)) {
+      suffix += 1;
+      username = `${usernameBase.slice(0, 23 - String(suffix).length)}${suffix}`;
+    }
+    const generatedPassword = crypto.randomBytes(32).toString("base64url");
+    const { salt, passwordHash } = hashPassword(generatedPassword);
+    const result = db.prepare("INSERT INTO users (username, password_hash, salt, created_at, updated_at) VALUES (?, ?, ?, ?, ?)")
+      .run(username, passwordHash, salt, now, now);
+    userId = Number(result.lastInsertRowid);
+  }
+  if (byOpenid) {
+    db.prepare("UPDATE wechat_identities SET unionid = COALESCE(?, unionid), updated_at = ?, last_seen_at = ? WHERE app_id = ? AND openid = ?")
+      .run(normalizedUnionid, now, now, appId, normalizedOpenid);
+  } else if (byUnionid) {
+    // A Mini Program subject or Open Platform binding change can rotate the
+    // OpenID seen by the account service while preserving UnionID. Rebind the
+    // existing, already verified identity instead of creating a duplicate
+    // student or violating UNIQUE(app_id, unionid). The earlier conflict guard
+    // still rejects two known accounts; no identities are silently merged.
+    db.prepare("UPDATE wechat_identities SET openid = ?, updated_at = ?, last_seen_at = ? WHERE app_id = ? AND unionid = ?")
+      .run(normalizedOpenid, now, now, appId, normalizedUnionid);
+  } else {
+    db.prepare("INSERT INTO wechat_identities (app_id, openid, unionid, user_id, created_at, updated_at, last_seen_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
+      .run(appId, normalizedOpenid, normalizedUnionid, userId, now, now, now);
+  }
+  return db.prepare("SELECT * FROM users WHERE id = ?").get(userId);
+}
+
+async function authenticateWeChatCode(code) {
+  const identity = await exchangeWeChatCode(code);
+  return stemInternalIdentity(upsertWeChatUser(identity));
+}
+
 async function handleStemInternalAuthenticate(req, res) {
   const rawBody = await readBody(req);
   if (!signedStemInternalRequest(req, rawBody)) {
@@ -2416,7 +2624,15 @@ async function handleStemInternalAuthenticate(req, res) {
     sendJson(res, 400, { error: "Account request must be valid JSON." });
     return;
   }
-  const mode = payload.mode === "register" ? "register" : payload.mode === "login" ? "login" : "";
+  const mode = payload.mode === "register" ? "register" : payload.mode === "login" ? "login" : payload.mode === "wechat" ? "wechat" : "";
+  if (mode === "wechat") {
+    try {
+      sendJson(res, 200, { identity: await authenticateWeChatCode(payload.code) });
+    } catch (error) {
+      sendJson(res, error.statusCode || 503, { ...(error.code ? { code: error.code } : {}), error: error.statusCode ? error.message : "WeChat sign-in service is temporarily unavailable." });
+    }
+    return;
+  }
   const username = normalizeUsername(payload.username);
   const password = String(payload.password || "");
   if (!mode || !validateUsername(username)) {
@@ -4536,9 +4752,13 @@ async function callOpenAI({
   toolExecutor = null,
   maxToolRounds = 2,
   timeoutMs = 0,
+  deadlineAt = 0,
 }) {
   if (!apiKey) return null;
   const normalizedBaseUrl = String(baseUrl || "").replace(/\/+$/, "");
+  const requestDeadline = Number(deadlineAt) > 0
+    ? Number(deadlineAt)
+    : Number(timeoutMs) > 0 ? Date.now() + Number(timeoutMs) : 0;
   const messages = [
     { role: "system", content: system },
     { role: "user", content: user },
@@ -4565,14 +4785,18 @@ async function callOpenAI({
     return body;
   };
 
-  const postJson = (url, body) => fetchWithAiTimeout(url, {
-    method: "POST",
-    headers: {
-      authorization: `Bearer ${apiKey}`,
-      "content-type": "application/json",
-    },
-    body: JSON.stringify(body),
-  }, timeoutMs);
+  const postJson = (url, body) => {
+    const remainingMs = requestDeadline ? requestDeadline - Date.now() : timeoutMs;
+    if (requestDeadline && remainingMs <= 0) return Promise.reject(new Error("AI request timed out."));
+    return fetchWithAiTimeout(url, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${apiKey}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(body),
+    }, remainingMs);
+  };
   let chatResponse = await postJson(`${normalizedBaseUrl}/chat/completions`, buildBody("chat"));
   let chatJson = null;
   let chatError = "";
@@ -4596,9 +4820,12 @@ async function callOpenAI({
           } catch {}
           let result;
           try {
+            const toolTimeoutMs = requestDeadline
+              ? Math.max(1, Math.min(COACH_AGENT_TOOL_TIMEOUT_MS, requestDeadline - Date.now()))
+              : COACH_AGENT_TOOL_TIMEOUT_MS;
             result = await Promise.race([
               Promise.resolve(toolExecutor(toolName, args)),
-              new Promise((_, reject) => setTimeout(() => reject(new Error("Coach tool timed out.")), COACH_AGENT_TOOL_TIMEOUT_MS)),
+              new Promise((_, reject) => setTimeout(() => reject(new Error("Coach tool timed out.")), toolTimeoutMs)),
             ]);
           } catch {
             result = { ok: false, error: "Tool unavailable. Continue without external data." };
@@ -4844,9 +5071,30 @@ function coachAgentToolExecutor(toolName, args, context = {}) {
   });
 }
 
+const coachProviderTelemetry = [];
+
+function recordCoachProviderTelemetry({ requestId, provider, model, status, durationMs }) {
+  const event = {
+    requestId: String(requestId || "").slice(0, 120),
+    provider: String(provider || "unknown").slice(0, 40),
+    model: String(model || "unknown").slice(0, 120),
+    status: String(status || "failed").slice(0, 24),
+    durationMs: Math.max(0, Math.round(Number(durationMs) || 0)),
+  };
+  coachProviderTelemetry.push(event);
+  while (coachProviderTelemetry.length > 500) coachProviderTelemetry.shift();
+  console.info(`[coach-provider] ${JSON.stringify(event)}`);
+}
+
+function coachProviderFailureStatus(error) {
+  return /timeout|timed out|abort/i.test(String(error?.message || error || "")) ? "timeout" : "failed";
+}
+
 function coachAiProviders() {
+  const providers = [];
   if (AI_GATEWAY_API_KEY) {
-    return [{
+    providers.push({
+      provider: "gateway",
       apiKey: AI_GATEWAY_API_KEY,
       baseUrl: AI_GATEWAY_BASE_URL,
       model: AI_GATEWAY_MODEL,
@@ -4854,54 +5102,78 @@ function coachAiProviders() {
       timeoutMs: AI_GATEWAY_TIMEOUT_MS,
       allowResponsesFallback: false,
       agentic: true,
-    }];
+    });
   }
-  if (COACH_AI_API_KEY) {
-    return [{
+  // A gateway outage may fall through only to a separately configured Qwen
+  // provider. The shared legacy alias is intentionally not enough to create a
+  // second attempt with the same credential.
+  if (COACH_AI_API_KEY && (!AI_GATEWAY_API_KEY || COACH_QWEN_CONFIGURED)) {
+    providers.push({
+      provider: "qwen",
       apiKey: COACH_AI_API_KEY,
       baseUrl: COACH_AI_BASE_URL,
       model: COACH_AI_MODEL,
       timeoutMs: COACH_AI_TIMEOUT_MS,
       allowResponsesFallback: false,
       agentic: false,
-    }];
+    });
   }
-  if (OPENAI_API_KEY) {
-    return [{
+  if (!providers.length && OPENAI_API_KEY) {
+    providers.push({
+      provider: "legacy",
       apiKey: OPENAI_API_KEY,
       baseUrl: OPENAI_BASE_URL,
       model: MODEL,
       timeoutMs: COACH_AI_TIMEOUT_MS,
       allowResponsesFallback: true,
       agentic: false,
-    }];
+    });
   }
-  return [];
+  return providers;
 }
 
-async function callCoachAI({ system, user, temperature = 0.25, helpContext = null, contextText = "" }) {
+async function callCoachAI({ system, user, temperature = 0.25, helpContext = null, contextText = "", requestId = "" }) {
   const providers = coachAiProviders();
   if (!providers.length) return null;
+  const stableRequestId = String(requestId || crypto.randomUUID()).slice(0, 120);
+  const deadline = Date.now() + COACH_AI_TOTAL_TIMEOUT_MS;
   let lastError = null;
   for (const provider of providers) {
+    const remainingMs = deadline - Date.now();
+    if (remainingMs <= 0) break;
+    const attemptTimeoutMs = Math.max(1, Math.min(Number(provider.timeoutMs) || COACH_AI_TIMEOUT_MS, remainingMs));
+    const startedAt = Date.now();
+    let status = "failed";
     try {
-      const answer = await Promise.race([
-        callOpenAI({
-          system,
-          user,
-          temperature,
-          ...provider,
-          agentTools: provider.agentic ? COACH_AGENT_TOOL_DEFINITIONS : [],
-          toolExecutor: provider.agentic
-            ? (toolName, args) => coachAgentToolExecutor(toolName, args, { helpContext, contextText })
-            : null,
-        }),
-        new Promise((_, reject) => setTimeout(() => reject(new Error("AI Coach request timed out.")), provider.timeoutMs || COACH_AI_TIMEOUT_MS)),
-      ]);
+      const answer = await callOpenAI({
+        system,
+        user,
+        temperature,
+        ...provider,
+        timeoutMs: attemptTimeoutMs,
+        deadlineAt: Date.now() + attemptTimeoutMs,
+        agentTools: provider.agentic ? COACH_AGENT_TOOL_DEFINITIONS : [],
+        toolExecutor: provider.agentic
+          ? (toolName, args) => coachAgentToolExecutor(toolName, args, { helpContext, contextText })
+          : null,
+      });
       const safeAnswer = sanitizeCoachStudentOutput(answer);
-      if (safeAnswer) return safeAnswer;
+      if (safeAnswer) {
+        status = "success";
+        return safeAnswer;
+      }
+      status = "empty";
     } catch (error) {
       lastError = error;
+      status = coachProviderFailureStatus(error);
+    } finally {
+      recordCoachProviderTelemetry({
+        requestId: stableRequestId,
+        provider: provider.provider,
+        model: provider.model,
+        status,
+        durationMs: Date.now() - startedAt,
+      });
     }
   }
   if (lastError) throw lastError;
@@ -5359,7 +5631,7 @@ function helpContextBlock(helpContext) {
   ].join("\n");
 }
 
-async function buildHelpExplanation(ocrText, helpContext = {}) {
+async function buildHelpExplanation(ocrText, helpContext = {}, requestId = "") {
   const clean = String(ocrText || "").trim();
   if (!clean) return { mode: "local", answer: localHelpExplanation(clean) };
   const evidenceGuard = readingEvidenceGuard({
@@ -5393,6 +5665,7 @@ async function buildHelpExplanation(ocrText, helpContext = {}) {
         clean,
       ].join("\n"),
       temperature: 0.2,
+      requestId,
     });
   } catch (error) {
     warning = coachProviderWarning(error);
@@ -5405,6 +5678,8 @@ async function buildHelpExplanation(ocrText, helpContext = {}) {
 }
 
 async function handleHelpExplain(req, res) {
+  const requestId = crypto.randomUUID();
+  res.setHeader("x-request-id", requestId);
   const payload = JSON.parse((await readBody(req)) || "{}");
   const imageBuffer = parseImageDataUrl(payload.imageDataUrl);
   const helpContext = normalizeHelpContext(payload.helpContext);
@@ -5416,7 +5691,7 @@ async function handleHelpExplain(req, res) {
     ocrWarning = error.message || "OCR failed";
   }
   const explanation = ocrText
-    ? await buildHelpExplanation(ocrText, helpContext)
+    ? await buildHelpExplanation(ocrText, helpContext, requestId)
     : { mode: "local", answer: localHelpExplanation("", ocrWarning), warning: ocrWarning };
   const resolvedExplanationAnswer = correctReadingAnswerLocation(explanation.answer, helpContext);
   sendJson(res, 200, {
@@ -5658,6 +5933,8 @@ function ensureReadingHintLocation(answer, helpContext, message) {
 }
 
 async function handleHelpChat(req, res) {
+  const requestId = crypto.randomUUID();
+  res.setHeader("x-request-id", requestId);
   const payload = JSON.parse((await readBody(req)) || "{}");
   const message = String(payload.message || "").trim();
   const contextText = String(payload.contextText || "").trim();
@@ -5733,6 +6010,7 @@ async function handleHelpChat(req, res) {
       temperature: 0.25,
       helpContext,
       contextText,
+      requestId,
     });
   } catch (error) {
     warning = coachProviderWarning(error);
@@ -8093,6 +8371,14 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.method === "POST" && requestPathname === "/api/stem/internal/authenticate") {
       await handleStemInternalAuthenticate(req, res);
+      return;
+    }
+    if (req.method === "POST" && requestPathname === "/api/stem/internal/webview-handoff") {
+      await handleStemInternalWebviewHandoff(req, res);
+      return;
+    }
+    if (req.method === "GET" && requestPathname === "/api/auth/stem-handoff/consume") {
+      consumeStemWebviewHandoff(req, res);
       return;
     }
     if ((req.method === "GET" || req.method === "PUT") && requestPathname === "/api/coach/conversations") {
