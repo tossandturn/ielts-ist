@@ -13,6 +13,7 @@ const dbPath = join(tmpdir(), `ieltsist-wechat-mini-${process.pid}-${randomUUID(
 const signingKey = "wechat-mini-auth-test-signing-key";
 const legacyIdentityKey = "legacy-browser-identity-key-must-be-different";
 let providerMode = "ok";
+let providerIdentity = { openid: "open-id-1", unionid: "union-id-1" };
 let providerQuery = null;
 let provider = null;
 let child = null;
@@ -98,7 +99,7 @@ try {
       res.end(JSON.stringify({ errcode: 40029, errmsg: "invalid code" }));
       return;
     }
-    res.end(JSON.stringify({ openid: "open-id-1", unionid: "union-id-1", session_key: "must-not-be-stored" }));
+    res.end(JSON.stringify({ ...providerIdentity, session_key: "must-not-be-stored" }));
   });
   await listen(provider, mockPort);
   child = spawn(process.execPath, ["server.js"], {
@@ -262,6 +263,28 @@ try {
   const repeat = await internalRequest({ mode: "wechat", code: "another-code" });
   assert.equal(repeat.response.status, 200);
   assert.equal(repeat.json.identity.id, "ielts:1", "the same unionid/openid must recover the same account");
+
+  providerIdentity = { openid: "open-id-1" };
+  const missingUnionid = await internalRequest({ mode: "wechat", code: "unionid-missing-fixture" });
+  assert.equal(missingUnionid.response.status, 200);
+  assert.equal(missingUnionid.json.identity.id, first.json.identity.id);
+  providerIdentity = { openid: "open-id-1", unionid: "union-id-updated" };
+  const updatedUnionid = await internalRequest({ mode: "wechat", code: "unionid-updated-fixture" });
+  assert.equal(updatedUnionid.response.status, 200);
+  assert.equal(updatedUnionid.json.identity.id, first.json.identity.id);
+  providerIdentity = { openid: "open-id-rotated", unionid: "union-id-updated" };
+  const rotatedOpenid = await internalRequest({ mode: "wechat", code: "openid-rotated-fixture" });
+  assert.equal(rotatedOpenid.response.status, 200);
+  assert.equal(rotatedOpenid.json.identity.id, first.json.identity.id);
+  providerIdentity = { openid: "separate-open-id", unionid: "separate-union-id" };
+  const separate = await internalRequest({ mode: "wechat", code: "separate-identity-fixture" });
+  assert.equal(separate.response.status, 200);
+  assert.notEqual(separate.json.identity.id, first.json.identity.id);
+  providerIdentity = { openid: "open-id-rotated", unionid: "separate-union-id" };
+  const conflict = await internalRequest({ mode: "wechat", code: "conflict-identity-fixture" });
+  assert.equal(conflict.response.status, 409);
+  assert.equal(conflict.json.code, "wechat_identity_conflict");
+  assert.doesNotMatch(JSON.stringify(conflict.json), /must-not-be-stored|test-secret|conflict-identity-fixture/);
 
   const handoff = await internalHandoffRequest({ userId: first.json.identity.id, returnTo: "/?module=speaking&token=must-not-survive" });
   assert.equal(handoff.response.status, 200);

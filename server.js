@@ -2670,6 +2670,11 @@ function upsertWeChatUser({ openid, unionid }) {
   if (byOpenid) {
     db.prepare("UPDATE wechat_identities SET unionid = COALESCE(?, unionid), updated_at = ?, last_seen_at = ? WHERE app_id = ? AND openid = ?")
       .run(normalizedUnionid, now, now, appId, normalizedOpenid);
+  } else if (byUnionid) {
+    // A verified UnionID in this app can reconnect its existing student after
+    // an OpenID rotation. The conflict check above protects separate accounts.
+    db.prepare("UPDATE wechat_identities SET openid = ?, updated_at = ?, last_seen_at = ? WHERE app_id = ? AND unionid = ?")
+      .run(normalizedOpenid, now, now, appId, normalizedUnionid);
   } else {
     db.prepare("INSERT INTO wechat_identities (app_id, openid, unionid, user_id, created_at, updated_at, last_seen_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
       .run(appId, normalizedOpenid, normalizedUnionid, userId, now, now, now);
