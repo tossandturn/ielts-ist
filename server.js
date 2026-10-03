@@ -5183,6 +5183,7 @@ function coachAiProviders({ vision = false } = {}) {
       apiKey: useWritingQwen ? writingKey : COACH_AI_API_KEY,
       baseUrl: useWritingQwen ? writingBase : COACH_AI_BASE_URL,
       model: useWritingQwen ? (vision ? WRITING_VISION_AI_MODEL : WRITING_AI_MODEL) : COACH_AI_MODEL,
+      enableThinking: /^qwen3\.[567](?:-|$)/i.test(useWritingQwen ? (vision ? WRITING_VISION_AI_MODEL : WRITING_AI_MODEL) : COACH_AI_MODEL) ? false : undefined,
       timeoutMs: COACH_AI_TIMEOUT_MS,
       allowResponsesFallback: false,
       agentic: false,

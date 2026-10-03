@@ -14,6 +14,7 @@ const context=vm.createContext(vars);vm.runInContext(selector,context)
 assert.equal(context.coachAiProviders()[1].baseUrl,vars.WRITING_AI_BASE_URL)
 assert.equal(context.coachAiProviders()[1].apiKey,vars.WRITING_AI_API_KEY)
 assert.equal(context.coachAiProviders({vision:true})[1].model,vars.WRITING_VISION_AI_MODEL)
+context.WRITING_AI_MODEL='qwen3.7-max';assert.equal(context.coachAiProviders()[1].enableThinking,false,'hybrid Qwen Coach responds without a long hidden-thinking delay')
 const gateway=http.createServer((q,r)=>{attempts.push('gateway');r.writeHead(503,{'content-type':'application/json'});r.end(JSON.stringify({error:{message:'Synthetic unavailable upstream'}}))})
 const qwen=http.createServer((q,r)=>{attempts.push('qwen');r.writeHead(200,{'content-type':'application/json'});r.end(JSON.stringify({choices:[{message:{content:'Lifelong learning means continuing to develop knowledge throughout life.'}}]}))})
 let child,output=''
