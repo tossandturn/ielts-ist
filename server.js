@@ -132,6 +132,8 @@ const COACH_AGENT_TOOL_TIMEOUT_MS = Math.max(250, Math.min(5_000, Number(process
 const COACH_AI_MODEL = process.env.COACH_AI_MODEL || process.env.QWEN_COACH_MODEL || "qwen3.7-max";
 const COACH_AI_BASE_URL = (process.env.COACH_AI_BASE_URL || process.env.QWEN_COACH_BASE_URL || DASHSCOPE_COMPAT_BASE_URL).replace(/\/+$/, "");
 const COACH_AI_API_KEY = process.env.COACH_AI_API_KEY || process.env.QWEN_COACH_API_KEY || DASHSCOPE_API_KEY;
+const COACH_QWEN_CONFIGURED = Boolean(process.env.COACH_AI_API_KEY || process.env.QWEN_COACH_API_KEY || process.env.DASHSCOPE_API_KEY || process.env.QWEN_API_KEY);
+const COACH_TOTAL_TIMEOUT_MS = 50_000;
 const COACH_AI_TIMEOUT_MS = Math.max(5_000, Math.min(60_000, Number(process.env.COACH_AI_TIMEOUT_MS || 25_000)));
 const STEM_MARKING_AI_DISABLED = process.env.STEM_MARKING_AI_DISABLED === "1";
 const STEM_MARKING_AI_MODEL = STEM_MARKING_AI_DISABLED ? "" : (process.env.STEM_MARKING_AI_MODEL || COACH_AI_MODEL);
@@ -5157,8 +5159,10 @@ function coachAgentToolExecutor(toolName, args, context = {}) {
 }
 
 function coachAiProviders() {
+  const providers = [];
   if (AI_GATEWAY_API_KEY) {
-    return [{
+    providers.push({
+      provider: "gateway",
       apiKey: AI_GATEWAY_API_KEY,
       baseUrl: AI_GATEWAY_BASE_URL,
       model: AI_GATEWAY_MODEL,
@@ -5166,36 +5170,44 @@ function coachAiProviders() {
       timeoutMs: AI_GATEWAY_TIMEOUT_MS,
       allowResponsesFallback: false,
       agentic: true,
-    }];
+    });
   }
-  if (COACH_AI_API_KEY) {
-    return [{
+  if (COACH_AI_API_KEY && (!AI_GATEWAY_API_KEY || COACH_QWEN_CONFIGURED)) {
+    providers.push({
+      provider: "qwen",
       apiKey: COACH_AI_API_KEY,
       baseUrl: COACH_AI_BASE_URL,
       model: COACH_AI_MODEL,
       timeoutMs: COACH_AI_TIMEOUT_MS,
       allowResponsesFallback: false,
       agentic: false,
-    }];
+    });
   }
-  if (OPENAI_API_KEY) {
-    return [{
+  if (!providers.length && OPENAI_API_KEY) {
+    providers.push({
+      provider: "legacy",
       apiKey: OPENAI_API_KEY,
       baseUrl: OPENAI_BASE_URL,
       model: MODEL,
       timeoutMs: COACH_AI_TIMEOUT_MS,
       allowResponsesFallback: true,
       agentic: false,
-    }];
+    });
   }
-  return [];
+  return providers;
 }
 
 async function callCoachAI({ system, user, temperature = 0.25, helpContext = null, contextText = "" }) {
   const providers = coachAiProviders();
   if (!providers.length) return null;
+  const deadline = Date.now() + COACH_TOTAL_TIMEOUT_MS;
   let lastError = null;
-  for (const provider of providers) {
+  for (const [index, provider] of providers.entries()) {
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) break;
+    const reserve = index === 0 && providers.length > 1 ? 15_000 : 0;
+    const timeoutMs = Math.max(1, Math.min(provider.timeoutMs || COACH_AI_TIMEOUT_MS, remaining - reserve));
+    let timer;
     try {
       const answer = await Promise.race([
         callOpenAI({
@@ -5203,17 +5215,21 @@ async function callCoachAI({ system, user, temperature = 0.25, helpContext = nul
           user,
           temperature,
           ...provider,
+          timeoutMs,
           agentTools: provider.agentic ? COACH_AGENT_TOOL_DEFINITIONS : [],
           toolExecutor: provider.agentic
             ? (toolName, args) => coachAgentToolExecutor(toolName, args, { helpContext, contextText })
             : null,
         }),
-        new Promise((_, reject) => setTimeout(() => reject(new Error("AI Coach request timed out.")), provider.timeoutMs || COACH_AI_TIMEOUT_MS)),
+        new Promise((_, reject) => { timer = setTimeout(() => reject(new Error("AI Coach request timed out.")), timeoutMs); }),
       ]);
       const safeAnswer = sanitizeCoachStudentOutput(answer);
       if (safeAnswer) return safeAnswer;
     } catch (error) {
       lastError = error;
+      console.warn("[coach-provider]", JSON.stringify({provider: provider.provider, attempt: index + 1, status: "failed", timeout: /timeout|timed out/i.test(String(error?.message || ""))}));
+    } finally {
+      clearTimeout(timer);
     }
   }
   if (lastError) throw lastError;
