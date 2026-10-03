@@ -5158,8 +5158,13 @@ function coachAgentToolExecutor(toolName, args, context = {}) {
   });
 }
 
-function coachAiProviders() {
+function coachAiProviders({ vision = false } = {}) {
   const providers = [];
+  let aliasesGateway = false;
+  try { aliasesGateway = new URL(COACH_AI_BASE_URL).origin === new URL(AI_GATEWAY_BASE_URL).origin; } catch { /* Invalid endpoints remain unavailable. */ }
+  const writingBase = vision ? WRITING_VISION_AI_BASE_URL : WRITING_AI_BASE_URL;
+  const writingKey = vision ? WRITING_VISION_AI_API_KEY : WRITING_AI_API_KEY;
+  const useWritingQwen = aliasesGateway && writingKey && /^https:\/\/(?:dashscope(?:-intl)?\.aliyuncs\.com|[a-zA-Z0-9.-]+\.maas\.aliyuncs\.com)\//.test(writingBase);
   if (AI_GATEWAY_API_KEY) {
     providers.push({
       provider: "gateway",
@@ -5172,12 +5177,12 @@ function coachAiProviders() {
       agentic: true,
     });
   }
-  if (COACH_AI_API_KEY && (!AI_GATEWAY_API_KEY || COACH_QWEN_CONFIGURED)) {
+  if (useWritingQwen || COACH_AI_API_KEY && (!AI_GATEWAY_API_KEY || COACH_QWEN_CONFIGURED)) {
     providers.push({
       provider: "qwen",
-      apiKey: COACH_AI_API_KEY,
-      baseUrl: COACH_AI_BASE_URL,
-      model: COACH_AI_MODEL,
+      apiKey: useWritingQwen ? writingKey : COACH_AI_API_KEY,
+      baseUrl: useWritingQwen ? writingBase : COACH_AI_BASE_URL,
+      model: useWritingQwen ? (vision ? WRITING_VISION_AI_MODEL : WRITING_AI_MODEL) : COACH_AI_MODEL,
       timeoutMs: COACH_AI_TIMEOUT_MS,
       allowResponsesFallback: false,
       agentic: false,
@@ -5198,7 +5203,7 @@ function coachAiProviders() {
 }
 
 async function callCoachAI({ system, user, temperature = 0.25, helpContext = null, contextText = "" }) {
-  const providers = coachAiProviders();
+  const providers = coachAiProviders({ vision: Array.isArray(user) && user.some(part => part?.type === "image_url") });
   if (!providers.length) return null;
   const deadline = Date.now() + COACH_TOTAL_TIMEOUT_MS;
   let lastError = null;

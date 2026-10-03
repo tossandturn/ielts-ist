@@ -3,9 +3,17 @@ import http from 'node:http'
 import fs from 'node:fs'
 import path from 'node:path'
 import {spawn} from 'node:child_process'
+import vm from 'node:vm'
 const root=path.resolve(import.meta.dirname,'..'),temp=fs.mkdtempSync('D:/CodexWork/coach-fallback-native-')
 const listen=s=>new Promise(r=>s.listen(0,'127.0.0.1',r)),close=s=>new Promise(r=>s.close(r)),sleep=ms=>new Promise(r=>setTimeout(r,ms))
 const attempts=[]
+const source=fs.readFileSync(path.join(root,'server.js'),'utf8')
+const selector=source.slice(source.indexOf('function coachAiProviders'),source.indexOf('async function callCoachAI'))
+const vars={URL,AI_GATEWAY_API_KEY:'fixture-gateway',AI_GATEWAY_BASE_URL:'https://ai.example.test/v1',AI_GATEWAY_MODEL:'fixture-gateway-model',AI_GATEWAY_REASONING_EFFORT:'xhigh',AI_GATEWAY_TIMEOUT_MS:35000,COACH_AI_API_KEY:'fixture-gateway-alias',COACH_AI_BASE_URL:'https://ai.example.test/v1',COACH_AI_MODEL:'wrong-proxy-model',COACH_AI_TIMEOUT_MS:25000,COACH_QWEN_CONFIGURED:true,OPENAI_API_KEY:'',WRITING_AI_API_KEY:'fixture-ali',WRITING_AI_BASE_URL:'https://fixture.cn-beijing.maas.aliyuncs.com/compatible-mode/v1',WRITING_AI_MODEL:'fixture-text',WRITING_VISION_AI_API_KEY:'fixture-vision',WRITING_VISION_AI_BASE_URL:'https://fixture.cn-beijing.maas.aliyuncs.com/compatible-mode/v1',WRITING_VISION_AI_MODEL:'fixture-vision-model'}
+const context=vm.createContext(vars);vm.runInContext(selector,context)
+assert.equal(context.coachAiProviders()[1].baseUrl,vars.WRITING_AI_BASE_URL)
+assert.equal(context.coachAiProviders()[1].apiKey,vars.WRITING_AI_API_KEY)
+assert.equal(context.coachAiProviders({vision:true})[1].model,vars.WRITING_VISION_AI_MODEL)
 const gateway=http.createServer((q,r)=>{attempts.push('gateway');r.writeHead(503,{'content-type':'application/json'});r.end(JSON.stringify({error:{message:'Synthetic unavailable upstream'}}))})
 const qwen=http.createServer((q,r)=>{attempts.push('qwen');r.writeHead(200,{'content-type':'application/json'});r.end(JSON.stringify({choices:[{message:{content:'Lifelong learning means continuing to develop knowledge throughout life.'}}]}))})
 let child,output=''
