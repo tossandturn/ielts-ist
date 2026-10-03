@@ -5227,7 +5227,14 @@ async function callCoachAI({ system, user, temperature = 0.25, helpContext = nul
       if (safeAnswer) return safeAnswer;
     } catch (error) {
       lastError = error;
-      console.warn("[coach-provider]", JSON.stringify({provider: provider.provider, attempt: index + 1, status: "failed", timeout: /timeout|timed out/i.test(String(error?.message || ""))}));
+      const failureText = String(error?.message || "");
+      const httpStatus = Number(error?.statusCode || error?.status || failureText.match(/\b([45]\d\d)\b/)?.[1]) || null;
+      const reason = /quota|balance|insufficient|credit|429/i.test(failureText) ? "quota"
+        : /key|unauthori|credential|401|403/i.test(failureText) ? "credentials"
+        : /model.*(?:not|unavailable|exist)|unsupported.*model/i.test(failureText) ? "model"
+        : /response.*required|only.*responses|chat.*not.*support/i.test(failureText) ? "endpoint"
+        : /timeout|timed out/i.test(failureText) ? "timeout" : "request";
+      console.warn("[coach-provider]", JSON.stringify({provider: provider.provider, attempt: index + 1, status: "failed", httpStatus, reason}));
     } finally {
       clearTimeout(timer);
     }
