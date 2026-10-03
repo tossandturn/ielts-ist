@@ -1,4 +1,8 @@
 const http = require("http");
+// This host has an unreliable IPv6 outbound route. Prefer its verified IPv4
+// path and avoid racing a second address family for model-provider requests.
+require("node:dns").setDefaultResultOrder("ipv4first");
+require("node:net").setDefaultAutoSelectFamily(false);
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
