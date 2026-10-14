@@ -3012,8 +3012,10 @@ function mergeCoachHistoryThreadPair(current, candidate, conversationId) {
 }
 
 function mergeCoachHistoryThreads(localThreads = [], remoteThreads = []) {
+  const localList = Array.isArray(localThreads) ? localThreads : [];
+  const remoteList = Array.isArray(remoteThreads) ? remoteThreads : [];
   const byId = new Map();
-  [...localThreads, ...remoteThreads].forEach((thread) => {
+  [...localList, ...remoteList].forEach((thread) => {
     const conversationId = String(thread?.conversationId || thread?.key || "").trim();
     if (!conversationId || !Array.isArray(thread?.messages) || !thread.messages.length) return;
     const current = byId.get(conversationId);

@@ -32,6 +32,33 @@ const {
   parseCoachUserId,
   upsertCoachConversations,
 } = require("./server/coachHistory");
+const {
+  applyVerifiedProviderResult,
+  createMembershipCheckout,
+  installMembershipSchema,
+  listMembershipOrders,
+  membershipCatalog,
+  membershipFeatureForIeltsRequest,
+  membershipFlags,
+  membershipStatus,
+  normalizeCheckoutRequest,
+  refreshMembershipOrder,
+  requireActiveMembership,
+  recordMembershipGrant,
+} = require("./server/membership");
+const {
+  createMembershipWechatRuntime,
+  MAX_CALLBACK_BODY_BYTES,
+  WECHAT_VIRTUAL_CALLBACK_PATH,
+  wechatCallbackAck,
+} = require("./server/membershipWechatRuntime");
+const {
+  assertTestbuyerCanaryActive,
+  bindTestbuyerCanaryOrder,
+  readTestbuyerCanaryConfig,
+  reserveTestbuyerCanary,
+  testbuyerCanaryState,
+} = require("./server/membershipTestbuyerCanary");
 let DatabaseSync = null;
 try {
   ({ DatabaseSync } = require("node:sqlite"));
@@ -78,6 +105,18 @@ const IELTSIST_PUBLIC_ORIGIN = String(process.env.IELTSIST_PUBLIC_ORIGIN || "htt
 const STEM_WEBVIEW_HANDOFF_TTL_MS = 2 * 60 * 1000;
 const stemWebviewHandoffs = new Map();
 const nativeSessionIssuance = new Map();
+// The public registry stays empty until every production acceptance flag is
+// explicit. The recovery registry can only query existing reviewed orders;
+// the canary projection is separately owner-, platform-, and time-bound.
+const MEMBERSHIP_WECHAT_RUNTIME = createMembershipWechatRuntime({ env: process.env, fetchImpl: globalThis.fetch });
+const MEMBERSHIP_PROVIDER_REGISTRY = MEMBERSHIP_WECHAT_RUNTIME.providerRegistry;
+const MEMBERSHIP_RECOVERY_PROVIDER_REGISTRY = MEMBERSHIP_WECHAT_RUNTIME.recoveryProviderRegistry;
+const MEMBERSHIP_CANARY_PROVIDER_REGISTRY = MEMBERSHIP_RECOVERY_PROVIDER_REGISTRY.wechat_virtual
+  ? Object.freeze({ wechat_virtual: Object.freeze({
+    ...MEMBERSHIP_RECOVERY_PROVIDER_REGISTRY.wechat_virtual,
+    platforms: Object.freeze(MEMBERSHIP_RECOVERY_PROVIDER_REGISTRY.wechat_virtual.platforms.includes("android") ? ["android"] : []),
+  }) })
+  : Object.freeze({});
 const STEM_ALLOWED_ORIGINS = new Set([
   "https://stem.ieltsist.com",
   "http://127.0.0.1:5173",
@@ -1977,10 +2016,13 @@ function getTasksPayloadCache() {
 
 function sendTasksPayload(req, res) {
   const cache = getTasksPayloadCache();
+  const membershipProtected = req.membershipProtectedAccess === true;
+  const cacheControl = membershipProtected ? "private, no-store" : "private, max-age=600, stale-while-revalidate=3600";
   if (req.headers["if-none-match"] === cache.etag) {
     res.writeHead(304, {
       "etag": cache.etag,
-      "cache-control": "private, max-age=600, stale-while-revalidate=3600",
+      "cache-control": cacheControl,
+      ...(membershipProtected ? { "vary": "Accept-Encoding, Authorization, Cookie" } : {}),
     });
     res.end();
     return;
@@ -1990,9 +2032,9 @@ function sendTasksPayload(req, res) {
   res.writeHead(200, {
     "content-type": "application/json; charset=utf-8",
     "content-length": body.length,
-    "cache-control": "private, max-age=600, stale-while-revalidate=3600",
+    "cache-control": cacheControl,
     "etag": cache.etag,
-    "vary": "Accept-Encoding",
+    "vary": membershipProtected ? "Accept-Encoding, Authorization, Cookie" : "Accept-Encoding",
     ...(acceptsGzip ? { "content-encoding": "gzip" } : {}),
   });
   if (req.method === "HEAD") {
@@ -2285,6 +2327,7 @@ function getAppDb() {
   if (!objectiveAttemptColumns.has("parent_exam_id")) appDb.exec("ALTER TABLE objective_attempts ADD COLUMN parent_exam_id TEXT REFERENCES objective_exam_attempts(exam_id) ON DELETE CASCADE");
   appDb.exec("CREATE INDEX IF NOT EXISTS idx_objective_attempts_parent_exam ON objective_attempts(parent_exam_id, module)");
   initCoachHistorySchema(appDb);
+  installMembershipSchema(appDb);
   return appDb;
 }
 
@@ -2632,7 +2675,11 @@ async function exchangeWeChatCode(code) {
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) throw Object.assign(new Error("WeChat sign-in service is temporarily unavailable."), { statusCode: 503, code: "wechat_provider_unavailable" });
     if (Number(payload.errcode || 0) !== 0 || !String(payload.openid || "").trim()) throw wechatCodeError();
-    return { openid: String(payload.openid).trim(), unionid: String(payload.unionid || "").trim() };
+    return {
+      openid: String(payload.openid).trim(),
+      unionid: String(payload.unionid || "").trim(),
+      sessionKey: String(payload.session_key || "").trim(),
+    };
   } catch (error) {
     if (error?.statusCode) throw error;
     throw Object.assign(new Error(error?.name === "AbortError" ? "WeChat sign-in timed out. Please try again." : "WeChat sign-in service is temporarily unavailable."), {
@@ -2908,6 +2955,392 @@ async function handleAuthApi(req, res) {
   sendJson(res, 405, { error: "Method not allowed" });
 }
 
+async function resolveMembershipWechatIdentity({ userId, provider, wxCode }) {
+  const db = getAppDb();
+  if (!WECHAT_MINIPROGRAM_APP_ID) {
+    throw Object.assign(new Error("A verified WeChat payer identity is required."), { statusCode: 409, code: "wechat_identity_required" });
+  }
+  if (provider === "wechat_virtual") {
+    const exchanged = await exchangeWeChatCode(wxCode);
+    const row = db.prepare("SELECT * FROM wechat_identities WHERE app_id = ? AND openid = ?")
+      .get(WECHAT_MINIPROGRAM_APP_ID, exchanged.openid);
+    if (!row || Number(row.user_id) !== Number(userId) || !exchanged.sessionKey) {
+      throw Object.assign(new Error("A fresh WeChat payer identity is required."), { statusCode: 409, code: "wechat_identity_required" });
+    }
+    return {
+      userId: Number(userId), appId: row.app_id, openid: row.openid,
+      sessionContext: { sessionKey: exchanged.sessionKey, codeVerifiedAt: nowIso() },
+    };
+  }
+  const row = db.prepare("SELECT * FROM wechat_identities WHERE app_id = ? AND user_id = ? ORDER BY last_seen_at DESC LIMIT 1")
+    .get(WECHAT_MINIPROGRAM_APP_ID, Number(userId));
+  if (!row) throw Object.assign(new Error("A verified WeChat payer identity is required."), { statusCode: 409, code: "wechat_identity_required" });
+  return { userId: Number(userId), appId: row.app_id, openid: row.openid, sessionContext: null };
+}
+
+function readBoundedCallbackBody(req) {
+  return new Promise((resolve, reject) => {
+    const declaredLength = Number(req.headers["content-length"]);
+    if (Number.isFinite(declaredLength) && declaredLength > MAX_CALLBACK_BODY_BYTES) {
+      req.resume();
+      reject(Object.assign(new Error("Membership callback body is too large."), {
+        statusCode: 413,
+        code: "membership_provider_callback_invalid",
+      }));
+      return;
+    }
+    const chunks = [];
+    let total = 0;
+    let settled = false;
+    req.on("data", (chunk) => {
+      if (settled) return;
+      const bytes = Buffer.from(chunk);
+      total += bytes.length;
+      if (total > MAX_CALLBACK_BODY_BYTES) {
+        settled = true;
+        req.resume();
+        reject(Object.assign(new Error("Membership callback body is too large."), {
+          statusCode: 413,
+          code: "membership_provider_callback_invalid",
+        }));
+        return;
+      }
+      chunks.push(bytes);
+    });
+    req.on("end", () => {
+      if (!settled) {
+        settled = true;
+        resolve(Buffer.concat(chunks, total));
+      }
+    });
+    req.on("error", () => {
+      if (!settled) {
+        settled = true;
+        reject(Object.assign(new Error("Membership callback could not be read."), {
+          statusCode: 400,
+          code: "membership_provider_callback_invalid",
+        }));
+      }
+    });
+  });
+}
+
+function sendMembershipWechatAck(res, success, statusCode = 200) {
+  const ack = wechatCallbackAck(MEMBERSHIP_WECHAT_RUNTIME.callbackFormat, success);
+  const bytes = Buffer.from(ack.body, "utf8");
+  res.writeHead(statusCode, {
+    "content-type": ack.contentType,
+    "content-length": bytes.length,
+    "cache-control": "no-store",
+    "x-content-type-options": "nosniff",
+  });
+  res.end(bytes);
+}
+
+async function handleMembershipWechatCallback(req, res) {
+  const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+  if (req.method === "GET") {
+    try {
+      const echo = MEMBERSHIP_WECHAT_RUNTIME.verifyCallbackUrl(url.searchParams);
+      const bytes = Buffer.from(echo, "utf8");
+      res.writeHead(200, {
+        "content-type": "text/plain; charset=utf-8",
+        "content-length": bytes.length,
+        "cache-control": "no-store",
+        "x-content-type-options": "nosniff",
+      });
+      res.end(bytes);
+    } catch (error) {
+      res.writeHead(error?.code === "membership_provider_callback_unavailable" ? 503 : 401, {
+        "content-length": "0",
+        "cache-control": "no-store",
+      });
+      res.end();
+    }
+    return;
+  }
+  if (req.method !== "POST") {
+    res.writeHead(405, { allow: "GET, POST", "content-length": "0", "cache-control": "no-store" });
+    res.end();
+    return;
+  }
+  try {
+    const rawBody = await readBoundedCallbackBody(req);
+    const db = getAppDb();
+    await MEMBERSHIP_WECHAT_RUNTIME.processNotification({
+      rawBody,
+      query: url.searchParams,
+      lookupOrder: (outTradeNo) => db.prepare(
+        "SELECT * FROM membership_orders WHERE provider='wechat_virtual' AND out_trade_no=?",
+      ).get(outTradeNo),
+      applyVerifiedEvent: (event) => applyVerifiedProviderResult(db, event),
+    });
+    sendMembershipWechatAck(res, true, 200);
+  } catch (error) {
+    const unauthenticated = error?.code === "membership_provider_callback_unverified";
+    const unavailable = error?.code === "membership_provider_callback_unavailable";
+    sendMembershipWechatAck(res, false, unauthenticated ? 401 : unavailable ? 503 : 200);
+  }
+}
+
+function privateMembershipCatalog(db, ownerId, now = Date.now()) {
+  const publicCatalog = membershipCatalog(process.env, MEMBERSHIP_PROVIDER_REGISTRY);
+  if (publicCatalog.commerce.checkoutEnabled) {
+    return { ...publicCatalog, userId: ownerId, commerce: { ...publicCatalog.commerce, canary: null } };
+  }
+  const config = readTestbuyerCanaryConfig(process.env, now);
+  const state = testbuyerCanaryState(db, config, ownerId);
+  const scoped = membershipCatalog(process.env, MEMBERSHIP_CANARY_PROVIDER_REGISTRY, {
+    serverAuthorizedCheckout: state.authorized && state.active,
+    honorGlobalCheckout: false,
+  });
+  const checkoutEnabled = state.authorized && state.active && scoped.commerce.checkoutEnabled;
+  return {
+    ...scoped,
+    userId: ownerId,
+    commerce: {
+      ...scoped.commerce,
+      checkoutEnabled,
+      reason: checkoutEnabled ? state.reason : state.authorized && !state.active ? state.reason : "setup_required",
+      canary: state.canary,
+    },
+  };
+}
+
+async function createAuthorizedMembershipCheckout({ db, ownerId, payload }) {
+  if (Object.keys(MEMBERSHIP_PROVIDER_REGISTRY).length > 0) {
+    return createMembershipCheckout({
+      db, userId: ownerId, payload, env: process.env,
+      providerRegistry: MEMBERSHIP_PROVIDER_REGISTRY,
+      resolveWechatIdentity: resolveMembershipWechatIdentity,
+    });
+  }
+  const request = normalizeCheckoutRequest(payload);
+  const config = readTestbuyerCanaryConfig(process.env, Date.now());
+  const providerCatalog = membershipCatalog(process.env, MEMBERSHIP_CANARY_PROVIDER_REGISTRY, {
+    serverAuthorizedCheckout: true,
+    honorGlobalCheckout: false,
+  });
+  const providerReady = providerCatalog.commerce.providers.some((item) => item.id === "wechat_virtual"
+    && item.enabled && item.platforms.includes("android"));
+  if (!providerReady) throw Object.assign(new Error("Membership checkout is not available yet."), {
+    statusCode: 503,
+    code: "membership_checkout_unavailable",
+  });
+  const reservation = reserveTestbuyerCanary(db, config, {
+    userId: ownerId,
+    idempotencyKey: request.idempotencyKey,
+    platform: request.platform,
+    now: Date.now(),
+  });
+  const result = await createMembershipCheckout({
+    db, userId: ownerId, payload, env: process.env,
+    providerRegistry: MEMBERSHIP_CANARY_PROVIDER_REGISTRY,
+    resolveWechatIdentity: resolveMembershipWechatIdentity,
+    serverAuthorizedCheckout: true,
+    assertCheckoutAuthorized: () => assertTestbuyerCanaryActive(db, config, {
+      userId: ownerId,
+      idempotencyKey: reservation.idempotencyKey,
+      now: Date.now(),
+    }),
+  });
+  bindTestbuyerCanaryOrder(db, config, {
+    userId: ownerId,
+    idempotencyKey: reservation.idempotencyKey,
+    orderId: result.order.id,
+    productId: MEMBERSHIP_CANARY_PROVIDER_REGISTRY.wechat_virtual.productId,
+  });
+  assertTestbuyerCanaryActive(db, config, {
+    userId: ownerId,
+    idempotencyKey: reservation.idempotencyKey,
+    now: Date.now(),
+  });
+  return result;
+}
+
+async function handleMembershipApi(req, res) {
+  const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+  if (req.method === "GET" && url.pathname === "/api/membership/catalog") {
+    sendJson(res, 200, membershipCatalog(process.env, MEMBERSHIP_PROVIDER_REGISTRY));
+    return;
+  }
+  const user = requireUser(req);
+  const ownerId = `ielts:${user.id}`;
+  if (req.method === "GET" && url.pathname === "/api/membership/catalog/private") {
+    sendJson(res, 200, privateMembershipCatalog(getAppDb(), ownerId));
+    return;
+  }
+  if (req.method === "GET" && url.pathname === "/api/membership/status") {
+    sendJson(res, 200, membershipStatus(getAppDb(), ownerId, process.env));
+    return;
+  }
+  if (url.pathname === "/api/membership/orders") {
+    if (req.method === "GET") {
+      sendJson(res, 200, listMembershipOrders(getAppDb(), ownerId, {
+        limit: url.searchParams.get("limit"),
+        offset: url.searchParams.get("offset"),
+      }));
+      return;
+    }
+    if (req.method === "POST") {
+      try {
+        const result = await createAuthorizedMembershipCheckout({
+          db: getAppDb(), ownerId, payload: await readJsonBody(req),
+        });
+        sendJson(res, result.payment ? 201 : 200, result);
+      } catch (error) {
+        sendJson(res, error.statusCode || 503, {
+          code: error.code || "membership_checkout_unavailable",
+          error: error.statusCode ? error.message : "Membership checkout is not available yet.",
+        });
+      }
+      return;
+    }
+  }
+  const orderMatch = url.pathname.match(/^\/api\/membership\/orders\/([A-Za-z0-9-]{1,80})$/);
+  if (req.method === "GET" && orderMatch) {
+    try {
+      sendJson(res, 200, await refreshMembershipOrder({
+        db: getAppDb(), userId: ownerId, orderId: orderMatch[1],
+        providerRegistry: MEMBERSHIP_RECOVERY_PROVIDER_REGISTRY,
+      }));
+    } catch (error) {
+      sendJson(res, error.statusCode || 500, { code: error.code || "membership_order_error", error: error.message });
+    }
+    return;
+  }
+  sendJson(res, 405, { error: "Method not allowed" });
+}
+
+async function handleStemInternalEntitlements(req, res) {
+  const rawBody = await readBody(req);
+  if (!signedStemInternalRequest(req, rawBody)) {
+    sendJson(res, 403, { error: "STEM membership request is not authorised." });
+    return;
+  }
+  let payload;
+  try { payload = JSON.parse(rawBody || "{}"); } catch {
+    sendJson(res, 400, { error: "Membership request must be valid JSON." });
+    return;
+  }
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)
+      || Object.keys(payload).some((key) => !["userId", "featureIds"].includes(key))) {
+    sendJson(res, 400, { error: "Membership request is invalid." });
+    return;
+  }
+  const normalizedId = String(payload.userId || "").trim();
+  const userId = Number(normalizedId.replace(/^ielts:/, ""));
+  const featureIds = Array.isArray(payload.featureIds)
+    ? [...new Set(payload.featureIds.map((item) => String(item || "").trim()).filter((item) => /^[a-z0-9][a-z0-9._:-]{1,79}$/.test(item)))].slice(0, 50)
+    : [];
+  if (!/^ielts:\d+$/.test(normalizedId) || !Number.isSafeInteger(userId) || userId <= 0 || !featureIds.length) {
+    sendJson(res, 400, { error: "Membership request is invalid." });
+    return;
+  }
+  if (!getAppDb().prepare("SELECT id FROM users WHERE id = ?").get(userId)) {
+    sendJson(res, 404, { error: "User not found." });
+    return;
+  }
+  const status = membershipStatus(getAppDb(), normalizedId, process.env);
+  const allowed = status.enforcement.enabled ? status.entitlement.active : true;
+  sendJson(res, 200, {
+    protocol: status.protocol,
+    authority: "ieltsist-membership",
+    userId: status.userId,
+    entitlement: status.entitlement,
+    enforcement: status.enforcement,
+    features: Object.fromEntries(featureIds.map((featureId) => [featureId, {
+      allowed,
+      reason: allowed ? (status.enforcement.enabled ? "membership_active" : "enforcement_disabled") : "membership_required",
+    }])),
+    checkedAt: nowIso(),
+    maxAgeSeconds: 30,
+  });
+}
+
+async function handleStemInternalMembership(req, res) {
+  const rawBody = await readBody(req);
+  if (!signedStemInternalRequest(req, rawBody)) {
+    sendJson(res, 403, { error: "STEM membership request is not authorised." });
+    return;
+  }
+  let payload;
+  try { payload = JSON.parse(rawBody || "{}"); } catch {
+    sendJson(res, 400, { error: "Membership request must be valid JSON." });
+    return;
+  }
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)
+      || Object.keys(payload).some((key) => !["action", "userId", "orderId", "payload"].includes(key))) {
+    sendJson(res, 400, { error: "Membership request is invalid." });
+    return;
+  }
+  const action = String(payload.action || "");
+  if (action === "catalog") {
+    sendJson(res, 200, membershipCatalog(process.env, MEMBERSHIP_PROVIDER_REGISTRY));
+    return;
+  }
+  const normalizedId = String(payload.userId || "").trim();
+  const userId = Number(normalizedId.replace(/^ielts:/, ""));
+  if (!/^ielts:\d+$/.test(normalizedId) || !getAppDb().prepare("SELECT id FROM users WHERE id = ?").get(userId)) {
+    sendJson(res, 404, { error: "User not found." });
+    return;
+  }
+  try {
+    if (action === "status") {
+      sendJson(res, 200, membershipStatus(getAppDb(), normalizedId, process.env));
+      return;
+    }
+    if (action === "orders") {
+      sendJson(res, 200, listMembershipOrders(getAppDb(), normalizedId, payload.payload || {}));
+      return;
+    }
+    if (action === "order") {
+      sendJson(res, 200, await refreshMembershipOrder({
+        db: getAppDb(), userId: normalizedId, orderId: payload.orderId,
+        providerRegistry: MEMBERSHIP_RECOVERY_PROVIDER_REGISTRY,
+      }));
+      return;
+    }
+    if (action === "create_order") {
+      const result = await createMembershipCheckout({
+        db: getAppDb(), userId: normalizedId, payload: payload.payload || {}, env: process.env,
+        providerRegistry: MEMBERSHIP_PROVIDER_REGISTRY,
+        resolveWechatIdentity: resolveMembershipWechatIdentity,
+      });
+      sendJson(res, result.payment ? 201 : 200, result);
+      return;
+    }
+    sendJson(res, 400, { error: "Membership action is invalid." });
+  } catch (error) {
+    sendJson(res, error.statusCode || 503, {
+      code: error.code || "membership_request_failed",
+      error: error.statusCode ? error.message : "Membership request failed.",
+    });
+  }
+}
+
+function requireIeltsMembershipForRequest(req, pathname) {
+  if (!membershipFeatureForIeltsRequest(req.method, pathname)) return null;
+  if (!membershipFlags(process.env).enforcementEnabled) return null;
+  let user;
+  let db;
+  try {
+    user = pathname.startsWith("/api/stem/marking/") || pathname === "/api/ai/mark-handwriting"
+      ? requireStemActor(req)
+      : requireUser(req);
+    db = getAppDb();
+  } catch (error) {
+    if (error?.statusCode) throw error;
+    throw Object.assign(new Error("Membership authority is unavailable."), {
+      statusCode: 503,
+      code: "membership_authority_unavailable",
+    });
+  }
+  const entitlement = requireActiveMembership(db, user.id, process.env);
+  Object.defineProperty(req, "membershipProtectedAccess", { value: true, configurable: false, enumerable: false });
+  return entitlement;
+}
+
 async function handleAdminUserRoles(req, res, userId) {
   requireAdminApiSecret(req);
   const db = getAppDb();
@@ -2970,21 +3403,20 @@ async function handleRedeem(req, res) {
     sendJson(res, 409, { error: "This code has already been used by this account." });
     return;
   }
-  const current = currentMembership(user.id);
-  const now = Date.now();
-  const base = current && Date.parse(current.expires_at) > now ? Date.parse(current.expires_at) : now;
-  const expiresAt = new Date(base + Number(row.days) * 24 * 60 * 60 * 1000).toISOString();
-  const startsAt = current?.starts_at || nowIso();
   const updatedAt = nowIso();
   db.exec("BEGIN");
   try {
     db.prepare("UPDATE redemption_codes SET used_count = used_count + 1 WHERE code = ?").run(code);
     db.prepare("INSERT INTO redemption_uses (code, user_id, used_at) VALUES (?, ?, ?)").run(code, user.id, updatedAt);
-    db.prepare(`
-      INSERT INTO memberships (user_id, plan, starts_at, expires_at, updated_at)
-      VALUES (?, ?, ?, ?, ?)
-      ON CONFLICT(user_id) DO UPDATE SET plan = excluded.plan, expires_at = excluded.expires_at, updated_at = excluded.updated_at
-    `).run(user.id, row.plan, startsAt, expiresAt, updatedAt);
+    recordMembershipGrant(db, {
+      userId: user.id,
+      sourceType: "redemption",
+      sourceKey: `redemption:${code}:${user.id}`,
+      planId: row.plan,
+      durationDays: Number(row.days),
+      effectiveAt: updatedAt,
+      grantedAt: updatedAt,
+    });
     db.exec("COMMIT");
   } catch (error) {
     db.exec("ROLLBACK");
@@ -4688,9 +5120,12 @@ function serveStatic(req, res) {
                         : ext === ".wav"
                           ? "audio/wav"
                       : "application/octet-stream";
-    const cacheControl = [".html", ".css", ".js", ".json"].includes(ext)
-      ? "no-cache"
-      : "public, max-age=31536000, immutable";
+    const membershipProtected = req.membershipProtectedAccess === true;
+    const cacheControl = membershipProtected
+      ? "private, no-store"
+      : [".html", ".css", ".js", ".json"].includes(ext)
+        ? "no-cache"
+        : "public, max-age=31536000, immutable";
     const acceptsGzip = /\bgzip\b/i.test(req.headers["accept-encoding"] || "");
     const gzipEligible = [".html", ".css", ".js", ".json", ".svg"].includes(ext) && data.length > 1024;
     const sendBody = (body, extraHeaders = {}) => {
@@ -4698,7 +5133,9 @@ function serveStatic(req, res) {
         "content-type": type,
         "content-length": body.length,
         "cache-control": cacheControl,
-        ...(gzipEligible ? { "vary": "Accept-Encoding" } : {}),
+        ...(gzipEligible || membershipProtected ? {
+          "vary": [gzipEligible ? "Accept-Encoding" : "", membershipProtected ? "Authorization, Cookie" : ""].filter(Boolean).join(", "),
+        } : {}),
         ...extraHeaders,
       });
       if (req.method === "HEAD") {
@@ -4716,7 +5153,11 @@ function serveStatic(req, res) {
           ...(statErr ? {} : { "last-modified": stat.mtime.toUTCString() }),
         };
         if (etag && req.headers["if-none-match"] === etag) {
-          res.writeHead(304, { "cache-control": cacheControl, ...validatorHeaders });
+          res.writeHead(304, {
+            "cache-control": cacheControl,
+            ...(membershipProtected ? { "vary": "Accept-Encoding, Authorization, Cookie" } : {}),
+            ...validatorHeaders,
+          });
           res.end();
           return;
         }
@@ -4743,6 +5184,9 @@ function serveStatic(req, res) {
 
 function serveFile(req, res, filePath, contentType) {
   const resolved = path.resolve(filePath);
+  const cacheControl = req.membershipProtectedAccess === true
+    ? "private, no-store"
+    : "public, max-age=31536000, immutable";
   fs.stat(resolved, (statErr, stat) => {
     if (statErr || !stat.isFile()) {
       res.writeHead(404);
@@ -4762,7 +5206,8 @@ function serveFile(req, res, filePath, contentType) {
         "content-length": end - start + 1,
         "content-range": `bytes ${start}-${end}/${stat.size}`,
         "accept-ranges": "bytes",
-        "cache-control": "public, max-age=31536000, immutable",
+        "cache-control": cacheControl,
+        ...(req.membershipProtectedAccess === true ? { "vary": "Authorization, Cookie" } : {}),
       });
       if (req.method === "HEAD") {
         res.end();
@@ -4776,7 +5221,8 @@ function serveFile(req, res, filePath, contentType) {
       "content-type": contentType,
       "content-length": stat.size,
       "accept-ranges": "bytes",
-      "cache-control": "public, max-age=31536000, immutable",
+      "cache-control": cacheControl,
+      ...(req.membershipProtectedAccess === true ? { "vary": "Authorization, Cookie" } : {}),
     });
     if (req.method === "HEAD") {
       res.end();
@@ -8543,12 +8989,21 @@ const server = http.createServer(async (req, res) => {
       });
       return;
     }
+    requireIeltsMembershipForRequest(req, requestPathname);
     if (req.method === "GET" && requestPathname === "/api/stem/identity") {
       handleStemIdentity(req, res);
       return;
     }
     if (req.method === "POST" && requestPathname === "/api/stem/internal/authenticate") {
       await handleStemInternalAuthenticate(req, res);
+      return;
+    }
+    if (req.method === "POST" && requestPathname === "/api/stem/internal/entitlements") {
+      await handleStemInternalEntitlements(req, res);
+      return;
+    }
+    if (req.method === "POST" && requestPathname === "/api/stem/internal/membership") {
+      await handleStemInternalMembership(req, res);
       return;
     }
     if (req.method === "GET" && requestPathname === "/api/auth/native-config") {
@@ -8585,6 +9040,14 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.url.startsWith("/api/auth/") || req.url === "/api/me") {
       await handleAuthApi(req, res);
+      return;
+    }
+    if (requestPathname === WECHAT_VIRTUAL_CALLBACK_PATH) {
+      await handleMembershipWechatCallback(req, res);
+      return;
+    }
+    if (requestPathname.startsWith("/api/membership/")) {
+      await handleMembershipApi(req, res);
       return;
     }
     if (req.method === "POST" && req.url === "/api/redeem") {
@@ -8636,7 +9099,15 @@ const server = http.createServer(async (req, res) => {
       const cache=getTasksPayloadCache(),view=nativeCatalogView(cache,req);
       const task=nativeTaskDetail(cache.payload,nativeTaskMatch[1],nativeTaskMatch[2],view.options);
       if(!task){sendJson(res,404,{error:"Task not found."});return;}
-      sendCompressedJson(req,res,200,{schemaVersion:"native-ielts-task-v1",version:view.catalog.version,task},"public, max-age=60","X-STEMist-Catalog");
+      const membershipProtected = req.membershipProtectedAccess === true;
+      sendCompressedJson(
+        req,
+        res,
+        200,
+        {schemaVersion:"native-ielts-task-v1",version:view.catalog.version,task},
+        membershipProtected ? "private, no-store" : "public, max-age=60",
+        membershipProtected ? "X-STEMist-Catalog, Authorization, Cookie" : "X-STEMist-Catalog",
+      );
       return;
     }
     if ((req.method === "GET" || req.method === "HEAD") && req.url.startsWith("/api/tasks")) {
@@ -8955,7 +9426,13 @@ function qwenUpgradeIp(req) {
 }
 
 function rejectQwenUpgrade(socket, statusCode) {
-  const status = statusCode === 429 ? "429 Too Many Requests" : "401 Unauthorized";
+  const status = statusCode === 429
+    ? "429 Too Many Requests"
+    : statusCode === 403
+      ? "403 Forbidden"
+      : statusCode === 503
+        ? "503 Service Unavailable"
+        : "401 Unauthorized";
   try { socket.write(`HTTP/1.1 ${status}\r\nConnection: close\r\nCache-Control: no-store\r\nContent-Length: 0\r\n\r\n`); } catch {}
   socket.destroy();
 }
@@ -9039,10 +9516,23 @@ server.on("upgrade", (req, socket, head) => {
   const url = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);
   if (url.pathname === "/qwen-client") {
     let identity;
-    try { identity = qwenUpgradeIdentity(req); } catch { identity = null; }
+    try {
+      identity = qwenUpgradeIdentity(req);
+    } catch (error) {
+      rejectQwenUpgrade(socket, [401, 403, 503].includes(error?.statusCode) ? error.statusCode : 503);
+      return;
+    }
     if (!identity) {
       rejectQwenUpgrade(socket, 401);
       return;
+    }
+    if (membershipFlags(process.env).enforcementEnabled) {
+      try {
+        requireActiveMembership(getAppDb(), identity.userId, process.env);
+      } catch (error) {
+        rejectQwenUpgrade(socket, [401, 403, 503].includes(error?.statusCode) ? error.statusCode : 503);
+        return;
+      }
     }
     const release = qwenRealtimeAccess.claimConnection({ userId: identity.userId, ip: qwenUpgradeIp(req) });
     if (!release) {

@@ -5,8 +5,11 @@ import { rm } from 'node:fs/promises'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { randomUUID } from 'node:crypto'
+import { createRequire } from 'node:module'
 import WebSocket from 'ws'
 
+const require = createRequire(import.meta.url)
+const { DatabaseSync } = require('node:sqlite')
 const root = new URL('../', import.meta.url)
 const dbPath = join(tmpdir(), `ieltsist-qwen-auth-${process.pid}-${randomUUID()}.sqlite`)
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -126,6 +129,7 @@ try {
       PATHEXT: process.env.PATHEXT,
       TEMP: process.env.TEMP,
       TMP: process.env.TMP,
+      ...(process.env.NODE_PATH ? { NODE_PATH: process.env.NODE_PATH } : {}),
       NODE_ENV: 'test',
       PORT: String(port),
       IELTSIST_BIND_HOST: '127.0.0.1',
@@ -135,6 +139,8 @@ try {
       QWEN_API_KEY: '',
       DASHSCOPE_WORKSPACE_ID: '',
       QWEN_WORKSPACE_ID: '',
+      MEMBERSHIP_ENFORCEMENT_ENABLED: '1',
+      MEMBERSHIP_ENFORCEMENT_READY: '1',
     },
     stdio: ['ignore', 'pipe', 'pipe'],
     windowsHide: true,
@@ -168,6 +174,18 @@ try {
   const cookie = String(registration.headers.get('set-cookie') || '').split(';')[0]
   assert.match(account.token, /^[A-Za-z0-9_-]{32,128}$/)
   assert.match(cookie, /^ieltsist_session=/)
+
+  const activateMembership = (userId = account.user.id) => {
+    const db = new DatabaseSync(dbPath)
+    const now = new Date().toISOString()
+    db.prepare(`
+      INSERT INTO memberships (user_id,plan,starts_at,expires_at,updated_at)
+      VALUES (?,?,?,?,?)
+      ON CONFLICT(user_id) DO UPDATE SET plan=excluded.plan,starts_at=excluded.starts_at,expires_at=excluded.expires_at,updated_at=excluded.updated_at
+    `).run(userId, 'all-access-month', now, new Date(Date.now() + 60_000).toISOString(), now)
+    db.close()
+  }
+  activateMembership()
 
   const ticketResponse = await fetch(`${baseUrl}/api/speaking/realtime-ticket`, {
     method: 'POST',
@@ -218,11 +236,34 @@ try {
     message: 'Qwen realtime key or workspace is not configured on the server.',
   })
 
+  const inactiveRegistration = await fetch(`${baseUrl}/api/auth/register`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ username: 'qwen_inactive_fixture', password: 'fixture-password' }),
+  })
+  assert.equal(inactiveRegistration.status, 200)
+  const inactiveAccount = await inactiveRegistration.json()
+  activateMembership(inactiveAccount.user.id)
+  const inactiveTicketResponse = await fetch(`${baseUrl}/api/speaking/realtime-ticket`, {
+    method: 'POST',
+    headers: { authorization: `Bearer ${inactiveAccount.token}`, 'content-type': 'application/json' },
+    body: '{}',
+  })
+  assert.equal(inactiveTicketResponse.status, 201)
+  const inactiveTicket = await inactiveTicketResponse.json()
+  const inactiveDb = new DatabaseSync(dbPath)
+  inactiveDb.prepare('DELETE FROM memberships WHERE user_id=?').run(inactiveAccount.user.id)
+  inactiveDb.close()
+  const inactiveUpgrade = await websocketAttempt(wsUrl, { 'x-stemist-realtime-ticket': inactiveTicket.ticket })
+  assert.equal(inactiveUpgrade.opened, false)
+  assert.equal(inactiveUpgrade.status, 403, 'a valid native ticket still requires active membership when enforcement is on')
+
   const revokedTicketResponse = await fetch(`${baseUrl}/api/speaking/realtime-ticket`, {
     method: 'POST',
     headers: { authorization: `Bearer ${account.token}`, 'content-type': 'application/json' },
     body: '{}',
   })
+  assert.equal(revokedTicketResponse.status, 201)
   const revokedTicket = await revokedTicketResponse.json()
   const logout = await fetch(`${baseUrl}/api/auth/logout`, { method: 'POST', headers: { authorization: `Bearer ${account.token}` } })
   assert.equal(logout.status, 200)
