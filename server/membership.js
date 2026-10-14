@@ -1,6 +1,7 @@
 "use strict";
 
 const crypto = require("crypto");
+const { installTestbuyerCanarySchema } = require("./membershipTestbuyerCanary");
 
 const PROTOCOL = "stemist-membership-v1";
 const ALL_ACCESS_FEATURE = "all-access";
@@ -26,8 +27,9 @@ function membershipFlags(env = {}) {
   };
 }
 
-function membershipCatalog(env = {}, providerRegistry = {}) {
+function membershipCatalog(env = {}, providerRegistry = {}, { serverAuthorizedCheckout = false, honorGlobalCheckout = true } = {}) {
   const flags = membershipFlags(env);
+  const checkoutGate = (honorGlobalCheckout === true && flags.checkoutEnabled) || serverAuthorizedCheckout === true;
   const providers = PROVIDER_IDS.map((id) => {
     const platforms = Array.isArray(providerRegistry[id]?.platforms)
       ? [...new Set(providerRegistry[id].platforms.filter((platform) => ["android", "ios"].includes(platform)))]
@@ -35,7 +37,7 @@ function membershipCatalog(env = {}, providerRegistry = {}) {
     const readiness = typeof providerRegistry[id]?.readiness === "function"
       ? providerRegistry[id].readiness()
       : { ready: false, reason: "setup_required" };
-    const providerEnabled = flags.checkoutEnabled && readiness?.ready === true && platforms.length > 0;
+    const providerEnabled = checkoutGate && readiness?.ready === true && platforms.length > 0;
     return {
       id,
       enabled: providerEnabled,
@@ -117,6 +119,7 @@ function installMembershipSchema(db) {
     );
     CREATE INDEX IF NOT EXISTS idx_membership_grants_user_effective ON membership_grants(user_id, effective_at, id);
   `);
+  installTestbuyerCanarySchema(db);
 }
 
 function canonicalUserId(userId) {
@@ -329,12 +332,19 @@ function normalizeCheckoutRequest(payload) {
   };
 }
 
-async function createMembershipCheckout({ db, userId, payload, env = {}, providerRegistry = {}, resolveWechatIdentity }) {
+async function createMembershipCheckout({ db, userId, payload, env = {}, providerRegistry = {}, resolveWechatIdentity, serverAuthorizedCheckout = false, assertCheckoutAuthorized }) {
   const request = normalizeCheckoutRequest(payload);
   const owner = canonicalUserId(userId);
+  const assertLifecycle = (phase) => {
+    if (!serverAuthorizedCheckout) return;
+    if (typeof assertCheckoutAuthorized !== "function") {
+      throw Object.assign(new Error("Membership checkout authorization is unavailable."), { statusCode: 503, code: "membership_checkout_unavailable" });
+    }
+    assertCheckoutAuthorized({ phase, userId: owner.publicId, idempotencyKey: request.idempotencyKey });
+  };
   const initialExisting = db.prepare("SELECT * FROM membership_orders WHERE user_id = ? AND idempotency_key = ?").get(owner.numeric, request.idempotencyKey);
   if (initialExisting && checkoutMustNotReturnPayment(initialExisting.status)) return getMembershipOrder(db, owner.publicId, initialExisting.id);
-  const catalog = membershipCatalog(env, providerRegistry);
+  const catalog = membershipCatalog(env, providerRegistry, { serverAuthorizedCheckout });
   if (!catalog.commerce.checkoutEnabled) {
     throw Object.assign(new Error("Membership checkout is not available yet."), { statusCode: 503, code: "membership_checkout_unavailable" });
   }
@@ -344,7 +354,9 @@ async function createMembershipCheckout({ db, userId, payload, env = {}, provide
     statusCode: 409,
     code: "membership_platform_unavailable",
   });
+  assertLifecycle("before_identity");
   const identity = await resolveWechatIdentity({ userId: owner.numeric, provider: provider.id, wxCode: request.wxCode });
+  assertLifecycle("after_identity");
   if (!identity || Number(identity.userId) !== owner.numeric || !identity.appId || !identity.openid) {
     throw Object.assign(new Error("A verified WeChat payer identity is required."), { statusCode: 409, code: "wechat_identity_required" });
   }
@@ -356,6 +368,7 @@ async function createMembershipCheckout({ db, userId, payload, env = {}, provide
     if (checkoutMustNotReturnPayment(existing.status)) return getMembershipOrder(db, owner.publicId, existing.id);
     let payment;
     try {
+      assertLifecycle("before_provider_checkout");
       payment = await providerRegistry[provider.id].createCheckout({
         order: internalOrder(existing), identity, sessionContext: identity.sessionContext || null,
       });
@@ -366,6 +379,7 @@ async function createMembershipCheckout({ db, userId, payload, env = {}, provide
     }
     const afterProvider = db.prepare("SELECT * FROM membership_orders WHERE id=?").get(existing.id);
     if (checkoutMustNotReturnPayment(afterProvider.status)) return getMembershipOrder(db, owner.publicId, afterProvider.id);
+    assertLifecycle("after_provider_checkout");
     if (payment?.providerOrderId && afterProvider.provider_order_id && payment.providerOrderId !== afterProvider.provider_order_id) {
       throw Object.assign(new Error("Membership provider order identity changed during checkout."), { statusCode: 409, code: "membership_checkout_conflict" });
     }
@@ -373,6 +387,7 @@ async function createMembershipCheckout({ db, userId, payload, env = {}, provide
       .run(payment?.providerOrderId || null, new Date().toISOString(), existing.id);
     const refreshed = db.prepare("SELECT * FROM membership_orders WHERE id = ?").get(existing.id);
     if (checkoutMustNotReturnPayment(refreshed.status)) return getMembershipOrder(db, owner.publicId, refreshed.id);
+    assertLifecycle("before_payment_return");
     return { protocol: PROTOCOL, userId: owner.publicId, order: publicOrder(refreshed), payment: paymentResponse(provider.id, payment) };
   }
   const now = new Date();
@@ -396,9 +411,11 @@ async function createMembershipCheckout({ db, userId, payload, env = {}, provide
     null, order.createdAt, order.updatedAt, order.expiresAt);
   let payment;
   try {
+    assertLifecycle("before_provider_checkout");
     payment = await providerRegistry[provider.id].createCheckout({ order, identity, sessionContext: identity.sessionContext || null });
     const afterProvider = db.prepare("SELECT * FROM membership_orders WHERE id=?").get(order.id);
     if (!checkoutMustNotReturnPayment(afterProvider.status)) {
+      assertLifecycle("after_provider_checkout");
       if (payment?.providerOrderId && afterProvider.provider_order_id && payment.providerOrderId !== afterProvider.provider_order_id) {
         throw Object.assign(new Error("Membership provider order identity changed during checkout."), { statusCode: 409, code: "membership_checkout_conflict" });
       }
@@ -416,6 +433,7 @@ async function createMembershipCheckout({ db, userId, payload, env = {}, provide
   }
   const stored = db.prepare("SELECT * FROM membership_orders WHERE id = ?").get(order.id);
   if (checkoutMustNotReturnPayment(stored.status)) return getMembershipOrder(db, owner.publicId, stored.id);
+  assertLifecycle("before_payment_return");
   return { protocol: PROTOCOL, userId: owner.publicId, order: publicOrder(stored), payment: paymentResponse(provider.id, payment) };
 }
 

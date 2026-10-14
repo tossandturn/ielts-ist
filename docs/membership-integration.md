@@ -36,6 +36,20 @@ Do not submit the platform form until this exact server version is deployed and 
 
 Initial GET verification validates the ordinary SHA-1 Token/timestamp/nonce signature before echoing `echostr`. This handshake can be configured independently of payment keys, product readiness, eligible platforms or live checkout. POST notifications require complete provider configuration, the safe-mode encrypted signature, AES/AppID validation, and then act only as query triggers. The runtime must query the official order API and durably apply or confirm an idempotent terminal event before returning success; an invalid, unknown, non-terminal, or failed query returns a non-success acknowledgement so the platform can retry.
 
+### Single-testbuyer acceptance canary
+
+The first real-payment acceptance must not set `MEMBERSHIP_WECHAT_VIRTUAL_REAL_PAYMENT_ACCEPTED` before the payment has actually passed. A separate default-OFF canary may authorize one fixed authenticated account for one Android virtual-payment order while the public catalog and normal provider registry remain OFF. It requires all of:
+
+- `MEMBERSHIP_TESTBUYER_CANARY_ENABLED=1`;
+- `MEMBERSHIP_TESTBUYER_CANARY_MODE=single-real-payment`;
+- a reviewed, non-secret operation ID in `MEMBERSHIP_TESTBUYER_CANARY_ID`;
+- one canonical `MEMBERSHIP_TESTBUYER_CANARY_USER_ID=ielts:<numeric-id>`;
+- absolute ISO timestamps in `MEMBERSHIP_TESTBUYER_CANARY_STARTS_AT` and `MEMBERSHIP_TESTBUYER_CANARY_EXPIRES_AT`, with a maximum two-hour window.
+
+The database has one non-reusable canary slot. It is reserved with the owner's idempotency key before fresh WeChat code verification, so a timeout, invalid code, logout, process restart, or lost response can only resume that same logical order. A different key cannot release or replace an in-flight slot. The authenticated private catalog returns the same owner's recovery idempotency key and, once known, order ID; it never exposes this information publicly or to another account. Expiry blocks further checkout but never blocks owner query or authenticated provider callback/refund reconciliation.
+
+Authenticated `GET /api/membership/catalog/private` is the only canary-aware catalog. Public `GET /api/membership/catalog` remains unchanged and checkout-disabled until the ordinary production acceptance flags are separately enabled. The checkout request body remains the five documented fields below; canary identity, user, price, duration, product, and provider overrides are rejected. Payment still requires the test buyer to review the price/non-renewal disclosure and personally confirm the native WeChat payment sheet. Passing the canary does not automatically enable general commerce.
+
 ## Public contract
 
 - Public `GET /api/membership/catalog` returns one `plan`, `commerce`, provider `platforms`, and enforcement state.

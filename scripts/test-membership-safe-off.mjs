@@ -62,6 +62,7 @@ try {
       MEMBERSHIP_ENFORCEMENT_ENABLED: "0",
       MEMBERSHIP_WECHAT_VIRTUAL_ENABLED: "0",
       WECHAT_VIRTUAL_CALLBACK_READY: "0",
+      MEMBERSHIP_TESTBUYER_CANARY_ENABLED: "0",
     },
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -98,6 +99,15 @@ try {
   assert.equal(register.status, 200);
   const account = await register.json();
   const authorization = { authorization: `Bearer ${account.token}` };
+
+  const privateCatalogResponse = await fetch(`${baseUrl}/api/membership/catalog/private`, { headers: authorization });
+  assert.equal(privateCatalogResponse.status, 200);
+  assert.deepEqual(await privateCatalogResponse.json(), {
+    ...catalog,
+    userId: `ielts:${account.user.id}`,
+    commerce: { ...catalog.commerce, canary: null },
+  }, "private catalog remains owner-bound and checkout-off without explicit canary configuration");
+  assert.equal((await fetch(`${baseUrl}/api/membership/catalog/private`)).status, 401);
 
   const statusResponse = await fetch(`${baseUrl}/api/membership/status`, { headers: authorization });
   assert.equal(statusResponse.status, 200);

@@ -312,6 +312,7 @@ function createMembershipWechatRuntime({
   if (!config.configured) {
     return Object.freeze({
       providerRegistry: Object.freeze({}),
+      recoveryProviderRegistry: Object.freeze({}),
       readiness: () => config.publicReadiness,
       callbackFormat: config.callbackFormat || "json",
       verifyCallbackUrl: verifyCallbackUrlQuery,
@@ -344,6 +345,7 @@ function createMembershipWechatRuntime({
   if (!provider || typeof provider.readiness !== "function" || provider.readiness().ready !== true) {
     return Object.freeze({
       providerRegistry: Object.freeze({}),
+      recoveryProviderRegistry: Object.freeze({}),
       readiness: () => config.publicReadiness,
       callbackFormat: config.callbackFormat,
       verifyCallbackUrl: verifyCallbackUrlQuery,
@@ -403,10 +405,12 @@ function createMembershipWechatRuntime({
       durable: true,
     });
   }
+  const recoveryProviderRegistry = Object.freeze({ [PROVIDER_ID]: registeredProvider });
   return Object.freeze({
     providerRegistry: config.registryEnabled
-      ? Object.freeze({ [PROVIDER_ID]: registeredProvider })
+      ? recoveryProviderRegistry
       : Object.freeze({}),
+    recoveryProviderRegistry,
     readiness: () => config.publicReadiness,
     callbackFormat: config.callbackFormat,
     verifyCallbackUrl: verifyCallbackUrlQuery,

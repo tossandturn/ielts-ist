@@ -43,6 +43,7 @@ const fullEnv = Object.freeze({
     fetchImpl: async () => { networkCalls += 1; throw new Error("disabled runtime must not call network"); },
   });
   assert.deepEqual(runtime.providerRegistry, {});
+  assert.deepEqual(runtime.recoveryProviderRegistry, {});
   assert.deepEqual(runtime.readiness(), {
     provider: "wechat_virtual",
     configured: false,
@@ -53,6 +54,24 @@ const fullEnv = Object.freeze({
     platforms: [],
     reason: "setup_required",
   });
+  assert.equal(networkCalls, 0);
+}
+
+{
+  const recoveryEnv = { ...fullEnv };
+  delete recoveryEnv.MEMBERSHIP_WECHAT_VIRTUAL_REAL_PAYMENT_ACCEPTED;
+  delete recoveryEnv.MEMBERSHIP_CHECKOUT_ENABLED;
+  delete recoveryEnv.MEMBERSHIP_COMMERCE_READY;
+  let networkCalls = 0;
+  const runtime = createMembershipWechatRuntime({
+    env: recoveryEnv,
+    fetchImpl: async () => { networkCalls += 1; throw new Error("construction must not call provider"); },
+  });
+  assert.deepEqual(runtime.providerRegistry, {}, "unaccepted payments never enter the public checkout registry");
+  assert.deepEqual(Object.keys(runtime.recoveryProviderRegistry), ["wechat_virtual"], "configured provider remains available for owner query/callback recovery");
+  assert.equal(membershipCatalog(recoveryEnv, runtime.recoveryProviderRegistry).commerce.checkoutEnabled, false, "recovery registry cannot enable public catalog");
+  assert.equal(membershipCatalog(fullEnv, runtime.recoveryProviderRegistry, { honorGlobalCheckout: false }).commerce.checkoutEnabled, false, "private recovery catalog ignores global flags unless the server authorizes this owner");
+  assert.equal(membershipCatalog(recoveryEnv, runtime.recoveryProviderRegistry, { serverAuthorizedCheckout: true }).commerce.checkoutEnabled, true, "only an internal server authorization can expose the configured provider");
   assert.equal(networkCalls, 0);
 }
 
@@ -418,6 +437,7 @@ const fullEnv = Object.freeze({
     fetchImpl: async () => { networkCalls += 1; throw new Error("construction must not call provider"); },
   });
   assert.deepEqual(Object.keys(runtime.providerRegistry), ["wechat_virtual"]);
+  assert.deepEqual(Object.keys(runtime.recoveryProviderRegistry), ["wechat_virtual"]);
   assert.deepEqual(runtime.providerRegistry.wechat_virtual.platforms, ["android"]);
   assert.deepEqual(membershipCatalog(fullEnv, runtime.providerRegistry).commerce, {
     checkoutEnabled: true,
@@ -447,6 +467,7 @@ assert.doesNotMatch(source, /console\.(?:log|warn|error)/);
 assert.equal(WECHAT_VIRTUAL_CALLBACK_PATH, "/api/membership/wechat/notify");
 assert.match(serverSource, /createMembershipWechatRuntime\(\{ env: process\.env, fetchImpl: globalThis\.fetch \}\)/);
 assert.match(serverSource, /MEMBERSHIP_PROVIDER_REGISTRY = MEMBERSHIP_WECHAT_RUNTIME\.providerRegistry/);
+assert.match(serverSource, /MEMBERSHIP_RECOVERY_PROVIDER_REGISTRY = MEMBERSHIP_WECHAT_RUNTIME\.recoveryProviderRegistry/);
 assert.doesNotMatch(serverSource, /const MEMBERSHIP_PROVIDER_REGISTRY = Object\.freeze\(\{\}\)/);
 assert.match(serverSource, /requestPathname === WECHAT_VIRTUAL_CALLBACK_PATH[\s\S]{0,160}handleMembershipWechatCallback/);
 assert.ok(

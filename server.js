@@ -24,6 +24,7 @@ const {
   membershipFeatureForIeltsRequest,
   membershipFlags,
   membershipStatus,
+  normalizeCheckoutRequest,
   refreshMembershipOrder,
   requireActiveMembership,
   recordMembershipGrant,
@@ -34,6 +35,13 @@ const {
   WECHAT_VIRTUAL_CALLBACK_PATH,
   wechatCallbackAck,
 } = require("./server/membershipWechatRuntime");
+const {
+  assertTestbuyerCanaryActive,
+  bindTestbuyerCanaryOrder,
+  readTestbuyerCanaryConfig,
+  reserveTestbuyerCanary,
+  testbuyerCanaryState,
+} = require("./server/membershipTestbuyerCanary");
 let DatabaseSync = null;
 try {
   ({ DatabaseSync } = require("node:sqlite"));
@@ -80,6 +88,13 @@ const stemWebviewHandoffs = new Map();
 // Construction performs no provider request and never exposes secret config.
 const MEMBERSHIP_WECHAT_RUNTIME = createMembershipWechatRuntime({ env: process.env, fetchImpl: globalThis.fetch });
 const MEMBERSHIP_PROVIDER_REGISTRY = MEMBERSHIP_WECHAT_RUNTIME.providerRegistry;
+const MEMBERSHIP_RECOVERY_PROVIDER_REGISTRY = MEMBERSHIP_WECHAT_RUNTIME.recoveryProviderRegistry;
+const MEMBERSHIP_CANARY_PROVIDER_REGISTRY = MEMBERSHIP_RECOVERY_PROVIDER_REGISTRY.wechat_virtual
+  ? Object.freeze({ wechat_virtual: Object.freeze({
+    ...MEMBERSHIP_RECOVERY_PROVIDER_REGISTRY.wechat_virtual,
+    platforms: Object.freeze(MEMBERSHIP_RECOVERY_PROVIDER_REGISTRY.wechat_virtual.platforms.includes("android") ? ["android"] : []),
+  }) })
+  : Object.freeze({});
 const STEM_ALLOWED_ORIGINS = new Set([
   "https://stem.ieltsist.com",
   "http://127.0.0.1:5173",
@@ -2988,6 +3003,81 @@ async function handleMembershipWechatCallback(req, res) {
   }
 }
 
+function privateMembershipCatalog(db, ownerId, now = Date.now()) {
+  const publicCatalog = membershipCatalog(process.env, MEMBERSHIP_PROVIDER_REGISTRY);
+  if (publicCatalog.commerce.checkoutEnabled) {
+    return { ...publicCatalog, userId: ownerId, commerce: { ...publicCatalog.commerce, canary: null } };
+  }
+  const config = readTestbuyerCanaryConfig(process.env, now);
+  const state = testbuyerCanaryState(db, config, ownerId);
+  const scoped = membershipCatalog(process.env, MEMBERSHIP_CANARY_PROVIDER_REGISTRY, {
+    serverAuthorizedCheckout: state.authorized && state.active,
+    honorGlobalCheckout: false,
+  });
+  const checkoutEnabled = state.authorized && state.active && scoped.commerce.checkoutEnabled;
+  return {
+    ...scoped,
+    userId: ownerId,
+    commerce: {
+      ...scoped.commerce,
+      checkoutEnabled,
+      reason: checkoutEnabled ? state.reason : state.authorized && !state.active ? state.reason : "setup_required",
+      canary: state.canary,
+    },
+  };
+}
+
+async function createAuthorizedMembershipCheckout({ db, ownerId, payload }) {
+  if (Object.keys(MEMBERSHIP_PROVIDER_REGISTRY).length > 0) {
+    return createMembershipCheckout({
+      db, userId: ownerId, payload, env: process.env,
+      providerRegistry: MEMBERSHIP_PROVIDER_REGISTRY,
+      resolveWechatIdentity: resolveMembershipWechatIdentity,
+    });
+  }
+  const request = normalizeCheckoutRequest(payload);
+  const config = readTestbuyerCanaryConfig(process.env, Date.now());
+  const providerCatalog = membershipCatalog(process.env, MEMBERSHIP_CANARY_PROVIDER_REGISTRY, {
+    serverAuthorizedCheckout: true,
+    honorGlobalCheckout: false,
+  });
+  const providerReady = providerCatalog.commerce.providers.some((provider) => provider.id === "wechat_virtual"
+    && provider.enabled && provider.platforms.includes("android"));
+  if (!providerReady) throw Object.assign(new Error("Membership checkout is not available yet."), {
+    statusCode: 503,
+    code: "membership_checkout_unavailable",
+  });
+  const reservation = reserveTestbuyerCanary(db, config, {
+    userId: ownerId,
+    idempotencyKey: request.idempotencyKey,
+    platform: request.platform,
+    now: Date.now(),
+  });
+  const result = await createMembershipCheckout({
+    db, userId: ownerId, payload, env: process.env,
+    providerRegistry: MEMBERSHIP_CANARY_PROVIDER_REGISTRY,
+    resolveWechatIdentity: resolveMembershipWechatIdentity,
+    serverAuthorizedCheckout: true,
+    assertCheckoutAuthorized: () => assertTestbuyerCanaryActive(db, config, {
+      userId: ownerId,
+      idempotencyKey: reservation.idempotencyKey,
+      now: Date.now(),
+    }),
+  });
+  bindTestbuyerCanaryOrder(db, config, {
+    userId: ownerId,
+    idempotencyKey: reservation.idempotencyKey,
+    orderId: result.order.id,
+    productId: MEMBERSHIP_CANARY_PROVIDER_REGISTRY.wechat_virtual.productId,
+  });
+  assertTestbuyerCanaryActive(db, config, {
+    userId: ownerId,
+    idempotencyKey: reservation.idempotencyKey,
+    now: Date.now(),
+  });
+  return result;
+}
+
 async function handleMembershipApi(req, res) {
   const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
   if (req.method === "GET" && url.pathname === "/api/membership/catalog") {
@@ -2996,6 +3086,10 @@ async function handleMembershipApi(req, res) {
   }
   const user = requireUser(req);
   const ownerId = `ielts:${user.id}`;
+  if (req.method === "GET" && url.pathname === "/api/membership/catalog/private") {
+    sendJson(res, 200, privateMembershipCatalog(getAppDb(), ownerId));
+    return;
+  }
   if (req.method === "GET" && url.pathname === "/api/membership/status") {
     sendJson(res, 200, membershipStatus(getAppDb(), ownerId, process.env));
     return;
@@ -3010,10 +3104,8 @@ async function handleMembershipApi(req, res) {
     }
     if (req.method === "POST") {
       try {
-        const result = await createMembershipCheckout({
-          db: getAppDb(), userId: ownerId, payload: await readJsonBody(req), env: process.env,
-          providerRegistry: MEMBERSHIP_PROVIDER_REGISTRY,
-          resolveWechatIdentity: resolveMembershipWechatIdentity,
+        const result = await createAuthorizedMembershipCheckout({
+          db: getAppDb(), ownerId, payload: await readJsonBody(req),
         });
         sendJson(res, result.payment ? 201 : 200, result);
       } catch (error) {
@@ -3030,7 +3122,7 @@ async function handleMembershipApi(req, res) {
     try {
       sendJson(res, 200, await refreshMembershipOrder({
         db: getAppDb(), userId: ownerId, orderId: orderMatch[1],
-        providerRegistry: MEMBERSHIP_PROVIDER_REGISTRY,
+        providerRegistry: MEMBERSHIP_RECOVERY_PROVIDER_REGISTRY,
       }));
     } catch (error) {
       sendJson(res, error.statusCode || 500, { code: error.code || "membership_order_error", error: error.message });
@@ -3125,7 +3217,7 @@ async function handleStemInternalMembership(req, res) {
     if (action === "order") {
       sendJson(res, 200, await refreshMembershipOrder({
         db: getAppDb(), userId: normalizedId, orderId: payload.orderId,
-        providerRegistry: MEMBERSHIP_PROVIDER_REGISTRY,
+        providerRegistry: MEMBERSHIP_RECOVERY_PROVIDER_REGISTRY,
       }));
       return;
     }

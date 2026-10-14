@@ -370,5 +370,68 @@ const rejectedRaceResult = await rejectedCheckout;
 assert.equal(rejectedRaceResult.order.status, "refunded", "a late provider rejection must reconcile to the authoritative terminal order");
 assert.equal(Object.hasOwn(rejectedRaceResult, "payment"), false);
 
+let authorizationClock = 0;
+const expireAt = 100;
+const assertCheckoutAuthorized = () => {
+  if (authorizationClock >= expireAt) throw Object.assign(new Error("canary expired"), { code: "membership_canary_expired", statusCode: 503 });
+};
+let releaseHeldIdentity;
+let markHeldIdentityStarted;
+const heldIdentityStarted = new Promise((resolve) => { markHeldIdentityStarted = resolve; });
+let expiredIdentityProviderCalls = 0;
+const identityExpiryCheckout = createMembershipCheckout({
+  db,
+  userId: "ielts:42",
+  payload: { ...basePayload, idempotencyKey: "membership-canary-identity-expiry", wxCode: "held-code" },
+  env: {},
+  providerRegistry: { wechat_virtual: { ...provider, createCheckout: async () => { expiredIdentityProviderCalls += 1; return {}; } } },
+  serverAuthorizedCheckout: true,
+  assertCheckoutAuthorized,
+  resolveWechatIdentity: async () => {
+    markHeldIdentityStarted();
+    return new Promise((resolve) => { releaseHeldIdentity = resolve; });
+  },
+});
+await heldIdentityStarted;
+authorizationClock = expireAt;
+releaseHeldIdentity({
+  userId: 42, appId: "wx-app", openid: "openid-42",
+  sessionContext: { sessionKey: "transient-session-key", codeVerifiedAt: new Date().toISOString() },
+});
+await assert.rejects(identityExpiryCheckout, (error) => error.code === "membership_canary_expired");
+assert.equal(expiredIdentityProviderCalls, 0, "expiry after code2session must block provider signing");
+assert.equal(db.prepare("SELECT COUNT(*) AS count FROM membership_orders WHERE idempotency_key=?").get("membership-canary-identity-expiry").count, 0);
+
+authorizationClock = 0;
+let releaseHeldCanaryProvider;
+let markHeldCanaryProviderStarted;
+const heldCanaryProviderStarted = new Promise((resolve) => { markHeldCanaryProviderStarted = resolve; });
+const providerExpiryCheckout = createMembershipCheckout({
+  db,
+  userId: "ielts:42",
+  payload: { ...basePayload, idempotencyKey: "membership-canary-provider-expiry", wxCode: "fresh-code" },
+  env: {},
+  providerRegistry: {
+    wechat_virtual: {
+      ...provider,
+      createCheckout: async ({ order }) => {
+        markHeldCanaryProviderStarted(order);
+        return new Promise((resolve) => { releaseHeldCanaryProvider = resolve; });
+      },
+    },
+  },
+  serverAuthorizedCheckout: true,
+  assertCheckoutAuthorized,
+  resolveWechatIdentity,
+});
+const providerExpiryOrder = await heldCanaryProviderStarted;
+authorizationClock = expireAt;
+releaseHeldCanaryProvider({
+  provider: "wechat_virtual", providerOrderId: null,
+  parameters: { mode: "short_series_goods", signData: providerExpiryOrder.outTradeNo, paySig: "held", signature: "held" },
+});
+await assert.rejects(providerExpiryCheckout, (error) => error.code === "membership_canary_expired");
+assert.equal(db.prepare("SELECT status FROM membership_orders WHERE id=?").get(providerExpiryOrder.id).status, "failed", "post-provider expiry keeps the order recoverable but returns no payment");
+
 db.close();
 console.log("Membership checkout recovery and provider confirmation checks passed.");
