@@ -282,6 +282,39 @@ const fullEnv = Object.freeze({
   assert.deepEqual(withIap.platforms, ["android", "ios"]);
   const mismatchedIdentityApp = readMembershipWechatRuntimeConfig({ ...fullEnv, WECHAT_MINIPROGRAM_APP_ID: "wxdifferentidentityapp" });
   assert.equal(mismatchedIdentityApp.registryEnabled, false, "payer identity AppID and payment AppID must not drift");
+  assert.deepEqual(
+    createMembershipWechatRuntime({
+      env: { ...fullEnv, WECHAT_MINIPROGRAM_APP_ID: "wxdifferentidentityapp" },
+      fetchImpl: async () => { throw new Error("mismatched AppID must fail before provider network"); },
+    }).providerRegistry,
+    {},
+    "an identity/payment AppID mismatch cannot expose checkout",
+  );
+
+  const identityAliasPairs = [
+    ["WECHAT_MINIPROGRAM_APP_ID", "WECHAT_MINIPROGRAM_APP_SECRET"],
+    ["WECHAT_MINIPROGRAM_APPID", "WECHAT_MINIPROGRAM_SECRET"],
+    ["WECHAT_APP_ID", "WECHAT_APP_SECRET"],
+    ["WECHAT_MINI_APPID", "WECHAT_MINI_SECRET"],
+  ];
+  for (const [appIdName, appSecretName] of identityAliasPairs) {
+    const aliasEnv = { ...fullEnv };
+    delete aliasEnv.MEMBERSHIP_WECHAT_VIRTUAL_APP_ID;
+    delete aliasEnv.MEMBERSHIP_WECHAT_VIRTUAL_APP_SECRET;
+    aliasEnv[appIdName] = "wxlegacyidentityapp";
+    aliasEnv[appSecretName] = "legacy-identity-secret";
+    const aliasConfig = readMembershipWechatRuntimeConfig(aliasEnv);
+    assert.equal(aliasConfig.appId, "wxlegacyidentityapp", appIdName);
+    assert.equal(aliasConfig.configured, true, `${appIdName}/${appSecretName} matches login authority aliases`);
+    assert.equal(aliasConfig.registryEnabled, true, `${appIdName}/${appSecretName} can become ready only with every explicit gate`);
+  }
+
+  const unknownIdentityEnv = { ...fullEnv };
+  delete unknownIdentityEnv.MEMBERSHIP_WECHAT_VIRTUAL_APP_ID;
+  delete unknownIdentityEnv.MEMBERSHIP_WECHAT_VIRTUAL_APP_SECRET;
+  const unknownIdentity = readMembershipWechatRuntimeConfig(unknownIdentityEnv);
+  assert.equal(unknownIdentity.configured, false);
+  assert.equal(unknownIdentity.registryEnabled, false, "missing payer identity authority is fail-closed");
 
   for (const key of [
     "MEMBERSHIP_COMMERCE_READY",
