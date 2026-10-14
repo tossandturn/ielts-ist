@@ -8,7 +8,8 @@
     "check": "node --check server.js",
     "test:ai-default-config": "node scripts/test-ai-default-config.mjs",
     "test:ai-gateway-qwen-fallback": "node scripts/test-ai-gateway-qwen-fallback.mjs",
-    "test:wechat-mini-auth": "node scripts/test-wechat-mini-auth.mjs"
+    "test:wechat-mini-auth": "node scripts/test-wechat-mini-auth.mjs",
+    "test:membership": "node scripts/test-membership-safe-off.mjs && node scripts/test-membership-ledger.mjs && node scripts/test-membership-checkout.mjs && node scripts/test-membership-enforcement.mjs && node scripts/test-membership-wechat-virtual.mjs"
   },
   "dependencies": {
     "@napi-rs/canvas": "^1.0.2",

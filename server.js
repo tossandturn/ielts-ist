@@ -15,6 +15,18 @@ const {
   parseCoachUserId,
   upsertCoachConversations,
 } = require("./server/coachHistory");
+const {
+  createMembershipCheckout,
+  installMembershipSchema,
+  listMembershipOrders,
+  membershipCatalog,
+  membershipFeatureForIeltsRequest,
+  membershipFlags,
+  membershipStatus,
+  refreshMembershipOrder,
+  requireActiveMembership,
+  recordMembershipGrant,
+} = require("./server/membership");
 let DatabaseSync = null;
 try {
   ({ DatabaseSync } = require("node:sqlite"));
@@ -56,6 +68,10 @@ const WECHAT_MINIPROGRAM_TIMEOUT_MS = Math.max(2_000, Math.min(15_000, Number(pr
 const IELTSIST_PUBLIC_ORIGIN = String(process.env.IELTSIST_PUBLIC_ORIGIN || "https://ieltsist.com").replace(/\/+$/, "");
 const STEM_WEBVIEW_HANDOFF_TTL_MS = 2 * 60 * 1000;
 const stemWebviewHandoffs = new Map();
+// Payment adapters are injected here only after their official protocol and
+// merchant/category readiness have passed review. An empty registry is the
+// deliberate production-safe default: no order can be created or fulfilled.
+const MEMBERSHIP_PROVIDER_REGISTRY = Object.freeze({});
 const STEM_ALLOWED_ORIGINS = new Set([
   "https://stem.ieltsist.com",
   "http://127.0.0.1:5173",
@@ -1944,10 +1960,13 @@ function getTasksPayloadCache() {
 
 function sendTasksPayload(req, res) {
   const cache = getTasksPayloadCache();
+  const membershipProtected = req.membershipProtectedAccess === true;
+  const cacheControl = membershipProtected ? "private, no-store" : "private, max-age=600, stale-while-revalidate=3600";
   if (req.headers["if-none-match"] === cache.etag) {
     res.writeHead(304, {
       "etag": cache.etag,
-      "cache-control": "private, max-age=600, stale-while-revalidate=3600",
+      "cache-control": cacheControl,
+      ...(membershipProtected ? { "vary": "Accept-Encoding, Authorization, Cookie" } : {}),
     });
     res.end();
     return;
@@ -1957,9 +1976,9 @@ function sendTasksPayload(req, res) {
   res.writeHead(200, {
     "content-type": "application/json; charset=utf-8",
     "content-length": body.length,
-    "cache-control": "private, max-age=600, stale-while-revalidate=3600",
+    "cache-control": cacheControl,
     "etag": cache.etag,
-    "vary": "Accept-Encoding",
+    "vary": membershipProtected ? "Accept-Encoding, Authorization, Cookie" : "Accept-Encoding",
     ...(acceptsGzip ? { "content-encoding": "gzip" } : {}),
   });
   if (req.method === "HEAD") {
@@ -2252,6 +2271,7 @@ function getAppDb() {
   if (!objectiveAttemptColumns.has("parent_exam_id")) appDb.exec("ALTER TABLE objective_attempts ADD COLUMN parent_exam_id TEXT REFERENCES objective_exam_attempts(exam_id) ON DELETE CASCADE");
   appDb.exec("CREATE INDEX IF NOT EXISTS idx_objective_attempts_parent_exam ON objective_attempts(parent_exam_id, module)");
   initCoachHistorySchema(appDb);
+  installMembershipSchema(appDb);
   return appDb;
 }
 
@@ -2547,7 +2567,13 @@ async function exchangeWeChatCode(code) {
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) throw Object.assign(new Error("WeChat sign-in service is temporarily unavailable."), { statusCode: 503, code: "wechat_provider_unavailable" });
     if (Number(payload.errcode || 0) !== 0 || !String(payload.openid || "").trim()) throw wechatCodeError();
-    return { openid: String(payload.openid).trim(), unionid: String(payload.unionid || "").trim() };
+    return {
+      openid: String(payload.openid).trim(),
+      unionid: String(payload.unionid || "").trim(),
+      // Used only transiently by the virtual-payment adapter. It is never
+      // written to SQLite or returned to a client.
+      sessionKey: String(payload.session_key || "").trim(),
+    };
   } catch (error) {
     if (error?.statusCode) throw error;
     throw Object.assign(new Error(error?.name === "AbortError" ? "WeChat sign-in timed out. Please try again." : "WeChat sign-in service is temporarily unavailable."), {
@@ -2826,6 +2852,210 @@ async function handleAuthApi(req, res) {
   sendJson(res, 405, { error: "Method not allowed" });
 }
 
+async function resolveMembershipWechatIdentity({ userId, provider, wxCode }) {
+  const db = getAppDb();
+  if (!WECHAT_MINIPROGRAM_APP_ID) {
+    throw Object.assign(new Error("A verified WeChat payer identity is required."), { statusCode: 409, code: "wechat_identity_required" });
+  }
+  if (provider === "wechat_virtual") {
+    const exchanged = await exchangeWeChatCode(wxCode);
+    const row = db.prepare("SELECT * FROM wechat_identities WHERE app_id = ? AND openid = ?")
+      .get(WECHAT_MINIPROGRAM_APP_ID, exchanged.openid);
+    if (!row || Number(row.user_id) !== Number(userId) || !exchanged.sessionKey) {
+      throw Object.assign(new Error("A fresh WeChat payer identity is required."), { statusCode: 409, code: "wechat_identity_required" });
+    }
+    return {
+      userId: Number(userId), appId: row.app_id, openid: row.openid,
+      sessionContext: { sessionKey: exchanged.sessionKey, codeVerifiedAt: nowIso() },
+    };
+  }
+  const row = db.prepare("SELECT * FROM wechat_identities WHERE app_id = ? AND user_id = ? ORDER BY last_seen_at DESC LIMIT 1")
+    .get(WECHAT_MINIPROGRAM_APP_ID, Number(userId));
+  if (!row) throw Object.assign(new Error("A verified WeChat payer identity is required."), { statusCode: 409, code: "wechat_identity_required" });
+  return { userId: Number(userId), appId: row.app_id, openid: row.openid, sessionContext: null };
+}
+
+async function handleMembershipApi(req, res) {
+  const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+  if (req.method === "GET" && url.pathname === "/api/membership/catalog") {
+    sendJson(res, 200, membershipCatalog(process.env, MEMBERSHIP_PROVIDER_REGISTRY));
+    return;
+  }
+  const user = requireUser(req);
+  const ownerId = `ielts:${user.id}`;
+  if (req.method === "GET" && url.pathname === "/api/membership/status") {
+    sendJson(res, 200, membershipStatus(getAppDb(), ownerId, process.env));
+    return;
+  }
+  if (url.pathname === "/api/membership/orders") {
+    if (req.method === "GET") {
+      sendJson(res, 200, listMembershipOrders(getAppDb(), ownerId, {
+        limit: url.searchParams.get("limit"),
+        offset: url.searchParams.get("offset"),
+      }));
+      return;
+    }
+    if (req.method === "POST") {
+      try {
+        const result = await createMembershipCheckout({
+          db: getAppDb(), userId: ownerId, payload: await readJsonBody(req), env: process.env,
+          providerRegistry: MEMBERSHIP_PROVIDER_REGISTRY,
+          resolveWechatIdentity: resolveMembershipWechatIdentity,
+        });
+        sendJson(res, result.payment ? 201 : 200, result);
+      } catch (error) {
+        sendJson(res, error.statusCode || 503, {
+          code: error.code || "membership_checkout_unavailable",
+          error: error.statusCode ? error.message : "Membership checkout is not available yet.",
+        });
+      }
+      return;
+    }
+  }
+  const orderMatch = url.pathname.match(/^\/api\/membership\/orders\/([A-Za-z0-9-]{1,80})$/);
+  if (req.method === "GET" && orderMatch) {
+    try {
+      sendJson(res, 200, await refreshMembershipOrder({
+        db: getAppDb(), userId: ownerId, orderId: orderMatch[1],
+        providerRegistry: MEMBERSHIP_PROVIDER_REGISTRY,
+      }));
+    } catch (error) {
+      sendJson(res, error.statusCode || 500, { code: error.code || "membership_order_error", error: error.message });
+    }
+    return;
+  }
+  sendJson(res, 405, { error: "Method not allowed" });
+}
+
+async function handleStemInternalEntitlements(req, res) {
+  const rawBody = await readBody(req);
+  if (!signedStemInternalRequest(req, rawBody)) {
+    sendJson(res, 403, { error: "STEM membership request is not authorised." });
+    return;
+  }
+  let payload;
+  try { payload = JSON.parse(rawBody || "{}"); } catch {
+    sendJson(res, 400, { error: "Membership request must be valid JSON." });
+    return;
+  }
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)
+      || Object.keys(payload).some((key) => !["userId", "featureIds"].includes(key))) {
+    sendJson(res, 400, { error: "Membership request is invalid." });
+    return;
+  }
+  const normalizedId = String(payload.userId || "").trim();
+  const userId = Number(normalizedId.replace(/^ielts:/, ""));
+  const featureIds = Array.isArray(payload.featureIds)
+    ? [...new Set(payload.featureIds.map((item) => String(item || "").trim()).filter((item) => /^[a-z0-9][a-z0-9._:-]{1,79}$/.test(item)))].slice(0, 50)
+    : [];
+  if (!/^ielts:\d+$/.test(normalizedId) || !Number.isSafeInteger(userId) || userId <= 0 || !featureIds.length) {
+    sendJson(res, 400, { error: "Membership request is invalid." });
+    return;
+  }
+  if (!getAppDb().prepare("SELECT id FROM users WHERE id = ?").get(userId)) {
+    sendJson(res, 404, { error: "User not found." });
+    return;
+  }
+  const status = membershipStatus(getAppDb(), normalizedId, process.env);
+  const allowed = status.enforcement.enabled ? status.entitlement.active : true;
+  sendJson(res, 200, {
+    protocol: status.protocol,
+    authority: "ieltsist-membership",
+    userId: status.userId,
+    entitlement: status.entitlement,
+    enforcement: status.enforcement,
+    features: Object.fromEntries(featureIds.map((featureId) => [featureId, {
+      allowed,
+      reason: allowed ? (status.enforcement.enabled ? "membership_active" : "enforcement_disabled") : "membership_required",
+    }])),
+    checkedAt: nowIso(),
+    maxAgeSeconds: 30,
+  });
+}
+
+async function handleStemInternalMembership(req, res) {
+  const rawBody = await readBody(req);
+  if (!signedStemInternalRequest(req, rawBody)) {
+    sendJson(res, 403, { error: "STEM membership request is not authorised." });
+    return;
+  }
+  let payload;
+  try { payload = JSON.parse(rawBody || "{}"); } catch {
+    sendJson(res, 400, { error: "Membership request must be valid JSON." });
+    return;
+  }
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)
+      || Object.keys(payload).some((key) => !["action", "userId", "orderId", "payload"].includes(key))) {
+    sendJson(res, 400, { error: "Membership request is invalid." });
+    return;
+  }
+  const action = String(payload.action || "");
+  if (action === "catalog") {
+    sendJson(res, 200, membershipCatalog(process.env, MEMBERSHIP_PROVIDER_REGISTRY));
+    return;
+  }
+  const normalizedId = String(payload.userId || "").trim();
+  const userId = Number(normalizedId.replace(/^ielts:/, ""));
+  if (!/^ielts:\d+$/.test(normalizedId) || !getAppDb().prepare("SELECT id FROM users WHERE id = ?").get(userId)) {
+    sendJson(res, 404, { error: "User not found." });
+    return;
+  }
+  try {
+    if (action === "status") {
+      sendJson(res, 200, membershipStatus(getAppDb(), normalizedId, process.env));
+      return;
+    }
+    if (action === "orders") {
+      sendJson(res, 200, listMembershipOrders(getAppDb(), normalizedId, payload.payload || {}));
+      return;
+    }
+    if (action === "order") {
+      sendJson(res, 200, await refreshMembershipOrder({
+        db: getAppDb(), userId: normalizedId, orderId: payload.orderId,
+        providerRegistry: MEMBERSHIP_PROVIDER_REGISTRY,
+      }));
+      return;
+    }
+    if (action === "create_order") {
+      const result = await createMembershipCheckout({
+        db: getAppDb(), userId: normalizedId, payload: payload.payload || {}, env: process.env,
+        providerRegistry: MEMBERSHIP_PROVIDER_REGISTRY,
+        resolveWechatIdentity: resolveMembershipWechatIdentity,
+      });
+      sendJson(res, result.payment ? 201 : 200, result);
+      return;
+    }
+    sendJson(res, 400, { error: "Membership action is invalid." });
+  } catch (error) {
+    sendJson(res, error.statusCode || 503, {
+      code: error.code || "membership_request_failed",
+      error: error.statusCode ? error.message : "Membership request failed.",
+    });
+  }
+}
+
+function requireIeltsMembershipForRequest(req, pathname) {
+  if (!membershipFeatureForIeltsRequest(req.method, pathname)) return null;
+  if (!membershipFlags(process.env).enforcementEnabled) return null;
+  let user;
+  let db;
+  try {
+    user = pathname.startsWith("/api/stem/marking/") || pathname === "/api/ai/mark-handwriting"
+      ? requireStemActor(req)
+      : requireUser(req);
+    db = getAppDb();
+  } catch (error) {
+    if (error?.statusCode) throw error;
+    throw Object.assign(new Error("Membership authority is unavailable."), {
+      statusCode: 503,
+      code: "membership_authority_unavailable",
+    });
+  }
+  const entitlement = requireActiveMembership(db, user.id, process.env);
+  Object.defineProperty(req, "membershipProtectedAccess", { value: true, configurable: false, enumerable: false });
+  return entitlement;
+}
+
 async function handleAdminUserRoles(req, res, userId) {
   requireAdminApiSecret(req);
   const db = getAppDb();
@@ -2888,21 +3118,20 @@ async function handleRedeem(req, res) {
     sendJson(res, 409, { error: "This code has already been used by this account." });
     return;
   }
-  const current = currentMembership(user.id);
-  const now = Date.now();
-  const base = current && Date.parse(current.expires_at) > now ? Date.parse(current.expires_at) : now;
-  const expiresAt = new Date(base + Number(row.days) * 24 * 60 * 60 * 1000).toISOString();
-  const startsAt = current?.starts_at || nowIso();
   const updatedAt = nowIso();
   db.exec("BEGIN");
   try {
     db.prepare("UPDATE redemption_codes SET used_count = used_count + 1 WHERE code = ?").run(code);
     db.prepare("INSERT INTO redemption_uses (code, user_id, used_at) VALUES (?, ?, ?)").run(code, user.id, updatedAt);
-    db.prepare(`
-      INSERT INTO memberships (user_id, plan, starts_at, expires_at, updated_at)
-      VALUES (?, ?, ?, ?, ?)
-      ON CONFLICT(user_id) DO UPDATE SET plan = excluded.plan, expires_at = excluded.expires_at, updated_at = excluded.updated_at
-    `).run(user.id, row.plan, startsAt, expiresAt, updatedAt);
+    recordMembershipGrant(db, {
+      userId: user.id,
+      sourceType: "redemption",
+      sourceKey: `redemption:${code}:${user.id}`,
+      planId: row.plan,
+      durationDays: Number(row.days),
+      effectiveAt: updatedAt,
+      grantedAt: updatedAt,
+    });
     db.exec("COMMIT");
   } catch (error) {
     db.exec("ROLLBACK");
@@ -4596,9 +4825,12 @@ function serveStatic(req, res) {
       serveFile(req, res, filePath, type);
       return;
     }
-    const cacheControl = [".html", ".css", ".js", ".json"].includes(ext)
-      ? "no-cache"
-      : "public, max-age=31536000, immutable";
+    const membershipProtected = req.membershipProtectedAccess === true;
+    const cacheControl = membershipProtected
+      ? "private, no-store"
+      : [".html", ".css", ".js", ".json"].includes(ext)
+        ? "no-cache"
+        : "public, max-age=31536000, immutable";
     const acceptsGzip = /\bgzip\b/i.test(req.headers["accept-encoding"] || "");
     const gzipEligible = [".html", ".css", ".js", ".json", ".svg"].includes(ext) && data.length > 1024;
     const sendBody = (body, extraHeaders = {}) => {
@@ -4606,7 +4838,9 @@ function serveStatic(req, res) {
         "content-type": type,
         "content-length": body.length,
         "cache-control": cacheControl,
-        ...(gzipEligible ? { "vary": "Accept-Encoding" } : {}),
+        ...(gzipEligible || membershipProtected ? {
+          "vary": [gzipEligible ? "Accept-Encoding" : "", membershipProtected ? "Authorization, Cookie" : ""].filter(Boolean).join(", "),
+        } : {}),
         ...extraHeaders,
       });
       if (req.method === "HEAD") {
@@ -4624,7 +4858,11 @@ function serveStatic(req, res) {
           ...(statErr ? {} : { "last-modified": stat.mtime.toUTCString() }),
         };
         if (etag && req.headers["if-none-match"] === etag) {
-          res.writeHead(304, { "cache-control": cacheControl, ...validatorHeaders });
+          res.writeHead(304, {
+            "cache-control": cacheControl,
+            ...(membershipProtected ? { "vary": "Accept-Encoding, Authorization, Cookie" } : {}),
+            ...validatorHeaders,
+          });
           res.end();
           return;
         }
@@ -4672,7 +4910,8 @@ function serveFile(req, res, filePath, contentType) {
         "content-length": end - start + 1,
         "content-range": `bytes ${start}-${end}/${stat.size}`,
         "accept-ranges": "bytes",
-        "cache-control": "public, max-age=31536000, immutable",
+        "cache-control": req.membershipProtectedAccess === true ? "private, no-store" : "public, max-age=31536000, immutable",
+        ...(req.membershipProtectedAccess === true ? { "vary": "Authorization, Cookie" } : {}),
       });
       if (req.method === "HEAD") {
         res.end();
@@ -4685,7 +4924,8 @@ function serveFile(req, res, filePath, contentType) {
       "content-type": contentType,
       "content-length": stat.size,
       "accept-ranges": "bytes",
-      "cache-control": "public, max-age=31536000, immutable",
+      "cache-control": req.membershipProtectedAccess === true ? "private, no-store" : "public, max-age=31536000, immutable",
+      ...(req.membershipProtectedAccess === true ? { "vary": "Authorization, Cookie" } : {}),
     });
     if (req.method === "HEAD") {
       res.end();
@@ -8365,12 +8605,21 @@ const server = http.createServer(async (req, res) => {
       });
       return;
     }
+    requireIeltsMembershipForRequest(req, requestPathname);
     if (req.method === "GET" && requestPathname === "/api/stem/identity") {
       handleStemIdentity(req, res);
       return;
     }
     if (req.method === "POST" && requestPathname === "/api/stem/internal/authenticate") {
       await handleStemInternalAuthenticate(req, res);
+      return;
+    }
+    if (req.method === "POST" && requestPathname === "/api/stem/internal/entitlements") {
+      await handleStemInternalEntitlements(req, res);
+      return;
+    }
+    if (req.method === "POST" && requestPathname === "/api/stem/internal/membership") {
+      await handleStemInternalMembership(req, res);
       return;
     }
     if (req.method === "POST" && requestPathname === "/api/stem/internal/webview-handoff") {
@@ -8399,6 +8648,10 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.url.startsWith("/api/auth/") || req.url === "/api/me") {
       await handleAuthApi(req, res);
+      return;
+    }
+    if (requestPathname.startsWith("/api/membership/")) {
+      await handleMembershipApi(req, res);
       return;
     }
     if (req.method === "POST" && req.url === "/api/redeem") {
@@ -8648,6 +8901,14 @@ function noteQwenServerEvent(metrics, type) {
 
 server.on("upgrade", (req, socket, head) => {
   const url = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);
+  try {
+    requireIeltsMembershipForRequest(req, url.pathname);
+  } catch (error) {
+    const statusCode = [401, 403, 503].includes(error?.statusCode) ? error.statusCode : 503;
+    const statusText = statusCode === 401 ? "Unauthorized" : statusCode === 403 ? "Forbidden" : "Service Unavailable";
+    socket.end(`HTTP/1.1 ${statusCode} ${statusText}\r\nConnection: close\r\nContent-Length: 0\r\n\r\n`);
+    return;
+  }
   if (url.pathname === "/qwen-client") {
     qwenWss.handleUpgrade(req, socket, head, (ws) => {
       qwenWss.emit("connection", ws, req);
