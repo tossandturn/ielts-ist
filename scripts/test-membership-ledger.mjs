@@ -23,7 +23,7 @@ db.exec(`
   );
 `);
 installMembershipSchema(db);
-db.prepare("INSERT INTO users (id,username) VALUES (1,'one'),(2,'two')").run();
+db.prepare("INSERT INTO users (id,username) VALUES (1,'one'),(2,'two'),(3,'three'),(4,'four')").run();
 
 const paidAt = "2026-10-14T00:00:00.000Z";
 const day = 24 * 60 * 60 * 1000;
@@ -114,6 +114,41 @@ recordMembershipGrant(db, {
 assert.equal(membershipEntitlement(db, 2, Date.parse(paidAt)).expiresAt, "2026-11-23T00:00:00.000Z", "existing active membership is baseline and duplicate grant is idempotent");
 
 assert.throws(() => applyVerifiedProviderResult(db, { verified: false }), /Verified membership provider result/);
+
+db.prepare("INSERT INTO memberships (user_id,plan,starts_at,expires_at,updated_at) VALUES (3,'legacy','2026-10-01T00:00:00.000Z','2026-12-01T00:00:00.000Z','2026-10-01T00:00:00.000Z')").run();
+insertOrder({ id: "order-refund-first", userId: 3, outTradeNo: "trade-refund-first", openid: "open-3" });
+const refundFirstEvent = event({
+  eventId: "e", providerOrderId: "provider-refund-first", outTradeNo: "trade-refund-first", openid: "open-3",
+  eventType: "refunded", occurredAt: "2026-10-15T00:00:00.000Z",
+});
+const refundFirst = applyVerifiedProviderResult(db, refundFirstEvent);
+assert.equal(refundFirst.order.status, "refunded", "an authoritative full refund may close a pending order before paid delivery arrives");
+assert.equal(refundFirst.entitlement.planId, "legacy");
+assert.equal(refundFirst.entitlement.expiresAt, "2026-12-01T00:00:00.000Z", "refund-before-paid must preserve uncaptured legacy membership");
+assert.equal(db.prepare("SELECT COUNT(*) AS total FROM membership_grants WHERE user_id=3").get().total, 0, "refund-before-paid never creates a grant");
+assert.equal(db.prepare("SELECT provider_order_id FROM membership_orders WHERE id='order-refund-first'").get().provider_order_id, "provider-refund-first");
+assert.throws(() => applyVerifiedProviderResult(db, event({
+  eventId: "f", providerOrderId: "provider-refund-first", outTradeNo: "trade-refund-first", openid: "open-3",
+  occurredAt: "2026-10-15T00:01:00.000Z",
+})), /refunded membership order/i, "late paid delivery cannot restore a refund-before-paid order");
+const refundFirstReplay = applyVerifiedProviderResult(db, refundFirstEvent);
+assert.equal(refundFirstReplay.duplicate, true);
+assert.equal(refundFirstReplay.entitlement.expiresAt, "2026-12-01T00:00:00.000Z");
+
+db.prepare("INSERT INTO memberships (user_id,plan,starts_at,expires_at,updated_at) VALUES (4,'legacy','2026-10-01T00:00:00.000Z','2026-12-01T00:00:00.000Z','2026-10-01T00:00:00.000Z')").run();
+recordMembershipGrant(db, {
+  userId: 4, sourceType: "redemption", sourceKey: "redemption:user4", planId: "month",
+  durationDays: 30, effectiveAt: paidAt, grantedAt: paidAt,
+});
+const beforeUnrelatedRefund = membershipEntitlement(db, 4, Date.parse(paidAt));
+insertOrder({ id: "order-refund-other", userId: 4, outTradeNo: "trade-refund-other", openid: "open-4" });
+const unrelatedRefund = applyVerifiedProviderResult(db, event({
+  eventId: "0f", providerOrderId: "provider-refund-other", outTradeNo: "trade-refund-other", openid: "open-4",
+  eventType: "refunded", occurredAt: "2026-10-15T00:00:00.000Z",
+}));
+assert.equal(unrelatedRefund.order.status, "refunded");
+assert.equal(unrelatedRefund.entitlement.expiresAt, beforeUnrelatedRefund.expiresAt, "refund-before-paid cannot alter unrelated grants");
+assert.equal(db.prepare("SELECT reversed_at FROM membership_grants WHERE source_key='redemption:user4'").get().reversed_at, null);
 
 db.close();
 console.log("Membership ledger idempotency and refund checks passed.");

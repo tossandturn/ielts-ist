@@ -514,9 +514,16 @@ function applyVerifiedProviderResult(db, result) {
         planId: order.plan_id, durationDays: order.duration_days, effectiveAt: paidAt, grantedAt: processedAt,
       });
     } else {
-      if (!order.provider_order_id || order.provider_order_id !== result.providerOrderId) throw new Error("Refund does not match a fulfilled provider order.");
-      db.prepare("UPDATE membership_orders SET status='refunded',refunded_at=COALESCE(refunded_at,?),updated_at=? WHERE id=?")
-        .run(occurredAt, processedAt, order.id);
+      const refundBeforePaid = ["created", "pending", "failed"].includes(order.status);
+      const refundAfterPaid = ["paid", "fulfilled", "refunded"].includes(order.status)
+        && order.provider_order_id === result.providerOrderId;
+      if (!refundBeforePaid && !refundAfterPaid) throw new Error("Refund does not match a payable provider order.");
+      // A provider-confirmed full refund can race ahead of the paid delivery.
+      // Capture any legacy entitlement before recomputing an order that never
+      // created a payment grant, otherwise an empty ledger could erase it.
+      ensureBaseline(db, order.user_id, processedAt);
+      db.prepare("UPDATE membership_orders SET status='refunded',provider_order_id=COALESCE(provider_order_id,?),refunded_at=COALESCE(refunded_at,?),updated_at=? WHERE id=?")
+        .run(result.providerOrderId, occurredAt, processedAt, order.id);
       db.prepare("UPDATE membership_grants SET reversed_at=COALESCE(reversed_at,?) WHERE source_key=?")
         .run(occurredAt, `payment:${result.provider}:${result.providerOrderId}`);
       recomputeMembership(db, order.user_id, processedAt);

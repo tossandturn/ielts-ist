@@ -60,6 +60,8 @@ try {
       STEM_IDENTITY_SIGNING_KEY: signingKey,
       MEMBERSHIP_CHECKOUT_ENABLED: "0",
       MEMBERSHIP_ENFORCEMENT_ENABLED: "0",
+      MEMBERSHIP_WECHAT_VIRTUAL_ENABLED: "0",
+      WECHAT_VIRTUAL_CALLBACK_READY: "0",
     },
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -83,6 +85,10 @@ try {
     },
     enforcement: { enabled: false, appliesToExistingUsers: true },
   });
+
+  const disabledCallback = await fetch(`${baseUrl}/api/membership/wechat/notify?signature=invalid&timestamp=1&nonce=n&echostr=e`);
+  assert.equal(disabledCallback.status, 503, "callback endpoint remains unavailable until its explicit runtime configuration is complete");
+  assert.doesNotMatch(await disabledCallback.text(), /signature=|token|aes|secret/i);
 
   const register = await fetch(`${baseUrl}/api/auth/register`, {
     method: "POST",

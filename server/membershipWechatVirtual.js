@@ -1,6 +1,10 @@
 "use strict";
 
 const crypto = require("crypto");
+const {
+  isWechatCallbackConfigurationReady,
+  verifyEncryptedWechatNotification,
+} = require("./membershipWechatCallback.js");
 
 const PROVIDER_ID = "wechat_virtual";
 const QUERY_ORDER_URI = "/xpay/query_order";
@@ -133,15 +137,22 @@ function occurredAt(seconds) {
   if (!Number.isSafeInteger(seconds) || seconds <= 0) {
     throw providerError("membership_payment_mismatch", "Membership provider timestamp is invalid.", 409);
   }
-  return new Date(seconds * 1000).toISOString();
+  const date = new Date(seconds * 1000);
+  if (!Number.isFinite(date.getTime())) {
+    throw providerError("membership_payment_mismatch", "Membership provider timestamp is invalid.", 409);
+  }
+  return date.toISOString();
 }
 
-function normalizeEvent({ order, providerOrder, rawDigestSha256, eventType }) {
+function normalizeEvent({ order, providerOrder, rawDigestSha256, eventType, observedAt }) {
   const providerOrderId = text(providerOrder.wx_order_id, 256);
   if (!providerOrderId) {
     throw providerError("membership_payment_mismatch", "Membership provider order identity is missing.", 409);
   }
-  const time = occurredAt(providerOrder.paid_time);
+  const time = eventType === "paid" ? occurredAt(providerOrder.paid_time) : observedAt;
+  if (!Number.isFinite(Date.parse(time))) {
+    throw providerError("membership_payment_mismatch", "Membership provider timestamp is invalid.", 409);
+  }
   const base = {
     provider: PROVIDER_ID,
     eventId: digest(`${PROVIDER_ID}:${eventType}:${providerOrderId}`),
@@ -159,7 +170,7 @@ function normalizeEvent({ order, providerOrder, rawDigestSha256, eventType }) {
     verified: true,
   };
   if (eventType === "paid") return { ...base, paidAt: time };
-  return { ...base, refundedAt: time };
+  return { ...base, refundObservedAt: time };
 }
 
 function createWechatVirtualProvider({ config = {}, httpClient, clock = () => new Date() } = {}) {
@@ -168,7 +179,8 @@ function createWechatVirtualProvider({ config = {}, httpClient, clock = () => ne
     const configured = text(config.appId, 128) && text(config.offerId, 128)
       && text(config.appKey, 1024) && text(config.productId, 128)
       && typeof config.getAccessToken === "function" && typeof httpClient === "function"
-      && typeof clock === "function" && (config.env === undefined || config.env === 0);
+      && typeof clock === "function" && (config.env === undefined || config.env === 0)
+      && isWechatCallbackConfigurationReady(config);
     return configured ? { ready: true, reason: "ready" } : { ready: false, reason: "setup_required" };
   };
 
@@ -256,18 +268,31 @@ function createWechatVirtualProvider({ config = {}, httpClient, clock = () => ne
       if (providerOrder.refund_fee !== order.amountFen || providerOrder.left_fee !== 0) {
         throw providerError("membership_payment_mismatch", "Membership provider refund amount does not match.", 409);
       }
-      normalizedEvent = normalizeEvent({ order, providerOrder, rawDigestSha256, eventType: "refunded" });
+      normalizedEvent = normalizeEvent({
+        order,
+        providerOrder,
+        rawDigestSha256,
+        eventType: "refunded",
+        // query_order does not expose an unambiguous refund-completion timestamp.
+        // Record the controlled observation time instead of reusing paid_time.
+        observedAt: currentDate(clock).toISOString(),
+      });
     }
     return { provider: PROVIDER_ID, providerStatus: status, state, normalizedEvent, rawDigestSha256 };
   };
 
-  const verifyAndNormalizeDeliveryCallback = async () => {
+  const verifyAndNormalizeDeliveryCallback = async ({ rawBody, query } = {}) => {
     assertReady();
-    throw providerError(
-      "membership_provider_callback_unverified",
-      "WeChat virtual-payment callback verification is not configured.",
-      503,
-    );
+    const trigger = verifyEncryptedWechatNotification({ rawBody, query, config });
+    if (trigger.eventType === "paid_trigger"
+        && (trigger.env !== 0 || trigger.productId !== config.productId || trigger.quantity !== 1
+          || trigger.originalAmountFen !== PLAN.amountFen || trigger.amountFen !== PLAN.amountFen)) {
+      throw providerError("membership_payment_mismatch", "Membership payment does not match the configured product.", 409);
+    }
+    if (trigger.eventType === "refunded_trigger" && trigger.amountFen !== PLAN.amountFen) {
+      throw providerError("membership_payment_mismatch", "Membership refund does not match the configured product.", 409);
+    }
+    return trigger;
   };
 
   const refund = async () => {

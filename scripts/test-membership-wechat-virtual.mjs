@@ -9,6 +9,8 @@ const NOW = new Date("2026-10-14T08:00:00.000Z");
 const APP_KEY = "fake-app-key-for-local-tests";
 const SESSION_KEY = "fake-session-key-for-local-tests==";
 const ACCESS_TOKEN = "fake-access-token-for-local-tests";
+const CALLBACK_TOKEN = "fakeCallbackToken123";
+const CALLBACK_AES_KEY = "A".repeat(43);
 
 const baseConfig = Object.freeze({
   enabled: true,
@@ -17,6 +19,9 @@ const baseConfig = Object.freeze({
   appKey: APP_KEY,
   productId: "all-access-month-test-product",
   getAccessToken: async () => ACCESS_TOKEN,
+  token: CALLBACK_TOKEN,
+  encodingAesKey: CALLBACK_AES_KEY,
+  callbackFormat: "json",
 });
 
 const baseOrder = Object.freeze({
@@ -84,6 +89,9 @@ for (const config of [
   { ...baseConfig, appKey: "" },
   { ...baseConfig, getAccessToken: null },
   { ...baseConfig, env: 1 },
+  { ...baseConfig, token: "" },
+  { ...baseConfig, encodingAesKey: "A".repeat(42) },
+  { ...baseConfig, callbackFormat: "plaintext" },
 ]) {
   const unavailable = createWechatVirtualProvider({ config, clock: () => new Date(NOW), httpClient: async () => ({}) });
   assert.deepEqual(unavailable.readiness(), { ready: false, reason: "setup_required" });
@@ -215,13 +223,26 @@ for (const [status, expectedState, hasEvent] of [
 
 {
   const refundedPayload = structuredClone(paidPayload);
-  Object.assign(refundedPayload.order, { status: 8, refund_fee: 2880, left_fee: 0, paid_time: 1791964860 });
+  Object.assign(refundedPayload.order, {
+    status: 8,
+    refund_fee: 2880,
+    left_fee: 0,
+    paid_time: 1700000000,
+    update_time: 1791964860,
+  });
   responseBody = JSON.stringify(refundedPayload);
   const refunded = await queryProvider.queryOrder({ order: baseOrder });
   assert.equal(refunded.state, "refunded");
   assert.equal(refunded.normalizedEvent.eventType, "refunded");
-  assert.equal(refunded.normalizedEvent.refundedAt, "2026-10-14T08:01:00.000Z");
+  assert.equal(refunded.normalizedEvent.refundObservedAt, NOW.toISOString());
+  assert.equal(refunded.normalizedEvent.refundObservedAt, refunded.normalizedEvent.occurredAt);
+  assert.equal("refundedAt" in refunded.normalizedEvent, false);
+  assert.notEqual(refunded.normalizedEvent.refundObservedAt, new Date(refundedPayload.order.paid_time * 1000).toISOString());
+  assert.notEqual(refunded.normalizedEvent.refundObservedAt, new Date(refundedPayload.order.update_time * 1000).toISOString());
   assert.equal(refunded.normalizedEvent.eventId, crypto.createHash("sha256").update("wechat_virtual:refunded:wx-order-verified-001").digest("hex"));
+  const replayedRefund = await queryProvider.queryOrder({ order: baseOrder });
+  assert.equal(replayedRefund.normalizedEvent.eventId, refunded.normalizedEvent.eventId);
+  assert.equal(replayedRefund.normalizedEvent.refundObservedAt, refunded.normalizedEvent.refundObservedAt);
 }
 
 for (const mutate of [
@@ -231,6 +252,7 @@ for (const mutate of [
   (value) => { value.order.biz_meta = "wrong-attach"; },
   (value) => { value.order.wx_order_id = ""; },
   (value) => { value.order.env_type = 2; },
+  (value) => { value.order.paid_time = Number.MAX_SAFE_INTEGER; },
 ]) {
   const changed = structuredClone(paidPayload);
   mutate(changed);

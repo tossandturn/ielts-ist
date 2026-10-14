@@ -16,6 +16,7 @@ const {
   upsertCoachConversations,
 } = require("./server/coachHistory");
 const {
+  applyVerifiedProviderResult,
   createMembershipCheckout,
   installMembershipSchema,
   listMembershipOrders,
@@ -27,6 +28,12 @@ const {
   requireActiveMembership,
   recordMembershipGrant,
 } = require("./server/membership");
+const {
+  createMembershipWechatRuntime,
+  MAX_CALLBACK_BODY_BYTES,
+  WECHAT_VIRTUAL_CALLBACK_PATH,
+  wechatCallbackAck,
+} = require("./server/membershipWechatRuntime");
 let DatabaseSync = null;
 try {
   ({ DatabaseSync } = require("node:sqlite"));
@@ -68,10 +75,11 @@ const WECHAT_MINIPROGRAM_TIMEOUT_MS = Math.max(2_000, Math.min(15_000, Number(pr
 const IELTSIST_PUBLIC_ORIGIN = String(process.env.IELTSIST_PUBLIC_ORIGIN || "https://ieltsist.com").replace(/\/+$/, "");
 const STEM_WEBVIEW_HANDOFF_TTL_MS = 2 * 60 * 1000;
 const stemWebviewHandoffs = new Map();
-// Payment adapters are injected here only after their official protocol and
-// merchant/category readiness have passed review. An empty registry is the
-// deliberate production-safe default: no order can be created or fulfilled.
-const MEMBERSHIP_PROVIDER_REGISTRY = Object.freeze({});
+// The runtime returns an empty registry unless every reviewed provider,
+// callback, platform, commerce, and real-payment acceptance flag is explicit.
+// Construction performs no provider request and never exposes secret config.
+const MEMBERSHIP_WECHAT_RUNTIME = createMembershipWechatRuntime({ env: process.env, fetchImpl: globalThis.fetch });
+const MEMBERSHIP_PROVIDER_REGISTRY = MEMBERSHIP_WECHAT_RUNTIME.providerRegistry;
 const STEM_ALLOWED_ORIGINS = new Set([
   "https://stem.ieltsist.com",
   "http://127.0.0.1:5173",
@@ -2873,6 +2881,111 @@ async function resolveMembershipWechatIdentity({ userId, provider, wxCode }) {
     .get(WECHAT_MINIPROGRAM_APP_ID, Number(userId));
   if (!row) throw Object.assign(new Error("A verified WeChat payer identity is required."), { statusCode: 409, code: "wechat_identity_required" });
   return { userId: Number(userId), appId: row.app_id, openid: row.openid, sessionContext: null };
+}
+
+function readBoundedCallbackBody(req) {
+  return new Promise((resolve, reject) => {
+    const declaredLength = Number(req.headers["content-length"]);
+    if (Number.isFinite(declaredLength) && declaredLength > MAX_CALLBACK_BODY_BYTES) {
+      req.resume();
+      reject(Object.assign(new Error("Membership callback body is too large."), {
+        statusCode: 413,
+        code: "membership_provider_callback_invalid",
+      }));
+      return;
+    }
+    const chunks = [];
+    let total = 0;
+    let settled = false;
+    req.on("data", (chunk) => {
+      if (settled) return;
+      const bytes = Buffer.from(chunk);
+      total += bytes.length;
+      if (total > MAX_CALLBACK_BODY_BYTES) {
+        settled = true;
+        req.resume();
+        reject(Object.assign(new Error("Membership callback body is too large."), {
+          statusCode: 413,
+          code: "membership_provider_callback_invalid",
+        }));
+        return;
+      }
+      chunks.push(bytes);
+    });
+    req.on("end", () => {
+      if (!settled) {
+        settled = true;
+        resolve(Buffer.concat(chunks, total));
+      }
+    });
+    req.on("error", () => {
+      if (!settled) {
+        settled = true;
+        reject(Object.assign(new Error("Membership callback could not be read."), {
+          statusCode: 400,
+          code: "membership_provider_callback_invalid",
+        }));
+      }
+    });
+  });
+}
+
+function sendMembershipWechatAck(res, success, statusCode = 200) {
+  const ack = wechatCallbackAck(MEMBERSHIP_WECHAT_RUNTIME.callbackFormat, success);
+  const bytes = Buffer.from(ack.body, "utf8");
+  res.writeHead(statusCode, {
+    "content-type": ack.contentType,
+    "content-length": bytes.length,
+    "cache-control": "no-store",
+    "x-content-type-options": "nosniff",
+  });
+  res.end(bytes);
+}
+
+async function handleMembershipWechatCallback(req, res) {
+  const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+  if (req.method === "GET") {
+    try {
+      const echo = MEMBERSHIP_WECHAT_RUNTIME.verifyCallbackUrl(url.searchParams);
+      const bytes = Buffer.from(echo, "utf8");
+      res.writeHead(200, {
+        "content-type": "text/plain; charset=utf-8",
+        "content-length": bytes.length,
+        "cache-control": "no-store",
+        "x-content-type-options": "nosniff",
+      });
+      res.end(bytes);
+    } catch (error) {
+      res.writeHead(error?.code === "membership_provider_callback_unavailable" ? 503 : 401, {
+        "content-length": "0",
+        "cache-control": "no-store",
+      });
+      res.end();
+    }
+    return;
+  }
+  if (req.method !== "POST") {
+    res.writeHead(405, { allow: "GET, POST", "content-length": "0", "cache-control": "no-store" });
+    res.end();
+    return;
+  }
+  try {
+    const rawBody = await readBoundedCallbackBody(req);
+    const db = getAppDb();
+    await MEMBERSHIP_WECHAT_RUNTIME.processNotification({
+      rawBody,
+      query: url.searchParams,
+      lookupOrder: (outTradeNo) => db.prepare(
+        "SELECT * FROM membership_orders WHERE provider='wechat_virtual' AND out_trade_no=?",
+      ).get(outTradeNo),
+      applyVerifiedEvent: (event) => applyVerifiedProviderResult(db, event),
+    });
+    sendMembershipWechatAck(res, true, 200);
+  } catch (error) {
+    const unauthenticated = error?.code === "membership_provider_callback_unverified";
+    const unavailable = error?.code === "membership_provider_callback_unavailable";
+    sendMembershipWechatAck(res, false, unauthenticated ? 401 : unavailable ? 503 : 200);
+  }
 }
 
 async function handleMembershipApi(req, res) {
@@ -8648,6 +8761,10 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.url.startsWith("/api/auth/") || req.url === "/api/me") {
       await handleAuthApi(req, res);
+      return;
+    }
+    if (requestPathname === WECHAT_VIRTUAL_CALLBACK_PATH) {
+      await handleMembershipWechatCallback(req, res);
       return;
     }
     if (requestPathname.startsWith("/api/membership/")) {
