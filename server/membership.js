@@ -66,6 +66,7 @@ function installMembershipSchema(db) {
       plan_id TEXT NOT NULL,
       product_id TEXT NOT NULL,
       provider TEXT NOT NULL CHECK (provider IN ('wechat_virtual', 'wechat_jsapi')),
+      platform TEXT CHECK (platform IS NULL OR platform IN ('android', 'ios')),
       idempotency_key TEXT NOT NULL,
       out_trade_no TEXT NOT NULL UNIQUE,
       amount_fen INTEGER NOT NULL CHECK (amount_fen > 0),
@@ -120,6 +121,15 @@ function installMembershipSchema(db) {
     CREATE INDEX IF NOT EXISTS idx_membership_grants_user_effective ON membership_grants(user_id, effective_at, id);
   `);
   installTestbuyerCanarySchema(db);
+  if (!db.prepare('PRAGMA table_info(membership_orders)').all().some((column) => column.name === 'platform')) {
+    db.exec("ALTER TABLE membership_orders ADD COLUMN platform TEXT CHECK (platform IS NULL OR platform IN ('android', 'ios'))");
+  }
+  // Only an exact, already-bound legacy Android canary establishes platform.
+  db.exec(`UPDATE membership_orders SET platform='android' WHERE platform IS NULL
+    AND provider='wechat_virtual' AND plan_id='all-access-month' AND amount_fen=2880 AND currency='CNY' AND duration_days=30 AND auto_renew=0
+    AND EXISTS (SELECT 1 FROM membership_testbuyer_canary c WHERE c.slot=1 AND c.user_id=membership_orders.user_id
+      AND c.idempotency_key=membership_orders.idempotency_key AND (c.order_id IS NULL OR c.order_id=membership_orders.id));
+    CREATE INDEX IF NOT EXISTS idx_membership_orders_user_platform_created ON membership_orders(user_id,platform,created_at DESC);`);
 }
 
 function canonicalUserId(userId) {
@@ -218,6 +228,7 @@ function publicOrder(row) {
   if (!row) return null;
   return {
     id: row.id,
+    ...(row.platform ? { platform: row.platform } : {}),
     status: row.status,
     planId: row.plan_id,
     priceFen: row.amount_fen,
@@ -232,6 +243,7 @@ function publicOrder(row) {
 function internalOrder(row) {
   return {
     id: row.id, userId: row.user_id, planId: row.plan_id, productId: row.product_id,
+    platform: row.platform || null,
     provider: row.provider, idempotencyKey: row.idempotency_key, outTradeNo: row.out_trade_no,
     amountFen: row.amount_fen, currency: row.currency, durationDays: row.duration_days,
     autoRenew: row.auto_renew === 1, status: row.status, payerAppId: row.payer_app_id,
@@ -326,7 +338,7 @@ function normalizeCheckoutRequest(payload) {
     planId,
     idempotencyKey,
     wxCode: String(payload.wxCode || "").slice(0, 512),
-    platform: String(payload.platform || "unknown").slice(0, 32),
+    platform: String(payload.platform || "unknown").trim().toLowerCase().slice(0, 32),
     clientCapability: payload.clientCapability && typeof payload.clientCapability === "object" && !Array.isArray(payload.clientCapability)
       ? payload.clientCapability
       : {},
@@ -344,6 +356,12 @@ async function createMembershipCheckout({ db, userId, payload, env = {}, provide
     assertCheckoutAuthorized({ phase, userId: owner.publicId, idempotencyKey: request.idempotencyKey });
   };
   const initialExisting = db.prepare("SELECT * FROM membership_orders WHERE user_id = ? AND idempotency_key = ?").get(owner.numeric, request.idempotencyKey);
+  const assertOrderPlatform = (row) => {
+    if (row && (row.platform && row.platform !== request.platform || !row.platform && !checkoutMustNotReturnPayment(row.status))) {
+      throw Object.assign(new Error("Membership checkout platform conflicts with the existing order."), { statusCode: 409, code: "membership_checkout_conflict" });
+    }
+  };
+  assertOrderPlatform(initialExisting);
   if (initialExisting && checkoutMustNotReturnPayment(initialExisting.status)) return getMembershipOrder(db, owner.publicId, initialExisting.id);
   const catalog = membershipCatalog(env, providerRegistry, { serverAuthorizedCheckout });
   if (!catalog.commerce.checkoutEnabled) {
@@ -362,6 +380,7 @@ async function createMembershipCheckout({ db, userId, payload, env = {}, provide
     throw Object.assign(new Error("A verified WeChat payer identity is required."), { statusCode: 409, code: "wechat_identity_required" });
   }
   const existing = db.prepare("SELECT * FROM membership_orders WHERE user_id = ? AND idempotency_key = ?").get(owner.numeric, request.idempotencyKey);
+  assertOrderPlatform(existing);
   if (existing) {
     if (existing.provider !== provider.id || existing.payer_app_id !== identity.appId || existing.payer_openid !== identity.openid) {
       throw Object.assign(new Error("Membership checkout identity changed for this idempotency key."), { statusCode: 409, code: "membership_checkout_conflict" });
@@ -394,7 +413,7 @@ async function createMembershipCheckout({ db, userId, payload, env = {}, provide
   const now = new Date();
   const transactionId = `M${crypto.randomBytes(15).toString("hex")}`;
   const order = {
-    id: transactionId, userId: owner.numeric, planId: PLAN.id,
+    id: transactionId, userId: owner.numeric, planId: PLAN.id, platform: request.platform,
     productId: String(providerRegistry[provider.id].productId || PLAN.id), provider: provider.id,
     idempotencyKey: request.idempotencyKey,
     outTradeNo: transactionId, amountFen: PLAN.priceFen,
@@ -405,11 +424,11 @@ async function createMembershipCheckout({ db, userId, payload, env = {}, provide
   };
   db.prepare(`
     INSERT INTO membership_orders
-      (id,user_id,plan_id,product_id,provider,idempotency_key,out_trade_no,amount_fen,currency,duration_days,auto_renew,status,payer_app_id,payer_openid,provider_order_id,created_at,updated_at,expires_at)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+      (id,user_id,plan_id,product_id,provider,idempotency_key,out_trade_no,amount_fen,currency,duration_days,auto_renew,status,payer_app_id,payer_openid,provider_order_id,created_at,updated_at,expires_at,platform)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
   `).run(order.id, order.userId, order.planId, order.productId, order.provider, order.idempotencyKey, order.outTradeNo,
     order.amountFen, order.currency, order.durationDays, 0, "created", order.payerAppId, order.payerOpenid,
-    null, order.createdAt, order.updatedAt, order.expiresAt);
+    null, order.createdAt, order.updatedAt, order.expiresAt, order.platform);
   let payment;
   try {
     assertLifecycle("before_provider_checkout");

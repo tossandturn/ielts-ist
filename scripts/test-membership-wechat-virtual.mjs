@@ -25,6 +25,7 @@ const baseConfig = Object.freeze({
 });
 
 const baseOrder = Object.freeze({
+  platform: 'android',
   id: "11111111-2222-4333-8444-555555555555",
   userId: 42,
   planId: "all-access-month",
@@ -201,6 +202,12 @@ assert.deepEqual(paid.normalizedEvent, {
 });
 const replay = await queryProvider.queryOrder({ order: baseOrder });
 assert.equal(replay.normalizedEvent.eventId, paid.normalizedEvent.eventId);
+responseBody=JSON.stringify({...paidPayload,order:{...paidPayload.order,order_type:7}});
+await expectCode(()=>queryProvider.queryOrder({order:baseOrder}),'membership_payment_mismatch');
+assert.equal((await queryProvider.queryOrder({order:{...baseOrder,platform:'ios'}})).state,'paid');
+responseBody=JSON.stringify(paidPayload);
+await expectCode(()=>queryProvider.queryOrder({order:{...baseOrder,platform:'ios'}}),'membership_payment_mismatch');
+await expectCode(()=>provider.createCheckout({order:{...baseOrder,platform:null},identity,sessionContext}),'membership_payment_mismatch');
 
 for (const [status, expectedState, hasEvent] of [
   [0, "pending", false],

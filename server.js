@@ -117,6 +117,13 @@ const MEMBERSHIP_CANARY_PROVIDER_REGISTRY = MEMBERSHIP_RECOVERY_PROVIDER_REGISTR
     platforms: Object.freeze(MEMBERSHIP_RECOVERY_PROVIDER_REGISTRY.wechat_virtual.platforms.includes("android") ? ["android"] : []),
   }) })
   : Object.freeze({});
+function membershipCanaryProviderRegistry(platform) {
+  if (platform === 'android') return MEMBERSHIP_CANARY_PROVIDER_REGISTRY;
+  const provider = MEMBERSHIP_RECOVERY_PROVIDER_REGISTRY.wechat_virtual;
+  return platform === 'ios' && provider
+    ? Object.freeze({ wechat_virtual: Object.freeze({ ...provider, platforms: Object.freeze(provider.platforms.includes('ios') ? ['ios'] : []) }) })
+    : Object.freeze({});
+}
 const STEM_ALLOWED_ORIGINS = new Set([
   "https://stem.ieltsist.com",
   "http://127.0.0.1:5173",
@@ -3086,23 +3093,36 @@ async function handleMembershipWechatCallback(req, res) {
 function privateMembershipCatalog(db, ownerId, now = Date.now()) {
   const publicCatalog = membershipCatalog(process.env, MEMBERSHIP_PROVIDER_REGISTRY);
   if (publicCatalog.commerce.checkoutEnabled) {
-    return { ...publicCatalog, userId: ownerId, commerce: { ...publicCatalog.commerce, canary: null } };
+    return { ...publicCatalog, userId: ownerId, commerce: { ...publicCatalog.commerce, canary: null, platformCanaries: {} } };
   }
-  const config = readTestbuyerCanaryConfig(process.env, now);
-  const state = testbuyerCanaryState(db, config, ownerId);
-  const scoped = membershipCatalog(process.env, MEMBERSHIP_CANARY_PROVIDER_REGISTRY, {
-    serverAuthorizedCheckout: state.authorized && state.active,
-    honorGlobalCheckout: false,
+  const scopes = ['android', 'ios'].map((platform) => {
+    const config = readTestbuyerCanaryConfig(process.env, now, platform);
+    const state = testbuyerCanaryState(db, config, ownerId);
+    const catalog = membershipCatalog(process.env, membershipCanaryProviderRegistry(platform), {
+      serverAuthorizedCheckout: state.authorized && state.active, honorGlobalCheckout: false,
+    });
+    const checkoutEnabled = state.authorized && state.active && catalog.commerce.checkoutEnabled;
+    const reason = checkoutEnabled ? state.reason : state.authorized && !state.active ? state.reason : 'setup_required';
+    return { platform, state, catalog, checkoutEnabled, reason };
   });
-  const checkoutEnabled = state.authorized && state.active && scoped.commerce.checkoutEnabled;
+  const android = scopes[0], scoped = android.catalog;
+  const providers = scoped.commerce.providers.map((provider) => {
+    const entries = scopes.map((scope) => scope.catalog.commerce.providers.find((item) => item.id === provider.id));
+    const enabled = entries.some((entry) => entry.enabled);
+    return { id:provider.id, enabled, reason:enabled ? 'ready' : 'setup_required', platforms:[...new Set(entries.flatMap((entry) => entry.platforms))] };
+  });
   return {
     ...scoped,
     userId: ownerId,
     commerce: {
       ...scoped.commerce,
-      checkoutEnabled,
-      reason: checkoutEnabled ? state.reason : state.authorized && !state.active ? state.reason : "setup_required",
-      canary: state.canary,
+      checkoutEnabled: scopes.some((scope) => scope.checkoutEnabled),
+      reason: android.reason,
+      providers,
+      canary: android.state.canary,
+      platformCanaries: Object.fromEntries(scopes.filter((scope) => scope.state.authorized && scope.state.canary).map((scope) => [scope.platform, {
+        platform:scope.platform, checkoutEnabled:scope.checkoutEnabled, reason:scope.reason, ...scope.state.canary,
+      }])),
     },
   };
 }
@@ -3116,13 +3136,15 @@ async function createAuthorizedMembershipCheckout({ db, ownerId, payload }) {
     });
   }
   const request = normalizeCheckoutRequest(payload);
-  const config = readTestbuyerCanaryConfig(process.env, Date.now());
-  const providerCatalog = membershipCatalog(process.env, MEMBERSHIP_CANARY_PROVIDER_REGISTRY, {
+  const config = readTestbuyerCanaryConfig(process.env, Date.now(), request.platform);
+  const registry = membershipCanaryProviderRegistry(request.platform);
+  const providerCatalog = membershipCatalog(process.env, registry, {
     serverAuthorizedCheckout: true,
     honorGlobalCheckout: false,
   });
   const providerReady = providerCatalog.commerce.providers.some((item) => item.id === "wechat_virtual"
-    && item.enabled && item.platforms.includes("android"));
+    && item.enabled && item.platforms.includes(request.platform));
+  if (!providerReady && request.platform !== 'android') throw Object.assign(new Error('Membership checkout is not available on this platform.'), { statusCode:409, code:'membership_platform_unavailable' });
   if (!providerReady) throw Object.assign(new Error("Membership checkout is not available yet."), {
     statusCode: 503,
     code: "membership_checkout_unavailable",
@@ -3131,11 +3153,11 @@ async function createAuthorizedMembershipCheckout({ db, ownerId, payload }) {
     userId: ownerId,
     idempotencyKey: request.idempotencyKey,
     platform: request.platform,
-    now: Date.now(),
+    now: Date.now,
   });
   const result = await createMembershipCheckout({
     db, userId: ownerId, payload, env: process.env,
-    providerRegistry: MEMBERSHIP_CANARY_PROVIDER_REGISTRY,
+    providerRegistry: registry,
     resolveWechatIdentity: resolveMembershipWechatIdentity,
     serverAuthorizedCheckout: true,
     assertCheckoutAuthorized: () => assertTestbuyerCanaryActive(db, config, {
@@ -3148,7 +3170,7 @@ async function createAuthorizedMembershipCheckout({ db, ownerId, payload }) {
     userId: ownerId,
     idempotencyKey: reservation.idempotencyKey,
     orderId: result.order.id,
-    productId: MEMBERSHIP_CANARY_PROVIDER_REGISTRY.wechat_virtual.productId,
+    productId: registry.wechat_virtual.productId,
   });
   assertTestbuyerCanaryActive(db, config, {
     userId: ownerId,

@@ -1,0 +1,58 @@
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+const require=createRequire(import.meta.url);
+const {DatabaseSync}=require('node:sqlite');
+const {installMembershipSchema,createMembershipCheckout,getMembershipOrder,applyVerifiedProviderResult}=require('../server/membership');
+const {readTestbuyerCanaryConfig,reserveTestbuyerCanary,bindTestbuyerCanaryOrder,testbuyerCanaryState}=require('../server/membershipTestbuyerCanary');
+const db=new DatabaseSync(':memory:');
+db.exec(`PRAGMA foreign_keys=ON;CREATE TABLE users(id INTEGER PRIMARY KEY);INSERT INTO users VALUES(42),(43);
+ CREATE TABLE memberships(user_id INTEGER PRIMARY KEY REFERENCES users(id),plan TEXT,starts_at TEXT,expires_at TEXT,updated_at TEXT);`);
+installMembershipSchema(db);installMembershipSchema(db);
+assert.ok(db.prepare('PRAGMA table_info(membership_orders)').all().some(column=>column.name==='platform'),'Orders store their authoritative payment platform');
+const env={MEMBERSHIP_CHECKOUT_ENABLED:'1',MEMBERSHIP_COMMERCE_READY:'1'},seen=[];
+const providerRegistry={wechat_virtual:{id:'wechat_virtual',productId:'membership',platforms:['android','ios'],readiness:()=>({ready:true}),createCheckout:async({order})=>{seen.push(order);return{provider:'wechat_virtual',parameters:{fixture:true}}}}};
+const identity=async({userId})=>({userId,appId:'wx-fixture',openid:'openid-fixture'});
+const payload=platform=>({planId:'all-access-month',idempotencyKey:'platform-order-'+platform,wxCode:'synthetic',platform});
+const create=p=>createMembershipCheckout({db,userId:'ielts:42',payload:p,env,providerRegistry,resolveWechatIdentity:identity});
+const android=await create(payload('android')),ios=await create(payload('ios'));
+assert.equal(android.order.platform,'android');assert.equal(ios.order.platform,'ios');assert.notEqual(android.order.id,ios.order.id);
+assert.equal(seen[1].platform,'ios');
+assert.equal((await create(payload('ios'))).order.id,ios.order.id);
+const before=seen.length;
+await assert.rejects(create({...payload('android'),platform:'ios'}),error=>error.code==='membership_checkout_conflict'&&error.statusCode===409);
+assert.equal(seen.length,before,'Platform mismatch is rejected before provider checkout');
+db.prepare('UPDATE membership_orders SET platform=NULL WHERE id=?').run(ios.order.id);
+assert.equal(getMembershipOrder(db,'ielts:42',ios.order.id).order.platform,undefined,'Unclassified legacy order remains explicitly unknown');
+await assert.rejects(create(payload('ios')),error=>error.code==='membership_checkout_conflict');
+db.prepare('UPDATE membership_orders SET platform=? WHERE id=?').run('ios',ios.order.id);
+
+const now=Date.now(),startsAt=new Date(now-60000).toISOString(),expiresAt=new Date(now+3600000).toISOString();
+const testEnv={MEMBERSHIP_TESTBUYER_CANARY_ENABLED:'1',MEMBERSHIP_TESTBUYER_CANARY_MODE:'single-real-payment',MEMBERSHIP_TESTBUYER_CANARY_ID:'android-fixed-buyer',MEMBERSHIP_TESTBUYER_CANARY_USER_ID:'ielts:42',MEMBERSHIP_TESTBUYER_CANARY_STARTS_AT:startsAt,MEMBERSHIP_TESTBUYER_CANARY_EXPIRES_AT:expiresAt,MEMBERSHIP_TESTBUYER_IOS_CANARY_ENABLED:'1',MEMBERSHIP_TESTBUYER_IOS_CANARY_MODE:'single-real-payment',MEMBERSHIP_TESTBUYER_IOS_CANARY_ID:'ios-fixed-buyer',MEMBERSHIP_TESTBUYER_IOS_CANARY_STARTS_AT:startsAt,MEMBERSHIP_TESTBUYER_IOS_CANARY_EXPIRES_AT:expiresAt};
+const ac=readTestbuyerCanaryConfig(testEnv,now),ic=readTestbuyerCanaryConfig(testEnv,now,'ios');
+assert.equal(ic.platform,'ios');assert.equal(ic.userId,ac.userId);assert.equal(ic.active,true);
+assert.equal(readTestbuyerCanaryConfig({},now,'ios').active,false);
+assert.equal(readTestbuyerCanaryConfig({...testEnv,MEMBERSHIP_TESTBUYER_IOS_CANARY_EXPIRES_AT:new Date(now+3*3600000).toISOString()},now,'ios').configured,false);
+const reserve=(config,key)=>reserveTestbuyerCanary(db,config,{userId:'ielts:42',idempotencyKey:key,platform:config.platform,now});
+reserve(ac,'canary-platform-android');
+const originalAndroid=db.prepare('SELECT * FROM membership_testbuyer_canary').get();
+reserve(ic,'canary-platform-ios');
+assert.deepEqual(db.prepare('SELECT * FROM membership_testbuyer_canary').get(),originalAndroid,'iOS reservation never edits legacy Android singleton');
+assert.equal(db.prepare('SELECT COUNT(*) AS n FROM membership_testbuyer_platform_canary').get().n,1);
+for(const config of [ac,ic])assert.throws(()=>reserve(config,'second-key-'+config.platform),error=>error.code==='membership_canary_recovery_required');
+assert.throws(()=>reserveTestbuyerCanary(db,ic,{userId:'ielts:43',idempotencyKey:'canary-platform-ios',platform:'ios',now}),error=>error.code==='membership_checkout_unavailable');
+const scoped=await create({...payload('ios'),idempotencyKey:'canary-platform-ios'});
+bindTestbuyerCanaryOrder(db,ic,{userId:'ielts:42',idempotencyKey:'canary-platform-ios',orderId:scoped.order.id,productId:'membership'});
+assert.equal(testbuyerCanaryState(db,ic,'ielts:42').canary.recovery.orderId,scoped.order.id);
+assert.equal(testbuyerCanaryState(db,ic,'ielts:43').canary,null);
+assert.deepEqual(db.prepare('SELECT * FROM membership_testbuyer_canary').get(),originalAndroid);
+installMembershipSchema(db);
+assert.equal(testbuyerCanaryState(db,readTestbuyerCanaryConfig(testEnv,now,'ios'),'ielts:42').canary.remainingNewOrders,0);
+
+for(const [index,checkout] of [android,ios].entries()){
+ const row=db.prepare('SELECT * FROM membership_orders WHERE id=?').get(checkout.order.id);
+ applyVerifiedProviderResult(db,{verified:true,provider:'wechat_virtual',eventId:'payment-'+index,providerOrderId:'provider-'+index,outTradeNo:row.out_trade_no,payerAppId:row.payer_app_id,payerOpenid:row.payer_openid,productId:row.product_id,amountFen:row.amount_fen,currency:'CNY',eventType:'paid',occurredAt:new Date(now).toISOString(),rawDigestSha256:'a'.repeat(64)});
+}
+assert.equal(db.prepare('SELECT COUNT(*) AS n FROM memberships').get().n,1,'Both devices share one account entitlement');
+assert.equal(Date.parse(db.prepare('SELECT expires_at FROM memberships WHERE user_id=42').get().expires_at)-now,60*86400000,'Two separately confirmed purchases renew the same membership rather than two device memberships');
+await assert.rejects(create({...payload('android'),platform:'ios'}),error=>error.code==='membership_checkout_conflict','Even paid keys cannot switch platforms');
+db.close();console.log('Membership platform: platform persistence, cross-platform conflict, query-only legacy, independent durable slots and shared entitlement PASS');

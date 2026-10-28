@@ -261,6 +261,7 @@ function providerOrderFromRow(row) {
   if (!row || typeof row !== "object" || Array.isArray(row)) throw runtimeError("membership_provider_callback_retry");
   return Object.freeze({
     id: row.id,
+    platform: row.platform || null,
     userId: Number(row.user_id),
     planId: row.plan_id,
     productId: row.product_id,

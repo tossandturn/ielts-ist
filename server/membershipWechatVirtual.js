@@ -90,6 +90,8 @@ function validateOrder(order, config, { checkout = false } = {}) {
       || !validTradeNo || order.amountFen !== PLAN.amountFen || order.currency !== PLAN.currency
       || order.durationDays !== PLAN.durationDays || order.autoRenew !== PLAN.autoRenew
       || order.payerAppId !== config.appId || !text(order.payerOpenid, 256)
+      || (order.platform != null && !['android', 'ios'].includes(order.platform))
+      || (checkout && !['android', 'ios'].includes(order.platform))
       || !validTimes || (checkout && !["created", "pending", "failed"].includes(order.status))) {
     throw providerError("membership_payment_mismatch", "Membership payment does not match the configured product.", 409);
   }
@@ -259,8 +261,9 @@ function createWechatVirtualProvider({ config = {}, httpClient, clock = () => ne
     }
     let normalizedEvent = null;
     if (status === 2 || status === 4) {
+      const paymentTypes = order.platform === 'android' ? [0] : order.platform === 'ios' ? [7] : [0, 7];
       if (providerOrder.paid_fee !== order.amountFen || providerOrder.refund_fee !== 0
-          || ![0, 7].includes(providerOrder.order_type)) {
+          || !paymentTypes.includes(providerOrder.order_type)) {
         throw providerError("membership_payment_mismatch", "Membership provider payment amount does not match.", 409);
       }
       normalizedEvent = normalizeEvent({ order, providerOrder, rawDigestSha256, eventType: "paid" });

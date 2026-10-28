@@ -105,7 +105,7 @@ try {
   assert.deepEqual(await privateCatalogResponse.json(), {
     ...catalog,
     userId: `ielts:${account.user.id}`,
-    commerce: { ...catalog.commerce, canary: null },
+    commerce: { ...catalog.commerce, canary: null, platformCanaries: {} },
   }, "private catalog remains owner-bound and checkout-off without explicit canary configuration");
   assert.equal((await fetch(`${baseUrl}/api/membership/catalog/private`)).status, 401);
 

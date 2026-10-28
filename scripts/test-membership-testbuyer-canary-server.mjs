@@ -12,6 +12,7 @@ import { fileURLToPath } from "node:url";
 const require = createRequire(import.meta.url);
 const { DatabaseSync } = require("node:sqlite");
 const root = fileURLToPath(new URL("../", import.meta.url));
+const dualPlatform = process.argv.includes('--dual-platform');
 const dbPath = join(tmpdir(), `ieltsist-membership-canary-${process.pid}-${randomUUID()}.sqlite`);
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 async function freePort() {
@@ -72,8 +73,8 @@ try {
       MEMBERSHIP_WECHAT_VIRTUAL_OFFER_ID: "1234567890",
       MEMBERSHIP_WECHAT_VIRTUAL_PRODUCT_ID: "membership",
       MEMBERSHIP_WECHAT_VIRTUAL_ANDROID_READY: "1",
-      MEMBERSHIP_WECHAT_VIRTUAL_IOS_ENABLED: "0",
-      MEMBERSHIP_WECHAT_VIRTUAL_IOS_IAP_READY: "0",
+      MEMBERSHIP_WECHAT_VIRTUAL_IOS_ENABLED: dualPlatform ? "1" : "0",
+      MEMBERSHIP_WECHAT_VIRTUAL_IOS_IAP_READY: dualPlatform ? "1" : "0",
       WECHAT_VIRTUAL_CALLBACK_READY: "1",
       WECHAT_VIRTUAL_CALLBACK_MODE: "safe",
       WECHAT_VIRTUAL_CALLBACK_TOKEN: "CanaryCallbackToken123",
@@ -85,6 +86,11 @@ try {
       MEMBERSHIP_TESTBUYER_CANARY_USER_ID: "ielts:1",
       MEMBERSHIP_TESTBUYER_CANARY_STARTS_AT: startsAt,
       MEMBERSHIP_TESTBUYER_CANARY_EXPIRES_AT: expiresAt,
+      MEMBERSHIP_TESTBUYER_IOS_CANARY_ENABLED: dualPlatform ? '1' : '0',
+      MEMBERSHIP_TESTBUYER_IOS_CANARY_MODE: 'single-real-payment',
+      MEMBERSHIP_TESTBUYER_IOS_CANARY_ID: 'ios-payment-server-test',
+      MEMBERSHIP_TESTBUYER_IOS_CANARY_STARTS_AT: startsAt,
+      MEMBERSHIP_TESTBUYER_IOS_CANARY_EXPIRES_AT: expiresAt,
     },
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -101,6 +107,7 @@ try {
   const publicCatalog = await (await fetch(`${baseUrl}/api/membership/catalog`)).json();
   assert.equal(publicCatalog.commerce.checkoutEnabled, false, "public catalog remains globally off during canary");
   assert.equal("canary" in publicCatalog.commerce, false);
+  assert.equal('platformCanaries' in publicCatalog.commerce, false);
   assert.equal((await fetch(`${baseUrl}/api/membership/catalog/private`)).status, 401);
 
   async function register(username) {
@@ -127,6 +134,7 @@ try {
   assert.equal(otherCatalog.userId, "ielts:2");
   assert.equal(otherCatalog.commerce.checkoutEnabled, false);
   assert.equal(otherCatalog.commerce.canary, null);
+  assert.deepEqual(otherCatalog.commerce.platformCanaries, {}, 'Other accounts cannot see per-platform recovery information');
 
   let privateCatalog = await (await fetch(`${baseUrl}/api/membership/catalog/private`, { headers: buyerHeaders })).json();
   assert.equal(privateCatalog.userId, "ielts:1");
@@ -136,7 +144,7 @@ try {
     mode: "single-testbuyer", expiresAt, remainingNewOrders: 1, recovery: null,
   });
   assert.deepEqual(privateCatalog.commerce.providers, [
-    { id: "wechat_virtual", enabled: true, reason: "ready", platforms: ["android"] },
+    { id: "wechat_virtual", enabled: true, reason: "ready", platforms: dualPlatform ? ["android", "ios"] : ["android"] },
     { id: "wechat_jsapi", enabled: false, reason: "setup_required", platforms: [] },
   ]);
 
@@ -149,7 +157,14 @@ try {
     method: "POST", headers: { ...buyerHeaders, "content-type": "application/json" },
     body: JSON.stringify({ planId: "all-access-month", idempotencyKey: "ios-canary-attempt-0001", wxCode: "good-code", platform: "ios", clientCapability: {} }),
   });
-  assert.equal(iosCheckout.status, 409);
+  assert.equal(iosCheckout.status, dualPlatform ? 201 : 409);
+  if (dualPlatform) {
+    const iosOrder = await iosCheckout.json();
+    assert.equal(iosOrder.order.platform, 'ios');
+    assert.deepEqual(privateCatalog.commerce.platformCanaries.ios, { platform:'ios', checkoutEnabled:true, reason:'testbuyer_canary', mode:'single-testbuyer', expiresAt, remainingNewOrders:1, recovery:null });
+    const secondIos = await fetch(`${baseUrl}/api/membership/orders`, { method:'POST', headers:{...buyerHeaders,'content-type':'application/json'},body:JSON.stringify({planId:'all-access-month',idempotencyKey:'second-ios-key-0002',wxCode:'good-code',platform:'ios'}) });
+    assert.equal(secondIos.status,409);
+  }
 
   const forbiddenOverride = await fetch(`${baseUrl}/api/membership/orders`, {
     method: "POST", headers: { ...buyerHeaders, "content-type": "application/json" },
@@ -190,8 +205,8 @@ try {
   assert.equal((await secondLogicalOrder.json()).code, "membership_canary_recovery_required");
 
   const verifyDb = new DatabaseSync(dbPath, { readOnly: true });
-  assert.equal(verifyDb.prepare("SELECT COUNT(*) AS count FROM membership_orders").get().count, 1);
-  assert.deepEqual({ ...verifyDb.prepare("SELECT amount_fen,currency,duration_days,auto_renew FROM membership_orders").get() }, {
+  assert.equal(verifyDb.prepare("SELECT COUNT(*) AS count FROM membership_orders").get().count, dualPlatform ? 2 : 1);
+  assert.deepEqual({ ...verifyDb.prepare("SELECT amount_fen,currency,duration_days,auto_renew FROM membership_orders WHERE platform='android'").get() }, {
     amount_fen: 2880, currency: "CNY", duration_days: 30, auto_renew: 0,
   });
   assert.deepEqual({ ...verifyDb.prepare("SELECT idempotency_key,order_id FROM membership_testbuyer_canary WHERE slot=1").get() }, {
