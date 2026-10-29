@@ -243,6 +243,8 @@ assert.deepEqual(refund, {
   eventType: "refunded_trigger",
   outTradeNo: OUT_TRADE_NO,
   providerOrderId: "wx-order-callback-001",
+  refundId: "wx-refund-001",
+  merchantRefundId: "merchant-refund-001",
   payerAppId: APP_ID,
   payerOpenid: OPENID,
   productId: null,
@@ -267,7 +269,6 @@ for (const broken of [
   notificationFixture({ ...goodsMessage(), MsgType: "text" }),
   notificationFixture({ ...goodsMessage(), GoodsInfo: { ...goodsMessage().GoodsInfo, Quantity: 0 } }),
   notificationFixture({ ...goodsMessage(), GoodsInfo: { ...goodsMessage().GoodsInfo, ActualPrice: -1 } }),
-  notificationFixture(refundMessage({ RetCode: 1 })),
   notificationFixture(refundMessage({ RefundSuccTimestamp: 0 })),
 ]) {
   expectCallbackCode(() => verifyEncryptedWechatNotification(broken));

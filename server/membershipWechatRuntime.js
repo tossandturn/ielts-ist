@@ -3,6 +3,7 @@
 const { createWechatVirtualProvider } = require("./membershipWechatVirtual");
 const {
   MAX_CALLBACK_BODY_BYTES,
+  encryptWechatBusinessResponse,
   isWechatCallbackConfigurationReady,
   verifyEncryptedWechatNotification,
   verifyWechatCallbackUrl,
@@ -120,7 +121,7 @@ function allowedWechatUrl(value) {
     if (url.search || url.hash) throw runtimeError();
     return url;
   }
-  if (url.pathname === QUERY_ORDER_PATH) {
+  if ([QUERY_ORDER_PATH, "/xpay/notify_provide_goods"].includes(url.pathname)) {
     const keys = [...url.searchParams.keys()].sort();
     if (url.hash || keys.length !== 2 || keys[0] !== "access_token" || keys[1] !== "pay_sig"
         || !secretText(url.searchParams.get("access_token"), 4096)
@@ -291,7 +292,7 @@ function triggerMatchesOrder(trigger, order) {
     return trigger.productId === order.productId && trigger.quantity === 1 && trigger.env === 0
       && Number(trigger.originalAmountFen) === order.amountFen;
   }
-  return trigger.eventType === "refunded_trigger";
+  return ["refunded_trigger", "refund_failed_trigger"].includes(trigger.eventType);
 }
 
 function callbackRetryError() {
@@ -360,10 +361,11 @@ function createMembershipWechatRuntime({
     readiness: provider.readiness,
     createCheckout: provider.createCheckout,
     queryOrder: provider.queryOrder,
+    notifyDelivered: provider.notifyDelivered,
     verifyAndNormalizeDeliveryCallback: provider.verifyAndNormalizeDeliveryCallback,
     refund: provider.refund,
   });
-  async function processNotification({ rawBody, query, lookupOrder, applyVerifiedEvent } = {}) {
+  async function processNotification({ rawBody, query, lookupOrder, lookupIosOrder, applyVerifiedEvent } = {}) {
     if (typeof lookupOrder !== "function" || typeof applyVerifiedEvent !== "function") throw callbackRetryError();
     let trigger;
     try {
@@ -372,9 +374,41 @@ function createMembershipWechatRuntime({
       if (error?.code === "membership_provider_callback_unverified") throw error;
       throw callbackRetryError();
     }
+    if (trigger.eventType === "ios_refund_inquiry") {
+      // Apple requires a response within 3 seconds. Never call the payment API
+      // or infer actual consumption from a membership grant. Missing/late local
+      // evidence is reported honestly; this advisory response grants/revokes nothing.
+      let timer;
+      let row;
+      try {
+        row = await Promise.race([
+          Promise.resolve().then(() => typeof lookupIosOrder === "function" ? lookupIosOrder(trigger.paymentId) : null),
+          new Promise(resolve => { timer = setTimeout(() => resolve(null), 300); }),
+        ]);
+      } catch { row = null; } finally { clearTimeout(timer); }
+      const matches = row && row.platform === "ios" && row.provider === PROVIDER_ID
+        && row.payer_app_id === trigger.payerAppId && row.payer_openid === trigger.payerOpenid
+        && row.product_id === trigger.productId && trigger.productId === config.productId && trigger.quantity === 1
+        && [row.out_trade_no, row.provider_order_id].includes(trigger.paymentId);
+      const localStatus = matches && ["created", "pending", "paid", "fulfilled", "refunded", "closed", "failed"].includes(row.status)
+        ? row.status : "not_verified";
+      const evidence = `Policy: no consumption-based objection. Local fulfillment=${localStatus}; consumption not measured. Apple makes the final refund decision.`;
+      const responseBody = config.callbackFormat === "json"
+        ? JSON.stringify({ ErrCode: 0, ErrMsg: "success", IosRefundQueryResponse: { result_code: 0, result_info: "No objection to refund", evidence } })
+        : `<xml><ErrCode>0</ErrCode><ErrMsg>success</ErrMsg><IosRefundQueryResponse><result_code>0</result_code><result_info>No objection to refund</result_info><evidence>${evidence}</evidence></IosRefundQueryResponse></xml>`;
+      return Object.freeze({
+        eventType: trigger.eventType,
+        response: encryptWechatBusinessResponse({ body: responseBody, clock, config: {
+          appId: config.appId, token: config.callbackToken, encodingAesKey: config.callbackEncodingAesKey, callbackFormat: config.callbackFormat,
+        } }),
+      });
+    }
     const row = await lookupOrder(trigger.outTradeNo);
     const order = providerOrderFromRow(row);
     if (!triggerMatchesOrder(trigger, order)) throw callbackRetryError();
+    if (trigger.eventType === "refund_failed_trigger") {
+      return Object.freeze({ eventType: trigger.eventType, durable: true, entitlementChanged: false });
+    }
     let confirmation;
     try {
       confirmation = await registeredProvider.queryOrder({ order, notification: trigger });

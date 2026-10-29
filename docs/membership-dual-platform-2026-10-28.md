@@ -2,6 +2,8 @@
 
 Status: local implementation and synthetic verification; **NOT FOR PRODUCTION ACTIVATION**.
 
+Superseded source status: the 2026-10-29 lifecycle implementation now includes Stage B and delivery reconciliation. See `membership-real-lifecycle-2026-10-29.md`; physical-device payment, rotated key configuration and rollout gates remain separate.
+
 ## Changes
 
 - Orders persist `platform` (android / ios); unknown legacy orders remain query-only. An exact legacy Android canary owner/key/product match may establish its platform, including crash-before-bind recovery.

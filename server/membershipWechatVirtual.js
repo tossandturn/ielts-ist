@@ -9,6 +9,7 @@ const {
 const PROVIDER_ID = "wechat_virtual";
 const QUERY_ORDER_URI = "/xpay/query_order";
 const QUERY_ORDER_URL = `https://api.weixin.qq.com${QUERY_ORDER_URI}`;
+const DELIVERY_URI = "/xpay/notify_provide_goods";
 const REQUEST_VIRTUAL_PAYMENT_URI = "requestVirtualPayment";
 const MAX_RESPONSE_BYTES = 256 * 1024;
 const SESSION_MAX_AGE_MS = 5 * 60 * 1000;
@@ -29,7 +30,7 @@ const STATUS_STATES = Object.freeze({
   5: "refund_pending",
   6: "closed",
   7: "refund_failed",
-  8: "refunded",
+  8: "refund_verification_required",
   9: "refund_settlement",
   10: "refund_settlement",
 });
@@ -218,7 +219,7 @@ function createWechatVirtualProvider({ config = {}, httpClient, clock = () => ne
     };
   };
 
-  const queryOrder = async ({ order } = {}) => {
+  const queryOrder = async ({ order, notification } = {}) => {
     assertReady();
     validateOrder(order, config);
     let accessToken;
@@ -230,24 +231,20 @@ function createWechatVirtualProvider({ config = {}, httpClient, clock = () => ne
     if (!text(accessToken, 4096)) {
       throw providerError("membership_provider_query_failed", "Membership provider query failed.", 502);
     }
-    const body = JSON.stringify({ openid: order.payerOpenid, env: 0, order_id: order.outTradeNo });
-    const paySig = hmac(config.appKey, `${QUERY_ORDER_URI}&${body}`);
-    const url = new URL(QUERY_ORDER_URL);
-    url.searchParams.set("access_token", accessToken);
-    url.searchParams.set("pay_sig", paySig);
-    let response;
-    try {
-      response = await httpClient({
-        url: url.toString(),
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body,
-        timeoutMs: 8000,
-      });
-    } catch {
-      throw providerError("membership_provider_query_failed", "Membership provider query failed.", 502);
-    }
-    const { payload, rawDigestSha256 } = parseProviderResponse(response);
+    const lookup = async (identifier) => {
+      const body = JSON.stringify({ openid: order.payerOpenid, env: 0, ...identifier });
+      const url = new URL(QUERY_ORDER_URL);
+      url.searchParams.set("access_token", accessToken);
+      url.searchParams.set("pay_sig", hmac(config.appKey, `${QUERY_ORDER_URI}&${body}`));
+      let response;
+      try {
+        response = await httpClient({ url: url.toString(), method: "POST", headers: { "content-type": "application/json" }, body, timeoutMs: 8000 });
+      } catch {
+        throw providerError("membership_provider_query_failed", "Membership provider query failed.", 502);
+      }
+      return parseProviderResponse(response);
+    };
+    const { payload, rawDigestSha256 } = await lookup({ order_id: order.outTradeNo });
     const providerOrder = payload.order;
     const status = providerOrder.status;
     const state = STATUS_STATES[status];
@@ -259,27 +256,43 @@ function createWechatVirtualProvider({ config = {}, httpClient, clock = () => ne
         || providerOrder.biz_meta !== authorityBinding(order, config)) {
       throw providerError("membership_payment_mismatch", "Membership provider order does not match the local order.", 409);
     }
+    const paymentTypes = order.platform === 'android' ? [0] : order.platform === 'ios' ? [7] : [0, 7];
+    if (!paymentTypes.includes(providerOrder.order_type)
+        || (order.providerOrderId && providerOrder.wx_order_id !== order.providerOrderId)) {
+      throw providerError("membership_payment_mismatch", "Membership provider payment platform does not match.", 409);
+    }
+    if (notification?.eventType === "refunded_trigger") {
+      const trigger = notification;
+      if (trigger.authenticated !== true || trigger.provider !== PROVIDER_ID
+          || trigger.outTradeNo !== order.outTradeNo || trigger.payerAppId !== order.payerAppId
+          || trigger.payerOpenid !== order.payerOpenid || trigger.providerOrderId !== providerOrder.wx_order_id
+          || trigger.amountFen !== order.amountFen || !text(trigger.refundId, 256) || !text(trigger.merchantRefundId, 256)
+          || !Number.isFinite(Date.parse(trigger.refundSucceededAt))
+          || providerOrder.paid_fee !== order.amountFen || providerOrder.left_fee !== 0
+          || ![4, 5, 8].includes(status)) {
+        throw providerError("membership_payment_mismatch", "Membership refund notification does not match.", 409);
+      }
+      // Query the refund, not just the original payment. Official status 5 is
+      // merchant debit only; status 8 confirms that the user received the refund.
+      const refundResponse = await lookup({ wx_order_id: trigger.refundId });
+      const refundOrder = refundResponse.payload.order;
+      const refundType = providerOrder.order_type === 7 ? 8 : 1;
+      if (refundOrder.wx_order_id !== trigger.refundId || refundOrder.order_id !== trigger.merchantRefundId
+          || refundOrder.env_type !== 1 || refundOrder.order_type !== refundType
+          || refundOrder.status !== 8 || refundOrder.refund_fee !== order.amountFen) {
+        throw providerError("membership_payment_mismatch", "Membership refund has not been confirmed for this order.", 409);
+      }
+      const event = normalizeEvent({ order, providerOrder, eventType: "refunded", observedAt: trigger.refundSucceededAt,
+        rawDigestSha256: digest([rawDigestSha256, refundResponse.rawDigestSha256, trigger.rawDigestSha256].join(":")) });
+      return { provider: PROVIDER_ID, providerStatus: 8, state: "refunded", normalizedEvent: event, rawDigestSha256: event.rawDigestSha256 };
+    }
     let normalizedEvent = null;
     if (status === 2 || status === 4) {
-      const paymentTypes = order.platform === 'android' ? [0] : order.platform === 'ios' ? [7] : [0, 7];
       if (providerOrder.paid_fee !== order.amountFen || providerOrder.refund_fee !== 0
           || !paymentTypes.includes(providerOrder.order_type)) {
         throw providerError("membership_payment_mismatch", "Membership provider payment amount does not match.", 409);
       }
       normalizedEvent = normalizeEvent({ order, providerOrder, rawDigestSha256, eventType: "paid" });
-    } else if (status === 8) {
-      if (providerOrder.refund_fee !== order.amountFen || providerOrder.left_fee !== 0) {
-        throw providerError("membership_payment_mismatch", "Membership provider refund amount does not match.", 409);
-      }
-      normalizedEvent = normalizeEvent({
-        order,
-        providerOrder,
-        rawDigestSha256,
-        eventType: "refunded",
-        // query_order does not expose an unambiguous refund-completion timestamp.
-        // Record the controlled observation time instead of reusing paid_time.
-        observedAt: currentDate(clock).toISOString(),
-      });
     }
     return { provider: PROVIDER_ID, providerStatus: status, state, normalizedEvent, rawDigestSha256 };
   };
@@ -298,6 +311,28 @@ function createWechatVirtualProvider({ config = {}, httpClient, clock = () => ne
     return trigger;
   };
 
+  const notifyDelivered = async ({ order } = {}) => {
+    assertReady();
+    validateOrder(order, config);
+    if (order.status !== "fulfilled" || !text(order.providerOrderId, 256)) {
+      throw providerError("membership_payment_mismatch", "Only a durably fulfilled order can acknowledge delivery.", 409);
+    }
+    try {
+      const accessToken = await config.getAccessToken();
+      if (!text(accessToken, 4096)) throw Error("No token");
+      const body = JSON.stringify({ order_id: order.outTradeNo, env: 0 });
+      const url = new URL(`https://api.weixin.qq.com${DELIVERY_URI}`);
+      url.searchParams.set("access_token", accessToken);
+      url.searchParams.set("pay_sig", hmac(config.appKey, `${DELIVERY_URI}&${body}`));
+      const response = await httpClient({ url: url.toString(), method: "POST", headers: { "content-type": "application/json" }, body, timeoutMs: 8000 });
+      if (response?.statusCode !== 200 || !(typeof response.body === "string" || Buffer.isBuffer(response.body))
+          || Buffer.byteLength(response.body) > MAX_RESPONSE_BYTES || JSON.parse(response.body.toString()).errcode !== 0) throw Error("Unconfirmed delivery");
+      return { delivered: true };
+    } catch {
+      throw providerError("membership_provider_delivery_pending", "Membership delivery acknowledgement will be retried.", 502);
+    }
+  };
+
   const refund = async () => {
     assertReady();
     throw providerError(
@@ -313,6 +348,7 @@ function createWechatVirtualProvider({ config = {}, httpClient, clock = () => ne
     readiness,
     createCheckout,
     queryOrder,
+    notifyDelivered,
     verifyAndNormalizeDeliveryCallback,
     refund,
   });

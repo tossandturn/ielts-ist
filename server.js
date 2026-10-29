@@ -111,6 +111,9 @@ const nativeSessionIssuance = new Map();
 const MEMBERSHIP_WECHAT_RUNTIME = createMembershipWechatRuntime({ env: process.env, fetchImpl: globalThis.fetch });
 const MEMBERSHIP_PROVIDER_REGISTRY = MEMBERSHIP_WECHAT_RUNTIME.providerRegistry;
 const MEMBERSHIP_RECOVERY_PROVIDER_REGISTRY = MEMBERSHIP_WECHAT_RUNTIME.recoveryProviderRegistry;
+const membershipReconciler = require('./server/membershipReconciler').createMembershipReconciler({
+  getDb: getAppDb, providerRegistry: MEMBERSHIP_RECOVERY_PROVIDER_REGISTRY,
+});
 const MEMBERSHIP_CANARY_PROVIDER_REGISTRY = MEMBERSHIP_RECOVERY_PROVIDER_REGISTRY.wechat_virtual
   ? Object.freeze({ wechat_virtual: Object.freeze({
     ...MEMBERSHIP_RECOVERY_PROVIDER_REGISTRY.wechat_virtual,
@@ -3032,8 +3035,8 @@ function readBoundedCallbackBody(req) {
   });
 }
 
-function sendMembershipWechatAck(res, success, statusCode = 200) {
-  const ack = wechatCallbackAck(MEMBERSHIP_WECHAT_RUNTIME.callbackFormat, success);
+function sendMembershipWechatAck(res, success, statusCode = 200, businessResponse = null) {
+  const ack = businessResponse || wechatCallbackAck(MEMBERSHIP_WECHAT_RUNTIME.callbackFormat, success);
   const bytes = Buffer.from(ack.body, "utf8");
   res.writeHead(statusCode, {
     "content-type": ack.contentType,
@@ -3074,15 +3077,19 @@ async function handleMembershipWechatCallback(req, res) {
   try {
     const rawBody = await readBoundedCallbackBody(req);
     const db = getAppDb();
-    await MEMBERSHIP_WECHAT_RUNTIME.processNotification({
+    const notification = await MEMBERSHIP_WECHAT_RUNTIME.processNotification({
       rawBody,
       query: url.searchParams,
       lookupOrder: (outTradeNo) => db.prepare(
         "SELECT * FROM membership_orders WHERE provider='wechat_virtual' AND out_trade_no=?",
       ).get(outTradeNo),
+      lookupIosOrder: (paymentId) => {
+        const matches = db.prepare("SELECT * FROM membership_orders WHERE provider='wechat_virtual' AND platform='ios' AND (out_trade_no=? OR provider_order_id=?) LIMIT 2").all(paymentId, paymentId);
+        return matches.length === 1 ? matches[0] : null;
+      },
       applyVerifiedEvent: (event) => applyVerifiedProviderResult(db, event),
     });
-    sendMembershipWechatAck(res, true, 200);
+    sendMembershipWechatAck(res, true, 200, notification.response || null);
   } catch (error) {
     const unauthenticated = error?.code === "membership_provider_callback_unverified";
     const unavailable = error?.code === "membership_provider_callback_unavailable";
@@ -10355,6 +10362,7 @@ function buildQwenSessionUpdate(config = {}) {
 }
 
 server.listen(PORT, SERVER_HOST, () => {
+  membershipReconciler.start();
   recoverStemMarkingJobs();
   console.log(`IELTS-ist running at http://${SERVER_HOST}:${PORT}`);
   console.log(AI_GATEWAY_API_KEY

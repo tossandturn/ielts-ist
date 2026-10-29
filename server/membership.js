@@ -124,6 +124,11 @@ function installMembershipSchema(db) {
   if (!db.prepare('PRAGMA table_info(membership_orders)').all().some((column) => column.name === 'platform')) {
     db.exec("ALTER TABLE membership_orders ADD COLUMN platform TEXT CHECK (platform IS NULL OR platform IN ('android', 'ios'))");
   }
+  for (const column of ['provider_delivered_at', 'last_reconciled_at']) {
+    if (!db.prepare('PRAGMA table_info(membership_orders)').all().some((item) => item.name === column)) {
+      db.exec(`ALTER TABLE membership_orders ADD COLUMN ${column} TEXT`);
+    }
+  }
   // Only an exact, already-bound legacy Android canary establishes platform.
   db.exec(`UPDATE membership_orders SET platform='android' WHERE platform IS NULL
     AND provider='wechat_virtual' AND plan_id='all-access-month' AND amount_fen=2880 AND currency='CNY' AND duration_days=30 AND auto_renew=0
@@ -321,6 +326,18 @@ async function refreshMembershipOrder({ db, userId, orderId, providerRegistry = 
   } else if (["created", "failed"].includes(order.status)) {
     db.prepare("UPDATE membership_orders SET status='pending',updated_at=? WHERE id=? AND status IN ('created','failed')")
       .run(new Date().toISOString(), order.id);
+  }
+  const durable = db.prepare("SELECT * FROM membership_orders WHERE id=? AND user_id=?").get(id, owner.numeric);
+  if (durable?.status === 'fulfilled' && !durable.provider_delivered_at) {
+    let delivered = result.providerStatus === 4;
+    if (!delivered && result.providerStatus === 2 && typeof provider.notifyDelivered === 'function') {
+      try { delivered = (await provider.notifyDelivered({ order: internalOrder(durable) }))?.delivered === true; } catch {
+        // Payment is already durable. The reconciler retries acknowledgement;
+        // never erase the grant or ask the student to pay again.
+      }
+    }
+    if (delivered) db.prepare("UPDATE membership_orders SET provider_delivered_at=? WHERE id=? AND status='fulfilled'")
+      .run(new Date().toISOString(), id);
   }
   return getMembershipOrder(db, owner.publicId, id);
 }

@@ -269,7 +269,7 @@ function integerField(object, name, { minimum = 0, maximum = Number.MAX_SAFE_INT
   if (!isRecord(object)) fail();
   const raw = object[name];
   let value = raw;
-  if (typeof raw === "string" && /^(?:0|[1-9][0-9]{0,15})$/.test(raw)) value = Number(raw);
+  if (typeof raw === "string" && /^(?:0|-?[1-9][0-9]{0,15})$/.test(raw)) value = Number(raw);
   if (!Number.isSafeInteger(value) || value < minimum || value > maximum) fail();
   return value;
 }
@@ -332,14 +332,14 @@ function normalizeGoods(message, appId, rawDigestSha256) {
 function normalizeRefund(message, appId, rawDigestSha256) {
   const payerOpenid = stringField(message, "OpenId", 256);
   const refundId = stringField(message, "WxRefundId", 256);
-  stringField(message, "MchRefundId", 256);
+  const merchantRefundId = stringField(message, "MchRefundId", 256);
   const providerOrderId = stringField(message, "WxOrderId", 256);
   const outTradeNo = stringField(message, "MchOrderId", 32);
   if (!TRADE_NO.test(outTradeNo)) fail();
   const amountFen = integerField(message, "RefundFee", { minimum: 1 });
-  if (integerField(message, "RetCode", { maximum: Number.MAX_SAFE_INTEGER }) !== 0) fail();
+  const retCode = integerField(message, "RetCode", { minimum: -2147483648, maximum: 2147483647 });
   integerField(message, "RefundStartTimestamp", { minimum: 1 });
-  const refundSucceeded = integerField(message, "RefundSuccTimestamp", { minimum: 1 });
+  const refundSucceeded = integerField(message, "RefundSuccTimestamp", { minimum: retCode === 0 ? 1 : 0 });
   if (Object.prototype.hasOwnProperty.call(message, "RetryTimes")) {
     integerField(message, "RetryTimes", { maximum: 15 });
   }
@@ -351,9 +351,11 @@ function normalizeRefund(message, appId, rawDigestSha256) {
     authenticated: true,
     queryRequired: true,
     notificationId: sha256(material),
-    eventType: "refunded_trigger",
+    eventType: retCode === 0 ? "refunded_trigger" : "refund_failed_trigger",
     outTradeNo,
     providerOrderId,
+    refundId,
+    merchantRefundId,
     payerAppId: appId,
     payerOpenid,
     productId: null,
@@ -361,8 +363,48 @@ function normalizeRefund(message, appId, rawDigestSha256) {
     originalAmountFen: null,
     amountFen,
     env: null,
-    refundSucceededAt: refundSucceededAt.toISOString(),
+    refundSucceededAt: retCode === 0 ? refundSucceededAt.toISOString() : null,
     rawDigestSha256,
+  });
+}
+
+function normalizeIosInquiry(message, appId, rawDigestSha256) {
+  const paymentId = stringField(message, "pay_order_id", 256);
+  const productId = stringField(message, "product_id", 128);
+  const quantity = integerField(message, "p_count", { minimum: 1, maximum: 1_000_000 });
+  const provideStatus = integerField(message, "provide_status", { maximum: 2 });
+  const refundTime = integerField(message, "refund_time", { minimum: 1 });
+  const orderTime = integerField(message, "order_time", { minimum: 1 });
+  stringField(message, "channel_bill", 256);
+  stringField(message, "bundleid", 256);
+  stringField(message, "refund_request_reason", 512);
+  if (orderTime > refundTime) fail();
+  return Object.freeze({
+    provider: PROVIDER_ID, authenticated: true, queryRequired: false,
+    eventType: "ios_refund_inquiry", paymentId, productId, quantity, provideStatus,
+    payerAppId: appId, payerOpenid: message.FromUserName, rawDigestSha256,
+    notificationId: sha256(`${PROVIDER_ID}:ios_inquiry:${paymentId}:${refundTime}`),
+  });
+}
+
+function encryptWechatBusinessResponse({ body, config, clock = Date.now } = {}) {
+  const { appId, token, key, format } = parseConfig(config);
+  const payload = Buffer.from(safeString(body, 16 * 1024), "utf8");
+  const size = Buffer.alloc(4);
+  size.writeUInt32BE(payload.length);
+  const plain = Buffer.concat([crypto.randomBytes(16), size, payload, Buffer.from(appId, "utf8")]);
+  const padding = 32 - plain.length % 32;
+  const cipher = crypto.createCipheriv("aes-256-cbc", key, key.subarray(0, 16));
+  cipher.setAutoPadding(false);
+  const encrypted = Buffer.concat([cipher.update(Buffer.concat([plain, Buffer.alloc(padding, padding)])), cipher.final()]).toString("base64");
+  const timestamp = String(Math.floor(Number(clock()) / 1000));
+  const nonce = crypto.randomBytes(16).toString("hex");
+  const signature = crypto.createHash("sha1").update([token, timestamp, nonce, encrypted].sort().join(""), "utf8").digest("hex");
+  return Object.freeze({
+    contentType: format === "json" ? "application/json; charset=utf-8" : "application/xml; charset=utf-8",
+    body: format === "json"
+      ? JSON.stringify({ Encrypt: encrypted, MsgSignature: signature, TimeStamp: timestamp, Nonce: nonce })
+      : `<xml><Encrypt>${encrypted}</Encrypt><MsgSignature>${signature}</MsgSignature><TimeStamp>${timestamp}</TimeStamp><Nonce>${nonce}</Nonce></xml>`,
   });
 }
 
@@ -398,11 +440,13 @@ function verifyEncryptedWechatNotification(options = {}) {
   const event = validateBaseEvent(message);
   if (event === "xpay_goods_deliver_notify") return normalizeGoods(message, appId, rawDigestSha256);
   if (event === "xpay_refund_notify") return normalizeRefund(message, appId, rawDigestSha256);
+  if (event === "xpay_subscribe_ios_refund_query_notify") return normalizeIosInquiry(message, appId, rawDigestSha256);
   fail();
 }
 
 module.exports = {
   MAX_CALLBACK_BODY_BYTES,
+  encryptWechatBusinessResponse,
   isWechatCallbackConfigurationReady,
   verifyAndDecryptWechatMessage,
   verifyEncryptedWechatNotification,

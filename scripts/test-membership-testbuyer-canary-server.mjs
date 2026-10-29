@@ -104,6 +104,27 @@ try {
   }
   assert.equal((await fetch(`${baseUrl}/healthz`)).ok, true, output);
 
+  // Real HTTP handler, real encryption and isolated test DB; no provider calls.
+  if (dualPlatform) {
+    const message={ToUserName:'gh_fixture',FromUserName:'fixture-payer',CreateTime:String(Math.floor(Date.now()/1000)),MsgType:'event',Event:'xpay_subscribe_ios_refund_query_notify',refund_time:String(Math.floor(Date.now()/1000)),order_time:'1700000000',channel_bill:'synthetic-apple-bill',bundleid:'com.tencent.xin',product_id:'membership',p_count:'1',refund_request_reason:'UNINTENDED_PURCHASE',provide_status:'0',pay_order_id:'synthetic-unknown-order'};
+    const key=Buffer.from(callbackAesKey+'=','base64'),payload=Buffer.from(JSON.stringify(message)),size=Buffer.alloc(4);size.writeUInt32BE(payload.length);
+    const plain=Buffer.concat([Buffer.alloc(16,8),size,payload,Buffer.from(appId)]),padding=32-plain.length%32;
+    const cipher=crypto.createCipheriv('aes-256-cbc',key,key.subarray(0,16));cipher.setAutoPadding(false);
+    const Encrypt=Buffer.concat([cipher.update(Buffer.concat([plain,Buffer.alloc(padding,padding)])),cipher.final()]).toString('base64');
+    const timestamp=message.CreateTime,nonce='ios-http-test',token='CanaryCallbackToken123';
+    const msg_signature=crypto.createHash('sha1').update([token,timestamp,nonce,Encrypt].sort().join('')).digest('hex');
+    const query=new URLSearchParams({encrypt_type:'aes',timestamp,nonce,msg_signature});
+    const started=performance.now();
+    const response=await fetch(`${baseUrl}/api/membership/wechat/notify?${query}`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({ToUserName:'gh_fixture',Encrypt})});
+    assert.equal(response.status,200);assert.equal(response.headers.get('cache-control'),'no-store');
+    const encrypted=await response.json();assert.equal(encrypted.MsgSignature,crypto.createHash('sha1').update([token,String(encrypted.TimeStamp),encrypted.Nonce,encrypted.Encrypt].sort().join('')).digest('hex'));
+    const decrypt=crypto.createDecipheriv('aes-256-cbc',key,key.subarray(0,16));decrypt.setAutoPadding(false);
+    const decoded=Buffer.concat([decrypt.update(Buffer.from(encrypted.Encrypt,'base64')),decrypt.final()]),length=decoded.readUInt32BE(16);
+    const reply=JSON.parse(decoded.subarray(20,20+length).toString());
+    assert.equal(reply.IosRefundQueryResponse.result_code,0);assert.match(reply.IosRefundQueryResponse.evidence,/not_verified/);
+    assert.ok(performance.now()-started<3000,'Apple inquiry deadline is end-to-end, not just handler CPU time');
+  }
+
   const publicCatalog = await (await fetch(`${baseUrl}/api/membership/catalog`)).json();
   assert.equal(publicCatalog.commerce.checkoutEnabled, false, "public catalog remains globally off during canary");
   assert.equal("canary" in publicCatalog.commerce, false);

@@ -239,17 +239,10 @@ for (const [status, expectedState, hasEvent] of [
   });
   responseBody = JSON.stringify(refundedPayload);
   const refunded = await queryProvider.queryOrder({ order: baseOrder });
-  assert.equal(refunded.state, "refunded");
-  assert.equal(refunded.normalizedEvent.eventType, "refunded");
-  assert.equal(refunded.normalizedEvent.refundObservedAt, NOW.toISOString());
-  assert.equal(refunded.normalizedEvent.refundObservedAt, refunded.normalizedEvent.occurredAt);
-  assert.equal("refundedAt" in refunded.normalizedEvent, false);
-  assert.notEqual(refunded.normalizedEvent.refundObservedAt, new Date(refundedPayload.order.paid_time * 1000).toISOString());
-  assert.notEqual(refunded.normalizedEvent.refundObservedAt, new Date(refundedPayload.order.update_time * 1000).toISOString());
-  assert.equal(refunded.normalizedEvent.eventId, crypto.createHash("sha256").update("wechat_virtual:refunded:wx-order-verified-001").digest("hex"));
+  assert.equal(refunded.state, "refund_verification_required");
+  assert.equal(refunded.normalizedEvent, null, "A payment row is not a matched final refund row");
   const replayedRefund = await queryProvider.queryOrder({ order: baseOrder });
-  assert.equal(replayedRefund.normalizedEvent.eventId, refunded.normalizedEvent.eventId);
-  assert.equal(replayedRefund.normalizedEvent.refundObservedAt, refunded.normalizedEvent.refundObservedAt);
+  assert.equal(replayedRefund.normalizedEvent, null);
 }
 
 for (const mutate of [
