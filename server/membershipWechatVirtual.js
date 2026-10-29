@@ -78,6 +78,15 @@ function authorityBinding(order, config) {
   return `stemist-m1:${hmac(config.appKey, `authority&${material}`)}`;
 }
 
+function matchesAuthorityMetadata(value, expected) {
+  if (value === expected) return true; // Compatibility with the initial adapter contract.
+  if (typeof value !== 'string' || value.length > 16 * 1024) return false;
+  try {
+    const meta = JSON.parse(value);
+    return meta && typeof meta === 'object' && !Array.isArray(meta) && meta.attach === expected;
+  } catch { return false; }
+}
+
 function validateOrder(order, config, { checkout = false } = {}) {
   const validUserId = Number.isSafeInteger(Number(order?.userId)) && Number(order.userId) > 0;
   const validTradeNo = typeof order?.outTradeNo === "string"
@@ -253,7 +262,7 @@ function createWechatVirtualProvider({ config = {}, httpClient, clock = () => ne
     }
     if (providerOrder.order_id !== order.outTradeNo || providerOrder.env_type !== 1
         || providerOrder.order_fee !== order.amountFen
-        || providerOrder.biz_meta !== authorityBinding(order, config)) {
+        || !matchesAuthorityMetadata(providerOrder.biz_meta, authorityBinding(order, config))) {
       throw providerError("membership_payment_mismatch", "Membership provider order does not match the local order.", 409);
     }
     const paymentTypes = order.platform === 'android' ? [0] : order.platform === 'ios' ? [7] : [0, 7];
@@ -288,7 +297,8 @@ function createWechatVirtualProvider({ config = {}, httpClient, clock = () => ne
     }
     let normalizedEvent = null;
     if (status === 2 || status === 4) {
-      if (providerOrder.paid_fee !== order.amountFen || providerOrder.refund_fee !== 0
+      if (providerOrder.paid_fee !== order.amountFen || (providerOrder.refund_fee != null && providerOrder.refund_fee !== 0)
+          || (providerOrder.left_fee != null && providerOrder.left_fee !== order.amountFen)
           || !paymentTypes.includes(providerOrder.order_type)) {
         throw providerError("membership_payment_mismatch", "Membership provider payment amount does not match.", 409);
       }

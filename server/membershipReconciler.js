@@ -4,7 +4,7 @@ const { refreshMembershipOrder } = require('./membership');
 
 // Provider calls are read-only order queries / acknowledgement of already
 // durable grants. This worker never creates an order or starts a payment.
-function createMembershipReconciler({ getDb, providerRegistry = {}, refresh = refreshMembershipOrder, clock = Date.now } = {}) {
+function createMembershipReconciler({ getDb, providerRegistry = {}, env = {}, refresh = refreshMembershipOrder, clock = Date.now } = {}) {
   let running = false;
   let timer = null;
   let stopped = false;
@@ -27,7 +27,7 @@ function createMembershipReconciler({ getDb, providerRegistry = {}, refresh = re
         db.prepare('UPDATE membership_orders SET last_reconciled_at=? WHERE id=?').run(new Date(Number(clock())).toISOString(), row.id);
         attempted++;
         try {
-          await refresh({ db, userId: `ielts:${row.user_id}`, orderId: row.id, providerRegistry });
+          await refresh({ db, userId: `ielts:${row.user_id}`, orderId: row.id, providerRegistry, env });
           confirmed++;
         } catch { /* A bounded next pass resumes; never log provider bodies or identity. */ }
       }

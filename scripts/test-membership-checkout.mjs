@@ -90,9 +90,9 @@ const retry = await createMembershipCheckout({
   db, userId: "ielts:42", payload: { ...basePayload, wxCode: "fresh-code-2" }, env, providerRegistry, resolveWechatIdentity,
 });
 assert.equal(retry.order.id, first.order.id);
-assert.equal(checkoutCalls.length, 2);
-assert.equal(checkoutCalls[1].order.outTradeNo, checkoutCalls[0].order.outTradeNo, "a retry must reuse the provider order identity");
-assert.deepEqual(identityCalls.map((item) => item.wxCode), ["fresh-code-1", "fresh-code-2"]);
+assert.equal(checkoutCalls.length, 1);
+assert.equal(retry.payment, undefined, "an issued trade number cannot be submitted to native payment twice");
+assert.deepEqual(identityCalls.map((item) => item.wxCode), ["fresh-code-1"]);
 assert.equal(db.prepare("SELECT COUNT(*) AS total FROM membership_orders").get().total, 1);
 
 await assert.rejects(() => createMembershipCheckout({
@@ -130,7 +130,7 @@ assert.equal(fulfilledRetry.order.id, first.order.id);
 assert.equal(fulfilledRetry.order.status, "fulfilled");
 assert.equal(fulfilledRetry.entitlement.active, true);
 assert.equal(Object.hasOwn(fulfilledRetry, "payment"), false, "a fulfilled idempotent retry must not initiate payment again");
-assert.equal(checkoutCalls.length, 2);
+assert.equal(checkoutCalls.length, 1);
 
 const pendingOrder = {
   ...basePayload,
@@ -290,6 +290,9 @@ const identityRaceOrder = await createMembershipCheckout({
   db, userId: "ielts:42", payload: identityRacePayload, env, providerRegistry, resolveWechatIdentity,
 });
 const identityRaceInternal = checkoutCalls.at(-1).order;
+// Issued pending orders are now query-only. A pre-issuance failed row still
+// exercises the late identity-exchange / terminal-event race safely.
+db.prepare("UPDATE membership_orders SET status='failed' WHERE id=?").run(identityRaceOrder.order.id);
 let releaseIdentityRace;
 let markIdentityRaceStarted;
 const identityRaceStarted = new Promise((resolve) => { markIdentityRaceStarted = resolve; });

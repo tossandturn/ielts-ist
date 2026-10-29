@@ -1,5 +1,7 @@
 "use strict";
 
+const crypto = require('crypto');
+
 const MODE = "single-real-payment";
 const PLATFORM = "android";
 const MAX_WINDOW_MS = 2 * 60 * 60 * 1000;
@@ -68,6 +70,16 @@ function installTestbuyerCanarySchema(db) {
       expires_at TEXT NOT NULL,
       reserved_at TEXT NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS membership_testbuyer_retries (
+      previous_order_id TEXT PRIMARY KEY REFERENCES membership_orders(id),
+      canary_id TEXT NOT NULL,
+      user_id INTEGER NOT NULL REFERENCES users(id),
+      platform TEXT NOT NULL CHECK (platform IN ('android','ios')),
+      previous_idempotency_key TEXT NOT NULL,
+      replacement_idempotency_key TEXT NOT NULL UNIQUE,
+      replacement_order_id TEXT UNIQUE REFERENCES membership_orders(id),
+      created_at TEXT NOT NULL
+    );
   `);
 }
 
@@ -121,12 +133,43 @@ function testbuyerCanaryState(db, config, userId) {
     recovery,
   };
   if (!config.active) return { authorized: true, active: false, reason: config.inactiveReason, canary: descriptor };
+  if (row?.order_id && db.prepare("SELECT id FROM membership_orders WHERE id=? AND status='closed'").get(row.order_id)
+      && db.prepare('SELECT COUNT(*) n FROM membership_testbuyer_retries WHERE canary_id=? AND user_id=? AND platform=?').get(config.canaryId, numericUserId(userId), config.platform).n >= 3) {
+    return { authorized: true, active: false, reason: 'testbuyer_canary_consumed', canary: { ...descriptor, recovery: null } };
+  }
   return {
     authorized: true,
     active: true,
     reason: row ? "testbuyer_canary_recovery_required" : "testbuyer_canary",
     canary: descriptor,
   };
+}
+
+function replaceVerifiedClosedTestbuyerOrder(db, config, { userId, orderId, now = Date.now } = {}) {
+  const observe = () => Number(typeof now === 'function' ? now() : now);
+  if (!config?.active || config.userId !== String(userId) || observe() < config.startsMs || observe() >= config.expiresMs) return false;
+  db.exec('BEGIN IMMEDIATE');
+  try {
+    const observed = observe();
+    if (!Number.isFinite(observed) || observed < config.startsMs || observed >= config.expiresMs) { db.exec('COMMIT'); return false; }
+    const row = rowForSlot(db, config);
+    const order = db.prepare("SELECT * FROM membership_orders WHERE id=? AND user_id=?").get(String(orderId), numericUserId(userId));
+    const eligible = rowMatchesConfig(row, config) && row.order_id === orderId && order
+      && order.status === 'closed' && order.platform === config.platform && order.provider === 'wechat_virtual'
+      && order.plan_id === 'all-access-month' && order.amount_fen === 2880 && order.currency === 'CNY' && order.duration_days === 30 && order.auto_renew === 0
+      && order.idempotency_key === row.idempotency_key && order.paid_at == null
+      && Number.isFinite(Date.parse(order.provider_closed_at)) && /^[a-f0-9]{64}$/.test(order.provider_close_sha256 || '');
+    if (!eligible) { db.exec('COMMIT'); return false; }
+    const retries = db.prepare('SELECT COUNT(*) n FROM membership_testbuyer_retries WHERE canary_id=? AND user_id=? AND platform=?').get(config.canaryId, numericUserId(userId), config.platform).n;
+    if (retries >= 3) { db.exec('COMMIT'); return false; }
+    const replacement = 'retry-' + crypto.randomBytes(18).toString('hex');
+    db.prepare('INSERT INTO membership_testbuyer_retries (previous_order_id,canary_id,user_id,platform,previous_idempotency_key,replacement_idempotency_key,created_at) VALUES (?,?,?,?,?,?,?)')
+      .run(orderId, config.canaryId, numericUserId(userId), config.platform, row.idempotency_key, replacement, new Date(observed).toISOString());
+    const storage = storageFor(config);
+    db.prepare(`UPDATE ${storage.table} SET idempotency_key=?,order_id=NULL,reserved_at=? WHERE ${storage.key}=? AND order_id=? AND idempotency_key=?`)
+      .run(replacement, new Date(observed).toISOString(), storage.value, orderId, row.idempotency_key);
+    db.exec('COMMIT'); return true;
+  } catch (error) { try { db.exec('ROLLBACK'); } catch {} throw error; }
 }
 
 function reserveTestbuyerCanary(db, config, { userId, idempotencyKey, platform, now = Date.now } = {}) {
@@ -215,6 +258,8 @@ function bindTestbuyerCanaryOrder(db, config, { userId, idempotencyKey, orderId,
   db.prepare(`UPDATE ${storage.table} SET order_id=? WHERE ${storage.key}=? AND order_id IS NULL`).run(String(orderId), storage.value);
   const bound = rowForSlot(db, config);
   if (bound.order_id !== String(orderId)) throw canaryError("membership_canary_binding_conflict", 409, "The test payment order identity changed.");
+  db.prepare('UPDATE membership_testbuyer_retries SET replacement_order_id=? WHERE canary_id=? AND user_id=? AND platform=? AND replacement_idempotency_key=? AND replacement_order_id IS NULL')
+    .run(String(orderId), config.canaryId, numeric, config.platform, String(idempotencyKey));
   return Object.freeze({
     canaryId: bound.canary_id,
     userId: `ielts:${bound.user_id}`,
@@ -232,5 +277,6 @@ module.exports = {
   installTestbuyerCanarySchema,
   readTestbuyerCanaryConfig,
   reserveTestbuyerCanary,
+  replaceVerifiedClosedTestbuyerOrder,
   testbuyerCanaryState,
 };

@@ -1,7 +1,7 @@
 "use strict";
 
 const crypto = require("crypto");
-const { installTestbuyerCanarySchema } = require("./membershipTestbuyerCanary");
+const { installTestbuyerCanarySchema, readTestbuyerCanaryConfig, replaceVerifiedClosedTestbuyerOrder } = require("./membershipTestbuyerCanary");
 
 const PROTOCOL = "stemist-membership-v1";
 const ALL_ACCESS_FEATURE = "all-access";
@@ -124,7 +124,7 @@ function installMembershipSchema(db) {
   if (!db.prepare('PRAGMA table_info(membership_orders)').all().some((column) => column.name === 'platform')) {
     db.exec("ALTER TABLE membership_orders ADD COLUMN platform TEXT CHECK (platform IS NULL OR platform IN ('android', 'ios'))");
   }
-  for (const column of ['provider_delivered_at', 'last_reconciled_at']) {
+  for (const column of ['provider_delivered_at', 'last_reconciled_at', 'provider_closed_at', 'provider_close_sha256']) {
     if (!db.prepare('PRAGMA table_info(membership_orders)').all().some((item) => item.name === column)) {
       db.exec(`ALTER TABLE membership_orders ADD COLUMN ${column} TEXT`);
     }
@@ -299,12 +299,14 @@ function getMembershipOrder(db, userId, orderId) {
   };
 }
 
-async function refreshMembershipOrder({ db, userId, orderId, providerRegistry = {} }) {
+async function refreshMembershipOrder({ db, userId, orderId, providerRegistry = {}, env = {} }) {
   const owner = canonicalUserId(userId);
   const id = String(orderId || "").trim();
   const order = id ? db.prepare("SELECT * FROM membership_orders WHERE id = ? AND user_id = ?").get(id, owner.numeric) : null;
   if (!order) throw Object.assign(new Error("Membership order not found."), { statusCode: 404, code: "membership_order_not_found" });
-  if (["refunded", "closed"].includes(order.status)) return getMembershipOrder(db, owner.publicId, id);
+  const recoverClosed = () => replaceVerifiedClosedTestbuyerOrder(db, readTestbuyerCanaryConfig(env, Date.now(), order.platform || 'android'), { userId: owner.publicId, orderId: id });
+  if (order.status === 'closed' && order.provider_closed_at) { recoverClosed(); return getMembershipOrder(db, owner.publicId, id); }
+  if (order.status === 'refunded') return getMembershipOrder(db, owner.publicId, id);
   const provider = providerRegistry[order.provider];
   if (!provider || typeof provider.queryOrder !== "function" || provider.readiness?.().ready !== true) {
     throw Object.assign(new Error("Membership payment confirmation is temporarily unavailable."), {
@@ -321,8 +323,13 @@ async function refreshMembershipOrder({ db, userId, orderId, providerRegistry = 
   }
   if (result.normalizedEvent) applyVerifiedProviderResult(db, result.normalizedEvent);
   else if (result.state === "closed") {
-    db.prepare("UPDATE membership_orders SET status='closed',updated_at=? WHERE id=? AND status IN ('created','pending','failed')")
-      .run(new Date().toISOString(), order.id);
+    if (result.providerStatus !== 6 || !/^[a-f0-9]{64}$/.test(result.rawDigestSha256 || '')) {
+      throw Object.assign(new Error('Verified provider closure is required.'), { statusCode: 502, code: 'membership_provider_invalid' });
+    }
+    const closedAt = new Date().toISOString();
+    db.prepare("UPDATE membership_orders SET status='closed',updated_at=?,provider_closed_at=?,provider_close_sha256=? WHERE id=? AND status IN ('created','pending','failed','closed')")
+      .run(closedAt, closedAt, result.rawDigestSha256, order.id);
+    recoverClosed();
   } else if (["created", "failed"].includes(order.status)) {
     db.prepare("UPDATE membership_orders SET status='pending',updated_at=? WHERE id=? AND status IN ('created','failed')")
       .run(new Date().toISOString(), order.id);
@@ -379,7 +386,7 @@ async function createMembershipCheckout({ db, userId, payload, env = {}, provide
     }
   };
   assertOrderPlatform(initialExisting);
-  if (initialExisting && checkoutMustNotReturnPayment(initialExisting.status)) return getMembershipOrder(db, owner.publicId, initialExisting.id);
+  if (initialExisting && (initialExisting.status === 'pending' || checkoutMustNotReturnPayment(initialExisting.status))) return getMembershipOrder(db, owner.publicId, initialExisting.id);
   const catalog = membershipCatalog(env, providerRegistry, { serverAuthorizedCheckout });
   if (!catalog.commerce.checkoutEnabled) {
     throw Object.assign(new Error("Membership checkout is not available yet."), { statusCode: 503, code: "membership_checkout_unavailable" });
@@ -402,7 +409,7 @@ async function createMembershipCheckout({ db, userId, payload, env = {}, provide
     if (existing.provider !== provider.id || existing.payer_app_id !== identity.appId || existing.payer_openid !== identity.openid) {
       throw Object.assign(new Error("Membership checkout identity changed for this idempotency key."), { statusCode: 409, code: "membership_checkout_conflict" });
     }
-    if (checkoutMustNotReturnPayment(existing.status)) return getMembershipOrder(db, owner.publicId, existing.id);
+    if (existing.status === 'pending' || checkoutMustNotReturnPayment(existing.status)) return getMembershipOrder(db, owner.publicId, existing.id);
     let payment;
     try {
       assertLifecycle("before_provider_checkout");

@@ -112,7 +112,7 @@ const MEMBERSHIP_WECHAT_RUNTIME = createMembershipWechatRuntime({ env: process.e
 const MEMBERSHIP_PROVIDER_REGISTRY = MEMBERSHIP_WECHAT_RUNTIME.providerRegistry;
 const MEMBERSHIP_RECOVERY_PROVIDER_REGISTRY = MEMBERSHIP_WECHAT_RUNTIME.recoveryProviderRegistry;
 const membershipReconciler = require('./server/membershipReconciler').createMembershipReconciler({
-  getDb: getAppDb, providerRegistry: MEMBERSHIP_RECOVERY_PROVIDER_REGISTRY,
+  getDb: getAppDb, providerRegistry: MEMBERSHIP_RECOVERY_PROVIDER_REGISTRY, env: process.env,
 });
 const MEMBERSHIP_CANARY_PROVIDER_REGISTRY = MEMBERSHIP_RECOVERY_PROVIDER_REGISTRY.wechat_virtual
   ? Object.freeze({ wechat_virtual: Object.freeze({
@@ -3231,7 +3231,7 @@ async function handleMembershipApi(req, res) {
     try {
       sendJson(res, 200, await refreshMembershipOrder({
         db: getAppDb(), userId: ownerId, orderId: orderMatch[1],
-        providerRegistry: MEMBERSHIP_RECOVERY_PROVIDER_REGISTRY,
+        providerRegistry: MEMBERSHIP_RECOVERY_PROVIDER_REGISTRY, env: process.env,
       }));
     } catch (error) {
       sendJson(res, error.statusCode || 500, { code: error.code || "membership_order_error", error: error.message });
@@ -3326,7 +3326,7 @@ async function handleStemInternalMembership(req, res) {
     if (action === "order") {
       sendJson(res, 200, await refreshMembershipOrder({
         db: getAppDb(), userId: normalizedId, orderId: payload.orderId,
-        providerRegistry: MEMBERSHIP_RECOVERY_PROVIDER_REGISTRY,
+        providerRegistry: MEMBERSHIP_RECOVERY_PROVIDER_REGISTRY, env: process.env,
       }));
       return;
     }
