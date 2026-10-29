@@ -25,7 +25,10 @@ const STATUS_STATES = Object.freeze({
   0: "pending",
   1: "pending",
   2: "paid",
-  3: "pending",
+  // Delivery-in-progress is post-payment. The same amount/identity checks and
+  // event ID below let callback/query recovery grant exactly once, not wait
+  // for status 4 (which itself requires our successful delivery acknowledgement).
+  3: "paid",
   4: "fulfilled",
   5: "refund_pending",
   6: "closed",
@@ -296,7 +299,7 @@ function createWechatVirtualProvider({ config = {}, httpClient, clock = () => ne
       return { provider: PROVIDER_ID, providerStatus: 8, state: "refunded", normalizedEvent: event, rawDigestSha256: event.rawDigestSha256 };
     }
     let normalizedEvent = null;
-    if (status === 2 || status === 4) {
+    if (status === 2 || status === 3 || status === 4) {
       if (providerOrder.paid_fee !== order.amountFen || (providerOrder.refund_fee != null && providerOrder.refund_fee !== 0)
           || (providerOrder.left_fee != null && providerOrder.left_fee !== order.amountFen)
           || !paymentTypes.includes(providerOrder.order_type)) {

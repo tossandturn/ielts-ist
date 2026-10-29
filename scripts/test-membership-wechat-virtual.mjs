@@ -212,7 +212,7 @@ await expectCode(()=>provider.createCheckout({order:{...baseOrder,platform:null}
 for (const [status, expectedState, hasEvent] of [
   [0, "pending", false],
   [1, "pending", false],
-  [3, "pending", false],
+  [3, "paid", true],
   [4, "fulfilled", true],
   [5, "refund_pending", false],
   [6, "closed", false],

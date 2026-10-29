@@ -337,7 +337,7 @@ async function refreshMembershipOrder({ db, userId, orderId, providerRegistry = 
   const durable = db.prepare("SELECT * FROM membership_orders WHERE id=? AND user_id=?").get(id, owner.numeric);
   if (durable?.status === 'fulfilled' && !durable.provider_delivered_at) {
     let delivered = result.providerStatus === 4;
-    if (!delivered && result.providerStatus === 2 && typeof provider.notifyDelivered === 'function') {
+    if (!delivered && [2, 3].includes(result.providerStatus) && typeof provider.notifyDelivered === 'function') {
       try { delivered = (await provider.notifyDelivered({ order: internalOrder(durable) }))?.delivered === true; } catch {
         // Payment is already durable. The reconciler retries acknowledgement;
         // never erase the grant or ask the student to pay again.

@@ -212,7 +212,7 @@ const fullEnv = Object.freeze({
     applyVerifiedEvent: async () => { throw new Error("provider order mismatch must not apply"); },
   }), (error) => error.code === "membership_provider_callback_retry");
   triggerProviderOrderId = verifiedEvent.providerOrderId;
-  currentConfirmation = { provider: "wechat_virtual", providerStatus: 3, state: "pending", normalizedEvent: null, rawDigestSha256: "f".repeat(64) };
+  currentConfirmation = { provider: "wechat_virtual", providerStatus: 1, state: "pending", normalizedEvent: null, rawDigestSha256: "f".repeat(64) };
   await assert.rejects(() => runtime.processNotification({
     rawBody: Buffer.from("encrypted-fixture"),
     query: new URLSearchParams("encrypt_type=aes"),
