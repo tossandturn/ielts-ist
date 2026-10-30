@@ -164,6 +164,9 @@ const WRITING_AI_BASE_URL = (process.env.WRITING_AI_BASE_URL || process.env.QWEN
 const WRITING_AI_API_KEY = process.env.WRITING_AI_API_KEY || process.env.QWEN_WRITING_API_KEY || DASHSCOPE_API_KEY;
 const WRITING_SCORING_PROMPT_VERSION = "ielts-writing-rubric.v2";
 const WRITING_AI_TIMEOUT_MS = Math.max(1_000, Math.min(60_000, Number(process.env.WRITING_AI_TIMEOUT_MS || 25_000)));
+// Owned background jobs can finish a full rubric report without borrowing the
+// short synchronous fallback budget. This does not change the model or thinking.
+const WRITING_JOB_TIMEOUT_MS = Math.max(1_000, Math.min(180_000, Number(process.env.WRITING_JOB_TIMEOUT_MS || 120_000)));
 // Photo grading includes visual reading and a full rubric report; it runs as an
 // owned asynchronous job instead of borrowing the short text-request budget.
 const WRITING_VISION_TIMEOUT_MS = Math.max(5_000, Math.min(240_000, Number(process.env.WRITING_VISION_TIMEOUT_MS || 180_000)));
@@ -5548,7 +5551,7 @@ async function callSpeakingAudioAI({ system, user, audio, temperature = 0.2 }) {
   return text.trim();
 }
 
-async function callWritingAI({ system, user, temperature = 0.25 }) {
+async function callWritingAI({ system, user, temperature = 0.25, timeoutMs = WRITING_AI_TIMEOUT_MS }) {
   return callOpenAI({
     system,
     user,
@@ -5557,7 +5560,7 @@ async function callWritingAI({ system, user, temperature = 0.25 }) {
     baseUrl: WRITING_AI_BASE_URL,
     model: WRITING_AI_MODEL,
     allowResponsesFallback: false,
-    timeoutMs: WRITING_AI_TIMEOUT_MS,
+    timeoutMs,
   });
 }
 
@@ -8492,7 +8495,7 @@ function composeWeightedWritingScore(items, taskResults) {
   };
 }
 
-async function buildWritingFeedbackResult(prompt, essay, source = {}) {
+async function buildWritingFeedbackResult(prompt, essay, source = {}, { asyncJob = false } = {}) {
   let ai = null;
   let warning = "";
   let failureCode="writing_vision_unavailable";
@@ -8512,6 +8515,7 @@ async function buildWritingFeedbackResult(prompt, essay, source = {}) {
     ai = await (photoProvider?callOpenAI({system,user,apiKey:WRITING_VISION_AI_API_KEY,baseUrl:WRITING_VISION_AI_BASE_URL,model:WRITING_VISION_AI_MODEL,enableThinking:false,jsonResponse:true,allowResponsesFallback:false,timeoutMs:Math.min(90000,WRITING_VISION_TIMEOUT_MS)}):visualGateway?callOpenAI({system,user,apiKey:AI_GATEWAY_API_KEY,baseUrl:AI_GATEWAY_BASE_URL,model:AI_GATEWAY_MODEL,reasoningEffort:AI_GATEWAY_REASONING_EFFORT,allowResponsesFallback:false,timeoutMs:WRITING_VISION_TIMEOUT_MS}):studentImages.length?callOpenAI({system,user,apiKey:WRITING_AI_API_KEY,baseUrl:WRITING_AI_BASE_URL,model:WRITING_AI_MODEL,allowResponsesFallback:false,timeoutMs:WRITING_VISION_TIMEOUT_MS}):callWritingAI({
       system,
       user,
+      timeoutMs: asyncJob ? WRITING_JOB_TIMEOUT_MS : WRITING_AI_TIMEOUT_MS,
     }));
   } catch (error) {
     warning = writingProviderWarning(error);
@@ -8519,6 +8523,7 @@ async function buildWritingFeedbackResult(prompt, essay, source = {}) {
     failureCode=/timeout|timed out|abort/i.test(message)?"writing_vision_timeout":/chat=(?:401|403)/.test(message)?"writing_vision_configuration":/chat=429/.test(message)?"writing_vision_busy":"writing_vision_unavailable";
   }
   if(studentImages.length&&!ai)throw Object.assign(new Error("Photo marking is temporarily unavailable; the photograph has not been graded."),{statusCode:503,code:failureCode});
+  if(asyncJob&&!ai)throw Object.assign(new Error("Writing AI feedback is incomplete. The essay is preserved; retry later."),{statusCode:503,code:failureCode.replace("writing_vision_","writing_ai_")});
   const transcribedEssay=studentImages.length?String(parseWritingAnalysisJson(ai)?.transcribedEssay||"").trim().slice(0,20000):"";
   const evidenceEssay=essay||transcribedEssay;
   if(transcribedEssay&&!essay)source.essay=transcribedEssay;
@@ -8559,8 +8564,8 @@ async function buildWritingFeedbackResult(prompt, essay, source = {}) {
   );
 }
 
-async function buildWritingPairFeedbackResult(items) {
-  const taskResults = await Promise.all(items.map((item) => buildWritingFeedbackResult(item.prompt, item.essay, item)));
+async function buildWritingPairFeedbackResult(items, options = {}) {
+  const taskResults = await Promise.all(items.map((item) => buildWritingFeedbackResult(item.prompt, item.essay, item, options)));
   const contract = composeWeightedWritingScore(items, taskResults);
   const feedback = taskResults.map((result, index) => `Task ${index + 1}${contract.review.required ? " · 反馈待复核" : ` · AI practice Band ${contract.score.tasks[index].overall.toFixed(1)}`}\n${result.feedback}`).join("\n\n");
   const analysis = {
@@ -8637,9 +8642,9 @@ function buildSingleWritingContract(prompt, essay, result) {
   };
 }
 
-async function buildWritingPayloadResult(parsed) {
-  if (parsed.kind === "pair") return buildWritingPairFeedbackResult(parsed.items);
-  const result = await buildWritingFeedbackResult(parsed.prompt, parsed.essay, parsed);
+async function buildWritingPayloadResult(parsed, options = {}) {
+  if (parsed.kind === "pair") return buildWritingPairFeedbackResult(parsed.items,options);
+  const result = await buildWritingFeedbackResult(parsed.prompt, parsed.essay, parsed, options);
   return { ...result, contract: buildSingleWritingContract(parsed.prompt, parsed.essay, result) };
 }
 
@@ -8657,7 +8662,7 @@ async function handleWritingJobStart(req, res) {
   const parsed = parseWritingPayload(payload);
   const fingerprintItems=(parsed.kind==="pair"?parsed.items:[parsed]).map(item=>({id:item.sourceTaskId||item.id,sourceRevision:item.sourceRevision||"",prompt:item.prompt,essay:item.essay,imageHashes:(item.studentImages||[]).map(image=>crypto.createHash("sha256").update(image).digest("hex"))}));
   const requestFingerprint=user?crypto.createHash("sha256").update(String(user.id)+":"+JSON.stringify(fingerprintItems)).digest("hex"):"";
-  const duplicate=requestFingerprint?[...writingFeedbackJobs.values()].find(job=>job.userId===user.id&&job.requestFingerprint===requestFingerprint&&job.status!=="error"):null;
+  const duplicate=requestFingerprint?[...writingFeedbackJobs.values()].find(job=>job.userId===user.id&&job.requestFingerprint===requestFingerprint&&(job.status==="pending"||job.status==="done"&&String(job.result?.mode||"").startsWith("ai:")&&!job.result?.review?.required&&!job.result?.analysis?.reviewRequired&&job.result?.analysis?.confidence!=="low"&&!job.result?.contract?.review?.required)):null;
   if(duplicate){sendJson(res,202,{jobId:duplicate.id,status:duplicate.status,idempotent:true});return;}
   if(user&&[...writingFeedbackJobs.values()].filter(job=>job.userId===user.id&&job.status==="pending").length>=2){sendJson(res,429,{error:"Two Writing requests are already running. Please check their results first."});return;}
   const id = crypto.randomUUID();
@@ -8674,7 +8679,7 @@ async function handleWritingJobStart(req, res) {
     error: "",
   };
   writingFeedbackJobs.set(id, job);
-  buildWritingPayloadResult(parsed)
+  buildWritingPayloadResult(parsed,{asyncJob:true})
     .then((result) => {
       if(native&&user){
         const record=nativeWritingRecord(parsed,result,job);
@@ -8692,7 +8697,7 @@ async function handleWritingJobStart(req, res) {
       job.status = "error";
       job.updatedAt = Date.now();
       job.error = "Writing feedback could not be completed safely. Please retry.";
-      job.errorCode=/^writing_vision_(?:timeout|configuration|busy|unavailable)$/.test(error?.code||"")?error.code:"writing_report_unavailable";
+      job.errorCode=/^writing_(?:vision|ai)_(?:timeout|configuration|busy|unavailable)$/.test(error?.code||"")?error.code:"writing_report_unavailable";
       console.warn(JSON.stringify({event:"writing_job_failed",code:job.errorCode,elapsedMs:job.updatedAt-job.createdAt,native}));
     });
   sendJson(res, 202, { jobId: id, status: job.status, message: "Writing feedback job started." });
