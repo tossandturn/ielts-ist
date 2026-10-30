@@ -167,6 +167,7 @@ const WRITING_AI_TIMEOUT_MS = Math.max(1_000, Math.min(60_000, Number(process.en
 // Owned background jobs can finish a full rubric report without borrowing the
 // short synchronous fallback budget. This does not change the model or thinking.
 const WRITING_JOB_TIMEOUT_MS = Math.max(1_000, Math.min(180_000, Number(process.env.WRITING_JOB_TIMEOUT_MS || 120_000)));
+const WRITING_JOB_THINKING_BUDGET = Math.max(256, Math.min(8192, Math.round(Number(process.env.WRITING_JOB_THINKING_BUDGET) || 2048)));
 // Photo grading includes visual reading and a full rubric report; it runs as an
 // owned asynchronous job instead of borrowing the short text-request budget.
 const WRITING_VISION_TIMEOUT_MS = Math.max(5_000, Math.min(240_000, Number(process.env.WRITING_VISION_TIMEOUT_MS || 180_000)));
@@ -5321,6 +5322,7 @@ async function callOpenAI({
   allowResponsesFallback = true,
   reasoningEffort = "",
   enableThinking,
+  thinkingBudget,
   jsonResponse = false,
   agentTools = [],
   toolExecutor = null,
@@ -5349,6 +5351,7 @@ async function callOpenAI({
     if (supportsReasoning) body.reasoning_effort = reasoningEffort;
     else if (Number.isFinite(temperature)) body.temperature = temperature;
     if(typeof enableThinking === "boolean" && /^qwen/i.test(String(model)))body.enable_thinking=enableThinking;
+    if(Number.isInteger(thinkingBudget)&&thinkingBudget>0&&enableThinking!==false&&/^qwen3\.[5678](?:-|$)/i.test(String(model))){body.enable_thinking=true;body.thinking_budget=thinkingBudget;}
     if(jsonResponse && mode === "chat")body.response_format={type:"json_object"};
     if (mode === "chat" && Array.isArray(agentTools) && agentTools.length) {
       body.tools = agentTools;
@@ -5551,7 +5554,7 @@ async function callSpeakingAudioAI({ system, user, audio, temperature = 0.2 }) {
   return text.trim();
 }
 
-async function callWritingAI({ system, user, temperature = 0.25, timeoutMs = WRITING_AI_TIMEOUT_MS }) {
+async function callWritingAI({ system, user, temperature = 0.25, timeoutMs = WRITING_AI_TIMEOUT_MS, thinkingBudget }) {
   return callOpenAI({
     system,
     user,
@@ -5561,6 +5564,7 @@ async function callWritingAI({ system, user, temperature = 0.25, timeoutMs = WRI
     model: WRITING_AI_MODEL,
     allowResponsesFallback: false,
     timeoutMs,
+    thinkingBudget,
   });
 }
 
@@ -8516,6 +8520,7 @@ async function buildWritingFeedbackResult(prompt, essay, source = {}, { asyncJob
       system,
       user,
       timeoutMs: asyncJob ? WRITING_JOB_TIMEOUT_MS : WRITING_AI_TIMEOUT_MS,
+      thinkingBudget: asyncJob && /^qwen3\.[5678](?:-|$)/i.test(WRITING_AI_MODEL) ? WRITING_JOB_THINKING_BUDGET : undefined,
     }));
   } catch (error) {
     warning = writingProviderWarning(error);

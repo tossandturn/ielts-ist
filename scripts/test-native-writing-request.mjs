@@ -7,7 +7,7 @@ const start=source.indexOf('async function buildWritingFeedbackResult(');
 const end=source.indexOf('\nasync function buildWritingPairFeedbackResult(',start);
 assert.ok(start>0&&end>start);
 const requests=[];
-const context={AI_GATEWAY_API_KEY:'local-fixture-key',AI_GATEWAY_MODEL:'configured-vision-model',AI_GATEWAY_BASE_URL:'http://127.0.0.1:1/v1',AI_GATEWAY_REASONING_EFFORT:'xhigh',WRITING_AI_MODEL:'configured-text-model',WRITING_AI_TIMEOUT_MS:1000,WRITING_VISION_TIMEOUT_MS:180000,WRITING_SCORING_PROMPT_VERSION:'fixture',writingSystemPrompt:()=> 'rubric',
+const context={AI_GATEWAY_API_KEY:'local-fixture-key',AI_GATEWAY_MODEL:'configured-vision-model',AI_GATEWAY_BASE_URL:'http://127.0.0.1:1/v1',AI_GATEWAY_REASONING_EFFORT:'xhigh',WRITING_AI_MODEL:'configured-text-model',WRITING_AI_TIMEOUT_MS:1000,WRITING_JOB_TIMEOUT_MS:120000,WRITING_JOB_THINKING_BUDGET:2048,WRITING_VISION_TIMEOUT_MS:180000,WRITING_SCORING_PROMPT_VERSION:'fixture',writingSystemPrompt:()=> 'rubric',
  callOpenAI:async request=>{requests.push(request);return 'validated feedback'},callWritingAI:async request=>{requests.push(request);return 'text feedback'},
  writingProviderWarning:()=> 'unavailable',localWritingFeedbackAmber:()=> 'local feedback',normalizeWritingAnalysis:()=>({fullReport:'verified feedback',reviewRequired:false}),
  createWritingReportPdfDataUrl:async()=> 'data:application/pdf;base64,fixture',addPdfDownloadUrl:value=>value,parseWritingAnalysisJson:()=>({transcribedEssay:'The student photographed essay.'})};
@@ -46,3 +46,12 @@ const rubric={AMBER_WRITING_SKILL:'',WRITING_SCORING_PROMPT_VERSION:'fixture'};v
 assert.match(rubric.prompt({photo:true}),/Use this schema: \{"transcribedEssay":/,'the required photo evidence field belongs to the actual JSON schema, not only an optional instruction');
 assert.doesNotMatch(rubric.prompt(),/transcribedEssay/,'typed grading keeps its previous schema');
 console.log('Native Writing request: source chart reaches the configured vision model; no image bytes in the result.');
+context.WRITING_AI_MODEL='qwen3.7-max';
+await context.build('Task','Student essay',{}, {asyncJob:true});
+assert.equal(requests.at(-1).thinkingBudget,2048);
+assert.equal(requests.at(-1).timeoutMs,120000);
+await context.build('Task','Student essay');
+assert.equal(requests.at(-1).thinkingBudget,undefined,'synchronous writing keeps its existing thinking settings');
+context.WRITING_AI_MODEL='other-provider-model';
+await context.build('Task','Student essay',{}, {asyncJob:true});
+assert.equal(requests.at(-1).thinkingBudget,undefined,'do not send Qwen-only fields to other providers');
