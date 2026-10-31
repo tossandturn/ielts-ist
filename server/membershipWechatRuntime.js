@@ -81,8 +81,12 @@ function readMembershipWechatRuntimeConfig(env = {}) {
     && callbackReady
     && platforms.length > 0;
   const paymentAcceptanceReady = flag(env.MEMBERSHIP_WECHAT_VIRTUAL_REAL_PAYMENT_ACCEPTED);
+  const acceptedNames = String(env.MEMBERSHIP_WECHAT_VIRTUAL_ACCEPTED_PLATFORMS || '').trim().split(',').map(value => value.trim());
+  const publicPlatforms = Object.freeze(acceptedNames.length && acceptedNames.every(value => ['android', 'ios'].includes(value))
+    ? platforms.filter(platform => acceptedNames.includes(platform)) : []);
   const registryEnabled = configured
     && paymentAcceptanceReady
+    && publicPlatforms.length > 0
     && flag(env.MEMBERSHIP_CHECKOUT_ENABLED)
     && flag(env.MEMBERSHIP_COMMERCE_READY);
   const publicReadiness = Object.freeze({
@@ -109,6 +113,7 @@ function readMembershipWechatRuntimeConfig(env = {}) {
     callbackReady,
     paymentAcceptanceReady,
     platforms,
+    publicPlatforms,
     publicReadiness,
   });
 }
@@ -443,7 +448,7 @@ function createMembershipWechatRuntime({
   const recoveryProviderRegistry = Object.freeze({ [PROVIDER_ID]: registeredProvider });
   return Object.freeze({
     providerRegistry: config.registryEnabled
-      ? recoveryProviderRegistry
+      ? Object.freeze({ [PROVIDER_ID]: Object.freeze({ ...registeredProvider, platforms: config.publicPlatforms }) })
       : Object.freeze({}),
     recoveryProviderRegistry,
     readiness: () => config.publicReadiness,

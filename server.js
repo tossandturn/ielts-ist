@@ -3103,10 +3103,11 @@ async function handleMembershipWechatCallback(req, res) {
 
 function privateMembershipCatalog(db, ownerId, now = Date.now()) {
   const publicCatalog = membershipCatalog(process.env, MEMBERSHIP_PROVIDER_REGISTRY);
-  if (publicCatalog.commerce.checkoutEnabled) {
-    return { ...publicCatalog, userId: ownerId, commerce: { ...publicCatalog.commerce, canary: null, platformCanaries: {} } };
-  }
   const scopes = ['android', 'ios'].map((platform) => {
+    if (publicCatalog.commerce.providers.some(provider => provider.enabled && provider.platforms.includes(platform))) {
+      const providers = publicCatalog.commerce.providers.map(provider => ({ ...provider, platforms: provider.platforms.includes(platform) ? [platform] : [] }));
+      return { platform, state: { authorized:false, active:false, canary:null }, catalog: { ...publicCatalog, commerce: { ...publicCatalog.commerce, providers } }, checkoutEnabled:true, reason:'ready' };
+    }
     const config = readTestbuyerCanaryConfig(process.env, now, platform);
     const state = testbuyerCanaryState(db, config, ownerId);
     const catalog = membershipCatalog(process.env, membershipCanaryProviderRegistry(platform), {
@@ -3128,7 +3129,7 @@ function privateMembershipCatalog(db, ownerId, now = Date.now()) {
     commerce: {
       ...scoped.commerce,
       checkoutEnabled: scopes.some((scope) => scope.checkoutEnabled),
-      reason: android.reason,
+      reason: publicCatalog.commerce.checkoutEnabled ? 'ready' : android.reason,
       providers,
       canary: android.state.canary,
       platformCanaries: Object.fromEntries(scopes.filter((scope) => scope.state.authorized && scope.state.canary).map((scope) => [scope.platform, {
@@ -3139,14 +3140,14 @@ function privateMembershipCatalog(db, ownerId, now = Date.now()) {
 }
 
 async function createAuthorizedMembershipCheckout({ db, ownerId, payload }) {
-  if (Object.keys(MEMBERSHIP_PROVIDER_REGISTRY).length > 0) {
+  const request = normalizeCheckoutRequest(payload);
+  if (Object.values(MEMBERSHIP_PROVIDER_REGISTRY).some(provider => provider.platforms.includes(request.platform))) {
     return createMembershipCheckout({
       db, userId: ownerId, payload, env: process.env,
       providerRegistry: MEMBERSHIP_PROVIDER_REGISTRY,
       resolveWechatIdentity: resolveMembershipWechatIdentity,
     });
   }
-  const request = normalizeCheckoutRequest(payload);
   const config = readTestbuyerCanaryConfig(process.env, Date.now(), request.platform);
   const registry = membershipCanaryProviderRegistry(request.platform);
   const providerCatalog = membershipCatalog(process.env, registry, {
