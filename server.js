@@ -5324,6 +5324,8 @@ async function callOpenAI({
   reasoningEffort = "",
   enableThinking,
   thinkingBudget,
+  maxTokens,
+  requireComplete = false,
   jsonResponse = false,
   agentTools = [],
   toolExecutor = null,
@@ -5354,6 +5356,7 @@ async function callOpenAI({
     if(typeof enableThinking === "boolean" && /^qwen/i.test(String(model)))body.enable_thinking=enableThinking;
     if(Number.isInteger(thinkingBudget)&&thinkingBudget>0&&enableThinking!==false&&/^qwen3\.[5678](?:-|$)/i.test(String(model))){body.enable_thinking=true;body.thinking_budget=thinkingBudget;}
     if(jsonResponse && mode === "chat")body.response_format={type:"json_object"};
+    if(mode === "chat" && Number.isInteger(maxTokens) && maxTokens > 0 && maxTokens <= 8192)body.max_tokens=maxTokens;
     if (mode === "chat" && Array.isArray(agentTools) && agentTools.length) {
       body.tools = agentTools;
       body.tool_choice = "auto";
@@ -5383,6 +5386,7 @@ async function callOpenAI({
   }
 
   if (chatResponse.ok) {
+    if (requireComplete && chatJson?.choices?.[0]?.finish_reason !== "stop") throw new Error("AI response was incomplete.");
     const choice = chatJson?.choices?.[0];
     const toolCalls = Array.isArray(choice?.message?.tool_calls) ? choice.message.tool_calls : [];
     if (toolCalls.length && typeof toolExecutor === "function") {
@@ -8827,18 +8831,38 @@ async function handleSpeaking(req, res) {
           evidenceSummary,
           "",
           "No audio-model result is available. Use the realtime examiner note as the best audio-side evidence, and use the transcript for content, vocabulary and grammar.",
+          "Keep all four criteria. Give each one a short evidence excerpt (or an explicit no-audio limitation), one concise feedback sentence and one descriptor-linked rationale. Use at most two short items per list. Return complete JSON and do not invent audio observations.",
         ].join("\n"),
         temperature: 0.1,
+        // Reuse the verified direct provider; never fall through to the legacy generic proxy.
+        apiKey: WRITING_AI_API_KEY,
+        baseUrl: WRITING_AI_BASE_URL,
+        model: WRITING_AI_MODEL,
+        enableThinking: true,
+        thinkingBudget: 1024,
+        maxTokens: 1280,
+        requireComplete: true,
+        allowResponsesFallback: false,
         timeoutMs: SPEAKING_AI_TIMEOUT_MS,
       });
+      if (!ai) throw new Error("Speaking text AI is not configured or returned no result.");
+      const parsed = parseSpeakingAssessmentJson(ai);
+      const keys = ["fc", "lr", "gra", "pronunciation"];
+      if (!Array.isArray(parsed?.criteria) || parsed.criteria.length !== 4 || keys.some(key => {
+        const matches = parsed.criteria.filter(item => item?.key === key);
+        const item = matches[0];
+        return matches.length !== 1 || typeof item.score !== "number" || !Number.isFinite(item.score) || item.score < 0 || item.score > 9
+          || ["evidence", "feedback", "bandRationale"].some(field => typeof item[field] !== "string" || !item[field].trim());
+      })) throw new Error("Speaking AI did not return a complete four-criterion assessment.");
     } catch (error) {
+      ai = null;
       warnings.push(speakingProviderWarning(error));
     }
   }
   const analysis = normalizeSpeakingAssessment(ai || {}, { scope, audioUsed: audioAiUsed, fallbackScores });
   const contract = buildSpeakingScoringContract(analysis, transcript, {
     model: ai
-      ? audioAiUsed ? SPEAKING_AUDIO_AI_MODEL : MODEL
+      ? audioAiUsed ? SPEAKING_AUDIO_AI_MODEL : WRITING_AI_MODEL
       : "local-speaking-estimate",
     promptVersion: SPEAKING_SCORING_PROMPT_VERSION,
     audioUsed: audioAiUsed,
