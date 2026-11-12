@@ -23,6 +23,15 @@ preserved. This is not a claim that every problem completes within that deadline
 No environment value, provider configuration, database schema, dependency,
 frontend, realtime transport or microphone code is changed.
 
+The affected mini-program page is `pages/ielts/speaking.js`, calling
+`/api/speaking/feedback`; its existing 60-second client timeout remains compatible
+with the unchanged 25-second backend provider deadline. A separate caller audit
+found older web-only `legacyWriting`, `speakingTurn` and legacy full-exam paths
+still using the generic provider. They are not repaired or represented as passing
+by this change. The native full-exam path sends `x-stemist-native` and uses the
+existing early `preparedWriting` result from weighted Writing jobs rather than
+those legacy provider calls. Do not extend this single-route patch implicitly.
+
 ## Failure and evidence contracts
 
 A non-`stop` finish reason, malformed JSON, missing or duplicate criterion,
