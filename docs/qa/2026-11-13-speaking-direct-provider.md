@@ -85,11 +85,91 @@ microphone, recording, WebRTC handshake, mobile or Apple Pencil verification.
 
 ## Release boundary
 
-Only the reviewed `server.js` byte payload may be deployed, after the independent
-STEM rollout and its protected process snapshot are final. Preserve the exact
-original source bytes and mode for rollback. No server build, dependency install,
-environment change or database operation is required. Root owns final production
-gates, the single IELTS service restart, authenticated acceptance and Git push.
+Only the reviewed `server.js` byte payload is in the production patch. Root
+completed the independently gated single-file installation and one IELTS restart
+on 2026-11-13, after STEM B's functional acceptance. Installed source SHA256 is
+`8d746b889d171f004abd39a0d95245cf4f54229f084a9946666b0173b7c08511`.
+The observed IELTS process changed from PID 1367866 / restart count 39 to
+PID 1688728 / restart count 40. STEM remained at PID 1664613 / count 120 during
+this release. These are the release-time snapshots, not promises about future
+process IDs. Before/installed/stable-post resource and service gates passed.
+
+Original source bytes and metadata were retained for rollback. The install
+preserved mode 0644, UID 1000 and GID 1001. No server build, dependency install,
+environment change or database schema change occurred. The authenticated checks
+created short-lived sessions via the normal exchange and revoked only those test
+sessions; this is not a claim that no session rows were ever written.
+
+## Production acceptance and diagnostic sequence
+
+The following evidence is preserved separately. Later success does not rewrite
+an earlier failure or establish its cause.
+
+1. Initial authenticated production text-scoring acceptance: **FAIL** after
+   18.757 seconds. Session exchange succeeded and the new session was revoked in
+   `finally`. The old checker emitted only a generic `speaking-score` assertion;
+   the exact returned mode, provider failure class and failed field were not
+   retained. This failure is **not retrospectively explained**.
+2. One instrumented authenticated call to the actual mini-program
+   `/api/speaking/feedback` endpoint: **PASS**, 9.317 seconds for scoring. HTTP
+   200, `mode: ai`, provenance `qwen3.7-max`, four distinct complete criteria,
+   valid matching `scoring.v2` contract and evidence references, review required,
+   and no audio-use claim. Its only warning was that no audio was submitted.
+   The temporary test session was revoked and subsequently returned 401.
+3. One separately gated exact-function provider diagnostic: **AI_COMPLETE** in
+   10.426 seconds, exactly one provider request, HTTP 200, finish reason `stop`,
+   and all four raw rubric entries complete. Reported usage was 942 prompt tokens,
+   1145 completion tokens and 492 reasoning tokens (2087 total). The original
+   request parameters remained thinking budget 1024 and `max_tokens: 1280`.
+   These counters are recorded as returned, not converted into a latency or
+   remaining-capacity guarantee. This diagnostic used the exact deployed
+   functions and existing provider configuration in an isolated VM, fixed
+   synthetic input and a PDF stub; it created no student session and did not
+   access a database. Its durable one-shot guard prevents another run.
+
+The authenticated tests used the existing, explicitly authorised tester and
+original synthetic text, not a newly created student. Existing practice,
+membership orders, payments and other sessions were not read or changed. Tokens,
+keys, profiles, request messages, raw provider responses and feedback text were
+not recorded in these diagnostic reports. No additional ordinary score call or
+provider probe was repeated after the bounded diagnostic sequence.
+
+Private evidence identifiers and SHA256 digests (retained outside this repo):
+
+| Evidence | SHA256 |
+| --- | --- |
+| Original production FAIL | `d8cb8e374105427475a213c21897c5f8cc6c0ea62cd93bae6a58361cf0706c8e` |
+| Instrumented production PASS | `5f066a4e6e73c1789d8721ed3466a4bcb434b75a9488bb77ab8dc0acc5dec35e` |
+| One-shot exact-provider diagnostic | `ffb4b609f28ffa000617c68c6dca85a13e830d5f28dda161f08d1579ee8b1aff` |
+| Single-file install receipt | `eb409d0d9e5862b38ca54c20a38cebac5375c983cb89ccbc95dce6b3ad0f0efc` |
+| Single-restart receipt | `1357385372b8657f0a6e0cd376310aac953f864d128acea2771bb28aa8f9e51d` |
+
+Root accepts this exact functional source scope with the above reliability
+limitation. The first production failure remains unresolved historical evidence;
+neither later success proves a stable success rate nor establishes a latency SLO.
+No claim is made about a real phone/iPad UI, microphone, native realtime handshake,
+recording, measured pronunciation, Apple Pencil, long-answer scoring accuracy or
+all students' network conditions. Future safe error-category observability may
+help distinguish cutoff, malformed rubric, timeout, authentication and rate-limit
+failures, but no speculative business-logic change was made for this incident.
+
+## Recovery after a later STEM rollout
+
+The original IELTS operators deliberately pin the release-time protected STEM
+snapshot. After the independently scheduled STEM voice update changes that
+snapshot, those operators must refuse a rollback; never edit their original
+manifest, backup receipt or gate evidence to make the old pins appear current.
+Retain the immutable original source/metadata backup and its verification chain.
+
+If IELTS recovery is then required, perform a new bounded read-only readiness
+gate against the actual current IELTS and protected STEM state. A separately
+reviewed recovery plan must bind that new snapshot to the original immutable
+backup/manifest/receipt hashes, verify the current IELTS source has not drifted,
+restore only the exact original `server.js` bytes and metadata, and restart only
+IELTS once with a new one-attempt recovery receipt. Recheck resources, source,
+unchanged STEM, health and the affected student path afterward. Do not roll back
+STEM, its catalog/readers, environment, dependencies or databases. A new snapshot
+has not been guessed or embedded into an unbound recovery executor.
 
 Parameter references used by the candidate design: Alibaba Cloud
 [deep thinking](https://www.alibabacloud.com/help/en/model-studio/deep-thinking.md),
